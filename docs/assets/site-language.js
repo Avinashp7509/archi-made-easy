@@ -1,10 +1,10 @@
 (function (global) {
   'use strict';
 
-  var STORAGE_KEY = 'archify-lang';
+  var STORAGE_KEY = 'archi-made-easy-lang';
   var LEGACY_STORAGE_KEYS = Object.freeze([
-    'archify-gallery-language',
-    'archify-guide-language',
+    'archi-made-easy-gallery-language',
+    'archi-made-easy-guide-language',
   ]);
 
   function normalize(value) {
@@ -58,7 +58,7 @@
     return language;
   }
 
-  global.ArchifySiteLanguage = Object.freeze({
+  global.ArchiMadeEasySiteLanguage = Object.freeze({
     key: STORAGE_KEY,
     read: read,
     write: write,

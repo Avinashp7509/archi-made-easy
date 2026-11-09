@@ -7,9 +7,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
-const cursorCommand = 'npx -y skills@latest add https://archify.si --skill archify --agent cursor --global --copy --yes';
+const cursorCommand = 'npx -y skills@latest add https://OWNER.github.io/archi-made-easy --skill archi-made-easy --agent cursor --global --copy --yes';
 
 test('Cursor onboarding stays explicit, bilingual, and backed by the same Skill', () => {
   const english = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
@@ -27,10 +27,10 @@ test('Cursor onboarding stays explicit, bilingual, and backed by the same Skill'
   }
   for (const surface of [english, chinese, japanese]) assert.ok(surface.includes(cursorCommand));
   // The legacy static landing page keeps its original GitHub install source.
-  assert.ok(landing.includes('npx -y skills add tt-a1i/archify --skill archify --agent cursor --global --copy --yes'));
+  assert.ok(landing.includes('npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent cursor --global --copy --yes'));
   for (const surface of [english, chinese, japanese, start, landing]) {
     assert.doesNotMatch(surface, /skills use[^\n<]*--agent cursor/);
-    assert.doesNotMatch(surface, /~\/\.cursor\/skills\/archify/);
+    assert.doesNotMatch(surface, /~\/\.cursor\/skills\/archi-made-easy/);
     assert.doesNotMatch(surface, /all Cursor models|every Cursor model/i);
   }
 
@@ -50,15 +50,15 @@ test('Cursor onboarding stays explicit, bilingual, and backed by the same Skill'
 });
 
 test('the zero-dependency archive works from the canonical Cursor-visible agent path', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-cursor-package-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-cursor-package-'));
   const agentSkills = path.join(tmp, '.agents', 'skills');
   try {
     fs.mkdirSync(agentSkills, { recursive: true });
-    execFileSync('unzip', ['-q', path.join(repoRoot, 'archify.zip'), '-d', agentSkills]);
-    const installed = path.join(agentSkills, 'archify');
-    const cli = path.join(installed, 'bin', 'archify.mjs');
+    execFileSync('unzip', ['-q', path.join(repoRoot, 'archi-made-easy.zip'), '-d', agentSkills]);
+    const installed = path.join(agentSkills, 'archi-made-easy');
+    const cli = path.join(installed, 'bin', 'archi-made-easy.mjs');
     const doctor = execFileSync(process.execPath, [cli, 'doctor'], { encoding: 'utf8' });
-    assert.match(doctor, /Archify is ready\./);
+    assert.match(doctor, /Archi-Made-Easy is ready\./);
 
     const fixtures = {
       architecture: 'web-app.architecture.json',

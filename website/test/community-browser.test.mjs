@@ -3,16 +3,16 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
-import { ChromeVisualBrowser, findChrome } from '../../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome } from '../../archi-made-easy/bin/visual-check.mjs';
 import { createCommunityFixture, payload, websiteRoot } from './helpers/community-fixture.mjs';
 
-const integrationEnabled = process.env.ARCHIFY_SITE_INTEGRATION === '1';
+const integrationEnabled = process.env.ARCHI_MADE_EASY_SITE_INTEGRATION === '1';
 const chrome = integrationEnabled ? findChrome() : null;
-const siteRoot = process.env.ARCHIFY_SITE_ROOT ? path.resolve(process.env.ARCHIFY_SITE_ROOT) : path.join(websiteRoot, 'dist');
-const siteBase = process.env.ARCHIFY_SITE_BASE ?? '/archify';
+const siteRoot = process.env.ARCHI_MADE_EASY_SITE_ROOT ? path.resolve(process.env.ARCHI_MADE_EASY_SITE_ROOT) : path.join(websiteRoot, 'dist');
+const siteBase = process.env.ARCHI_MADE_EASY_SITE_BASE ?? '/archi-made-easy';
 
 test('real Chrome: community metadata remains text through language, filter and navigation changes', {
-  skip: integrationEnabled ? false : 'Set ARCHIFY_SITE_INTEGRATION=1 and ARCHIFY_CHROME to run the community browser regression.',
+  skip: integrationEnabled ? false : 'Set ARCHI_MADE_EASY_SITE_INTEGRATION=1 and ARCHI_MADE_EASY_CHROME to run the community browser regression.',
   timeout: 60000,
 }, async () => {
   assert.ok(chrome, 'The requested community integration gate requires usable Chrome.');
@@ -38,10 +38,10 @@ test('real Chrome: community metadata remains text through language, filter and 
       } catch { response.writeHead(404).end(); }
     });
     server = serve(siteRoot, siteBase);
-    fixtureServer = serve(fixture.dist, '/archify');
+    fixtureServer = serve(fixture.dist, '/archi-made-easy');
     await Promise.all([server, fixtureServer].map(server => new Promise(resolve => server.listen(0, '127.0.0.1', resolve))));
     const base = `http://127.0.0.1:${server.address().port}`;
-    const fixtureBase = `http://127.0.0.1:${fixtureServer.address().port}/archify`;
+    const fixtureBase = `http://127.0.0.1:${fixtureServer.address().port}/archi-made-easy`;
     browser = new ChromeVisualBrowser(chrome);
     const session = await browser.sessionPromise;
     const evaluate = async expression => {

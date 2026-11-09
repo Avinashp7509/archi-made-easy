@@ -7,10 +7,10 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { normalizeBrandSourceUrl } from '../archify/renderers/shared/brand-marks.mjs';
+import { normalizeBrandSourceUrl } from '../archi-made-easy/renderers/shared/brand-marks.mjs';
 
-const skillRoot = fileURLToPath(new URL('../archify/', import.meta.url));
-const cli = path.join(skillRoot, 'bin/archify.mjs');
+const skillRoot = fileURLToPath(new URL('../archi-made-easy/', import.meta.url));
+const cli = path.join(skillRoot, 'bin/archi-made-easy.mjs');
 const icon = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
 const digest = createHash('sha256').update(icon).digest('hex');
 const cases = [
@@ -43,7 +43,7 @@ function run(directory, args) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, [cli, ...args], {
       cwd: directory, timeout: 15000,
-      env: { ...process.env, ARCHIFY_BRAND_ALLOW_PRIVATE: '1', ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+      env: { ...process.env, ARCHI_MADE_EASY_BRAND_ALLOW_PRIVATE: '1', ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
     });
     let stdout = '', stderr = '';
     child.stdout.setEncoding('utf8').on('data', data => { stdout += data; });
@@ -54,7 +54,7 @@ function run(directory, args) {
 }
 
 async function fixture(t) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-brand-source-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-brand-source-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const requests = [];
   const server = http.createServer((request, response) => {

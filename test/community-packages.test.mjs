@@ -22,7 +22,7 @@ function validPackage() {
     summary: { en: 'A demo package summary that is long enough.', zh: '一个足够长的演示包简介。' },
     author: { name: 'demo', url: 'https://example.com/demo' },
     repository: 'https://github.com/demo/demo-pack',
-    archify: '>=3.0.0 <4.0.0',
+    archiMadeEasy: '>=3.0.0 <4.0.0',
     schemaVersions: [1, 2],
   };
 }
@@ -52,7 +52,7 @@ test('community package: rejects malformed entries with specific failures', () =
     ['short en summary', (value) => { value.summary.en = 'short'; }, /summary\.en/],
     ['missing zh summary', (value) => { delete value.summary.zh; }, /summary\.zh/],
     ['non-https repository', (value) => { value.repository = 'git@github.com:demo/x.git'; }, /repository must be an https/],
-    ['bad archify range', (value) => { value.archify = 'latest'; }, /archify must be a version range/],
+    ['bad archi-made-easy range', (value) => { value.archiMadeEasy = 'latest'; }, /archi-made-easy must be a version range/],
     ['empty schemaVersions', (value) => { value.schemaVersions = []; }, /schemaVersions must be a non-empty array/],
     ['non-integer schemaVersions', (value) => { value.schemaVersions = ['1']; }, /positive integers/],
     ['duplicate schemaVersions', (value) => { value.schemaVersions = [1, 1]; }, /unique/],
@@ -68,7 +68,7 @@ test('community package: rejects malformed entries with specific failures', () =
 });
 
 test('community registry: rejects duplicate names and file/name mismatches', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-community-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-community-'));
   try {
     const dir = path.join(root, 'community', 'packages');
     fs.mkdirSync(dir, { recursive: true });

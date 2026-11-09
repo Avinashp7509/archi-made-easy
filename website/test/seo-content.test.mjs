@@ -5,10 +5,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'parse5';
 import { CASES } from '../src/data/gallery-presentation.mjs';
-import { publicGuideData, SCENARIO_RECIPES, startPromptsFor } from '../../archify/recipes/scenarios.mjs';
+import { publicGuideData, SCENARIO_RECIPES, startPromptsFor } from '../../archi-made-easy/recipes/scenarios.mjs';
 
-const root = process.env.ARCHIFY_SITE_ROOT || fileURLToPath(new URL(process.env.ARCHIFY_SITE_TARGET === 'cloudflare' ? '../dist-cloudflare/' : '../dist/', import.meta.url));
-const cloudflare = process.env.ARCHIFY_SITE_TARGET === 'cloudflare' || path.basename(root) === 'dist-cloudflare';
+const root = process.env.ARCHI_MADE_EASY_SITE_ROOT || fileURLToPath(new URL(process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare' ? '../dist-cloudflare/' : '../dist/', import.meta.url));
+const cloudflare = process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare' || path.basename(root) === 'dist-cloudflare';
 const recipes = publicGuideData();
 const attr = (node, name) => node.attrs?.find(item => item.name === name)?.value;
 const find = (node, id) => attr(node, 'id') === id ? node : (node.childNodes || []).map(child => find(child, id)).find(Boolean);
@@ -18,9 +18,9 @@ const read = (page, lang) => parse(fs.readFileSync(path.join(root, lang === 'zh'
 const byClass = (node, name) => [...((attr(node, 'class') || '').split(/\s+/).includes(name) ? [node] : []), ...(node.childNodes || []).flatMap(child => byClass(child, name))];
 const byTag = (node, tag) => node.tagName === tag ? node : (node.childNodes || []).map(child => byTag(child, tag)).find(Boolean);
 function assertProofLink(page, link, lang, proof) {
-  const documentUrl = new URL(`${lang === 'zh' ? 'zh/' : ''}guide${cloudflare ? '' : '.html'}`, cloudflare ? 'https://archify.si/' : 'https://tt-a1i.github.io/archify/');
+  const documentUrl = new URL(`${lang === 'zh' ? 'zh/' : ''}guide${cloudflare ? '' : '.html'}`, cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/');
   const base = new URL(attr(byTag(page, 'base'), 'href'), documentUrl);
-  const expectedBase = cloudflare ? '/' : '/archify/';
+  const expectedBase = cloudflare ? '/' : '/archi-made-easy/';
   assert.equal(base.pathname, expectedBase, 'proof links resolve against the deployment base');
   const actual = new URL(attr(link, 'href'), base);
   assert.equal(actual.origin, documentUrl.origin);
@@ -45,7 +45,7 @@ for (const lang of ['en', 'zh']) {
         recipe[lang].useWhen, recipe[lang].avoidWhen, recipe[lang].prompt, ...recipe[lang].include]) {
         assert.ok(content.includes(clean(value)), `${recipe.id}: missing initial ${lang} copy: ${value}`);
       }
-      assert.ok(links(article).some(link => /github\.com\/tt-a1i\/archify\/blob\/(?:dev|main)\/archify\/recipes\/scenarios\.mjs$/.test(attr(link, 'href'))));
+      assert.ok(links(article).some(link => /github\.com\/OWNER\/archi-made-easy\/blob\/(?:dev|main)\/archi-made-easy\/recipes\/scenarios\.mjs$/.test(attr(link, 'href'))));
       if (recipe.proof) {
         const proofLink = links(article).find(link => new URL(attr(link, 'href'), 'https://example.test/').hash === `#proof-${recipe.proof}`);
         assert.ok(proofLink, `missing proof link for ${recipe.id}`);
@@ -67,23 +67,23 @@ for (const lang of ['en', 'zh']) {
     assert.equal(clean(text(find(page, 'recipe-question'))), clean(recipe[lang].question));
     assert.equal(clean(text(find(page, 'recipe-prompt'))), clean(startPromptsFor(recipe, lang).descriptionPrompt));
     for (const evidence of recipe[lang].include) assert.ok(clean(text(find(page, 'include-list'))).includes(clean(evidence)));
-    assert.match(text(find(page, 'install-command')), /npx -y skills@latest add https:\/\/archify\.si --skill archify --agent codex --global --copy --yes/);
+    assert.match(text(find(page, 'install-command')), /npx -y skills@latest add https:\/\/archi-made-easy\.si --skill archi-made-easy --agent codex --global --copy --yes/);
     assertProofLink(page, find(page, 'proof-link'), lang, recipe.proof);
   });
 }
 test('initial homepage product facts explain identity, inputs, delivery, license and limits', () => {
   const page = read('index', 'en');
-  const section = find(page, 'about-archify');
+  const section = find(page, 'about-archi-made-easy');
   const content = clean(text(section));
   for (const fact of ['open-source Agent Skill', 'typed JSON', 'interactive HTML', 'Mermaid', 'Apache-2.0', 'Codex', 'PNG', 'runtime system behavior', 'stable main']) assert.ok(content.includes(fact), fact);
   const hrefs = links(section).map(link => attr(link, 'href'));
-  assert.ok(hrefs.includes('https://github.com/tt-a1i/archify/releases'));
-  assert.ok(hrefs.includes('https://github.com/tt-a1i/archify/blob/main/LICENSE'));
+  assert.ok(hrefs.includes('https://github.com/OWNER/archi-made-easy/releases'));
+  assert.ok(hrefs.includes('https://github.com/OWNER/archi-made-easy/blob/main/LICENSE'));
 });
 
 for (const lang of ['en', 'zh']) {
   test(`initial ${lang} pages distinguish supported types from selected recipes and use the release channel`, () => {
-    const release = JSON.parse(fs.readFileSync(new URL('../../archify/skill-release.json', import.meta.url)));
+    const release = JSON.parse(fs.readFileSync(new URL('../../archi-made-easy/skill-release.json', import.meta.url)));
     for (const name of ['index', 'guide', 'start']) {
       const inventory = clean(text(byClass(read(name, lang), 'supported-diagrams')[0]));
       for (const label of lang === 'zh' ? ['类图', '树图', '时间线', '瀑布图', '精选入门示例'] : ['Class', 'Tree', 'Timeline', 'Waterfall', 'selected starting points']) assert.ok(inventory.includes(label), `${name}: ${label}`);
@@ -112,10 +112,10 @@ for (const lang of ['en', 'zh']) {
     const identityText = clean(text(identity));
     assert.ok(identityText.includes(lang === 'zh' ? '开源画图技能' : 'open-source diagram skill'));
     assert.deepEqual(links(identity).map(link => [clean(text(link)), attr(link, 'href')]), [
-      ['archify.si', 'https://archify.si/'],
-      ['tt-a1i/archify', 'https://github.com/tt-a1i/archify'],
+      ['OWNER.github.io/archi-made-easy', 'https://OWNER.github.io/archi-made-easy/'],
+      ['OWNER/archi-made-easy', 'https://github.com/OWNER/archi-made-easy'],
     ], 'visible product identity connects the official site and exact source repository');
-    const facts = clean(text(find(page, 'about-archify')));
+    const facts = clean(text(find(page, 'about-archi-made-easy')));
     for (const boundary of lang === 'zh'
       ? ['类型化 JSON', 'Markdown', '系统的实际运行行为', '不用于生成照片或插画']
       : ['typed JSON', 'Markdown', 'not the truth of every claim or runtime system behavior', 'does not generate photos or illustrations']) {

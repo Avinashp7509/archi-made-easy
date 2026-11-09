@@ -7,7 +7,7 @@ import { execFileSync } from 'node:child_process';
 import { stagePublic } from '../scripts/stage-public.mjs';
 
 test('public staging excludes untracked files and rejects external symlinks and URL collisions', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-public-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-public-'));
   const output = path.join(root, 'output');
   const git = (...args) => execFileSync('git', args, { cwd: root, stdio: 'pipe' });
   const write = (file, text) => { const target = path.join(root, file); fs.mkdirSync(path.dirname(target), { recursive: true }); fs.writeFileSync(target, text); };

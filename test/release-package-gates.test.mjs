@@ -37,15 +37,15 @@ function spawnBuildZip(outputPath, options = {}) {
     // Native Windows argv decoding and MSYS path conversion must not alter
     // the deliberately unsafe raw spelling before the validator sees it.
     const result = spawnSync(bash, [
-      '-c', 'exec bash "$ARCHIFY_ZIP_BUILD_SCRIPT" "$ARCHIFY_ZIP_BUILD_OUTPUT"',
+      '-c', 'exec bash "$ARCHI_MADE_EASY_ZIP_BUILD_SCRIPT" "$ARCHI_MADE_EASY_ZIP_BUILD_OUTPUT"',
     ], {
       cwd,
       encoding: 'utf8',
       ...rest,
       env: {
         ...env,
-        ARCHIFY_ZIP_BUILD_SCRIPT: script,
-        ARCHIFY_ZIP_BUILD_OUTPUT: outputPath,
+        ARCHI_MADE_EASY_ZIP_BUILD_SCRIPT: script,
+        ARCHI_MADE_EASY_ZIP_BUILD_OUTPUT: outputPath,
         MSYS2_ARG_CONV_EXCL: outputPath,
       },
     });
@@ -58,7 +58,7 @@ function preparePackageIndex(indexPath, extraPaths) {
   const env = { ...process.env, GIT_INDEX_FILE: indexPath };
   let result = spawnSync('git', ['read-tree', 'HEAD'], { cwd: repoRoot, env, encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
-  result = spawnSync('git', ['rev-parse', 'HEAD:archify/LICENSE'], {
+  result = spawnSync('git', ['rev-parse', 'HEAD:archi-made-easy/LICENSE'], {
     cwd: repoRoot,
     encoding: 'utf8',
   });
@@ -122,30 +122,30 @@ test('release prevents manifest preannouncement and smokes the exact archive bef
 
   assert.match(tagFetch, /git fetch --force --no-tags origin/);
   assert.match(tagFetch, /refs\/tags\/\$\{GITHUB_REF_NAME\}:refs\/tags\/\$\{GITHUB_REF_NAME\}/);
-  assert.match(tagGate, /require\('\.\/archify\/package\.json'\)\.version/);
+  assert.match(tagGate, /require\('\.\/archi-made-easy\/package\.json'\)\.version/);
   assert.match(tagGate, /GITHUB_REF_NAME#v/);
   assert.match(annotatedTagGate, /steps\.release-kind\.outputs\.prerelease == 'false'/);
   assert.match(annotatedTagGate, /git cat-file -t "refs\/tags\/\$\{GITHUB_REF_NAME\}"/);
   assert.match(annotatedTagGate, /stable releases require an annotated tag/);
   assert.match(publicationOrder, /compareSemver\(published\.version, releasing\) >= 0/);
   assert.match(publicationOrder, /publish the manifest in a follow-up commit/);
-  assert.match(build, /run: scripts\/build-zip\.sh \/tmp\/archify-built\.zip/);
-  assert.match(smoke, /unzip -q \/tmp\/archify-built\.zip -d "\$package_root"/);
-  assert.match(smoke, /node scripts\/package-smoke\.mjs "\$package_root\/archify"/);
+  assert.match(build, /run: scripts\/build-zip\.sh \/tmp\/archi-made-easy-built\.zip/);
+  assert.match(smoke, /unzip -q \/tmp\/archi-made-easy-built\.zip -d "\$package_root"/);
+  assert.match(smoke, /node scripts\/package-smoke\.mjs "\$package_root\/archi-made-easy"/);
   assert.doesNotMatch(smoke, /\bnpm\s+(?:ci|install)\b/);
-  assert.match(freshness, /cmp -s \/tmp\/archify-built\.zip archify\.zip/);
+  assert.match(freshness, /cmp -s \/tmp\/archi-made-easy-built\.zip archi-made-easy\.zip/);
   assertPinnedAction(
     upload,
     'softprops/action-gh-release',
     'efb35369e0ad2afab669f228072c1b0d510eae64',
     'v3.0.3',
   );
-  assert.match(upload, /files: archify\.zip/);
-  assert.match(followUp, /docs\/skill-updates\/archify\/stable\.json/);
+  assert.match(upload, /files: archi-made-easy\.zip/);
+  assert.match(followUp, /docs\/skill-updates\/archi-made-easy\/stable\.json/);
 });
 
 test('an exact tag fetch restores an annotated object after a SHA-only checkout', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-tag-fetch-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-tag-fetch-'));
   const source = path.join(fixture, 'source');
   const checkout = path.join(fixture, 'checkout');
   const runGit = (cwd, args) => spawnSync('git', args, { cwd, encoding: 'utf8' });
@@ -153,8 +153,8 @@ test('an exact tag fetch restores an annotated object after a SHA-only checkout'
   try {
     fs.mkdirSync(source);
     assert.equal(runGit(source, ['init', '--quiet']).status, 0);
-    assert.equal(runGit(source, ['config', 'user.name', 'Archify Test']).status, 0);
-    assert.equal(runGit(source, ['config', 'user.email', 'archify@example.invalid']).status, 0);
+    assert.equal(runGit(source, ['config', 'user.name', 'Archi-Made-Easy Test']).status, 0);
+    assert.equal(runGit(source, ['config', 'user.email', 'archi-made-easy@example.invalid']).status, 0);
     fs.writeFileSync(path.join(source, 'release.txt'), 'release\n');
     assert.equal(runGit(source, ['add', 'release.txt']).status, 0);
     assert.equal(runGit(source, ['commit', '--quiet', '-m', 'release fixture']).status, 0);
@@ -189,11 +189,11 @@ test('CI binds a public notifier manifest to the Release asset, tagged archive, 
   assert.match(job, /latest_stable_tag" != "v\$\{manifest_version\}"/);
   assert.match(job, /releases\/tags\/v\$\{manifest_version\}/);
   assert.match(job, /select\(\.draft == false and \.prerelease == false\)/);
-  assert.match(job, /select\(\.name == "archify\.zip"\)/);
+  assert.match(job, /select\(\.name == "archi-made-easy\.zip"\)/);
   assert.match(job, /releases\/assets\/\$\{release_asset_id\}/);
   assert.match(job, /Accept: application\/octet-stream/);
   assert.match(job, /refs\/tags\/v\$\{manifest_version\}:refs\/tags\/v\$\{manifest_version\}/);
-  assert.match(job, /git show "v\$\{manifest_version\}:archify\.zip" > "\$tagged_archive"/);
+  assert.match(job, /git show "v\$\{manifest_version\}:archi-made-easy\.zip" > "\$tagged_archive"/);
   assert.match(job, /cmp -s "\$published_archive" "\$tagged_archive"/);
   assert.match(job, /check-stable-update-manifest\.mjs/);
   assert.match(job, /--archive "\$published_archive"/);
@@ -262,7 +262,7 @@ test('GitHub Pages deploys the verified website artifact only after every reposi
   );
   const website = workflowJob(workflow, 'website');
   assert.match(website, /npm run check && npm run build && npm test/);
-  assert.match(website, /ARCHIFY_SITE_ROOT:.*website\/dist/);
+  assert.match(website, /ARCHI_MADE_EASY_SITE_ROOT:.*website\/dist/);
   assertPinnedAction(
     website,
     'actions/upload-artifact',
@@ -284,7 +284,7 @@ test('GitHub Pages deploys the verified website artifact only after every reposi
   const windows = workflowJob(workflow, 'windows-test-portability');
   assert.match(windows, /node-version: \[22, 24\]/);
   assert.match(windows, /Verify maintained Windows path contracts/);
-  assert.match(windows, /ARCHIFY_REQUIRE_WINDOWS_REAL_PATHS: '1'/);
+  assert.match(windows, /ARCHI_MADE_EASY_REQUIRE_WINDOWS_REAL_PATHS: '1'/);
 });
 
 test('release tags with a SemVer prerelease are marked prerelease and never become latest', () => {
@@ -318,10 +318,10 @@ test('package smoke rejects every dependency or repository-only artifact', () =>
   ];
 
   for (const { relative, kind } of forbidden) {
-    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-gate-'));
+    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-gate-'));
     try {
       fs.mkdirSync(path.join(fixture, 'bin'), { recursive: true });
-      fs.writeFileSync(path.join(fixture, 'bin', 'archify.mjs'), '');
+      fs.writeFileSync(path.join(fixture, 'bin', 'archi-made-easy.mjs'), '');
       const target = path.join(fixture, relative);
       if (kind === 'directory') fs.mkdirSync(target, { recursive: true });
       else {
@@ -344,9 +344,9 @@ test('package smoke rejects every dependency or repository-only artifact', () =>
 
 test('package smoke rejects a missing or modified distribution license', () => {
   const packageSmoke = path.join(repoRoot, 'scripts', 'package-smoke.mjs');
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-license-gate-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-license-gate-'));
   try {
-    const staged = path.join(fixture, 'archify');
+    const staged = path.join(fixture, 'archi-made-easy');
     stageCleanSkill({ repoRoot, destination: staged });
     const licensePath = path.join(staged, 'LICENSE');
 
@@ -377,9 +377,9 @@ test('package smoke rejects a missing or modified distribution license', () => {
 
 test('package smoke rejects missing, modified, or incomplete third-party notices', () => {
   const packageSmoke = path.join(repoRoot, 'scripts', 'package-smoke.mjs');
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-notices-gate-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-notices-gate-'));
   try {
-    const staged = path.join(fixture, 'archify');
+    const staged = path.join(fixture, 'archi-made-easy');
     stageCleanSkill({ repoRoot, destination: staged });
     const noticesPath = path.join(staged, 'THIRD_PARTY_NOTICES.md');
 
@@ -410,7 +410,7 @@ test('package smoke rejects missing, modified, or incomplete third-party notices
       encoding: 'utf8',
       env: {
         ...process.env,
-        ARCHIFY_PACKAGE_SMOKE_NOTICE_ROOT: comparisonRoot,
+        ARCHI_MADE_EASY_PACKAGE_SMOKE_NOTICE_ROOT: comparisonRoot,
       },
     });
     assert.notEqual(result.status, 0, 'byte-identical incomplete notices must fail package smoke');
@@ -424,8 +424,8 @@ test('package smoke rejects missing, modified, or incomplete third-party notices
 });
 
 test('package smoke increments an arbitrary-precision SemVer patch without Number coercion', async () => {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-bigint-version-'));
-  const skillRoot = path.join(scratch, 'archify');
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-bigint-version-'));
+  const skillRoot = path.join(scratch, 'archi-made-easy');
   try {
     stageCleanSkill({ repoRoot, destination: skillRoot });
     const packagePath = path.join(skillRoot, 'package.json');
@@ -452,21 +452,21 @@ test('package smoke increments an arbitrary-precision SemVer patch without Numbe
 test('clean package staging rejects non-portable tracked names and entry collisions before copying', () => {
   const cases = [
     {
-      paths: ['archify/portable-gate/CON.txt'],
+      paths: ['archi-made-easy/portable-gate/CON.txt'],
       code: 'portable-path/windows-reserved-name',
     },
     {
-      paths: ['archify/portable-gate/Docs/one.txt', 'archify/portable-gate/docs/two.txt'],
+      paths: ['archi-made-easy/portable-gate/Docs/one.txt', 'archi-made-easy/portable-gate/docs/two.txt'],
       code: 'portable-path/collision',
     },
     {
-      paths: [`archify/portable-gate/${'a'.repeat(256)}`],
+      paths: [`archi-made-easy/portable-gate/${'a'.repeat(256)}`],
       code: 'portable-path/component-too-long',
     },
   ];
 
   for (const { paths, code } of cases) {
-    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-portable-index-'));
+    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-portable-index-'));
     const destination = path.join(fixture, 'staged');
     const env = preparePackageIndex(path.join(fixture, 'index'), paths);
     const previousIndex = process.env.GIT_INDEX_FILE;
@@ -486,7 +486,7 @@ test('clean package staging rejects non-portable tracked names and entry collisi
 });
 
 test('archive build rejects unsafe native output paths before creating files', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-output-path-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-output-path-'));
   try {
     const cases = [
       ['C:drive-relative.zip', /\(drive-relative\)/],
@@ -536,7 +536,7 @@ test('archive build rejects unsafe native output paths before creating files', (
 test('archive build keeps unsafe-path diagnostics ahead of the canonical Node gate', {
   skip: process.platform === 'win32' ? 'the POSIX node shim is unnecessary on the real Windows Node 24 lane' : false,
 }, () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-node-gate-order-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-node-gate-order-'));
   const shimDirectory = path.join(fixture, 'bin');
   const nodeShim = path.join(shimDirectory, 'node');
   fs.mkdirSync(shimDirectory);
@@ -545,12 +545,12 @@ if [[ "$1" == "-p" && "$2" == "process.versions.node" ]]; then
   printf '%s\\n' '24.0.0'
   exit 0
 fi
-exec "$ARCHIFY_REAL_NODE" "$@"
+exec "$ARCHI_MADE_EASY_REAL_NODE" "$@"
 `);
   fs.chmodSync(nodeShim, 0o755);
   const env = {
     ...process.env,
-    ARCHIFY_REAL_NODE: process.execPath,
+    ARCHI_MADE_EASY_REAL_NODE: process.execPath,
     PATH: `${shimDirectory}${path.delimiter}${process.env.PATH || ''}`,
   };
   try {
@@ -562,7 +562,7 @@ exec "$ARCHIFY_REAL_NODE" "$@"
     const safeOutput = path.join(safeParent, 'safe.zip');
     const safe = spawnBuildZip(safeOutput, { cwd: fixture, env });
     assert.equal(safe.status, 1, `${safe.stdout}\n${safe.stderr}`);
-    assert.match(safe.stderr, /canonical archify[.]zip builds require Node 22 with bundled zlib /);
+    assert.match(safe.stderr, /canonical archi-made-easy[.]zip builds require Node 22 with bundled zlib /);
     assert.match(safe.stderr, /\(current: Node 24[.]0[.]0, zlib [^)]+\)/);
     assert.equal(fs.existsSync(safeOutput), false);
     assert.equal(fs.existsSync(safeParent), false, 'path-only validation must not create output parents');
@@ -575,7 +575,7 @@ exec "$ARCHIFY_REAL_NODE" "$@"
 test('archive output rejection preserves an existing unsafe target byte-for-byte', {
   skip: process.platform === 'win32' ? 'Windows cannot create the reserved-name fixture' : false,
 }, () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-output-preserve-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-output-preserve-'));
   const output = path.join(fixture, 'CON.zip');
   const sentinel = Buffer.from('existing archive sentinel\n');
   try {
@@ -591,9 +591,9 @@ test('archive output rejection preserves an existing unsafe target byte-for-byte
 });
 
 canonicalZipTest('package smoke rejects every dependency metadata field in a built package', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-built-package-gate-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-built-package-gate-'));
   try {
-    const archive = path.join(fixture, 'archify.zip');
+    const archive = path.join(fixture, 'archi-made-easy.zip');
     const build = spawnBuildZip(archive);
     assert.equal(build.status, 0, `${build.stdout}\n${build.stderr}`);
 
@@ -601,7 +601,7 @@ canonicalZipTest('package smoke rejects every dependency metadata field in a bui
     fs.mkdirSync(extracted);
     const unzip = spawnSync('unzip', ['-q', archive, '-d', extracted], { encoding: 'utf8' });
     assert.equal(unzip.status, 0, `${unzip.stdout}\n${unzip.stderr}`);
-    const builtPackage = path.join(extracted, 'archify');
+    const builtPackage = path.join(extracted, 'archi-made-easy');
     const dependencyFields = {
       dependencies: { runtime: '1.0.0' },
       devDependencies: { build: '1.0.0' },
@@ -630,22 +630,22 @@ canonicalZipTest('package smoke rejects every dependency metadata field in a bui
 });
 
 canonicalZipTest('built archives contain the embedded notifier runtime', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-notifier-package-gate-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-notifier-package-gate-'));
   try {
-    const archive = path.join(fixture, 'archify.zip');
+    const archive = path.join(fixture, 'archi-made-easy.zip');
     const build = spawnBuildZip(archive);
     assert.equal(build.status, 0, `${build.stdout}\n${build.stderr}`);
 
     const listing = spawnSync('unzip', ['-Z1', archive], { encoding: 'utf8' });
     assert.equal(listing.status, 0, `${listing.stdout}\n${listing.stderr}`);
     const entries = new Set(listing.stdout.trim().split('\n'));
-    assert.ok(entries.has('archify/skill-release.json'));
-    assert.ok(entries.has('archify/scripts/check-update.mjs'));
-    assert.ok(entries.has('archify/scripts/delivery-update-child.mjs'));
-    assert.ok(entries.has('archify/bin/delivery-update.mjs'));
-    assert.ok(entries.has('archify/scripts/update-contract.mjs'));
-    assert.ok(entries.has('archify/renderers/shared/atomic-output.mjs'));
-    assert.ok(entries.has('archify/renderers/shared/sidecar-path.mjs'));
+    assert.ok(entries.has('archi-made-easy/skill-release.json'));
+    assert.ok(entries.has('archi-made-easy/scripts/check-update.mjs'));
+    assert.ok(entries.has('archi-made-easy/scripts/delivery-update-child.mjs'));
+    assert.ok(entries.has('archi-made-easy/bin/delivery-update.mjs'));
+    assert.ok(entries.has('archi-made-easy/scripts/update-contract.mjs'));
+    assert.ok(entries.has('archi-made-easy/renderers/shared/atomic-output.mjs'));
+    assert.ok(entries.has('archi-made-easy/renderers/shared/sidecar-path.mjs'));
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });
   }
@@ -653,12 +653,12 @@ canonicalZipTest('built archives contain the embedded notifier runtime', () => {
 
 canonicalZipTest('archive build excludes untracked files and external symlinks from the live working tree', () => {
   const marker = `.package-negative-${process.pid}-${Date.now()}`;
-  const untracked = path.join(repoRoot, 'archify', `${marker}.txt`);
-  const externalRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-external-'));
+  const untracked = path.join(repoRoot, 'archi-made-easy', `${marker}.txt`);
+  const externalRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-external-'));
   const externalTarget = path.join(externalRoot, 'secret.txt');
-  const externalLink = path.join(repoRoot, 'archify', `${marker}.link`);
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-negative-'));
-  const archive = path.join(outputRoot, 'archify.zip');
+  const externalLink = path.join(repoRoot, 'archi-made-easy', `${marker}.link`);
+  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-negative-'));
+  const archive = path.join(outputRoot, 'archi-made-easy.zip');
 
   try {
     fs.writeFileSync(untracked, 'must not ship\n');
@@ -680,9 +680,9 @@ canonicalZipTest('archive build excludes untracked files and external symlinks f
 });
 
 canonicalZipTest('archive build rejects an unmerged index and preserves an existing archive', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-unmerged-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-unmerged-'));
   const scripts = path.join(fixture, 'scripts');
-  const skill = path.join(fixture, 'archify');
+  const skill = path.join(fixture, 'archi-made-easy');
   const license = path.join(skill, 'LICENSE');
   const archive = path.join(fixture, 'trusted.zip');
   const trusted = Buffer.from('trusted archive bytes');
@@ -710,26 +710,26 @@ canonicalZipTest('archive build rejects an unmerged index and preserves an exist
       path.join(scripts, 'third-party-notices-contract.mjs'),
     );
     fs.copyFileSync(
-      path.join(repoRoot, 'archify', 'renderers', 'shared', 'portable-path.mjs'),
+      path.join(repoRoot, 'archi-made-easy', 'renderers', 'shared', 'portable-path.mjs'),
       path.join(skill, 'renderers', 'shared', 'portable-path.mjs'),
     );
     fs.copyFileSync(
-      path.join(repoRoot, 'archify', 'renderers', 'shared', 'path-semantics.mjs'),
+      path.join(repoRoot, 'archi-made-easy', 'renderers', 'shared', 'path-semantics.mjs'),
       path.join(skill, 'renderers', 'shared', 'path-semantics.mjs'),
     );
     fs.copyFileSync(
-      path.join(repoRoot, 'archify', 'renderers', 'shared', 'output-path.mjs'),
+      path.join(repoRoot, 'archi-made-easy', 'renderers', 'shared', 'output-path.mjs'),
       path.join(skill, 'renderers', 'shared', 'output-path.mjs'),
     );
     fs.copyFileSync(
-      path.join(repoRoot, 'archify', 'renderers', 'shared', 'atomic-output.mjs'),
+      path.join(repoRoot, 'archi-made-easy', 'renderers', 'shared', 'atomic-output.mjs'),
       path.join(skill, 'renderers', 'shared', 'atomic-output.mjs'),
     );
     fs.writeFileSync(path.join(skill, 'renderers', 'shared', 'generated-validators.mjs'), 'export default {};\n');
     fs.writeFileSync(path.join(skill, 'scripts', 'check-update.mjs'), 'export {};\n');
     fs.writeFileSync(path.join(skill, 'scripts', 'update-contract.mjs'), 'export {};\n');
     fs.writeFileSync(path.join(skill, 'skill-release.json'), '{}\n');
-    fs.writeFileSync(path.join(skill, 'package.json'), '{"name":"archify"}\n');
+    fs.writeFileSync(path.join(skill, 'package.json'), '{"name":"archi-made-easy"}\n');
     fs.writeFileSync(license, 'base\n');
     assert.equal(git(['init']).status, 0);
     assert.equal(git(['add', '.']).status, 0);
@@ -739,9 +739,9 @@ canonicalZipTest('archive build rejects an unmerged index and preserves an exist
     const theirs = git(['hash-object', '-w', '--stdin'], { input: 'theirs\n' });
     for (const result of [base, ours, theirs]) assert.equal(result.status, 0, result.stderr);
     const indexInfo = [
-      `100644 ${base.stdout.trim()} 1\tarchify/LICENSE`,
-      `100644 ${ours.stdout.trim()} 2\tarchify/LICENSE`,
-      `100644 ${theirs.stdout.trim()} 3\tarchify/LICENSE`,
+      `100644 ${base.stdout.trim()} 1\tarchi-made-easy/LICENSE`,
+      `100644 ${ours.stdout.trim()} 2\tarchi-made-easy/LICENSE`,
+      `100644 ${theirs.stdout.trim()} 3\tarchi-made-easy/LICENSE`,
       '',
     ].join('\n');
     assert.equal(git(['update-index', '--index-info'], { input: indexInfo }).status, 0);
@@ -763,9 +763,9 @@ canonicalZipTest('archive build rejects an unmerged index and preserves an exist
 test('archive build rejects incompatible zlib before publishing output', {
   skip: currentNodeMajor !== canonicalZipNodeMajor ? 'requires Node 22 to isolate the zlib gate' : false,
 }, () => {
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-zlib-'));
+  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-zlib-'));
   try {
-    const archive = path.join(outputRoot, 'archify.zip');
+    const archive = path.join(outputRoot, 'archi-made-easy.zip');
     const trusted = Buffer.from('existing canonical archive');
     const preload = path.join(outputRoot, 'noncanonical-zlib.cjs');
     fs.writeFileSync(preload, "Object.defineProperty(process.versions, 'zlib', { value: '0.0.0-test' });\n");
@@ -774,10 +774,10 @@ test('archive build rejects incompatible zlib before publishing output', {
       env: { ...process.env, NODE_OPTIONS: `--require ${JSON.stringify(preload)}` },
     });
     assert.notEqual(build.status, 0, `${build.stdout}\n${build.stderr}`);
-    assert.match(build.stderr, /canonical archify\.zip builds require Node 22 with bundled zlib/);
+    assert.match(build.stderr, /canonical archi-made-easy\.zip builds require Node 22 with bundled zlib/);
     assert.match(build.stderr, /0\.0\.0-test/);
     assert.ok(fs.readFileSync(archive).equals(trusted), 'toolchain rejection must preserve the canonical archive');
-    assert.deepEqual(fs.readdirSync(outputRoot).sort(), ['archify.zip', 'noncanonical-zlib.cjs']);
+    assert.deepEqual(fs.readdirSync(outputRoot).sort(), ['archi-made-easy.zip', 'noncanonical-zlib.cjs']);
   } finally {
     fs.rmSync(outputRoot, { recursive: true, force: true });
   }
@@ -786,14 +786,14 @@ test('archive build rejects incompatible zlib before publishing output', {
 test('archive build rejects non-canonical Node/zlib toolchains before publishing output', {
   skip: canonicalZipSkip ? false : 'requires a non-canonical Node/zlib toolchain',
 }, () => {
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-node-version-'));
+  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-node-version-'));
   try {
-    const archive = path.join(outputRoot, 'archify.zip');
+    const archive = path.join(outputRoot, 'archi-made-easy.zip');
     const trusted = Buffer.from('existing canonical archive');
     fs.writeFileSync(archive, trusted);
     const build = spawnBuildZip(archive);
     assert.notEqual(build.status, 0, `${build.stdout}\n${build.stderr}`);
-    assert.match(build.stderr, /canonical archify\.zip builds require Node 22/);
+    assert.match(build.stderr, /canonical archi-made-easy\.zip builds require Node 22/);
     assert.ok(fs.readFileSync(archive).equals(trusted), 'version rejection must preserve the canonical archive');
   } finally {
     fs.rmSync(outputRoot, { recursive: true, force: true });
@@ -801,7 +801,7 @@ test('archive build rejects non-canonical Node/zlib toolchains before publishing
 });
 
 canonicalZipTest('archive build is byte-for-byte reproducible across caller time zones without system zip', () => {
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-reproducible-'));
+  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-reproducible-'));
   const utcArchive = path.join(outputRoot, 'utc.zip');
   const honoluluArchive = path.join(outputRoot, 'honolulu.zip');
 
@@ -821,7 +821,7 @@ canonicalZipTest('archive build is byte-for-byte reproducible across caller time
       'identical tracked inputs must produce identical archive bytes',
     );
     assert.ok(
-      fs.readFileSync(utcArchive).equals(fs.readFileSync(path.join(repoRoot, 'archify.zip'))),
+      fs.readFileSync(utcArchive).equals(fs.readFileSync(path.join(repoRoot, 'archi-made-easy.zip'))),
       'the canonical archive toolchain must reproduce the committed archive bytes',
     );
     assert.deepEqual(
@@ -839,7 +839,7 @@ test('archive build accepts Windows-style absolute output paths', {
     ? 'Windows drive paths only reach build-zip.sh on win32'
     : canonicalZipSkip,
 }, () => {
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-windows-path-'));
+  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-windows-path-'));
   const backslashArchive = path.win32.join(outputRoot, 'backslash.zip');
   const slashArchive = path.win32.join(outputRoot, 'slash.zip').replace(/\\/g, '/');
 
@@ -892,8 +892,8 @@ function writeArchive(stagedRoot, archive, modeManifest, options = {}) {
 }
 
 function stagedFixture(files) {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-zip-modes-'));
-  const staged = path.join(fixture, 'archify');
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-zip-modes-'));
+  const staged = path.join(fixture, 'archi-made-easy');
   for (const [relative, { content, mode }] of Object.entries(files)) {
     const target = path.join(staged, ...relative.split('/'));
     fs.mkdirSync(path.dirname(target), { recursive: true });
@@ -940,8 +940,8 @@ test('archive writer records Git index modes from the manifest, not filesystem b
     const build = writeArchive(staged, first, manifest);
     assert.equal(build.status, 0, `${build.stdout}\n${build.stderr}`);
     assert.deepEqual(centralDirectoryModes(first), {
-      'archify/bin/tool.mjs': 0o755,
-      'archify/docs/notes.txt': 0o644,
+      'archi-made-easy/bin/tool.mjs': 0o755,
+      'archi-made-easy/docs/notes.txt': 0o644,
     });
 
     // Flip the on-disk bits; the recorded modes must still decide the bytes.
@@ -1113,8 +1113,8 @@ test('archive writer verifies the output binding immediately before publication'
   fs.writeFileSync(preload, String.raw`
 const fs = require('node:fs');
 const path = require('node:path');
-const output = process.env.ARCHIFY_TEST_SWAP_OUTPUT;
-const replacement = process.env.ARCHIFY_TEST_SWAP_REPLACEMENT;
+const output = process.env.ARCHI_MADE_EASY_TEST_SWAP_OUTPUT;
+const replacement = process.env.ARCHI_MADE_EASY_TEST_SWAP_REPLACEMENT;
 const originalOpen = fs.openSync;
 const originalClose = fs.closeSync;
 let temporaryDescriptor;
@@ -1122,7 +1122,7 @@ let swapped = false;
 fs.openSync = function patchedOpen(file, ...args) {
   const descriptor = originalOpen.call(this, file, ...args);
   if (typeof file === 'string'
-      && /^\.archify-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(path.basename(file))) {
+      && /^\.archi-made-easy-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(path.basename(file))) {
     temporaryDescriptor = descriptor;
   }
   return descriptor;
@@ -1143,8 +1143,8 @@ require('node:module').syncBuiltinESMExports();
       env: {
         ...process.env,
         NODE_OPTIONS: `${process.env.NODE_OPTIONS ? `${process.env.NODE_OPTIONS} ` : ''}--import=${pathToFileURL(preload).href}`,
-        ARCHIFY_TEST_SWAP_OUTPUT: archive,
-        ARCHIFY_TEST_SWAP_REPLACEMENT: replacement,
+        ARCHI_MADE_EASY_TEST_SWAP_OUTPUT: archive,
+        ARCHI_MADE_EASY_TEST_SWAP_REPLACEMENT: replacement,
       },
     });
     assert.notEqual(build.status, 0, `${build.stdout}\n${build.stderr}`);
@@ -1175,15 +1175,15 @@ test('archive writer preserves a target claimant that arrives after the previous
   fs.writeFileSync(preload, String.raw`
 const fs = require('node:fs');
 const path = require('node:path');
-const output = process.env.ARCHIFY_TEST_ARCHIVE_OUTPUT;
-const claimant = process.env.ARCHIFY_TEST_ARCHIVE_CLAIMANT;
+const output = process.env.ARCHI_MADE_EASY_TEST_ARCHIVE_OUTPUT;
+const claimant = process.env.ARCHI_MADE_EASY_TEST_ARCHIVE_CLAIMANT;
 const originalLink = fs.linkSync;
 const originalWriteFile = fs.writeFileSync;
 let injected = false;
 fs.linkSync = function patchedLink(source, destination) {
   if (!injected
       && path.basename(destination) === path.basename(output)
-      && /^\.archify-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(path.basename(source))) {
+      && /^\.archi-made-easy-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(path.basename(source))) {
     originalWriteFile(output, claimant, { flag: 'wx' });
     injected = true;
   }
@@ -1196,15 +1196,15 @@ require('node:module').syncBuiltinESMExports();
       env: {
         ...process.env,
         NODE_OPTIONS: `${process.env.NODE_OPTIONS ? `${process.env.NODE_OPTIONS} ` : ''}--import=${pathToFileURL(preload).href}`,
-        ARCHIFY_TEST_ARCHIVE_OUTPUT: archive,
-        ARCHIFY_TEST_ARCHIVE_CLAIMANT: claimant.toString('utf8'),
+        ARCHI_MADE_EASY_TEST_ARCHIVE_OUTPUT: archive,
+        ARCHI_MADE_EASY_TEST_ARCHIVE_CLAIMANT: claimant.toString('utf8'),
       },
     });
     assert.notEqual(build.status, 0, `${build.stdout}\n${build.stderr}`);
     assert.match(build.stderr, /requires recovery/);
     assert.ok(fs.readFileSync(archive).equals(claimant), 'the concurrent target claimant must remain public');
     const backups = fs.readdirSync(fixture)
-      .filter((name) => /^\.archify-zip-backup-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(name));
+      .filter((name) => /^\.archi-made-easy-zip-backup-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(name));
     assert.equal(backups.length, 1, 'the displaced previous output must remain recoverable');
     assert.ok(fs.readFileSync(path.join(fixture, backups[0])).equals(original));
   } finally {
@@ -1225,7 +1225,7 @@ test('archive writer rejects a candidate changed while the final output state is
   fs.writeFileSync(preload, String.raw`
 const fs = require('node:fs');
 const path = require('node:path');
-const output = process.env.ARCHIFY_TEST_ARCHIVE_OUTPUT;
+const output = process.env.ARCHI_MADE_EASY_TEST_ARCHIVE_OUTPUT;
 const originalOpen = fs.openSync;
 const originalLstat = fs.lstatSync;
 const originalWriteFile = fs.writeFileSync;
@@ -1235,7 +1235,7 @@ let mutated = false;
 fs.openSync = function patchedOpen(file, ...args) {
   const descriptor = originalOpen.call(this, file, ...args);
   if (typeof file === 'string'
-      && /^\.archify-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(path.basename(file))) {
+      && /^\.archi-made-easy-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(path.basename(file))) {
     candidatePath = file;
     candidateOpens += 1;
   }
@@ -1255,7 +1255,7 @@ require('node:module').syncBuiltinESMExports();
       env: {
         ...process.env,
         NODE_OPTIONS: `${process.env.NODE_OPTIONS ? `${process.env.NODE_OPTIONS} ` : ''}--import=${pathToFileURL(preload).href}`,
-        ARCHIFY_TEST_ARCHIVE_OUTPUT: archive,
+        ARCHI_MADE_EASY_TEST_ARCHIVE_OUTPUT: archive,
       },
     });
     assert.notEqual(build.status, 0, `${build.stdout}\n${build.stderr}`);
@@ -1289,8 +1289,8 @@ test('archive writer preserves a successor that replaces its temporary candidate
   fs.writeFileSync(preload, String.raw`
 const fs = require('node:fs');
 const path = require('node:path');
-const output = process.env.ARCHIFY_TEST_ARCHIVE_OUTPUT;
-const successor = process.env.ARCHIFY_TEST_ARCHIVE_SUCCESSOR;
+const output = process.env.ARCHI_MADE_EASY_TEST_ARCHIVE_OUTPUT;
+const successor = process.env.ARCHI_MADE_EASY_TEST_ARCHIVE_SUCCESSOR;
 const originalOpen = fs.openSync;
 const originalLstat = fs.lstatSync;
 const originalUnlink = fs.unlinkSync;
@@ -1301,7 +1301,7 @@ let swapped = false;
 fs.openSync = function patchedOpen(file, ...args) {
   const descriptor = originalOpen.call(this, file, ...args);
   if (typeof file === 'string'
-      && /^\.archify-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(path.basename(file))) {
+      && /^\.archi-made-easy-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(path.basename(file))) {
     candidatePath = file;
     candidateOpens += 1;
   }
@@ -1322,8 +1322,8 @@ require('node:module').syncBuiltinESMExports();
       env: {
         ...process.env,
         NODE_OPTIONS: `${process.env.NODE_OPTIONS ? `${process.env.NODE_OPTIONS} ` : ''}--import=${pathToFileURL(preload).href}`,
-        ARCHIFY_TEST_ARCHIVE_OUTPUT: archive,
-        ARCHIFY_TEST_ARCHIVE_SUCCESSOR: successor.toString('utf8'),
+        ARCHI_MADE_EASY_TEST_ARCHIVE_OUTPUT: archive,
+        ARCHI_MADE_EASY_TEST_ARCHIVE_SUCCESSOR: successor.toString('utf8'),
       },
     });
     assert.notEqual(build.status, 0, `${build.stdout}\n${build.stderr}`);
@@ -1350,7 +1350,7 @@ test('archive writer keeps the candidate identity bound through commit and prese
   fs.writeFileSync(preload, String.raw`
 const fs = require('node:fs');
 const path = require('node:path');
-const successor = process.env.ARCHIFY_TEST_ARCHIVE_SUCCESSOR;
+const successor = process.env.ARCHI_MADE_EASY_TEST_ARCHIVE_SUCCESSOR;
 const originalOpen = fs.openSync;
 const originalClose = fs.closeSync;
 const originalUnlink = fs.unlinkSync;
@@ -1362,7 +1362,7 @@ let swapped = false;
 fs.openSync = function patchedOpen(file, ...args) {
   const descriptor = originalOpen.call(this, file, ...args);
   if (typeof file === 'string'
-      && /^\.archify-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(path.basename(file))) {
+      && /^\.archi-made-easy-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(path.basename(file))) {
     candidatePath = file;
     candidateOpens += 1;
     if (candidateOpens === 2) bindingDescriptor = descriptor;
@@ -1387,13 +1387,13 @@ require('node:module').syncBuiltinESMExports();
       env: {
         ...process.env,
         NODE_OPTIONS: `${process.env.NODE_OPTIONS ? `${process.env.NODE_OPTIONS} ` : ''}--import=${pathToFileURL(preload).href}`,
-        ARCHIFY_TEST_ARCHIVE_SUCCESSOR: successor.toString('utf8'),
+        ARCHI_MADE_EASY_TEST_ARCHIVE_SUCCESSOR: successor.toString('utf8'),
       },
     });
     assert.equal(build.status, 0, `${build.stdout}\n${build.stderr}`);
     assert.equal(fs.readFileSync(archive).readUInt32LE(0), 0x04034b50);
     const candidates = fs.readdirSync(fixture)
-      .filter((name) => /^\.archify-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(name));
+      .filter((name) => /^\.archi-made-easy-zip-[a-f\d]{16}-[a-f\d]{32}\.tmp$/.test(name));
     assert.equal(candidates.length, 1, 'the release-time successor must remain named');
     assert.ok(fs.readFileSync(path.join(fixture, candidates[0])).equals(successor));
   } finally {
@@ -1477,7 +1477,7 @@ test('archive build hands the recorded Git index modes from the stager to the wr
 });
 
 test('CI tests the declared Node floor plus every maintained current lane', () => {
-  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'archify', 'package.json'), 'utf8'));
+  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'archi-made-easy', 'package.json'), 'utf8'));
   assert.equal(packageJson.engines?.node, '>=18');
 
   const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'ci.yml'), 'utf8');
@@ -1519,10 +1519,10 @@ test('CI and tagged releases keep real Windows paths on both Nodes and detailed 
   if (process.platform !== 'win32') {
     const wrongHost = spawnSync(process.execPath, [runnerPath, '--smoke'], {
       encoding: 'utf8', timeout: 10_000,
-      env: { ...process.env, ARCHIFY_REQUIRE_WINDOWS_REAL_PATHS: '1' },
+      env: { ...process.env, ARCHI_MADE_EASY_REQUIRE_WINDOWS_REAL_PATHS: '1' },
     });
     assert.notEqual(wrongHost.status, 0);
-    assert.match(wrongHost.stderr, /ARCHIFY_REQUIRE_WINDOWS_REAL_PATHS=1 requires Windows/,
+    assert.match(wrongHost.stderr, /ARCHI_MADE_EASY_REQUIRE_WINDOWS_REAL_PATHS=1 requires Windows/,
       'The smoke profile must still enter the required real-path gate.');
   }
   const fullSuites = [
@@ -1574,12 +1574,12 @@ test('CI and tagged releases keep real Windows paths on both Nodes and detailed 
   assert.match(runner, /watcher accepts/);
   assert.match(runner, /findChrome/);
   assert.match(runner, /doctor identifies an incomplete installation/);
-  assert.match(runner, /ARCHIFY_REQUIRE_WINDOWS_REAL_PATHS/);
-  assert.match(runner, /ARCHIFY_WINDOWS_CASE_SENSITIVE_ROOT/);
-  assert.match(runner, /ARCHIFY_WINDOWS_UNC_ROOT/);
-  assert.match(runner, /ARCHIFY_WINDOWS_EXTENDED_UNC_ROOT/);
-  assert.match(runner, /ARCHIFY_WINDOWS_8DOT3_ROOT/);
-  assert.match(runner, /ARCHIFY_WINDOWS_8DOT3_SHORT_ROOT/);
+  assert.match(runner, /ARCHI_MADE_EASY_REQUIRE_WINDOWS_REAL_PATHS/);
+  assert.match(runner, /ARCHI_MADE_EASY_WINDOWS_CASE_SENSITIVE_ROOT/);
+  assert.match(runner, /ARCHI_MADE_EASY_WINDOWS_UNC_ROOT/);
+  assert.match(runner, /ARCHI_MADE_EASY_WINDOWS_EXTENDED_UNC_ROOT/);
+  assert.match(runner, /ARCHI_MADE_EASY_WINDOWS_8DOT3_ROOT/);
+  assert.match(runner, /ARCHI_MADE_EASY_WINDOWS_8DOT3_SHORT_ROOT/);
   assert.match(runner, /sameLocation\(uncRoot, extendedUncRoot\)\.status, 'match'/);
   assert.doesNotMatch(runner, /extendedUncRoot\.toLocaleLowerCase/);
   assert.doesNotMatch(runner, /controlled real-path fixture belongs to the canonical Node 22 lane/);
@@ -1602,11 +1602,11 @@ test('CI and tagged releases keep real Windows paths on both Nodes and detailed 
   assert.match(runner, /path\.win32\.join\(ordinaryLongDirectory, `\$\{token\}-preview[.]html`\)/);
   assert.match(
     runner,
-    /assertNoPrivateStaging\(ordinaryLongDirectory, '[.]archify-delivery-', ordinaryLongDelivery\)/,
+    /assertNoPrivateStaging\(ordinaryLongDirectory, '[.]archi-made-easy-delivery-', ordinaryLongDelivery\)/,
   );
   assert.match(runner, /fs[.]lstatSync\(path[.]toNamespacedPath\(path[.]join\(directory, entry\)\)\)/);
-  assert.match(runner, /assertNoPrivateStaging\(evidenceDirectory, '[.]archify-visual-check-'\)/);
-  assert.match(runner, /assertNoPrivateStaging\(ordinaryLongDirectory, '[.]archify-preview-'\)/);
+  assert.match(runner, /assertNoPrivateStaging\(evidenceDirectory, '[.]archi-made-easy-visual-check-'\)/);
+  assert.match(runner, /assertNoPrivateStaging\(ordinaryLongDirectory, '[.]archi-made-easy-preview-'\)/);
   assert.match(runner, /case-sensitive upper artifact visual-check to shared UNC/);
   assert.match(runner, /case-sensitive lower artifact visual-check to shared UNC/);
   assert.match(runner, /case-variant artifacts must receive distinct evidence names/);
@@ -1617,27 +1617,27 @@ test('CI and tagged releases keep real Windows paths on both Nodes and detailed 
   assert.match(runner, /normalization-distinct artifacts must receive distinct evidence names/);
   assert.match(runner, /build-zip[.]sh/);
 
-  const cliSource = fs.readFileSync(path.join(repoRoot, 'archify', 'bin', 'archify.mjs'), 'utf8');
-  const previewSource = fs.readFileSync(path.join(repoRoot, 'archify', 'bin', 'preview.mjs'), 'utf8');
+  const cliSource = fs.readFileSync(path.join(repoRoot, 'archi-made-easy', 'bin', 'archi-made-easy.mjs'), 'utf8');
+  const previewSource = fs.readFileSync(path.join(repoRoot, 'archi-made-easy', 'bin', 'preview.mjs'), 'utf8');
   const visualCheckSource = fs.readFileSync(
-    path.join(repoRoot, 'archify', 'bin', 'visual-check.mjs'),
+    path.join(repoRoot, 'archi-made-easy', 'bin', 'visual-check.mjs'),
     'utf8',
   );
   assert.match(cliSource, /mkdtempSync\(path[.]toNamespacedPath\(prefix\)\)/);
-  assert.match(previewSource, /mkdtempSync\(path[.]toNamespacedPath\(\s*path[.]join\(physicalOutputDirectory, '[.]archify-preview-'\),\s*\)\)/);
-  assert.match(visualCheckSource, /mkdtempSync\(path[.]toNamespacedPath\(\s*path[.]join\(parent[.]parentPath, '[.]archify-visual-check-'\),\s*\)\)/);
+  assert.match(previewSource, /mkdtempSync\(path[.]toNamespacedPath\(\s*path[.]join\(physicalOutputDirectory, '[.]archi-made-easy-preview-'\),\s*\)\)/);
+  assert.match(visualCheckSource, /mkdtempSync\(path[.]toNamespacedPath\(\s*path[.]join\(parent[.]parentPath, '[.]archi-made-easy-visual-check-'\),\s*\)\)/);
 
   const previewSuite = fs.readFileSync(path.join(repoRoot, 'test', 'preview.test.mjs'), 'utf8');
-  assert.match(previewSuite, /process\.env\.ARCHIFY_REQUIRE_WINDOWS_8DOT3 === '1'/);
-  assert.match(previewSuite, /process\.env\.ARCHIFY_WINDOWS_8DOT3_ROOT/);
-  assert.match(previewSuite, /process\.env\.ARCHIFY_WINDOWS_8DOT3_SHORT_ROOT/);
+  assert.match(previewSuite, /process\.env\.ARCHI_MADE_EASY_REQUIRE_WINDOWS_8DOT3 === '1'/);
+  assert.match(previewSuite, /process\.env\.ARCHI_MADE_EASY_WINDOWS_8DOT3_ROOT/);
+  assert.match(previewSuite, /process\.env\.ARCHI_MADE_EASY_WINDOWS_8DOT3_SHORT_ROOT/);
   assert.match(previewSuite, /assignWindowsShortName\(realDirectory, shortName\)/);
   const deliverySuite = fs.readFileSync(
     path.join(repoRoot, 'test', 'delivery-sidecar-path.test.mjs'),
     'utf8',
   );
-  assert.match(deliverySuite, /process\.env\.ARCHIFY_WINDOWS_8DOT3_ROOT/);
-  assert.match(deliverySuite, /process\.env\.ARCHIFY_WINDOWS_8DOT3_SHORT_ROOT/);
+  assert.match(deliverySuite, /process\.env\.ARCHI_MADE_EASY_WINDOWS_8DOT3_ROOT/);
+  assert.match(deliverySuite, /process\.env\.ARCHI_MADE_EASY_WINDOWS_8DOT3_SHORT_ROOT/);
   assert.match(deliverySuite, /assignWindowsShortName\(output, 'ARCHDL~1[.]HTM'\)/);
   const visualSidecarSuite = fs.readFileSync(
     path.join(repoRoot, 'test', 'sidecar-path-length.test.mjs'),
@@ -1658,13 +1658,13 @@ test('CI and tagged releases keep real Windows paths on both Nodes and detailed 
   assert.match(fixtureScript, /New-SmbShare[^\n]*-Temporary[^\n]*-ChangeAccess \$identity/);
   assert.match(fixtureScript, /\\\\localhost\\\$shareName/);
   assert.match(fixtureScript, /\\\\[?]\\UNC\\localhost\\\$shareName/);
-  assert.match(fixtureScript, /ARCHIFY_WINDOWS_CASE_SENSITIVE_ROOT/);
-  assert.match(fixtureScript, /ARCHIFY_WINDOWS_UNC_ROOT/);
-  assert.match(fixtureScript, /ARCHIFY_WINDOWS_EXTENDED_UNC_ROOT/);
+  assert.match(fixtureScript, /ARCHI_MADE_EASY_WINDOWS_CASE_SENSITIVE_ROOT/);
+  assert.match(fixtureScript, /ARCHI_MADE_EASY_WINDOWS_UNC_ROOT/);
+  assert.match(fixtureScript, /ARCHI_MADE_EASY_WINDOWS_EXTENDED_UNC_ROOT/);
   assert.match(fixtureScript, /fsutil[.]exe file setshortname/);
   assert.doesNotMatch(fixtureScript, /fsutil[.]exe 8dot3name set/);
-  assert.match(fixtureScript, /ARCHIFY_WINDOWS_8DOT3_ROOT/);
-  assert.match(fixtureScript, /ARCHIFY_WINDOWS_8DOT3_SHORT_ROOT/);
+  assert.match(fixtureScript, /ARCHI_MADE_EASY_WINDOWS_8DOT3_ROOT/);
+  assert.match(fixtureScript, /ARCHI_MADE_EASY_WINDOWS_8DOT3_SHORT_ROOT/);
   assert.match(fixtureScript, /Remove-SmbShare/);
   for (const [label, workflow] of workflows) {
     const job = workflowJob(workflow, 'windows-test-portability');
@@ -1694,12 +1694,12 @@ test('CI and tagged releases keep real Windows paths on both Nodes and detailed 
     );
     assert.match(
       job,
-      /ARCHIFY_REQUIRE_WINDOWS_8DOT3:\s*'1'/,
+      /ARCHI_MADE_EASY_REQUIRE_WINDOWS_8DOT3:\s*'1'/,
       `${label} must require real 8.3 coverage on every maintained Node lane`,
     );
     assert.match(
       job,
-      /ARCHIFY_REQUIRE_WINDOWS_REAL_PATHS:\s*'1'/,
+      /ARCHI_MADE_EASY_REQUIRE_WINDOWS_REAL_PATHS:\s*'1'/,
       `${label} must require controlled UNC and case-sensitive NTFS coverage on every lane`,
     );
     for (const suite of fullSuites) {

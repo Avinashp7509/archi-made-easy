@@ -6,12 +6,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { sameEntry } from '../archify/renderers/shared/path-semantics.mjs';
+import { sameEntry } from '../archi-made-easy/renderers/shared/path-semantics.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 const assetsRoot = path.join(repoRoot, 'docs', 'assets');
-const outputPath = path.resolve(process.argv[2] || path.join(assetsRoot, 'archify-live-proof.gif'));
+const outputPath = path.resolve(process.argv[2] || path.join(assetsRoot, 'archi-made-easy-live-proof.gif'));
 const receiptPath = outputPath.replace(/\.gif$/i, '.json');
 const width = 960;
 const height = 540;
@@ -81,7 +81,7 @@ function commandPath(command, spawnCommand = spawnSync, platform = process.platf
     if (result.error || result.status !== 0) return null;
     return result.stdout.split(/\r?\n/u).map(entry => entry.trim()).find(Boolean) || null;
   }
-  const result = spawnCommand('sh', ['-c', 'command -v "$1"', 'archify-showcase', command], {
+  const result = spawnCommand('sh', ['-c', 'command -v "$1"', 'archi-made-easy-showcase', command], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'ignore'],
   });
@@ -102,7 +102,7 @@ export { commandPath, requireCommand, launchFfmpeg };
 
 function findChrome() {
   const candidates = [
-    process.env.ARCHIFY_CHROME,
+    process.env.ARCHI_MADE_EASY_CHROME,
     '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
     '/Applications/Chromium.app/Contents/MacOS/Chromium',
     commandPath('google-chrome'),
@@ -145,12 +145,12 @@ function wrapperHtml(scene, index) {
 </style>
 </head>
 <body>
-  <iframe src="${esc(artifactUrl)}" title="${esc(scene.title)} generated Archify artifact"></iframe>
+  <iframe src="${esc(artifactUrl)}" title="${esc(scene.title)} generated Archi-Made-Easy artifact"></iframe>
   <div class="edge"></div>
   <div class="topbar">
     <div class="brand">
       <svg class="mark" viewBox="0 0 28 28" fill="none" aria-hidden="true"><polygon points="14,2 26,8 26,20 14,26 2,20 2,8" fill="rgba(8,51,68,.8)" stroke="#22d3ee" stroke-width="1.5"/><polygon points="14,7 21,11 21,19 14,23 7,19 7,11" stroke="rgba(34,211,238,.45)"/><circle cx="14" cy="15" r="2.5" fill="#22d3ee"/></svg>
-      <span>ARCHIFY</span><span class="live">LIVE PROOF</span>
+      <span>ARCHI-MADE-EASY</span><span class="live">LIVE PROOF</span>
     </div>
     <div class="count"><strong>${String(index + 1).padStart(2, '0')} / ${String(scenes.length).padStart(2, '0')}</strong></div>
   </div>
@@ -160,9 +160,9 @@ function wrapperHtml(scene, index) {
   </div>
   <div class="fade"></div>
   <script>
-    window.__archifyShowcaseReady=false;
+    window.__archi_made_easyShowcaseReady=false;
     const frame=document.querySelector('iframe');
-    frame.addEventListener('load',()=>setTimeout(()=>{window.__archifyShowcaseReady=true},260),{once:true});
+    frame.addEventListener('load',()=>setTimeout(()=>{window.__archi_made_easyShowcaseReady=true},260),{once:true});
   </script>
 </body>
 </html>`;
@@ -359,7 +359,7 @@ async function captureFrames(chromePath, tempRoot) {
         throw new Error(`${scene.id}: ${navigation.errorText}`);
       }
       await loaded;
-      await evaluate(cdp, sessionId, `new Promise((resolve,reject)=>{const end=Date.now()+12000;const poll=()=>window.__archifyShowcaseReady?resolve(true):Date.now()>end?reject(new Error('artifact load timeout')):setTimeout(poll,40);poll()})`, true);
+      await evaluate(cdp, sessionId, `new Promise((resolve,reject)=>{const end=Date.now()+12000;const poll=()=>window.__archi_made_easyShowcaseReady?resolve(true):Date.now()>end?reject(new Error('artifact load timeout')):setTimeout(poll,40);poll()})`, true);
 
       for (let i = 0; i < framesPerScene; i += 1) {
         const fade = i === 0 ? 0.82 : i === 1 ? 0.38 : i === framesPerScene - 1 ? 0.42 : 0;
@@ -399,7 +399,7 @@ function buildGif(ffmpeg, framesRoot) {
 
 // The owner of the temporary root must honor Chrome shutdown failure too.
 export async function withCaptureDirectory(capture) {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-readme-showcase-'));
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-readme-showcase-'));
   let retainProfile = false;
   try {
     return await capture(tempRoot);
@@ -417,7 +417,7 @@ async function main() {
     if (!fs.existsSync(artifact)) throw new Error(`${scene.id}: missing ${scene.artifact}; run node scripts/build-gallery.mjs`);
   }
   const chromePath = findChrome();
-  if (!chromePath) throw new Error('Chrome or Chromium is required. Set ARCHIFY_CHROME to its executable path.');
+  if (!chromePath) throw new Error('Chrome or Chromium is required. Set ARCHI_MADE_EASY_CHROME to its executable path.');
   const ffmpeg = requireCommand('ffmpeg', 'Install it with your system package manager.');
   await withCaptureDirectory(async (tempRoot) => {
     const { framesRoot, frameCount } = await captureFrames(chromePath, tempRoot);

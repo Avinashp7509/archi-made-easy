@@ -13,7 +13,7 @@ interface Props { head: string; css: string; page: 'index' | 'guide' | 'start' |
 const { head, css, page, lang = 'en' } = Astro.props;
 const pageDepth = page.split('/').length - 1 + (lang === 'zh' && page !== 'index' ? 1 : 0);
 const rootBase = pageDepth ? '../'.repeat(pageDepth) : './';
-const cloudflare = Astro.site?.origin === 'https://archify.si';
+const cloudflare = Astro.site?.origin === 'https://OWNER.github.io/archi-made-easy';
 const metadata = pageMetadata(page, lang, version);
 const copy = page === 'index' ? indexCopyFor(productChannel) : page === 'guide' ? guideCopyFor(guide, productChannel) : {};
 const body = localizeHtml(versioned(await Astro.slots.render('default')), { lang, page, cloudflare, copy: JSON.parse(versioned(JSON.stringify(copy))) });
@@ -34,7 +34,7 @@ const resourceHead = head.replace(/<meta\b[^>]*>/gi, '').replace(/<title>[\s\S]*
   <link rel="alternate" hreflang="zh-Hans" href={canonicalUrl(page, 'zh')} />
   <link rel="alternate" hreflang="x-default" href={canonicalUrl(page, 'en')} />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Archify" />
+  <meta property="og:site_name" content="Archi-Made-Easy" />
   <meta property="og:title" content={metadata.title} />
   <meta property="og:description" content={metadata.description} />
   <meta property="og:url" content={metadata.canonical} />
@@ -51,7 +51,7 @@ const resourceHead = head.replace(/<meta\b[^>]*>/gi, '').replace(/<title>[\s\S]*
   <script is:inline id="site-copy" type="application/json" set:html={versioned(jsonScript(copy))}></script>
   {page === 'index' && <script is:inline id="site-proof-labels" type="application/json" set:html={jsonScript(defaultProofLabels)}></script>}
   <script is:inline set:html={languageScript}></script>
-  <script is:inline>(function () { var t = 'light'; try { t = localStorage.getItem('archify-site-theme') || 'light'; } catch (_) {} document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light'); })();</script>
+  <script is:inline>(function () { var t = 'light'; try { t = localStorage.getItem('archi-made-easy-site-theme') || 'light'; } catch (_) {} document.documentElement.setAttribute('data-theme', t === 'dark' ? 'dark' : 'light'); })();</script>
   <style is:inline set:html={siteCss + css}></style>
 </head>
 <body><Fragment set:html={body} /></body>

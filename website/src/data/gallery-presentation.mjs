@@ -186,7 +186,7 @@ export function renderCard(entry, index) {
             </header>
             <div class="preview-shell">
               <div class="live-flag">Live artifact</div>
-              <iframe src="${esc(artifact)}?embed=1&amp;theme=dark" data-src-base="${esc(artifact)}" title="${esc(entry.titleEn)} live Archify preview" loading="${entry.featured ? 'eager' : 'lazy'}"></iframe>
+              <iframe src="${esc(artifact)}?embed=1&amp;theme=dark" data-src-base="${esc(artifact)}" title="${esc(entry.titleEn)} live Archi-Made-Easy preview" loading="${entry.featured ? 'eager' : 'lazy'}"></iframe>
             </div>
             <div class="card-body">
               <p class="card-description" data-en="${esc(entry.descriptionEn)}" data-zh="${esc(entry.descriptionZh)}">${esc(entry.descriptionEn)}</p>${engineeringProof}

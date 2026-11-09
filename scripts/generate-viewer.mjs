@@ -3,7 +3,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { sameEntry } from '../archify/renderers/shared/path-semantics.mjs';
+import { sameEntry } from '../archi-made-easy/renderers/shared/path-semantics.mjs';
 
 const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 // Each fragment maps a marker in `viewer/template.source.html` to a file in
@@ -12,23 +12,23 @@ const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 // the same depth the marker occupies. JS fragments need no indent because their
 // markers are already at column 0; the standalone CSS file needs four spaces.
 const fragments = [
-  ['/* ARCHIFY:VIEWER_CSS */', 'viewer.css', 4],
-  ['/* ARCHIFY:EXPORT */', 'export.js'],
-  ['/* ARCHIFY:READER_LAYOUT */', 'reader-layout.js'],
-  ['/* ARCHIFY:CHROME_LAYOUT */', 'viewer-chrome-layout.js'],
-  ['/* ARCHIFY:CAMERA */', 'viewer-camera.js'],
-  ['/* ARCHIFY:RADAR */', 'semantic-radar.js'],
-  ['/* ARCHIFY:MOTION_GOVERNOR */', 'motion-governor.js'],
-  ['/* ARCHIFY:NODE_FINDER */', 'node-finder.js'],
-  ['/* ARCHIFY:NODE_OUTLINE */', 'node-outline.js'],
-  ['/* ARCHIFY:TREE_BRANCHES */', 'tree-branches.js'],
-  ['/* ARCHIFY:FOCUS */', 'focus.js'],
-  ['/* ARCHIFY:INTENT_TRACE */', 'intent-trace.js'],
-  ['/* ARCHIFY:SEMANTIC_LENS */', 'semantic-lens.js'],
-  ['/* ARCHIFY:ROUTE_PROBE */', 'route-probe.js'],
-  ['/* ARCHIFY:EXPORT_CLEANUP */', 'export-cleanup.js'],
+  ['/* ARCHI_MADE_EASY:VIEWER_CSS */', 'viewer.css', 4],
+  ['/* ARCHI_MADE_EASY:EXPORT */', 'export.js'],
+  ['/* ARCHI_MADE_EASY:READER_LAYOUT */', 'reader-layout.js'],
+  ['/* ARCHI_MADE_EASY:CHROME_LAYOUT */', 'viewer-chrome-layout.js'],
+  ['/* ARCHI_MADE_EASY:CAMERA */', 'viewer-camera.js'],
+  ['/* ARCHI_MADE_EASY:RADAR */', 'semantic-radar.js'],
+  ['/* ARCHI_MADE_EASY:MOTION_GOVERNOR */', 'motion-governor.js'],
+  ['/* ARCHI_MADE_EASY:NODE_FINDER */', 'node-finder.js'],
+  ['/* ARCHI_MADE_EASY:NODE_OUTLINE */', 'node-outline.js'],
+  ['/* ARCHI_MADE_EASY:TREE_BRANCHES */', 'tree-branches.js'],
+  ['/* ARCHI_MADE_EASY:FOCUS */', 'focus.js'],
+  ['/* ARCHI_MADE_EASY:INTENT_TRACE */', 'intent-trace.js'],
+  ['/* ARCHI_MADE_EASY:SEMANTIC_LENS */', 'semantic-lens.js'],
+  ['/* ARCHI_MADE_EASY:ROUTE_PROBE */', 'route-probe.js'],
+  ['/* ARCHI_MADE_EASY:EXPORT_CLEANUP */', 'export-cleanup.js'],
 ];
-const childMarker = '/* ARCHIFY:EXPORT_CLEANUP */';
+const childMarker = '/* ARCHI_MADE_EASY:EXPORT_CLEANUP */';
 const childOwner = 'export.js';
 
 function reindent(source, spaces) {
@@ -41,7 +41,7 @@ function reindent(source, spaces) {
 }
 
 export function generateViewer({ root = defaultRoot, check = false } = {}) {
-  const output = path.join(root, 'archify/assets/template.html');
+  const output = path.join(root, 'archi-made-easy/assets/template.html');
   let generated = fs.readFileSync(path.join(root, 'viewer/template.source.html'), 'utf8');
   for (const [marker, file, indent = 0] of fragments) {
     const source = fs.readFileSync(path.join(root, 'viewer', file), 'utf8');
@@ -66,7 +66,7 @@ export function generateViewer({ root = defaultRoot, check = false } = {}) {
   }
   if (check) {
     if (!fs.existsSync(output) || fs.readFileSync(output, 'utf8') !== generated) {
-      throw new Error('Viewer template is stale — run npm run generate:viewer from archify/.');
+      throw new Error('Viewer template is stale — run npm run generate:viewer from archi-made-easy/.');
     }
   } else {
     const temporary = `${output}.${process.pid}.tmp`;
@@ -86,7 +86,7 @@ if (process.argv[1] && sameEntry(process.argv[1], fileURLToPath(import.meta.url)
       throw new Error('Usage: node scripts/generate-viewer.mjs [--check]');
     }
     generateViewer({ check: args[0] === '--check' });
-    if (args.length === 0) console.log('generated archify/assets/template.html');
+    if (args.length === 0) console.log('generated archi-made-easy/assets/template.html');
   } catch (error) {
     console.error(error.message);
     process.exitCode = 1;

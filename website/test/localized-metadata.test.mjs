@@ -30,11 +30,11 @@ test('metadata points both hosts to real localized canonical pages and honest so
     const metadata = pageMetadata(page, lang, '1.2.3');
     assert.equal(metadata.canonical, canonicalUrl(page, lang));
     assert.equal(metadata.schema['@graph'][1].version, '1.2.3');
-    assert.equal(metadata.schema['@graph'][1].codeRepository, 'https://github.com/tt-a1i/archify');
+    assert.equal(metadata.schema['@graph'][1].codeRepository, 'https://github.com/OWNER/archi-made-easy');
     assert.match(metadata.schema['@graph'][1].license, /\/LICENSE$/);
     assert.doesNotMatch(JSON.stringify(metadata.schema), /aggregateRating|ratingValue|downloadCount|interactionStatistic/);
   }
-  assert.equal(canonicalUrl('index', 'zh'), 'https://archify.si/zh');
+  assert.equal(canonicalUrl('index', 'zh'), 'https://OWNER.github.io/archi-made-easy/zh');
   assert.equal(localPagePath('index', 'zh'), 'zh.html');
   assert.equal(localPagePath('start', 'zh', true), 'zh/start');
 });
@@ -55,13 +55,13 @@ function runtime({ href, base, lang = 'en', page = 'start', cloudflare = false, 
   };
   vm.runInNewContext(fs.readFileSync(new URL('../src/scripts/site-language.js', import.meta.url), 'utf8'), { window, document, URL });
   ready();
-  return { api: window.ArchifySiteLanguage, redirected, replaced, switcher };
+  return { api: window.ArchiMadeEasySiteLanguage, redirected, replaced, switcher };
 }
 
 test('URL locale wins stored preference and route switches preserve query and hash', () => {
   for (const setup of [
-    { href: 'https://tt-a1i.github.io/archify/start.html', base: 'https://tt-a1i.github.io/archify/', expected: 'https://tt-a1i.github.io/archify/zh/start.html' },
-    { href: 'https://archify.si/start', base: 'https://archify.si/', cloudflare: true, expected: 'https://archify.si/zh/start' },
+    { href: 'https://OWNER.github.io/archi-made-easy/start.html', base: 'https://OWNER.github.io/archi-made-easy/', expected: 'https://OWNER.github.io/archi-made-easy/zh/start.html' },
+    { href: 'https://OWNER.github.io/archi-made-easy/start', base: 'https://OWNER.github.io/archi-made-easy/', cloudflare: true, expected: 'https://OWNER.github.io/archi-made-easy/zh/start' },
     { href: 'file:///tmp/export/start.html', base: 'file:///tmp/export/', expected: 'file:///tmp/export/zh/start.html' },
   ]) {
     const suffix = '?agent=codex&type=workflow&input=repository&source=artifact&query=cache&lang=zh#install';
@@ -78,13 +78,13 @@ test('URL locale wins stored preference and route switches preserve query and ha
     assert.equal(next.hash, '#install');
     assert.equal(result.switcher.href, result.redirected);
   }
-  const chinese = runtime({ href: 'https://archify.si/zh/start?lang=zh#install', base: 'https://archify.si/', lang: 'zh', cloudflare: true, stored: 'en' });
+  const chinese = runtime({ href: 'https://OWNER.github.io/archi-made-easy/zh/start?lang=zh#install', base: 'https://OWNER.github.io/archi-made-easy/', lang: 'zh', cloudflare: true, stored: 'en' });
   assert.equal(chinese.api.read(), 'zh');
   assert.equal(chinese.redirected, undefined);
-  assert.equal(chinese.replaced, 'https://archify.si/zh/start#install');
+  assert.equal(chinese.replaced, 'https://OWNER.github.io/archi-made-easy/zh/start#install');
 });
 
-const output = new URL(process.env.ARCHIFY_SITE_TARGET === 'cloudflare' ? '../dist-cloudflare/' : '../dist/', import.meta.url);
+const output = new URL(process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare' ? '../dist-cloudflare/' : '../dist/', import.meta.url);
 test('built pages contain localized HTML and reciprocal language metadata before JavaScript', () => {
   for (const page of sitePages) for (const lang of ['en', 'zh']) {
     const file = lang === 'zh' ? page === 'index' ? 'zh.html' : `zh/${page}.html` : `${page}.html`;
@@ -96,7 +96,7 @@ test('built pages contain localized HTML and reciprocal language metadata before
       assert.equal(attr(one('link', 'hreflang', alternate), 'href'), canonicalUrl(page, alternate === 'zh-Hans' ? 'zh' : 'en'), file);
     }
     const title = text(all.find(node => node.tagName === 'title'));
-    assert.ok(title.startsWith('Archify'));
+    assert.ok(title.startsWith('Archi-Made-Easy'));
     assert.equal(attr(one('meta', 'property', 'og:title'), 'content'), title, file);
     assert.equal(attr(one('meta', 'name', 'twitter:title'), 'content'), title, file);
     assert.equal(attr(one('meta', 'property', 'og:url'), 'content'), canonicalUrl(page, lang), file);

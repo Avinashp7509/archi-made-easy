@@ -15,20 +15,20 @@ test('tracked scratch package runs public explainer without dependencies and mis
   const scratch = fs.mkdtempSync(path.join(packagingRoot, 'runtime-'));
   t.after(() => fs.rmSync(scratch, { recursive: true, force: true }));
   const source = path.join(scratch, 'source');
-  const packaged = path.join(scratch, 'package', 'archify');
+  const packaged = path.join(scratch, 'package', 'archi-made-easy');
   const outside = path.join(scratch, 'outside');
   fs.mkdirSync(source);
   fs.mkdirSync(outside);
-  fs.cpSync(path.join(repository, 'archify'), path.join(source, 'archify'), { recursive: true, filter(file) {
-    const relative = path.relative(path.join(repository, 'archify'), file);
+  fs.cpSync(path.join(repository, 'archi-made-easy'), path.join(source, 'archi-made-easy'), { recursive: true, filter(file) {
+    const relative = path.relative(path.join(repository, 'archi-made-easy'), file);
     return !relative.split(path.sep).some(segment => ['node_modules', 'test'].includes(segment) || segment.startsWith('.validator-check-'));
   } });
   for (const name of ['THIRD_PARTY_NOTICES.md', 'LICENSE', 'LICENSE-MIT', 'NOTICE']) {
     fs.copyFileSync(path.join(repository, name), path.join(source, name));
   }
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')
-    && !key.startsWith('ARCHIFY_UPDATE_') && key !== 'ARCHIFY_EXPLAINER_PREPARED' && key !== 'NODE_PATH'));
-  for (const args of [['init'], ['add', '--force', '--', 'archify', 'THIRD_PARTY_NOTICES.md', 'LICENSE', 'LICENSE-MIT', 'NOTICE']]) {
+    && !key.startsWith('ARCHI_MADE_EASY_UPDATE_') && key !== 'ARCHI_MADE_EASY_EXPLAINER_PREPARED' && key !== 'NODE_PATH'));
+  for (const args of [['init'], ['add', '--force', '--', 'archi-made-easy', 'THIRD_PARTY_NOTICES.md', 'LICENSE', 'LICENSE-MIT', 'NOTICE']]) {
     const result = spawnSync('git', ['-C', source, ...args], { env, encoding: 'utf8' });
     assert.equal(result.status, 0, result.stderr);
   }
@@ -51,8 +51,8 @@ test('tracked scratch package runs public explainer without dependencies and mis
   fs.copyFileSync(path.join(packaged, 'examples/delivery.explainer.json'), input);
   fs.writeFileSync(output, 'last good artifact');
   fs.unlinkSync(path.join(packaged, 'explainer/parse.mjs'));
-  const failed = spawnSync(process.execPath, [path.join(packaged, 'bin/archify.mjs'), 'deliver', 'explainer', input, output, '--json'], {
-    cwd: outside, env: { ...env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' }, encoding: 'utf8', timeout: 15_000, maxBuffer: 4 * 1024 * 1024,
+  const failed = spawnSync(process.execPath, [path.join(packaged, 'bin/archi-made-easy.mjs'), 'deliver', 'explainer', input, output, '--json'], {
+    cwd: outside, env: { ...env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' }, encoding: 'utf8', timeout: 15_000, maxBuffer: 4 * 1024 * 1024,
   });
   assert.ifError(failed.error);
   assert.notEqual(failed.status, 0, 'an incomplete packaged runtime cannot report successful delivery');

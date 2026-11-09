@@ -4,14 +4,14 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { guideCopy } from '../src/data/site-translations.mjs';
 
-const key = 'archify-guide-language-state.v1';
+const key = 'archi-made-easy-guide-language-state.v1';
 const script = fs.readFileSync(new URL('../src/scripts/guide.js', import.meta.url), 'utf8');
 const recipes = ['architecture', 'workflow'].map(type => ({
   id: `${type}-test`, type, signals: [], presentation: { preset: 'classic', motion: 'none' },
   en: { title: `${type} recipe`, question: 'Question', summary: 'Summary', useWhen: 'Use', avoidWhen: 'Avoid', include: ['Evidence'], prompt: 'Prompt' },
   zh: { title: `${type} 配方`, question: '问题', summary: '概要', useWhen: '适合', avoidWhen: '避免', include: ['证据'], prompt: '提示词' },
 }));
-function page({ language = 'en', href = 'https://archify.si/guide', target = 'https://archify.si/zh/guide', storage = new Map(), denyStorage = false }) {
+function page({ language = 'en', href = 'https://OWNER.github.io/archi-made-easy/guide', target = 'https://OWNER.github.io/archi-made-easy/zh/guide', storage = new Map(), denyStorage = false }) {
   const elements = new Map();
   function element(id) {
     if (!elements.has(id)) {
@@ -37,7 +37,7 @@ function page({ language = 'en', href = 'https://archify.si/guide', target = 'ht
     removeItem(name) { if (denyStorage) throw new Error('blocked'); storage.delete(name); },
   };
   vm.runInNewContext(script, { document, sessionStorage, window: { location: { href } },
-    URL, ArchifySiteLanguage: { read() { return language; }, write() { return language; }, page(name, suffix) { return name + (suffix || ''); } },
+    URL, ArchiMadeEasySiteLanguage: { read() { return language; }, write() { return language; }, page(name, suffix) { return name + (suffix || ''); } },
   });
   return { element, storage };
 }
@@ -52,7 +52,7 @@ test('guide language navigation preserves a draft, filter and selected recipe on
   original.element('language').dispatch('click', click);
   assert.equal(JSON.parse(original.storage.get(key)).scenario, draft);
   assert.ok(!JSON.parse(original.storage.get(key)).to.includes(encodeURIComponent(draft)), 'draft never enters the navigation URL');
-  const translated = page({ language: 'zh', href: 'https://archify.si/zh/guide', target: 'https://archify.si/guide', storage: original.storage });
+  const translated = page({ language: 'zh', href: 'https://OWNER.github.io/archi-made-easy/zh/guide', target: 'https://OWNER.github.io/archi-made-easy/guide', storage: original.storage });
   assert.equal(translated.element('scenario').value, draft);
   assert.match(translated.element('filters').innerHTML, /class="filter active"[^>]*data-filter="workflow"/);
   assert.match(translated.element('result').innerHTML, /<h3[^>]*>workflow 配方<\/h3>/);
@@ -67,12 +67,12 @@ test('guide language navigation preserves a draft, filter and selected recipe on
 
 test('guide discards stale, malformed and unrelated navigation state; denied storage stays usable', () => {
   for (const state of [
-    { to: 'https://archify.si/zh/guide', at: Date.now() - 30001, scenario: 'stale' },
-    { to: 'https://archify.si/guide', at: Date.now(), scenario: 'unrelated' },
-    { to: 'https://archify.si/zh/guide', scenario: 'missing timestamp' },
+    { to: 'https://OWNER.github.io/archi-made-easy/zh/guide', at: Date.now() - 30001, scenario: 'stale' },
+    { to: 'https://OWNER.github.io/archi-made-easy/guide', at: Date.now(), scenario: 'unrelated' },
+    { to: 'https://OWNER.github.io/archi-made-easy/zh/guide', scenario: 'missing timestamp' },
   ]) {
     const storage = new Map([[key, JSON.stringify(state)]]);
-    const next = page({ language: 'zh', href: 'https://archify.si/zh/guide', storage });
+    const next = page({ language: 'zh', href: 'https://OWNER.github.io/archi-made-easy/zh/guide', storage });
     assert.equal(next.element('scenario').value, '');
     assert.equal(storage.has(key), false);
   }
@@ -86,11 +86,11 @@ test('guide discards stale, malformed and unrelated navigation state; denied sto
 });
 
 test('guide draft uses the live query and hash when the language anchor is stale', () => {
-  const current = page({ href: 'https://archify.si/guide?utm_source=late#recipe-workflow', target: 'https://archify.si/zh/guide' });
+  const current = page({ href: 'https://OWNER.github.io/archi-made-easy/guide?utm_source=late#recipe-workflow', target: 'https://OWNER.github.io/archi-made-easy/zh/guide' });
   current.element('scenario').value = 'Current draft';
   current.element('language').dispatch('click', click);
   const saved = JSON.parse(current.storage.get(key));
-  assert.equal(saved.to, 'https://archify.si/zh/guide?utm_source=late#recipe-workflow');
+  assert.equal(saved.to, 'https://OWNER.github.io/archi-made-easy/zh/guide?utm_source=late#recipe-workflow');
   const translated = page({ language: 'zh', href: saved.to, storage: current.storage });
   assert.equal(translated.element('scenario').value, 'Current draft');
 });

@@ -12,16 +12,16 @@ import { verifyPackagedUpdateChecker } from './package-update-smoke.mjs';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 const noticeComparisonRoot = path.resolve(
-  process.env.ARCHIFY_PACKAGE_SMOKE_NOTICE_ROOT || repoRoot,
+  process.env.ARCHI_MADE_EASY_PACKAGE_SMOKE_NOTICE_ROOT || repoRoot,
 );
 const defaultPackageRoot = process.env.RUNNER_TEMP
-  ? path.join(process.env.RUNNER_TEMP, 'archify-package', 'archify')
-  : path.join(repoRoot, 'archify');
+  ? path.join(process.env.RUNNER_TEMP, 'archi-made-easy-package', 'archi-made-easy')
+  : path.join(repoRoot, 'archi-made-easy');
 const skillRoot = path.resolve(process.argv[2] || defaultPackageRoot);
-const cli = path.join(skillRoot, 'bin', 'archify.mjs');
+const cli = path.join(skillRoot, 'bin', 'archi-made-easy.mjs');
 const updateChecker = path.join(skillRoot, 'scripts', 'check-update.mjs');
 const updateContract = path.join(skillRoot, 'scripts', 'update-contract.mjs');
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-package-smoke-'));
+const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-package-smoke-'));
 
 function requireAbsent(relative) {
   if (fs.existsSync(path.join(skillRoot, relative))) {
@@ -37,7 +37,7 @@ function run(args, options = {}) {
   });
   if (result.status !== 0) {
     throw new Error([
-      `archify ${args.join(' ')} failed with ${result.status}`,
+      `archi-made-easy ${args.join(' ')} failed with ${result.status}`,
       result.stdout,
       result.stderr,
     ].filter(Boolean).join('\n'));
@@ -51,7 +51,7 @@ function runExpectFailure(args, options = {}) {
     encoding: 'utf8',
     ...options,
   });
-  if (result.status === 0) throw new Error(`archify ${args.join(' ')} unexpectedly passed`);
+  if (result.status === 0) throw new Error(`archi-made-easy ${args.join(' ')} unexpectedly passed`);
   return result.stdout;
 }
 
@@ -65,7 +65,7 @@ async function verifyPackagedExplainer() {
     + '@sequence id=request\n| actor api | API | backend |\n| actor redis | Redis | database |\n| api | redis | GET key |\n\n'
     + '## What can change? {#notes}\n\nThis panel can be revised independently.\n';
   fs.writeFileSync(explainerInput, explainerText);
-  const explainerOptions = { cwd: scratch, env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' } };
+  const explainerOptions = { cwd: scratch, env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' } };
   const validateExplainer = JSON.parse(run(['validate', 'explainer', explainerInput, '--json'], explainerOptions));
   if (!validateExplainer.ok || validateExplainer.type !== 'explainer' || !validateExplainer.candidate?.sha256) {
     throw new Error('packaged explainer did not validate the authored parser input');
@@ -77,7 +77,7 @@ async function verifyPackagedExplainer() {
   }
   const { scanHtml } = await import(pathToFileURL(path.join(skillRoot, 'explainer/check.mjs')).href);
   const preparedExplainer = file => {
-    const payload = scanHtml(fs.readFileSync(file, 'utf8')).scripts.find(script => script.attrs.id === 'archify-explainer-prepared');
+    const payload = scanHtml(fs.readFileSync(file, 'utf8')).scripts.find(script => script.attrs.id === 'archi-made-easy-explainer-prepared');
     return JSON.parse(payload?.text || 'null');
   };
   const originalExplainer = preparedExplainer(explainerOutput);
@@ -101,7 +101,7 @@ async function verifyPackagedExplainer() {
   }
   run(['check', patchedExplainerOutput, '--require-provenance', '--json'], explainerOptions);
   const browserUnavailable = JSON.parse(runExpectFailure(['browser-check', explainerOutput, '--require-provenance', '--json'], {
-    ...explainerOptions, env: { ...explainerOptions.env, ARCHIFY_CHROME: path.join(scratch, 'missing-explainer-chrome') },
+    ...explainerOptions, env: { ...explainerOptions.env, ARCHI_MADE_EASY_CHROME: path.join(scratch, 'missing-explainer-chrome') },
   }));
   if (browserUnavailable.status !== 'skipped' || browserUnavailable.chrome?.status !== 'unavailable') {
     throw new Error('packaged explainer browser runtime did not report the explicit unavailable browser');
@@ -317,7 +317,7 @@ async function verifyPackage() {
   fs.writeFileSync(localizedInput, JSON.stringify(localized));
   run(['render', 'architecture', localizedInput, localizedOutput], { cwd: os.tmpdir() });
   const localizedHtml = fs.readFileSync(localizedOutput, 'utf8');
-  const embeddedLocale = localizedHtml.match(/<script id="archify-i18n-data" type="application\/json">([\s\S]*?)<\/script>/);
+  const embeddedLocale = localizedHtml.match(/<script id="archi-made-easy-i18n-data" type="application\/json">([\s\S]*?)<\/script>/);
   if (!localizedHtml.startsWith('<!DOCTYPE html>\n<html lang="ko"')
     || !localizedHtml.includes('>범례</text>')
     || JSON.parse(embeddedLocale?.[1] || '{}').locale !== 'ko') {
@@ -348,7 +348,7 @@ async function verifyPackage() {
   const visualSkipped = JSON.parse(runExpectFailure([
     'visual-check', delivered.output, '--json',
   ], {
-    env: { ...process.env, ARCHIFY_CHROME: path.join(scratch, 'missing-chrome') },
+    env: { ...process.env, ARCHI_MADE_EASY_CHROME: path.join(scratch, 'missing-chrome') },
   }));
   if (visualSkipped.status !== 'skipped' || visualSkipped.visualReview !== 'pending'
     || visualSkipped.chrome?.status !== 'unavailable') {

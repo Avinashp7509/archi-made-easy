@@ -8,14 +8,14 @@ import { fileURLToPath } from 'node:url';
 
 const target = siteTarget();
 const publishSearchMetadata = {
-  name: 'archify-publish-search-metadata',
+  name: 'archi-made-easy-publish-search-metadata',
   hooks: { 'astro:build:done': ({ dir }) => publishSeo(fileURLToPath(dir), target) },
 };
 const cloudflareNotFound = {
-  name: 'archify-cloudflare-not-found',
+  name: 'archi-made-easy-cloudflare-not-found',
   hooks: {
     'astro:build:done': ({ dir }) => {
-      writeFileSync(new URL('404.html', dir), '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found — Archify</title><meta name="robots" content="noindex"></head><body><main><h1>Page not found</h1><p><a href="/">Return to Archify</a></p></main></body></html>\n');
+      writeFileSync(new URL('404.html', dir), '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Page not found — Archi-Made-Easy</title><meta name="robots" content="noindex"></head><body><main><h1>Page not found</h1><p><a href="/">Return to Archi-Made-Easy</a></p></main></body></html>\n');
     },
   },
 };

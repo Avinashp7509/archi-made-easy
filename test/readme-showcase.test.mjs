@@ -10,17 +10,17 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
-const assetPath = path.join(repoRoot, 'docs', 'assets', 'archify-live-proof.gif');
-const receiptPath = path.join(repoRoot, 'docs', 'assets', 'archify-live-proof.json');
+const assetPath = path.join(repoRoot, 'docs', 'assets', 'archi-made-easy-live-proof.gif');
+const receiptPath = path.join(repoRoot, 'docs', 'assets', 'archi-made-easy-live-proof.json');
 
 const readmeLanguages = [
   {
     file: 'README.md',
     href: './README.md',
     label: 'English',
-    demos: '## See Archify in action',
+    demos: '## See Archi-Made-Easy in action',
     preview: '## Preview',
     quickStart: '## Quick start',
     contributing: '## Contributing',
@@ -30,7 +30,7 @@ const readmeLanguages = [
     file: 'README_EN.md',
     href: './README.md',
     label: 'English',
-    demos: '## See Archify in action',
+    demos: '## See Archi-Made-Easy in action',
     preview: '## Preview',
     quickStart: '## Quick start',
     contributing: '## Contributing',
@@ -40,7 +40,7 @@ const readmeLanguages = [
     file: 'README_ZH.md',
     href: './README_ZH.md',
     label: '简体中文',
-    demos: '## 看看 Archify 能做什么',
+    demos: '## 看看 Archi-Made-Easy 能做什么',
     preview: '## 预览',
     quickStart: '## 快速开始',
     contributing: '## 参与贡献',
@@ -50,7 +50,7 @@ const readmeLanguages = [
     file: 'README_JA.md',
     href: './README_JA.md',
     label: '日本語',
-    demos: '## 実際の Archify',
+    demos: '## 実際の Archi-Made-Easy',
     preview: '## プレビュー',
     quickStart: '## クイックスタート',
     contributing: '## コントリビュート',
@@ -174,7 +174,7 @@ test('README motion proof is compact, looping, and backed by current gallery art
   assert.ok(buffer.byteLength <= 3 * 1024 * 1024, `README GIF is too large: ${buffer.byteLength} bytes`);
   assert.equal(receipt.schemaVersion, 1);
   assert.equal(receipt.generator, 'scripts/build-readme-showcase.mjs');
-  assert.equal(receipt.output, 'docs/assets/archify-live-proof.gif');
+  assert.equal(receipt.output, 'docs/assets/archi-made-easy-live-proof.gif');
   assert.equal(receipt.width, inspected.width);
   assert.equal(receipt.height, inspected.height);
   assert.equal(receipt.frameCount, inspected.frameCount);
@@ -237,13 +237,13 @@ function fakeChrome({ exitBeforeStop = false, closeOn = null } = {}) {
 
 test('showcase shutdown clears its timer and bounds a forced stop', async () => {
   const showcase = await import(pathToFileURL(path.join(repoRoot, 'scripts', 'build-readme-showcase.mjs')).href);
-  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-showcase-profile-'));
+  const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-showcase-profile-'));
   const started = Date.now();
   await showcase.stopChrome(fakeChrome({ exitBeforeStop: true }), profile);
   assert.ok(Date.now() - started < 1000, 'an already exited browser must not wait for the losing timer');
   fs.rmSync(profile, { recursive: true, force: true });
 
-  const retained = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-showcase-profile-'));
+  const retained = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-showcase-profile-'));
   const forced = fakeChrome();
   await assert.rejects(
     () => showcase.stopChrome(forced, retained, 20),
@@ -300,24 +300,24 @@ test('all README languages show the brand mark and localized launch video', () =
   for (const language of readmeLanguages) {
     const filename = language.file;
     const readme = fs.readFileSync(path.join(repoRoot, filename), 'utf8');
-    const markIndex = readme.indexOf('docs/assets/archify-lockup-light.svg');
-    const heroPath = 'docs/assets/archify-readme-hero.png';
+    const markIndex = readme.indexOf('docs/assets/archi-made-easy-lockup-light.svg');
+    const heroPath = 'docs/assets/archi-made-easy-readme-hero.png';
     const heroIndex = readme.indexOf(heroPath);
     const taglineEnd = readme.indexOf('</h3>');
     assert.equal(readme.split(heroPath).length - 1, 1, `${filename}: hero must appear exactly once`);
     assert.ok(markIndex < taglineEnd && taglineEnd < heroIndex, `${filename}: hero must follow the logo and tagline`);
     assert.ok(heroIndex < readme.indexOf('<strong>', taglineEnd), `${filename}: hero must precede navigation`);
-    assert.match(readme.slice(taglineEnd + 5), /^\s*<p align="center"><img src="docs\/assets\/archify-readme-hero\.png"/);
-    const proofIndex = readme.indexOf('<!-- archify-launch-video -->');
+    assert.match(readme.slice(taglineEnd + 5), /^\s*<p align="center"><img src="docs\/assets\/archi-made-easy-readme-hero\.png"/);
+    const proofIndex = readme.indexOf('<!-- archi-made-easy-launch-video -->');
     const demosIndex = sectionIndex(readme, filename, language.demos);
     assert.ok(markIndex >= 0 && markIndex < demosIndex, `${filename}: brand lockup is missing before the demos`);
     assert.ok(proofIndex > demosIndex, `${filename}: launch video must live in the demo section`);
     const videoId = filename === 'README_ZH.md' ? '88cff7dd-bdf3-4b97-950c-37cc079898b1' : '78570807-ba1d-4737-953f-55504a378a87';
     assert.ok(readme.includes(`\nhttps://github.com/user-attachments/assets/${videoId}\n`), `${filename}: missing standalone localized video attachment`);
-    assert.ok(!readme.includes('docs/assets/archify-live-proof.gif'), `${filename}: obsolete preview remains`);
+    assert.ok(!readme.includes('docs/assets/archi-made-easy-live-proof.gif'), `${filename}: obsolete preview remains`);
     assert.match(readme, filename === 'README_ZH.md'
-      ? /https:\/\/archify\.si\/zh\/gallery(?=[?#)"])/
-      : /https:\/\/archify\.si\/gallery\.html/);
+      ? /https:\/\/archi-made-easy\.si\/zh\/gallery(?=[?#)"])/
+      : /https:\/\/archi-made-easy\.si\/gallery\.html/);
   }
   assert.equal(
     fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8'),
@@ -361,7 +361,7 @@ test('README installation tables include Hermes Agent before DeepSeek Harness', 
     );
     assert.ok(hermes.includes('Node `>=18`'), `${filename}: Hermes Agent must name Node >=18`);
     assert.ok(
-      hermes.includes('hermes skills install skills-sh/tt-a1i/archify/archify -y'),
+      hermes.includes('hermes skills install skills-sh/OWNER/archi-made-easy/archi-made-easy -y'),
       `${filename}: Hermes Agent must document the skills.sh install identifier`,
     );
     assert.ok(readme.indexOf(hermes) < readme.indexOf(dsh), `${filename}: Hermes Agent must precede DeepSeek Harness`);
@@ -371,15 +371,15 @@ test('README installation tables include Hermes Agent before DeepSeek Harness', 
 test('README demos use checked-in captures and live deep links below the existing hero', () => {
   const demos = [
     {
-      asset: 'archify-demo-reach.png',
+      asset: 'archi-made-easy-demo-reach.png',
       link: 'agent-tool-call.workflow.html?theme=dark&present=1#focus=planner&reach=downstream',
     },
     {
-      asset: 'archify-demo-route.png',
+      asset: 'archi-made-easy-demo-route.png',
       link: 'cache-miss.sequence.html?theme=dark&present=1#route=web~db',
     },
     {
-      asset: 'archify-demo-lens.png',
+      asset: 'archi-made-easy-demo-lens.png',
       link: 'production-deployment.architecture.html?theme=dark&present=1#lens=backend~database',
     },
   ];
@@ -395,8 +395,8 @@ test('README demos use checked-in captures and live deep links below the existin
   for (const language of readmeLanguages) {
     const filename = language.file;
     const readme = fs.readFileSync(path.join(repoRoot, filename), 'utf8');
-    const markIndex = readme.indexOf('docs/assets/archify-lockup-light.svg');
-    const proofIndex = readme.indexOf('<!-- archify-launch-video -->');
+    const markIndex = readme.indexOf('docs/assets/archi-made-easy-lockup-light.svg');
+    const proofIndex = readme.indexOf('<!-- archi-made-easy-launch-video -->');
     const previewIndex = sectionIndex(readme, filename, language.preview);
     const demosIndex = sectionIndex(readme, filename, language.demos);
     const quickStartIndex = sectionIndex(readme, filename, language.quickStart);
@@ -412,30 +412,30 @@ test('README demos use checked-in captures and live deep links below the existin
 
 test('README preserves the visual proof set and key content', () => {
   const commonAssets = [
-    'archify-lockup-light.svg',
-    'archify-lockup-dark.svg',
-    'archify-readme-hero.png',
-    'archify-demo-reach.png',
-    'archify-demo-route.png',
-    'archify-demo-lens.png',
+    'archi-made-easy-lockup-light.svg',
+    'archi-made-easy-lockup-dark.svg',
+    'archi-made-easy-readme-hero.png',
+    'archi-made-easy-demo-reach.png',
+    'archi-made-easy-demo-route.png',
+    'archi-made-easy-demo-lens.png',
     'mco-runtime-share-card.png',
-    'archify-dark.png',
-    'archify-light.png',
-    'archify-menu.png',
-    'archify-workflow.png',
-    'archify-sequence.png',
-    'archify-dataflow.png',
-    'archify-lifecycle.png',
-    'archify-erd.png',
-    'archify-class.png',
-    'archify-tree.png',
-    'archify-timeline.png',
-    'archify-waterfall.png',
+    'archi-made-easy-dark.png',
+    'archi-made-easy-light.png',
+    'archi-made-easy-menu.png',
+    'archi-made-easy-workflow.png',
+    'archi-made-easy-sequence.png',
+    'archi-made-easy-dataflow.png',
+    'archi-made-easy-lifecycle.png',
+    'archi-made-easy-erd.png',
+    'archi-made-easy-class.png',
+    'archi-made-easy-tree.png',
+    'archi-made-easy-timeline.png',
+    'archi-made-easy-waterfall.png',
   ];
 
   for (const { file: filename, noRepository } of readmeLanguages) {
     const readme = fs.readFileSync(path.join(repoRoot, filename), 'utf8');
-    const supercode = readme.indexOf('https://supercode.sh/?utm_source=archify');
+    const supercode = readme.indexOf('https://supercode.sh/?utm_source=archi-made-easy');
     assert.ok(supercode >= 0, `${filename}: Supercode sponsor entry is missing`);
     assert.match(readme, noRepository, `${filename}: the no-repository entry point is missing`);
     for (const asset of commonAssets) {
@@ -446,8 +446,8 @@ test('README preserves the visual proof set and key content', () => {
 });
 
 test('all README languages end with the self-hosted star history chart', () => {
-  const lightChart = 'https://raw.githubusercontent.com/tt-a1i/archify/star-history/assets/star-history-light.svg';
-  const darkChart = 'https://raw.githubusercontent.com/tt-a1i/archify/star-history/assets/star-history-dark.svg';
+  const lightChart = 'https://raw.githubusercontent.com/OWNER/archi-made-easy/star-history/assets/star-history-light.svg';
+  const darkChart = 'https://raw.githubusercontent.com/OWNER/archi-made-easy/star-history/assets/star-history-dark.svg';
   const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'star-history.yml'), 'utf8');
 
   for (const language of readmeLanguages) {
@@ -474,7 +474,7 @@ test('all README languages end with the self-hosted star history chart', () => {
 });
 
 test('Windows Git Bash discovery ignores GIT_EXEC_PATH', { skip: process.platform !== 'win32' }, () => {
-  const missing = path.join(os.tmpdir(), 'archify-missing-git-exec-path');
+  const missing = path.join(os.tmpdir(), 'archi-made-easy-missing-git-exec-path');
   const normal = gitBashForWindows(repoRoot);
   for (const key of ['GIT_EXEC_PATH', 'Git_Exec_Path', 'git_exec_path']) {
     const overridden = gitBashForWindows(repoRoot, { ...process.env, [key]: missing });
@@ -486,7 +486,7 @@ test('Windows Git Bash discovery ignores GIT_EXEC_PATH', { skip: process.platfor
 });
 
 test('Star History publishing advances the data branch without a force push', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-star-history-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-star-history-'));
   const remote = path.join(fixture, 'remote.git');
   const firstCheckout = path.join(fixture, 'first');
   const secondCheckout = path.join(fixture, 'second');
@@ -544,7 +544,7 @@ test('Star History publishing advances the data branch without a force push', ()
 
 
 test('showcase CLI runs through a filesystem alias while imports remain inert', (t) => {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-showcase-alias-'));
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-showcase-alias-'));
   t.after(() => fs.rmSync(scratch, {recursive:true, force:true}));
   const script = path.join(repoRoot, 'scripts/build-readme-showcase.mjs');
   const alias = path.join(scratch, 'showcase.mjs');

@@ -5,11 +5,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { rectsOverlap, segmentRectClearanceWithin } from '../archify/renderers/shared/geometry.mjs';
+import { rectsOverlap, segmentRectClearanceWithin } from '../archi-made-easy/renderers/shared/geometry.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const cli = path.join(root, 'archify/bin/archify.mjs');
-const renderer = path.join(root, 'archify/renderers/erd/render-erd.mjs');
+const cli = path.join(root, 'archi-made-easy/bin/archi-made-easy.mjs');
+const renderer = path.join(root, 'archi-made-easy/renderers/erd/render-erd.mjs');
 const rows = count => Array.from({ length: count }, (_, index) => ({ name: `field_${index}`, type: 'TEXT' }));
 
 function fixture(quality = 'standard') {
@@ -41,13 +41,13 @@ function verticalFixture(quality = 'standard') {
 }
 
 function invoke(t, document, command = 'render') {
-  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-erd-label-capacity-'));
+  const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-erd-label-capacity-'));
   t.after(() => fs.rmSync(folder, { recursive: true, force: true }));
   const input = path.join(folder, 'input.json');
   const output = path.join(folder, 'output.html');
   fs.writeFileSync(input, JSON.stringify(document));
   const result = spawnSync(process.execPath, [cli, command, 'erd', input, ...(command === 'render' ? [output] : ['--json'])], {
-    encoding: 'utf8', env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+    encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
   });
   return { ...result, input, output, html: fs.existsSync(output) ? fs.readFileSync(output, 'utf8') : '' };
 }

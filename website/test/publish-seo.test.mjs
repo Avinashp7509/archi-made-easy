@@ -12,7 +12,7 @@ import { publishSeo, selectedArtifacts, caseMetadata, SEO_BLOCK_START, SEO_BLOCK
 
 const docs = fileURLToPath(new URL('../../docs/', import.meta.url));
 function fixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-search-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-search-'));
   fs.cpSync(path.join(docs, 'gallery'), path.join(root, 'gallery'), { recursive: true });
   fs.cpSync(path.join(docs, 'cases'), path.join(root, 'cases'), { recursive: true });
   for (const page of sitePages) for (const lang of ['en', 'zh']) {
@@ -39,11 +39,11 @@ for (const name of ['cloudflare', 'github']) test(`${name}: published discovery 
       const original = fs.readFileSync(path.join(docs, entry.artifact), 'utf8');
       const published = fs.readFileSync(path.join(root, entry.artifact), 'utf8');
       assert.equal(stripPublishedArtifactMetadata(published), original, `${entry.id}: all renderer bytes preserved`);
-      const url = `https://archify.si/${entry.artifact.replace(/\.html$/, '')}`;
+      const url = `https://OWNER.github.io/archi-made-easy/${entry.artifact.replace(/\.html$/, '')}`;
       assert.ok(published.includes(`rel="canonical" href="${url}"`));
       const structured = JSON.parse(published.match(/<script type="application\/ld\+json">([^<]+)<\/script>/)[1]);
       assert.equal(structured.description, presentation.descriptionEn);
-      assert.equal(structured.isBasedOn, `https://archify.si/${entry.input}`);
+      assert.equal(structured.isBasedOn, `https://OWNER.github.io/archi-made-easy/${entry.input}`);
       assert.deepEqual(fs.readFileSync(path.join(root, entry.input)), fs.readFileSync(path.join(docs, entry.input)));
     }
     for (const entry of PUBLISHED_CASES) {
@@ -55,14 +55,14 @@ for (const name of ['cloudflare', 'github']) test(`${name}: published discovery 
       assert.equal(entry.title, source.meta.title);
       assert.equal(entry.language, source.meta.locale || 'en');
       assertCaseMetadata(published, entry);
-      assert.ok(urls.includes(`https://archify.si/${entry.artifact.replace(/\.html$/, '')}`));
+      assert.ok(urls.includes(`https://OWNER.github.io/archi-made-easy/${entry.artifact.replace(/\.html$/, '')}`));
     }
     const casesOnce = PUBLISHED_CASES.map(entry => fs.readFileSync(path.join(root, entry.artifact)));
     const once = fs.readFileSync(path.join(root, `gallery/artifacts/${CASES[0].output}`), 'utf8');
     publishSeo(root, { name });
     assert.equal(fs.readFileSync(path.join(root, `gallery/artifacts/${CASES[0].output}`), 'utf8'), once, 'repeat build is idempotent');
     for (const [index, entry] of PUBLISHED_CASES.entries()) assert.deepEqual(fs.readFileSync(path.join(root, entry.artifact)), casesOnce[index], `${entry.artifact}: repeat publication is idempotent`);
-    assert.equal(fs.readFileSync(path.join(root, 'robots.txt'), 'utf8'), 'User-agent: *\nAllow: /\n\nSitemap: https://archify.si/sitemap.xml\n');
+    assert.equal(fs.readFileSync(path.join(root, 'robots.txt'), 'utf8'), 'User-agent: *\nAllow: /\n\nSitemap: https://OWNER.github.io/archi-made-easy/sitemap.xml\n');
     assert.equal(fs.existsSync(path.join(root, '_headers')), name === 'cloudflare');
     if (name === 'cloudflare') assert.equal(fs.readFileSync(path.join(root, '_headers'), 'utf8'), '/*.json\n  X-Robots-Tag: noindex\n');
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
@@ -75,7 +75,7 @@ const text = node => (node.childNodes || []).map(child => child.value || '').joi
 function assertCaseMetadata(html, entry) {
   const all = nodes(parse(html));
   const head = nodes(all.find(node => node.tagName === 'head'));
-  const url = `https://archify.si/${entry.artifact.replace(/\.html$/, '')}`;
+  const url = `https://OWNER.github.io/archi-made-easy/${entry.artifact.replace(/\.html$/, '')}`;
   const canonical = all.filter(node => node.tagName === 'link' && attr(node, 'rel') === 'canonical');
   assert.equal(canonical.length, 1);
   assert.ok(head.includes(canonical[0]));
@@ -100,9 +100,9 @@ function assertCaseMetadata(html, entry) {
   assert.equal(attr(meta('twitter:card'), 'content'), 'summary');
   assert.deepEqual(JSON.parse(text(metadata.at(-1))), {
     '@context': 'https://schema.org', '@type': 'CreativeWork', name: entry.title, description: entry.description,
-    url, isBasedOn: `https://archify.si/${entry.input}`, inLanguage: entry.language,
+    url, isBasedOn: `https://OWNER.github.io/archi-made-easy/${entry.input}`, inLanguage: entry.language,
   });
-  assert.doesNotMatch(block, /hreflang|og:image|twitter:image|archify-social-preview/, 'no invented translation or stale preview image');
+  assert.doesNotMatch(block, /hreflang|og:image|twitter:image|archi-made-easy-social-preview/, 'no invented translation or stale preview image');
 }
 
 test('case discovery copy keeps the source-backed and illustrative boundaries explicit', () => {

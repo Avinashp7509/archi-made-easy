@@ -4,12 +4,12 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { ChromeVisualBrowser, findChrome, runVisualCheck } from '../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome, runVisualCheck } from '../archi-made-easy/bin/visual-check.mjs';
 import {
   skillRoot, cli, EXAMPLES, example, localeDocument, FR_PARTIAL_TRANSLATIONS, createLocaleFixture,
 } from './helpers/i18n-fixture.mjs';
 
-const chromePath = process.env.ARCHIFY_CHROME ? findChrome() : null;
+const chromePath = process.env.ARCHI_MADE_EASY_CHROME ? findChrome() : null;
 const { tmp, run, deliverKoreanFixture, deliverJapaneseFixture, cliJson } = createLocaleFixture();
 
 async function evaluate(browser, sessionId, expression, awaitPromise = false) {
@@ -47,13 +47,13 @@ async function loadArtifact(browser, artifactPath) {
 }
 
 test('visual-check binds the delivered Korean fixture to viewport and theme receipts', {
-  skip: chromePath ? false : 'Set ARCHIFY_CHROME to collect artifact-bound visual-check evidence for the Korean fixture.',
+  skip: chromePath ? false : 'Set ARCHI_MADE_EASY_CHROME to collect artifact-bound visual-check evidence for the Korean fixture.',
 }, () => {
   const { artifact, delivery } = deliverKoreanFixture();
   const visual = spawnSync(process.execPath, [cli, 'visual-check', artifact, '--json'], {
     cwd: skillRoot,
     encoding: 'utf8',
-    env: { ...process.env, ARCHIFY_CHROME: chromePath },
+    env: { ...process.env, ARCHI_MADE_EASY_CHROME: chromePath },
   });
   assert.ok([0, 1].includes(visual.status), visual.stderr || visual.stdout);
   const receipt = JSON.parse(visual.stdout);
@@ -73,13 +73,13 @@ test('visual-check binds the delivered Korean fixture to viewport and theme rece
 });
 
 test('visual-check binds the delivered Japanese fixture to viewport and theme receipts', {
-  skip: chromePath ? false : 'Set ARCHIFY_CHROME to collect artifact-bound visual-check evidence for the Japanese fixture.',
+  skip: chromePath ? false : 'Set ARCHI_MADE_EASY_CHROME to collect artifact-bound visual-check evidence for the Japanese fixture.',
 }, () => {
   const { artifact, delivery } = deliverJapaneseFixture();
   const visual = spawnSync(process.execPath, [cli, 'visual-check', artifact, '--json'], {
     cwd: skillRoot,
     encoding: 'utf8',
-    env: { ...process.env, ARCHIFY_CHROME: chromePath },
+    env: { ...process.env, ARCHI_MADE_EASY_CHROME: chromePath },
   });
   assert.ok([0, 1].includes(visual.status), visual.stderr || visual.stdout);
   const receipt = JSON.parse(visual.stdout);
@@ -99,7 +99,7 @@ test('visual-check binds the delivered Japanese fixture to viewport and theme re
 });
 
 test('a passing finalize keeps locale warnings in its receipt', {
-  skip: chromePath ? false : 'Set ARCHIFY_CHROME to run finalize with its browser gate.',
+  skip: chromePath ? false : 'Set ARCHI_MADE_EASY_CHROME to run finalize with its browser gate.',
 }, () => {
   const input = path.join(tmp, 'finalize-fr.json');
   fs.writeFileSync(input, JSON.stringify(localeDocument('architecture', { locale: 'fr', translations: FR_PARTIAL_TRANSLATIONS })));
@@ -123,7 +123,7 @@ const BROWSER_LOCALES = {
     presetBadges: {
       'signal-flow': { header: '信号流', plate: 'none' },
       blueprint: { header: '蓝图 / 修订 01', plate: '' },
-      editorial: { header: '编辑风格 / 现场笔记', plate: 'ARCHIFY / 图版 04' },
+      editorial: { header: '编辑风格 / 现场笔记', plate: 'ARCHI-MADE-EASY / 图版 04' },
     },
     shareCardFailure: '无法为分享卡片创建二维画布上下文',
   },
@@ -138,7 +138,7 @@ const BROWSER_LOCALES = {
     presetBadges: {
       'signal-flow': { header: 'FLUJO DE SEÑAL', plate: 'none' },
       blueprint: { header: 'PLANO / REV 01', plate: '' },
-      editorial: { header: 'EDITORIAL / NOTA DE CAMPO', plate: 'ARCHIFY / LÁMINA 04' },
+      editorial: { header: 'EDITORIAL / NOTA DE CAMPO', plate: 'ARCHI-MADE-EASY / LÁMINA 04' },
     },
     shareCardFailure: 'Contexto de lienzo 2D no disponible para Tarjeta para compartir',
   },
@@ -153,7 +153,7 @@ const BROWSER_LOCALES = {
     presetBadges: {
       'signal-flow': { header: '시그널 플로우', plate: 'none' },
       blueprint: { header: '블루프린트 / 개정 01', plate: '' },
-      editorial: { header: '에디토리얼 / 현장 노트', plate: 'ARCHIFY / 도판 04' },
+      editorial: { header: '에디토리얼 / 현장 노트', plate: 'ARCHI-MADE-EASY / 도판 04' },
     },
     shareCardFailure: '공유 카드에 2D 캔버스 컨텍스트를 만들 수 없습니다',
   },
@@ -168,7 +168,7 @@ const BROWSER_LOCALES = {
     presetBadges: {
       'signal-flow': { header: 'تدفّق الإشارة', plate: 'none' },
       blueprint: { header: 'مخطّط هندسي / إصدار ٠١', plate: '' },
-      editorial: { header: 'تحريري / ملاحظة ميدانية', plate: 'ARCHIFY / لوحة ٠٤' },
+      editorial: { header: 'تحريري / ملاحظة ميدانية', plate: 'ARCHI-MADE-EASY / لوحة ٠٤' },
     },
     shareCardFailure: 'سياقُ لوحة الرسم ثنائيِّ الأبعاد غير متاح لـبطاقة مشاركة',
   },
@@ -250,9 +250,9 @@ async function assertLocalizedViewer(browser, locale, expected) {
       HTMLCanvasElement.prototype.getContext = function () { return null; };
       try {
         var edge = document.querySelector('.diagram-container svg [data-edge-from][data-edge-to]');
-        Archify.routeProbe.begin({ source: edge.getAttribute('data-edge-from'), focusNode: false });
-        Archify.routeProbe.choose(edge.getAttribute('data-edge-to'), { updateUrl: false });
-        await Archify.exportMenu.shareCard({ variant: 'route' });
+        ArchiMadeEasy.routeProbe.begin({ source: edge.getAttribute('data-edge-from'), focusNode: false });
+        ArchiMadeEasy.routeProbe.choose(edge.getAttribute('data-edge-to'), { updateUrl: false });
+        await ArchiMadeEasy.exportMenu.shareCard({ variant: 'route' });
         return { rejected: false, message: '' };
       } catch (error) {
         return { rejected: true, message: String(error && error.message || error) };
@@ -286,7 +286,7 @@ async function assertLocalizedViewer(browser, locale, expected) {
 }
 
 test('real Chrome keeps zh-CN Finder, Route, Export, and accessibility UI localized in all five modes', {
-  skip: chromePath ? false : 'Set ARCHIFY_CHROME to run the real browser localization regression.',
+  skip: chromePath ? false : 'Set ARCHI_MADE_EASY_CHROME to run the real browser localization regression.',
 }, async () => {
   const browser = new ChromeVisualBrowser(chromePath);
   try {
@@ -297,7 +297,7 @@ test('real Chrome keeps zh-CN Finder, Route, Export, and accessibility UI locali
 });
 
 test('real Chrome keeps es Finder, Route, Export, and accessibility UI localized in all five modes', {
-  skip: chromePath ? false : 'Set ARCHIFY_CHROME to run the real browser localization regression.',
+  skip: chromePath ? false : 'Set ARCHI_MADE_EASY_CHROME to run the real browser localization regression.',
 }, async () => {
   const browser = new ChromeVisualBrowser(chromePath);
   try {
@@ -308,7 +308,7 @@ test('real Chrome keeps es Finder, Route, Export, and accessibility UI localized
 });
 
 test('real Chrome keeps ko Finder, Route, Export, and accessibility UI localized in all five modes', {
-  skip: chromePath ? false : 'Set ARCHIFY_CHROME to run the real browser localization regression.',
+  skip: chromePath ? false : 'Set ARCHI_MADE_EASY_CHROME to run the real browser localization regression.',
 }, async () => {
   const browser = new ChromeVisualBrowser(chromePath);
   try {
@@ -319,7 +319,7 @@ test('real Chrome keeps ko Finder, Route, Export, and accessibility UI localized
 });
 
 test('real Chrome keeps Arabic UI localized with mixed-script authored titles in all five modes', {
-  skip: chromePath ? false : 'Set ARCHIFY_CHROME to run the real browser localization regression.',
+  skip: chromePath ? false : 'Set ARCHI_MADE_EASY_CHROME to run the real browser localization regression.',
 }, async () => {
   const browser = new ChromeVisualBrowser(chromePath);
   try {

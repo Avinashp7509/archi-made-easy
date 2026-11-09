@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validatePortablePathSet } from '../../../archify/renderers/shared/portable-path.mjs';
+import { validatePortablePathSet } from '../../../archi-made-easy/renderers/shared/portable-path.mjs';
 import { spawnCliSync } from './resolve-cli.mjs';
 
 export const integrationRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -87,7 +87,7 @@ export function releaseSnapshot(destination) {
       throw new Error(`unable to read DSH source ${release.sourceCommit}: ${result.stderr || result.error?.message}`);
     }
   }
-  const skill = JSON.parse(fs.readFileSync(path.join(destination, 'archify', 'package.json'), 'utf8'));
+  const skill = JSON.parse(fs.readFileSync(path.join(destination, 'archi-made-easy', 'package.json'), 'utf8'));
   if (skill.version !== release.skillVersion) {
     throw new Error(`DSH Skill version mismatch: ${skill.version} != ${release.skillVersion}`);
   }

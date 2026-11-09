@@ -12,39 +12,39 @@ const workflow = parse(fs.readFileSync(new URL('../.github/workflows/ci.yml', im
 
 test('owned changes add their real gates without requiring every unrelated lane', () => {
   assert.equal(classifyPaths(['README.md', 'docs/assets/community/qq.svg']).scope, 'docs');
-  const render = classifyPaths(['archify/renderers/workflow/render-workflow.mjs']);
+  const render = classifyPaths(['archi-made-easy/renderers/workflow/render-workflow.mjs']);
   assert.equal(render.scope, 'core');
   assert.deepEqual(render.owners, ['workflow']);
   assert.ok(render.generated && render.browser && render.package);
   assert.equal(render.windows, false);
-  assert.equal(classifyPaths(['archify/renderers/workflow/render-workflow.mjs', 'archify.zip']).scope, 'core');
-  assert.equal(classifyPaths(['archify.zip']).scope, 'full');
+  assert.equal(classifyPaths(['archi-made-easy/renderers/workflow/render-workflow.mjs', 'archi-made-easy.zip']).scope, 'core');
+  assert.equal(classifyPaths(['archi-made-easy.zip']).scope, 'full');
   const newBrowser = classifyPaths(['test/new-browser.test.mjs']);
   assert.equal(newBrowser.browser, true);
   assert.ok(newBrowser.changedTests.includes('test/browser-gate.test.mjs'));
   const mixed = classifyPaths(['package-lock.json', 'test/new-browser.test.mjs']);
   assert.equal(mixed.scope, 'full');
   assert.ok(mixed.changedTests.includes('test/browser-gate.test.mjs'));
-  const viewer = classifyPaths(['viewer/toolbar.mjs', 'archify.zip']);
+  const viewer = classifyPaths(['viewer/toolbar.mjs', 'archi-made-easy.zip']);
   assert.ok(viewer.browser && viewer.webm);
   const website = classifyPaths(['website/src/pages/index.astro']);
   assert.ok(website.website);
   assert.equal(website.browser, false);
   assert.equal(website.package, false);
-  assert.ok(classifyPaths(['docs/skill-updates/archify/stable.json']).manifest);
+  assert.ok(classifyPaths(['docs/skill-updates/archi-made-easy/stable.json']).manifest);
 });
 
 test('recipe, schema and shared renderer owners include their real source consumers', () => {
   const available = ['test/guide.test.mjs', 'test/guide-page.test.mjs', 'test/gallery.test.mjs', 'test/start-page.test.mjs', 'test/engineering-profile.test.mjs', 'test/legend-contract.test.mjs', 'test/generate-validators.test.mjs'];
-  const recipe = classifyPaths(['archify/recipes/scenarios.mjs']);
+  const recipe = classifyPaths(['archi-made-easy/recipes/scenarios.mjs']);
   assert.equal(recipe.scope, 'core');
   assert.equal(recipe.website, true);
   assert.deepEqual(selectAffectedTests(recipe.owners, [], available), available.slice(0, 4).sort());
-  const shared = classifyPaths(['archify/renderers/shared/engineering-profiles.mjs', 'archify/renderers/shared/legend.mjs']);
+  const shared = classifyPaths(['archi-made-easy/renderers/shared/engineering-profiles.mjs', 'archi-made-easy/renderers/shared/legend.mjs']);
   const selected = selectAffectedTests(shared.owners, [], available);
   assert.ok(selected.includes('test/engineering-profile.test.mjs'));
   assert.ok(selected.includes('test/legend-contract.test.mjs'));
-  const schema = classifyPaths(['archify/schemas/workflow.schema.json']);
+  const schema = classifyPaths(['archi-made-easy/schemas/workflow.schema.json']);
   assert.equal(schema.scope, 'core');
   assert.ok(selectAffectedTests(schema.owners, [], available).includes('test/generate-validators.test.mjs'));
 });
@@ -52,7 +52,7 @@ test('recipe, schema and shared renderer owners include their real source consum
 test('shared SVG parser changes retain the public checker suite without selecting unrelated tests', () => {
   const available = ['test/svg-path-analysis.test.mjs', 'test/svg-path-checker.test.mjs',
     'test/cli.test.mjs', 'test/readme-showcase.test.mjs'];
-  const plan = classifyPaths(['archify/renderers/shared/svg-path-analysis.mjs', 'archify.zip']);
+  const plan = classifyPaths(['archi-made-easy/renderers/shared/svg-path-analysis.mjs', 'archi-made-easy.zip']);
   assert.equal(plan.scope, 'core');
   assert.deepEqual(plan.changedTests, []);
   assert.ok(plan.generated && plan.browser && plan.package);
@@ -64,7 +64,7 @@ test('shared SVG parser changes retain the public checker suite without selectin
 
 test('Architecture grid changes retain explicit placement regression coverage', () => {
   const available = ['test/grid.test.mjs', 'test/architecture-first-draft.test.mjs', 'test/cli.test.mjs'];
-  const plan = classifyPaths(['archify/renderers/architecture/grid.mjs']);
+  const plan = classifyPaths(['archi-made-easy/renderers/architecture/grid.mjs']);
   assert.equal(plan.scope, 'core');
   assert.ok(plan.generated && plan.browser && plan.package);
   const selected = selectAffectedTests(plan.owners, [], available);
@@ -74,7 +74,7 @@ test('Architecture grid changes retain explicit placement regression coverage', 
 
 test('the grid shared by ERD and Class retains both modes and their compatibility checks', () => {
   const available = ['test/erd-rendering.test.mjs', 'test/class-rendering.test.mjs', 'test/tree-rendering.test.mjs'];
-  const plan = classifyPaths(['archify/renderers/erd/grid.mjs']);
+  const plan = classifyPaths(['archi-made-easy/renderers/erd/grid.mjs']);
   assert.equal(plan.scope, 'core');
   assert.ok(plan.owners.includes('erd') && plan.owners.includes('class'));
   assert.deepEqual(selectAffectedTests(plan.owners, [], available), available.slice(0, 2).sort());
@@ -83,7 +83,7 @@ test('the grid shared by ERD and Class retains both modes and their compatibilit
 test('the router shared by Architecture, ERD and Class retains all three callers', () => {
   const available = ['test/architecture-first-draft.test.mjs', 'test/erd-rendering.test.mjs',
     'test/class-rendering.test.mjs', 'test/tree-rendering.test.mjs'];
-  const plan = classifyPaths(['archify/renderers/architecture/routing.mjs']);
+  const plan = classifyPaths(['archi-made-easy/renderers/architecture/routing.mjs']);
   assert.equal(plan.scope, 'core');
   assert.ok(plan.generated && plan.browser && plan.package);
   assert.ok(['architecture', 'erd', 'class'].every(owner => plan.owners.includes(owner)));
@@ -94,8 +94,8 @@ test('renderer changes retain cross-mode public regressions even without changin
   const regressions = ['test/automatic-port-spread.test.mjs', 'test/edge-label-color.test.mjs',
     'test/label-clearance.test.mjs', 'test/vertical-edge.test.mjs', 'test/node-icons.test.mjs'];
   const available = [...regressions, 'test/cli.test.mjs'];
-  for (const source of ['archify/renderers/dataflow/render-dataflow.mjs',
-    'archify/renderers/sequence/render-sequence.mjs', 'archify/renderers/shared/geometry.mjs']) {
+  for (const source of ['archi-made-easy/renderers/dataflow/render-dataflow.mjs',
+    'archi-made-easy/renderers/sequence/render-sequence.mjs', 'archi-made-easy/renderers/shared/geometry.mjs']) {
     const plan = classifyPaths([source]);
     assert.equal(plan.scope, 'core');
     assert.deepEqual(selectAffectedTests(plan.owners, [], available), regressions.slice().sort(), source);
@@ -104,7 +104,7 @@ test('renderer changes retain cross-mode public regressions even without changin
 
 test('checked artifacts retain XML integrity and compare artifact regression coverage', () => {
   const available = ['test/generated-artifact-xml.test.mjs', 'test/architecture-delta.test.mjs'];
-  for (const name of ['examples/checkout-platform-delta.html', 'docs/guide.html', 'archify/examples/rendered.html', 'docs/assets/example.svg']) {
+  for (const name of ['examples/checkout-platform-delta.html', 'docs/guide.html', 'archi-made-easy/examples/rendered.html', 'docs/assets/example.svg']) {
     const plan = classifyPaths([name]);
     assert.equal(plan.scope, 'core');
     assert.ok(selectAffectedTests(plan.owners, [], available).includes('test/generated-artifact-xml.test.mjs'), name);
@@ -125,7 +125,7 @@ test('generated site outputs retain proof and handoff consumer checks', () => {
 });
 
 test('unknown and delivery/build/fixture changes conservatively require every gate', () => {
-  for (const paths of [[], ['unknown.txt'], ['scripts/ci-scope.mjs'], ['package-lock.json'], ['.github/workflows/ci.yml'], ['archify/bin/archify.mjs'], ['archify/renderers/shared/atomic-output.mjs'], ['test/fixtures/input.json'], ['test/helpers.mjs']]) {
+  for (const paths of [[], ['unknown.txt'], ['scripts/ci-scope.mjs'], ['package-lock.json'], ['.github/workflows/ci.yml'], ['archi-made-easy/bin/archi-made-easy.mjs'], ['archi-made-easy/renderers/shared/atomic-output.mjs'], ['test/fixtures/input.json'], ['test/helpers.mjs']]) {
     const plan = classifyPaths(paths);
     assert.equal(plan.scope, 'full', `${paths}`);
     for (const gate of ['generated', 'browser', 'webm', 'package', 'windows', 'manifest', 'website']) assert.equal(plan[gate], true, `${paths}: ${gate}`);
@@ -154,7 +154,7 @@ test('main/manual are exhaustive; invalid dev base falls back to full but PR bas
 });
 
 test('real Git comparison retains rename source ownership and detects added tests', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-scope-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-scope-'));
   try {
     const git = args => execFileSync('git', args, { cwd: root, encoding: 'utf8' });
     git(['init', '-q']); git(['config', 'user.name', 'Test']); git(['config', 'user.email', 'test@example.invalid']);

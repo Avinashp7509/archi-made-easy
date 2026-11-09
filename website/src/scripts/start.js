@@ -7,7 +7,7 @@
       var KNOWN_AGENTS = new Set(['cursor', 'codex', 'claude-code', 'opencode', 'github-copilot']);
       var KNOWN_INPUTS = new Set(['description', 'repository']);
       var KNOWN_SOURCES = new Set(['artifact', 'gallery', 'readme', 'direct']);
-      var EVENT_KEY = 'archify.start.events.v1';
+      var EVENT_KEY = 'archi-made-easy.start.events.v1';
       var params = new URLSearchParams(window.location.search);
       var requestedType = params.get('type');
       var requestedAgent = params.get('agent');
@@ -17,7 +17,7 @@
       var agent = KNOWN_AGENTS.has(requestedAgent) ? requestedAgent : 'codex';
       var source = KNOWN_SOURCES.has(requestedSource) ? requestedSource : 'direct';
       var input = KNOWN_INPUTS.has(requestedInput) ? requestedInput : 'description';
-      var language = ArchifySiteLanguage.read();
+      var language = ArchiMadeEasySiteLanguage.read();
 
       var title = document.getElementById('recipe-title');
       var question = document.getElementById('recipe-question');
@@ -69,10 +69,10 @@
           events.push(detail);
           sessionStorage.setItem(EVENT_KEY, JSON.stringify(events.slice(-24)));
         } catch (_) {}
-        try { window.dispatchEvent(new CustomEvent('archify:start-funnel', { detail: detail })); } catch (_) {}
+        try { window.dispatchEvent(new CustomEvent('archi-made-easy:start-funnel', { detail: detail })); } catch (_) {}
       }
 
-      window.ArchifyStartMetrics = {
+      window.ArchiMadeEasyStartMetrics = {
         snapshot: function () {
           try {
             var events = JSON.parse(sessionStorage.getItem(EVENT_KEY) || '[]');
@@ -90,7 +90,7 @@
       var copyAttempt = 0;
       function render() {
         copyAttempt++;
-        language = ArchifySiteLanguage.write(language);
+        language = ArchiMadeEasySiteLanguage.write(language);
         var recipe = DATA[type];
         var copy = recipe[language];
         updateStaticCopy();
@@ -111,8 +111,8 @@
         });
         var agentName = document.querySelector('[data-agent="' + agent + '"]').textContent;
         agentState.textContent = agentName + (language === 'zh' ? ' · 同一份 Skill' : ' · same Skill');
-        installCommand.textContent = 'npx -y skills@latest add https://archify.si --skill archify --agent ' + agent + ' --global --copy --yes';
-        projectCommand.textContent = 'npx -y skills@latest add https://archify.si --skill archify --agent ' + agent + ' --copy --yes';
+        installCommand.textContent = 'npx -y skills@latest add https://OWNER.github.io/archi-made-easy --skill archi-made-easy --agent ' + agent + ' --global --copy --yes';
+        projectCommand.textContent = 'npx -y skills@latest add https://OWNER.github.io/archi-made-easy --skill archi-made-easy --agent ' + agent + ' --copy --yes';
         title.textContent = copy.title;
         question.textContent = copy.question;
         prompt.textContent = currentPrompt();
@@ -121,7 +121,7 @@
           entry.textContent = item;
           return entry;
         }));
-        proofLink.href = ArchifySiteLanguage.page('gallery', '#proof-' + encodeURIComponent(recipe.proof));
+        proofLink.href = ArchiMadeEasySiteLanguage.page('gallery', '#proof-' + encodeURIComponent(recipe.proof));
         proofMeta.textContent = language === 'zh'
           ? '验证成品 · ' + recipe.presentation.preset + ' · ' + recipe.presentation.motion
           : 'Verified proof · ' + recipe.presentation.preset + ' · ' + recipe.presentation.motion;
@@ -137,10 +137,10 @@
       function starterText() {
         var agentName = document.querySelector('[data-agent="' + agent + '"]').textContent;
         if (language === 'zh') {
-          return '为 ' + agentName + ' 安装 Archify：\n' + document.getElementById('agent-install-prompt').textContent.trim()
+          return '为 ' + agentName + ' 安装 Archi-Made-Easy：\n' + document.getElementById('agent-install-prompt').textContent.trim()
             + (input === 'description' ? '\n\n然后在任意新对话中直接告诉 ' : '\n\n然后在目标仓库中让 ') + agentName + '：\n' + currentPrompt();
         }
-        return 'Install Archify for ' + agentName + ':\n' + document.getElementById('agent-install-prompt').textContent.trim()
+        return 'Install Archi-Made-Easy for ' + agentName + ':\n' + document.getElementById('agent-install-prompt').textContent.trim()
           + (input === 'description' ? '\n\nThen start any new chat and tell ' : '\n\nThen, in your target repository, ask ') + agentName + ':\n' + currentPrompt();
       }
 
@@ -159,7 +159,7 @@
         copyStatus.textContent = '';
         copyReceipts.delete(copyStatus);
         var isCurrent = function () { return attempt === copyAttempt; };
-        var ok = await ArchifyClipboard.copy(text, isCurrent);
+        var ok = await ArchiMadeEasyClipboard.copy(text, isCurrent);
         if (!isCurrent()) return;
         copyReceipts.set(copyStatus, { text: text, step: step });
         if (ok && step) recordStep(step);

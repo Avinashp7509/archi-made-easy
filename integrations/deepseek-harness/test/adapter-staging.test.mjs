@@ -23,7 +23,7 @@ function git(cwd, args, options = {}) {
 }
 
 function fixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-dsh-pack-fixture-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-dsh-pack-fixture-'));
   const checkout = path.join(root, 'repo');
   const sourceHead = git(repoRoot, ['rev-parse', 'HEAD']);
   const clone = spawnSync('git', ['clone', '--shared', '--no-checkout', '--', repoRoot, checkout], {
@@ -37,11 +37,11 @@ function fixture() {
   // copies are byte-identical to HEAD and no fixture commit is needed.
   const contractFiles = [
     'scripts/stage-clean-skill.mjs',
-    'archify/renderers/shared/atomic-output.mjs',
-    'archify/renderers/shared/output-path.mjs',
-    'archify/renderers/shared/path-semantics.mjs',
-    'archify/renderers/shared/portable-path.mjs',
-    'archify/renderers/shared/sidecar-path.mjs',
+    'archi-made-easy/renderers/shared/atomic-output.mjs',
+    'archi-made-easy/renderers/shared/output-path.mjs',
+    'archi-made-easy/renderers/shared/path-semantics.mjs',
+    'archi-made-easy/renderers/shared/portable-path.mjs',
+    'archi-made-easy/renderers/shared/sidecar-path.mjs',
     'integrations/deepseek-harness/scripts/release-source.mjs',
     'integrations/deepseek-harness/scripts/pack.mjs',
   ];
@@ -55,8 +55,8 @@ function fixture() {
   assert.equal(diff.error, undefined, diff.error?.message);
   assert.ok([0, 1].includes(diff.status), diff.stderr || diff.stdout);
   if (diff.status === 1) {
-    git(checkout, ['config', 'user.email', 'archify-tests@example.invalid']);
-    git(checkout, ['config', 'user.name', 'Archify tests']);
+    git(checkout, ['config', 'user.email', 'archi-made-easy-tests@example.invalid']);
+    git(checkout, ['config', 'user.name', 'Archi-Made-Easy tests']);
     git(checkout, ['commit', '--no-gpg-sign', '-m', 'test: apply working portable path contract']);
   }
   const head = git(checkout, ['rev-parse', 'HEAD']);
@@ -99,8 +99,8 @@ function unpack(tarball, root) {
 }
 
 function commitFixture(checkout, message, { stage = true } = {}) {
-  git(checkout, ['config', 'user.email', 'archify-tests@example.invalid']);
-  git(checkout, ['config', 'user.name', 'Archify tests']);
+  git(checkout, ['config', 'user.email', 'archi-made-easy-tests@example.invalid']);
+  git(checkout, ['config', 'user.name', 'Archi-Made-Easy tests']);
   if (stage) git(checkout, ['add', '-A', '--', 'integrations/deepseek-harness']);
   git(checkout, ['commit', '--no-gpg-sign', '-m', message]);
 }
@@ -115,27 +115,27 @@ function addIndexedAdapterBlob(checkout, relative, content) {
 test('DSH workflow runs when the shared portable-path contract changes', () => {
   const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'dsh.yml'), 'utf8');
   assert.equal(
-    workflow.match(/archify\/renderers\/shared\/atomic-output\.mjs/g)?.length,
+    workflow.match(/archi-made-easy\/renderers\/shared\/atomic-output\.mjs/g)?.length,
     2,
     'pull requests and branch pushes must both watch the atomic output runtime',
   );
   assert.equal(
-    workflow.match(/archify\/renderers\/shared\/portable-path\.mjs/g)?.length,
+    workflow.match(/archi-made-easy\/renderers\/shared\/portable-path\.mjs/g)?.length,
     2,
     'pull requests and branch pushes must both watch the shared validator',
   );
   assert.equal(
-    workflow.match(/archify\/renderers\/shared\/path-semantics\.mjs/g)?.length,
+    workflow.match(/archi-made-easy\/renderers\/shared\/path-semantics\.mjs/g)?.length,
     2,
     'pull requests and branch pushes must both watch the staging identity runtime',
   );
   assert.equal(
-    workflow.match(/archify\/renderers\/shared\/output-path\.mjs/g)?.length,
+    workflow.match(/archi-made-easy\/renderers\/shared\/output-path\.mjs/g)?.length,
     2,
     'pull requests and branch pushes must both watch the native output runtime',
   );
   assert.equal(
-    workflow.match(/archify\/renderers\/shared\/sidecar-path\.mjs/g)?.length,
+    workflow.match(/archi-made-easy\/renderers\/shared\/sidecar-path\.mjs/g)?.length,
     2,
     'pull requests and branch pushes must both watch the bounded sidecar runtime',
   );
@@ -144,7 +144,7 @@ test('DSH workflow runs when the shared portable-path contract changes', () => {
 test('pack stages adapter inputs from the fixture HEAD despite dirty and untracked files', () => {
   const { root, checkout, head } = fixture();
   try {
-    const dirtyMarker = 'ARCHIFY_DSH_DIRTY_FIXTURE_MARKER';
+    const dirtyMarker = 'ARCHI_MADE_EASY_DSH_DIRTY_FIXTURE_MARKER';
     const manifestPath = adapterPath(checkout, 'package.json');
     const releasePath = adapterPath(checkout, 'release.json');
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
@@ -191,7 +191,7 @@ test('pack does not follow a live symlink replacing the tracked adapter main', (
   try {
     const mainPath = adapterPath(checkout, 'lib/index.js');
     const outside = path.join(root, 'outside-main.js');
-    const marker = 'ARCHIFY_DSH_LIVE_SYMLINK_MARKER';
+    const marker = 'ARCHI_MADE_EASY_DSH_LIVE_SYMLINK_MARKER';
     fs.writeFileSync(outside, `// ${marker}\n`);
     fs.rmSync(mainPath);
     try {
@@ -222,7 +222,7 @@ test('pack rejects a committed adapter symlink and leaves no target tarball', ()
   const { root, checkout } = fixture();
   try {
     const mainRelative = 'integrations/deepseek-harness/lib/index.js';
-    const target = '/outside/archify-dsh-live-main.js';
+    const target = '/outside/archi-made-easy-dsh-live-main.js';
     const blob = git(checkout, ['hash-object', '-w', '--stdin'], { input: `${target}\n` });
     git(checkout, ['update-index', '--add', '--cacheinfo', `120000,${blob},${mainRelative}`]);
     commitFixture(checkout, 'test: commit adapter symlink', { stage: false });

@@ -14,36 +14,36 @@ function git(args) {
   return result.stdout.trim();
 }
 
-test('the repository still has exactly one checked-in Archify SKILL.md and no generated DSH payload', () => {
+test('the repository still has exactly one checked-in Archi-Made-Easy SKILL.md and no generated DSH payload', () => {
   const skillFiles = git(['ls-files', '*SKILL.md']).split('\n').filter(Boolean);
   // Repository maintenance skills are independent of the distributed product.
   const productSkills = skillFiles.filter((file) => {
     const content = fs.readFileSync(path.join(repoRoot, file), 'utf8');
     const frontmatter = content.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/)?.[1] || '';
-    return /^name:\s*(?:archify|'archify'|"archify")\s*$/m.test(frontmatter);
+    return /^name:\s*(?:archi-made-easy|'archi-made-easy'|"archi-made-easy")\s*$/m.test(frontmatter);
   });
-  assert.deepEqual(productSkills, ['archify/SKILL.md']);
+  assert.deepEqual(productSkills, ['archi-made-easy/SKILL.md']);
   assert.equal(fs.existsSync(path.join(repoRoot, 'integrations/deepseek-harness/skills')), false);
   const trackedSkills = git(['ls-files', 'integrations/deepseek-harness/skills']);
   assert.equal(trackedSkills, '');
 });
 
-test('Archify core does not import, detect, or branch on DeepSeek Harness', () => {
-  // Tests may verify the adapter without making any shipped Archify file
+test('Archi-Made-Easy core does not import, detect, or branch on DeepSeek Harness', () => {
+  // Tests may verify the adapter without making any shipped Archi-Made-Easy file
   // depend on it. Keep the full product tree in scope, including SKILL.md,
   // schemas, references, examples, and assets.
   const protectedPaths = [
-    'archify',
+    'archi-made-easy',
     'scripts/build-zip.sh',
     'scripts/package-smoke.mjs',
   ];
   const protectedFiles = git(['ls-files', '--', ...protectedPaths]).split('\n').filter(Boolean);
-  assert.ok(protectedFiles.includes('archify/SKILL.md'), 'zero-coupling scan must include the shipped Skill');
+  assert.ok(protectedFiles.includes('archi-made-easy/SKILL.md'), 'zero-coupling scan must include the shipped Skill');
   const grep = spawnSync('git', [
     'grep',
     '-n',
     '-E',
-    'deepseek-harness|@deepseek-ai/dsh|DSH_HOME|DSH_AGENTS_HOME|archify-dsh',
+    'deepseek-harness|@deepseek-ai/dsh|DSH_HOME|DSH_AGENTS_HOME|archi-made-easy-dsh',
     '--',
     ...protectedPaths,
   ], { cwd: repoRoot, encoding: 'utf8' });
@@ -51,18 +51,18 @@ test('Archify core does not import, detect, or branch on DeepSeek Harness', () =
   assert.equal(grep.stdout.trim(), '');
 });
 
-test('full-depth Skills CLI discovery still finds only one skill named archify', () => {
+test('full-depth Skills CLI discovery still finds only one skill named archi-made-easy', () => {
   const result = spawnSync('npx', ['-y', 'skills', 'add', repoRoot, '--list', '--full-depth'], {
     cwd: repoRoot,
     encoding: 'utf8',
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
   const names = [...result.stdout.matchAll(/^\s*[-*]\s+(\S+)/gm)].map((match) => match[1])
-    .filter((name) => name === 'archify' || /archify/i.test(name));
+    .filter((name) => name === 'archi-made-easy' || /archi-made-easy/i.test(name));
   const unique = new Set(
-    [...result.stdout.matchAll(/\barchify\b/gi)].map((match) => match[0].toLowerCase()),
+    [...result.stdout.matchAll(/\barchi-made-easy\b/gi)].map((match) => match[0].toLowerCase()),
   );
-  assert.ok(result.stdout.includes('archify'), result.stdout);
+  assert.ok(result.stdout.includes('archi-made-easy'), result.stdout);
   assert.equal(unique.size, 1, result.stdout);
   assert.ok(names.length <= 1 || new Set(names).size === 1, result.stdout);
 });

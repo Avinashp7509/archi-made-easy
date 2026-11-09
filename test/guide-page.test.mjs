@@ -8,11 +8,11 @@ import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
 
 test('guide page: checked-in HTML is reproducible from the shared recipe source', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-guide-page-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-guide-page-'));
   const generated = path.join(tmp, 'guide.html');
   try {
     execFileSync(process.execPath, [path.join(repoRoot, 'scripts/build-guide.mjs'), generated]);

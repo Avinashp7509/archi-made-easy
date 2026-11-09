@@ -12,7 +12,7 @@ export const indexCopy = {
       'style-clean':'Clean · light','style-editorial':'Editorial · dark','style-product':'Product · light','style-swiss':'Swiss · light',
       'label-life':'Beyond code',
       'life-h2':'Not just for code. <em>For anything with steps.</em>',
-      'life-body':'Leave plans, job hunts, renting, a monthly budget — each one below is a real Archify artifact, generated and validated exactly like a system diagram. Open one and click around.',
+      'life-body':'Leave plans, job hunts, renting, a monthly budget — each one below is a real Archi-Made-Easy artifact, generated and validated exactly like a system diagram. Open one and click around.',
       'life-note':'Numbers in these examples are illustrative. Describe your own situation and your agent draws yours.',
       'life-leave-k':'Workflow',
       'life-leave-q':'How should I spread my leave across the year?',
@@ -33,7 +33,7 @@ export const indexCopy = {
       'hero-sub':'A leave plan, a P99 spike, a first HTTPS visit, or a whole codebase — your AI agent answers with an explorable map, or a one-page answer that puts the conclusion first and cites its sources. Either way it is one HTML file, validated before it ships.',
       'hero-cta':'Get started','hero-stars':'stars on GitHub','copy':'Copy','copied':'Copied',
       'copySuccess':'Copied to clipboard.','copyFailure':'Copy failed. Select the text manually.',
-      'demo-watch':'Watch the 35s demo','demo-title':'Archify 35-second demo','demo-close':'Close demo',
+      'demo-watch':'Watch the 35s demo','demo-title':'Archi-Made-Easy 35-second demo','demo-close':'Close demo',
       'tour-title':'Live artifact tour',
       'proof-live':'Live','proof-open':'Open artifact',
       'beat-0-k':'Map','beat-1-k':'Focus','beat-2-k':'Upstream','beat-3-k':'Lens',
@@ -51,7 +51,7 @@ export const indexCopy = {
       'stat-modes':'Ways to answer: map or page','stat-types':'Diagram types','stat-styles':'Page styles, light and dark','stat-checks':'Validation checks per diagram','stat-deps':'Runtime dependencies',
       'label-types':'Diagram types',
       'types-h2':'Ten questions. <em>Ten kinds of map.</em>',
-      'types-body':'Ask the question you actually have. Archify picks the picture that answers it — for a software system, a database, a codebase, an incident, or something in your own life.',
+      'types-body':'Ask the question you actually have. Archi-Made-Easy picks the picture that answers it — for a software system, a database, a codebase, an incident, or something in your own life.',
       'types-group-1':'Systems and flows','types-group-2':'Structure and time',
       'erd-k':'Entity-relationship','erd-h':'How does the data relate?','erd-p':"Tables with their full column lists, primary, foreign and unique keys, and crow's-foot cardinality at both ends of every relationship.",
       'class-k':'Class / interface','class-h':'Which types fulfil which contracts?','class-p':'Classes and interfaces with their members — inheritance, implementation, composition and dependencies, each drawn in its own notation.',
@@ -84,7 +84,7 @@ export const indexCopy = {
       'f9-h':'Follow up on one panel','f9-p':'Ask about any panel, or a passage you select, and copy a message that names it. Your agent revises that panel and leaves the rest of the page untouched.','f9-tag':'ASK · COPY · PATCH',
       'f10-h':'Live by default','f10-p':'Each diagram type moves in a way that matches how it reads. Readers can switch to Still; motion never changes the layout or the exported geometry.',
       'f11-h':'Speaks your language','f11-p':'Viewer controls ship in English, 简体中文, 繁體中文, Español and 한국어. Any other language can be supplied as data with <code>meta.translations</code>.',
-      'f13-h':'See what changed','f13-p':"<code>archify compare</code> draws an architecture's before and after as one delta diagram — added, removed and rerouted relationships — with a machine-readable receipt.",
+      'f13-h':'See what changed','f13-p':"<code>archi-made-easy compare</code> draws an architecture's before and after as one delta diagram — added, removed and rerouted relationships — with a machine-readable receipt.",
       'label-trust':'Verified delivery',
       'trust-h2':'Checked before <em>it reaches you.</em>',
       'trust-body':'Finalization validates and delivers the artifact, then checks the delivered file. Diagrams also run a browser check; one-page answers run it when requested. Later check failures are reported and do not roll back the delivered file.',
@@ -107,17 +107,17 @@ export const indexCopy = {
       'qs-h2':'Three steps. <em>One command.</em>',
       'qs-body':'One checked Skill for Claude Code, Codex, Cursor, OpenCode, and GitHub Copilot. Pick your agent for the exact command.',
       'term-c1':'# Install globally for your agent','term-c2':'# Or try it once with Codex, no permanent install','term-c3':'# Then just ask',
-      'term-ask':'› Use Archify to plan my annual leave: 10 days, plus 2 comp days that expire at the end of June.',
-      'term-ask2':"› Use Archify to answer as one page: our API's P99 went from 80 ms to 600 ms while the mean barely moved. Why?",
+      'term-ask':'› Use Archi-Made-Easy to plan my annual leave: 10 days, plus 2 comp days that expire at the end of June.',
+      'term-ask2':"› Use Archi-Made-Easy to answer as one page: our API's P99 went from 80 ms to 600 ms while the mean barely moved. Why?",
       'step1-h':'Install in one command','step1-p':'Run the command for your agent, or open the <a href="start.html?agent=cursor&amp;type=architecture">agent-aware quick start</a> for project-scoped installs.',
       'step2-h':'Describe it, or ask','step2-p':'Describe the steps, people, parts, or states, or ask the question you have — or ask your agent to read a repository first.',
       'step3-h':'Get a map or a page','step3-p':'Ask for a map to explore, or a one-page answer for the conclusion and its reasons. Either way you get one self-contained HTML file to open in any browser and refine in chat.',
       'kbd-label':'Inside every artifact','kbd-guide':'Diagram guide','kbd-theme':'Toggle theme','kbd-find':'Find node / route endpoint','kbd-route':'Trace, inspect, and play a route','kbd-radar':'Semantic radar','kbd-lens':'Compare semantic kinds','kbd-present':'Presentation stage','kbd-export':'Open export menu','kbd-focus':'Focus node','kbd-zoom':'Reading depth / reset','kbd-nav':'Navigate menu','kbd-close':'Close menu',
-      'footer-meta':'development &nbsp;·&nbsp; v[[ARCHIFY_VERSION]] &nbsp;·&nbsp; Apache License 2.0<br>Based on Cocoon-AI/architecture-diagram-generator',
+      'footer-meta':'development &nbsp;·&nbsp; v[[ARCHI_MADE_EASY_VERSION]] &nbsp;·&nbsp; Apache License 2.0<br>Based on Cocoon-AI/architecture-diagram-generator',
       'cta-h':'Ask once.<br><em>Share the answer.</em>',
       'cta-sub':'One command installs the checked skill for your agent — your next map or one-page answer is a chat message away.',
       'cta-install':'Install the skill','cta-gh':'Star on GitHub',
-      'cta-prompt':'Use Archify to answer as one page: why did P99 jump while the mean stayed flat?',
+      'cta-prompt':'Use Archi-Made-Easy to answer as one page: why did P99 jump while the mean stayed flat?',
       'footer-changelog':'Changelog','footer-license':'License','footer-community':'Community'
     },
     zh: {
@@ -133,7 +133,7 @@ export const indexCopy = {
       'style-clean':'简洁 · 浅色','style-editorial':'杂志 · 深色','style-product':'产品 · 浅色','style-swiss':'网格 · 浅色',
       'label-life':'不只是代码',
       'life-h2':'不只是代码，<br><em>生活里的事也能画。</em>',
-      'life-body':'年假规划、求职进度、租房沟通、每月收支——下面每一张都是真实生成的 Archify 成品，和系统架构图走同一套生成与校验流程。点开就能探索。',
+      'life-body':'年假规划、求职进度、租房沟通、每月收支——下面每一张都是真实生成的 Archi-Made-Easy 成品，和系统架构图走同一套生成与校验流程。点开就能探索。',
       'life-note':'示例里的数字仅作演示。描述你自己的情况，Agent 就会画出你的那一张。',
       'life-leave-k':'工作流',
       'life-leave-q':'一年的假怎么排最划算？',
@@ -154,7 +154,7 @@ export const indexCopy = {
       'hero-sub':'年假怎么排、P99 为什么暴涨、第一次打开 HTTPS 网站发生了什么，或者一整个代码仓库——你的 AI Agent 会给你一张可以点开探索的图，或者一页结论在前、标注出处的解答。都是一个 HTML 文件，交付前已经校验过。',
       'hero-cta':'开始使用','hero-stars':'GitHub Star','copy':'复制','copied':'已复制',
       'copySuccess':'已复制到剪贴板。','copyFailure':'复制失败，请手动选择文本。',
-      'demo-watch':'观看 35 秒演示','demo-title':'Archify 35 秒演示','demo-close':'关闭演示',
+      'demo-watch':'观看 35 秒演示','demo-title':'Archi-Made-Easy 35 秒演示','demo-close':'关闭演示',
       'tour-title':'实时成品导览',
       'proof-live':'实时','proof-open':'打开完整成品',
       'beat-0-k':'全景','beat-1-k':'聚焦','beat-2-k':'上游','beat-3-k':'语义镜头',
@@ -172,7 +172,7 @@ export const indexCopy = {
       'stat-modes':'种回答方式：图或一页答案','stat-types':'图表类型','stat-styles':'种页面样式，浅色深色都有','stat-checks':'每张图的校验项','stat-deps':'运行时依赖',
       'label-types':'图表类型',
       'types-h2':'十个问题，<br><em>十种图。</em>',
-      'types-body':'问你真正想问的问题。Archify 会选出能回答它的那种图——不管是一套软件系统、一个数据库、一个代码仓库、一次事故，还是你自己生活里的事。',
+      'types-body':'问你真正想问的问题。Archi-Made-Easy 会选出能回答它的那种图——不管是一套软件系统、一个数据库、一个代码仓库、一次事故，还是你自己生活里的事。',
       'types-group-1':'系统与流程','types-group-2':'结构与时间',
       'erd-k':'实体关系图','erd-h':'数据之间怎么关联？','erd-p':'每张表的完整字段、主键、外键和唯一键，每条关系两端都标出鸦爪基数。',
       'class-k':'类图 / 接口','class-h':'哪些类型实现了哪些约定？','class-p':'类和接口及其成员——继承、实现、组合和依赖，各用各的标准画法。',
@@ -205,7 +205,7 @@ export const indexCopy = {
       'f9-h':'只追问一个面板','f9-p':'对任一面板或选中的一段话追问，复制一条带面板编号的消息。Agent 只改这个面板，页面其余部分保持不动。','f9-tag':'追问 · 复制 · 局部修改',
       'f10-h':'默认带动效','f10-p':'每种图都有和它读法相配的动效，默认开启。读者可以切到静止；动效不会改变布局，也不影响导出的图形。',
       'f11-h':'界面说你的语言','f11-p':'交互界面内置 English、简体中文、繁體中文、Español 和 한국어。其他语言可以用 <code>meta.translations</code> 作为数据提供。',
-      'f13-h':'看清改了什么','f13-p':'<code>archify compare</code> 把架构的前后两版画成一张差异图——新增、删除和改道的关系一目了然，并附机器可读的回执。',
+      'f13-h':'看清改了什么','f13-p':'<code>archi-made-easy compare</code> 把架构的前后两版画成一张差异图——新增、删除和改道的关系一目了然，并附机器可读的回执。',
       'label-trust':'交付前校验',
       'trust-h2':'交到你手里之前，<br><em>已经检查过了。</em>',
       'trust-body':'完成流程先校验并交付，再检查已交付的文件。图表还会执行浏览器检查，一页式解答按需开启。交付后的检查失败会报告，但不会回滚已交付文件。',
@@ -228,30 +228,30 @@ export const indexCopy = {
       'qs-h2':'三步上手，<br><em>一条命令。</em>',
       'qs-body':'同一份经过检查的 Skill 可用于 Claude Code、Codex、Cursor、OpenCode 和 GitHub Copilot。选择你的 Agent，获取准确命令。',
       'term-c1':'# 为你的 Agent 全局安装','term-c2':'# 或者用临时副本在 Codex 中试一次','term-c3':'# 然后直接说',
-      'term-ask':'› 用 Archify 帮我排一下今年的年假：10 天年假，加 2 天 6 月底过期的调休。',
-      'term-ask2':'› 用 Archify 一页回答：接口 P99 从 80 ms 涨到 600 ms，平均值几乎没变，为什么？',
+      'term-ask':'› 用 Archi-Made-Easy 帮我排一下今年的年假：10 天年假，加 2 天 6 月底过期的调休。',
+      'term-ask2':'› 用 Archi-Made-Easy 一页回答：接口 P99 从 80 ms 涨到 600 ms，平均值几乎没变，为什么？',
       'step1-h':'一条命令安装','step1-p':'运行对应 Agent 的命令，或打开<a href="start.html?agent=cursor&amp;type=architecture">可切换 Agent 的快速开始页</a>获取项目级安装命令。',
       'step2-h':'描述，或者直接问','step2-p':'描述步骤、角色、组成或状态，或者直接问你的问题；也可以先让 agent 读一下代码仓库。',
       'step3-h':'得到一张图或一页答案','step3-p':'想探索就要一张图，想要结论和理由就要一页式解答。两种都是单个 HTML 文件，任意浏览器打开，并可继续在对话中迭代。',
       'kbd-label':'每个成品都内置','kbd-guide':'图表指南','kbd-theme':'切换主题','kbd-find':'查找节点 / 路径端点','kbd-route':'探查、检查并播放路径','kbd-radar':'语义雷达','kbd-lens':'对比语义类型','kbd-present':'演示舞台','kbd-export':'打开导出菜单','kbd-focus':'聚焦节点','kbd-zoom':'阅读层级 / 复位','kbd-nav':'菜单导航','kbd-close':'关闭菜单',
-      'footer-meta':'开发版 &nbsp;·&nbsp; v[[ARCHIFY_VERSION]] &nbsp;·&nbsp; Apache-2.0 许可证<br>基于 Cocoon-AI/architecture-diagram-generator',
+      'footer-meta':'开发版 &nbsp;·&nbsp; v[[ARCHI_MADE_EASY_VERSION]] &nbsp;·&nbsp; Apache-2.0 许可证<br>基于 Cocoon-AI/architecture-diagram-generator',
       'cta-h':'问一次，<br><em>分享这个答案。</em>',
       'cta-sub':'一条命令为你的 Agent 安装经过检查的技能——下一张图、下一页答案，只差一句对话。',
       'cta-install':'安装技能','cta-gh':'在 GitHub 上 Star',
-      'cta-prompt':'用 Archify 一页回答：P99 暴涨、平均值几乎没变，为什么？',
+      'cta-prompt':'用 Archi-Made-Easy 一页回答：P99 暴涨、平均值几乎没变，为什么？',
       'footer-changelog':'更新日志','footer-license':'许可证','footer-community':'社区包'
     }
   };
 
 export const guideCopy = {
         en: {
-          navGuide:'Guide',navProof:'Proof Lab',navStart:'Get started',navCommunity:'Community',navInstall:'Install Skill',versionLabel:'Scenario guide / development / v[[ARCHIFY_VERSION]]',eyebrow:'Question-first diagramming', headline:'Choose the question.<br>Get the <em>right diagram.</em>', lede:'Describe what your audience needs to understand. Archify recommends one bounded visual recipe—plus the evidence it must contain, when not to use it, and a prompt you can copy.',
-          metricRecipes:'real-world<br>recipes',metricModes:'diagram modes<br>with recipes',metricRuntime:'runtime<br>dependencies',chooserTitle:'What must the diagram explain?',chooserBody:'Write a situation, not a diagram type. Specific system facts produce a stronger recommendation.',placeholder:'Example: Show an API request with JWT auth, a Redis cache miss, database fallback, and async tracing.',recommend:'Recommend a recipe →',clear:'Clear',libraryEyebrow:'Recipe library',libraryTitle:'13 small, opinionated starting points.',libraryBody:'Each recipe answers one technical question. That boundary keeps the result legible, reviewable, and honest about missing evidence.',footerLeft:'Generated from the same recipe source as the Archify CLI.',all:'All recipes',recommended:'Recommended recipe',use:'Use when',avoid:'Avoid when',must:'Evidence to include',presentation:'Presentation',prompt:'Copy-ready prompt',copyPrompt:'Copy prompt',copied:'Copied',copySuccess:'Copied to clipboard.',copyFailure:'Copy failed. Select the text manually.',alternatives:'Other possible fits:',confidence:'confidence',open:'Open recipe',proofReady:'Verified proof',proofLink:'Open verified example ↗',
+          navGuide:'Guide',navProof:'Proof Lab',navStart:'Get started',navCommunity:'Community',navInstall:'Install Skill',versionLabel:'Scenario guide / development / v[[ARCHI_MADE_EASY_VERSION]]',eyebrow:'Question-first diagramming', headline:'Choose the question.<br>Get the <em>right diagram.</em>', lede:'Describe what your audience needs to understand. Archi-Made-Easy recommends one bounded visual recipe—plus the evidence it must contain, when not to use it, and a prompt you can copy.',
+          metricRecipes:'real-world<br>recipes',metricModes:'diagram modes<br>with recipes',metricRuntime:'runtime<br>dependencies',chooserTitle:'What must the diagram explain?',chooserBody:'Write a situation, not a diagram type. Specific system facts produce a stronger recommendation.',placeholder:'Example: Show an API request with JWT auth, a Redis cache miss, database fallback, and async tracing.',recommend:'Recommend a recipe →',clear:'Clear',libraryEyebrow:'Recipe library',libraryTitle:'13 small, opinionated starting points.',libraryBody:'Each recipe answers one technical question. That boundary keeps the result legible, reviewable, and honest about missing evidence.',footerLeft:'Generated from the same recipe source as the Archi-Made-Easy CLI.',all:'All recipes',recommended:'Recommended recipe',use:'Use when',avoid:'Avoid when',must:'Evidence to include',presentation:'Presentation',prompt:'Copy-ready prompt',copyPrompt:'Copy prompt',copied:'Copied',copySuccess:'Copied to clipboard.',copyFailure:'Copy failed. Select the text manually.',alternatives:'Other possible fits:',confidence:'confidence',open:'Open recipe',proofReady:'Verified proof',proofLink:'Open verified example ↗',
           samples:[['API + cache miss','Show an API request with JWT auth, a Redis cache miss, database fallback, and async tracing.'],['Kafka + DLQ','Map Kafka topics, ordered processors, consumer groups, replay, state stores, and the dead-letter queue.'],['Incident response','Show how responders detect, triage, mitigate, escalate, communicate, and verify recovery.']]
         },
         zh: {
-          navGuide:'场景指南',navProof:'验证作品集',navStart:'开始使用',navCommunity:'社区包',navInstall:'安装技能',versionLabel:'场景指南 / 开发版 / v[[ARCHIFY_VERSION]]',eyebrow:'先问题，后图表',headline:'先选对问题，<br>再得到<em>对的图。</em>',lede:'描述受众真正需要理解的内容。Archify 会推荐一个有边界的视觉配方，同时给出证据清单、禁用条件和可复制提示词。',
-          metricRecipes:'个真实场景<br>配方',metricModes:'种图表模式<br>有入门配方',metricRuntime:'个运行时<br>依赖',chooserTitle:'这张图必须解释什么？',chooserBody:'写清场景，不要只写图表类型。系统事实越具体，推荐越可靠。',placeholder:'例如：展示带 JWT 鉴权、Redis 缓存未命中、数据库回退和异步追踪的 API 请求。',recommend:'推荐配方 →',clear:'清空',libraryEyebrow:'配方库',libraryTitle:'13 个小而专的起点。',libraryBody:'每个配方只回答一个技术问题。清晰的边界让图更易读、可评审，也不会掩盖证据缺口。',footerLeft:'网页与 Archify CLI 使用同一份配方数据生成。',all:'全部配方',recommended:'推荐配方',use:'适合',avoid:'不要这样用',must:'必须包含的证据',presentation:'表现建议',prompt:'可直接复制的提示词',copyPrompt:'复制提示词',copied:'已复制',copySuccess:'已复制到剪贴板。',copyFailure:'复制失败，请手动选择文本。',alternatives:'其他可能：',confidence:'置信度',open:'打开配方',proofReady:'已验证成品',proofLink:'打开验证成品 ↗',
+          navGuide:'场景指南',navProof:'验证作品集',navStart:'开始使用',navCommunity:'社区包',navInstall:'安装技能',versionLabel:'场景指南 / 开发版 / v[[ARCHI_MADE_EASY_VERSION]]',eyebrow:'先问题，后图表',headline:'先选对问题，<br>再得到<em>对的图。</em>',lede:'描述受众真正需要理解的内容。Archi-Made-Easy 会推荐一个有边界的视觉配方，同时给出证据清单、禁用条件和可复制提示词。',
+          metricRecipes:'个真实场景<br>配方',metricModes:'种图表模式<br>有入门配方',metricRuntime:'个运行时<br>依赖',chooserTitle:'这张图必须解释什么？',chooserBody:'写清场景，不要只写图表类型。系统事实越具体，推荐越可靠。',placeholder:'例如：展示带 JWT 鉴权、Redis 缓存未命中、数据库回退和异步追踪的 API 请求。',recommend:'推荐配方 →',clear:'清空',libraryEyebrow:'配方库',libraryTitle:'13 个小而专的起点。',libraryBody:'每个配方只回答一个技术问题。清晰的边界让图更易读、可评审，也不会掩盖证据缺口。',footerLeft:'网页与 Archi-Made-Easy CLI 使用同一份配方数据生成。',all:'全部配方',recommended:'推荐配方',use:'适合',avoid:'不要这样用',must:'必须包含的证据',presentation:'表现建议',prompt:'可直接复制的提示词',copyPrompt:'复制提示词',copied:'已复制',copySuccess:'已复制到剪贴板。',copyFailure:'复制失败，请手动选择文本。',alternatives:'其他可能：',confidence:'置信度',open:'打开配方',proofReady:'已验证成品',proofLink:'打开验证成品 ↗',
           samples:[['API + 缓存未命中','展示带 JWT 鉴权、Redis 缓存未命中、数据库回退和异步追踪的 API 请求。'],['Kafka + 死信','梳理 Kafka Topic、有序处理器、消费者组、重放、状态存储和死信队列。'],['事故处置','展示响应者如何发现、分诊、缓解、升级、沟通并验证恢复。']]
         }
       };
@@ -260,7 +260,7 @@ export const guideCopy = {
 export function guideCopyFor(recipes, channel = 'development') {
   return Object.fromEntries(Object.entries(guideCopy).map(([lang, values]) => [lang, {
     ...values,
-    versionLabel: lang === 'zh' ? `场景指南 / ${channel === 'development' ? '开发版' : '稳定版'} / v[[ARCHIFY_VERSION]]` : `Scenario guide / ${channel} / v[[ARCHIFY_VERSION]]`,
+    versionLabel: lang === 'zh' ? `场景指南 / ${channel === 'development' ? '开发版' : '稳定版'} / v[[ARCHI_MADE_EASY_VERSION]]` : `Scenario guide / ${channel} / v[[ARCHI_MADE_EASY_VERSION]]`,
     libraryTitle: lang === 'zh' ? `${recipes.length} 个小而专的起点。` : `${recipes.length} small, opinionated starting points.`,
   }]));
 }

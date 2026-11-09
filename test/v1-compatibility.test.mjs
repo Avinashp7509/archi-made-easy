@@ -7,8 +7,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-v1-compat-'));
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-v1-compat-'));
 
 function render(mode, doc) {
   const input = path.join(tmp, `${mode}.json`);
@@ -35,7 +35,7 @@ function validate(mode, doc) {
   fs.writeFileSync(input, JSON.stringify(cliDoc));
   try {
     execFileSync('node', [
-      path.join(skillRoot, 'bin/archify.mjs'),
+      path.join(skillRoot, 'bin/archi-made-easy.mjs'),
       'validate',
       mode,
       input,

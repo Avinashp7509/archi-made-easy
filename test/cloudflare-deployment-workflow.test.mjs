@@ -33,12 +33,12 @@ test('Cloudflare publishes only the checked artifact at the current main SHA', (
   assert.equal(deployment.with.apiToken, '${{ secrets.CLOUDFLARE_API_TOKEN }}');
   assert.match(deployment.with.wranglerVersion, /^\d+\.\d+\.\d+$/);
   assert.ok(!steps.some(step => /npm (?:run build|ci)/.test(step.run ?? '')), 'deployment must not rebuild');
-  const build = workflow.jobs.website.steps.find(step => step.env?.ARCHIFY_SITE_TARGET === 'cloudflare');
+  const build = workflow.jobs.website.steps.find(step => step.env?.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare');
   assert.match(build.run, /npm run build && node scripts\/check-cloudflare-output.mjs/);
   assert.match(build.run, /node --test test\/deployment-target.test.mjs/);
-  const browser = workflow.jobs.website.steps.find(step => step.env?.ARCHIFY_SITE_ROOT?.endsWith('/website/dist-cloudflare'));
-  assert.equal(browser.env.ARCHIFY_SITE_BASE, '');
-  assert.equal(browser.env.ARCHIFY_SITE_INTEGRATION, '1');
+  const browser = workflow.jobs.website.steps.find(step => step.env?.ARCHI_MADE_EASY_SITE_ROOT?.endsWith('/website/dist-cloudflare'));
+  assert.equal(browser.env.ARCHI_MADE_EASY_SITE_BASE, '');
+  assert.equal(browser.env.ARCHI_MADE_EASY_SITE_INTEGRATION, '1');
   assert.equal(browser.run, 'npm run test:browser');
   const upload = workflow.jobs.website.steps.find(step => step.with?.name === download.with.name);
   assert.equal(upload.with.path, download.with.path);
@@ -51,8 +51,8 @@ test('Cloudflare destination rejects invalid values without evaluating them as s
   const run = project => spawnSync('bash', ['-c', step.run], {
     env: { ...process.env, CLOUDFLARE_PAGES_PROJECT: project, CLOUDFLARE_ACCOUNT_ID: 'a'.repeat(32) },
   });
-  assert.equal(run('archify').status, 0);
-  for (const value of ['', '--help', 'archify --branch=dev', '$(exit 0)', 'a\nb']) {
+  assert.equal(run('archi-made-easy').status, 0);
+  for (const value of ['', '--help', 'archi-made-easy --branch=dev', '$(exit 0)', 'a\nb']) {
     assert.notEqual(run(value).status, 0, value);
   }
 });

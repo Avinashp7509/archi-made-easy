@@ -7,23 +7,23 @@ import path from 'node:path';
 import { checkCloudflareOutput } from '../scripts/check-cloudflare-output.mjs';
 
 function fixture(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-cloudflare-output-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-cloudflare-output-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const names = sitePages.flatMap(page => ['en', 'zh'].map(lang => canonicalPath(page, lang).slice(1) || 'index'));
-  const urls = names.map(name => `https://archify.si/${name === 'index' ? '' : name}`);
+  const urls = names.map(name => `https://OWNER.github.io/archi-made-easy/${name === 'index' ? '' : name}`);
   for (const [index, name] of names.entries()) {
     fs.mkdirSync(path.dirname(path.join(root, `${name}.html`)), { recursive: true });
-    fs.writeFileSync(path.join(root, `${name}.html`), `<!doctype html><title>Archify</title><link rel="canonical" href="${urls[index]}">`);
+    fs.writeFileSync(path.join(root, `${name}.html`), `<!doctype html><title>Archi-Made-Easy</title><link rel="canonical" href="${urls[index]}">`);
   }
   fs.writeFileSync(path.join(root, '404.html'), '<!doctype html><title>Not found</title>');
   fs.writeFileSync(path.join(root, 'sitemap.xml'), `<urlset>${urls.map(url => `<url><loc>${url}</loc></url>`).join('')}</urlset>`);
-  fs.writeFileSync(path.join(root, 'robots.txt'), 'User-agent: *\nAllow: /\n\nSitemap: https://archify.si/sitemap.xml\n');
+  fs.writeFileSync(path.join(root, 'robots.txt'), 'User-agent: *\nAllow: /\n\nSitemap: https://OWNER.github.io/archi-made-easy/sitemap.xml\n');
   fs.writeFileSync(path.join(root, '_headers'), '/*.json\n  X-Robots-Tag: noindex\n');
   fs.writeFileSync(path.join(root, 'site.css'), 'body { color: black; }');
   fs.appendFileSync(path.join(root, 'index.html'), '<link href="site.css" rel="stylesheet"><a href="/guide?lang=zh#install">Guide</a>');
-  const manifest = path.join(root, 'skill-updates/archify/stable.json');
+  const manifest = path.join(root, 'skill-updates/archi-made-easy/stable.json');
   fs.mkdirSync(path.dirname(manifest), { recursive: true });
-  fs.copyFileSync(new URL('../../docs/skill-updates/archify/stable.json', import.meta.url), manifest);
+  fs.copyFileSync(new URL('../../docs/skill-updates/archi-made-easy/stable.json', import.meta.url), manifest);
   return root;
 }
 

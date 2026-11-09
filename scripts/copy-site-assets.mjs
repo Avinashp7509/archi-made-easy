@@ -12,16 +12,16 @@ import {
   removeOwnedRegularFile,
   verifyAtomicOutput,
   verifyRegularFileBinding,
-} from '../archify/renderers/shared/atomic-output.mjs';
-import { containedBy, sameLocation } from '../archify/renderers/shared/path-semantics.mjs';
+} from '../archi-made-easy/renderers/shared/atomic-output.mjs';
+import { containedBy, sameLocation } from '../archi-made-easy/renderers/shared/path-semantics.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const sourceRoot = path.resolve(__dirname, '../docs/assets');
 const SITE_ASSETS = Object.freeze([
   'site-language.js',
   'site-navigation.css',
-  'archify-lockup-light.svg',
-  'archify-mark.svg',
+  'archi-made-easy-lockup-light.svg',
+  'archi-made-easy-mark.svg',
 ]);
 
 function publicationError(asset, state) {
@@ -36,7 +36,7 @@ function stageSiteAsset(source, commitPath, mode) {
   for (let attempt = 0; attempt < 100; attempt += 1) {
     const candidatePath = path.join(
       path.dirname(commitPath),
-      `.${path.basename(commitPath)}.archify-${randomBytes(16).toString('hex')}.tmp`,
+      `.${path.basename(commitPath)}.archi-made-easy-${randomBytes(16).toString('hex')}.tmp`,
     );
     let descriptor;
     let identity;
@@ -187,7 +187,7 @@ export function copySiteAssets(outputHtmlPath) {
         item.previousBinding = previous.binding;
         item.backupPath = path.join(
           targetRoot,
-          `.archify-site-backup-${randomBytes(16).toString('hex')}.tmp`,
+          `.archi-made-easy-site-backup-${randomBytes(16).toString('hex')}.tmp`,
         );
       }
     }

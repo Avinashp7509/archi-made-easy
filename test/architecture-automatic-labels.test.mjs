@@ -5,12 +5,12 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { collectLabelRouteClearance, rectsOverlap, labelPoint } from '../archify/renderers/shared/geometry.mjs';
+import { collectLabelRouteClearance, rectsOverlap, labelPoint } from '../archi-made-easy/renderers/shared/geometry.mjs';
 
-const root = fileURLToPath(new URL('../archify/', import.meta.url));
-const cli = path.join(root, 'bin/archify.mjs');
+const root = fileURLToPath(new URL('../archi-made-easy/', import.meta.url));
+const cli = path.join(root, 'bin/archi-made-easy.mjs');
 function inspect(t, diagram, extra = []) {
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-auto-labels-'));
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-auto-labels-'));
   t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
   const input = path.join(cwd, 'source.json');
   const source = JSON.stringify(diagram);

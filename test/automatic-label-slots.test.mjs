@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { placeAutomaticLabels } from '../archify/renderers/shared/automatic-labels.mjs';
-import { rectsOverlap, segmentRectClearanceWithin } from '../archify/renderers/shared/geometry.mjs';
+import { placeAutomaticLabels } from '../archi-made-easy/renderers/shared/automatic-labels.mjs';
+import { rectsOverlap, segmentRectClearanceWithin } from '../archi-made-easy/renderers/shared/geometry.mjs';
 
 function narrowSlot(vertical = false) {
   const rotatePoint = ([x, y]) => vertical ? [y, x] : [x, y];

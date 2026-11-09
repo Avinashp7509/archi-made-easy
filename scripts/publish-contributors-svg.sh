@@ -2,7 +2,7 @@
 # Publishes one generated contributors.svg onto a dedicated data branch.
 # Same linear fast-forward pattern as scripts/publish-star-history.sh: the
 # branch contains only that file, and this script never commits on main or dev.
-# Maintainer-only GitHub Actions helper; it is not part of the Archify CLI.
+# Maintainer-only GitHub Actions helper; it is not part of the Archi-Made-Easy CLI.
 
 set -euo pipefail
 
@@ -34,7 +34,7 @@ if ! head -n 5 -- "$svg_path" | grep -q '<svg'; then
 fi
 
 temp_root="${RUNNER_TEMP:-${TMPDIR:-/tmp}}"
-snapshot="$(mktemp "${temp_root%/}/archify-contributors.XXXXXX.svg")"
+snapshot="$(mktemp "${temp_root%/}/archi-made-easy-contributors.XXXXXX.svg")"
 cp -- "$svg_path" "$snapshot"
 
 if git ls-remote --exit-code --heads origin "refs/heads/$data_branch" >/dev/null 2>&1; then

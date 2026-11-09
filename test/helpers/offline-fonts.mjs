@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import { parse } from 'parse5';
 
-const FONT_LICENSE = fs.readFileSync(new URL('../../archify/assets/JetBrainsMono-OFL.txt', import.meta.url), 'utf8').trim();
+const FONT_LICENSE = fs.readFileSync(new URL('../../archi-made-easy/assets/JetBrainsMono-OFL.txt', import.meta.url), 'utf8').trim();
 
 // Pinned Google Fonts v24 bytes and coverage, independent of CSS formatting.
 const EXPECTED_FACES = [
@@ -65,7 +65,7 @@ export function assertOfflineArtifact(html, subject) {
   let viewers = 0;
   for (const document of documents) {
     assert.deepEqual(document.resources, [], `${document.subject}: external subresource`);
-    const viewer = document.scripts.some((script) => /Archify\.readerLayout/.test(script));
+    const viewer = document.scripts.some((script) => /ArchiMadeEasy\.readerLayout/.test(script));
     if (viewer) {
       assertFontCss(document.styles.join('\n'), document.subject);
       viewers += 1;

@@ -26,33 +26,33 @@ test('adapter source lives only under integrations/deepseek-harness with no root
   assert.equal(Object.hasOwn(rootManifest, 'dsh'), false, 'root tooling must not declare an adapter bundle');
   for (const field of DEPENDENCY_FIELDS) {
     for (const [name, specifier] of Object.entries(rootManifest[field] || {})) {
-      assert.doesNotMatch(`${name} ${specifier}`, /deepseek-harness|archify-dsh|@deepseek-ai\//,
+      assert.doesNotMatch(`${name} ${specifier}`, /deepseek-harness|archi-made-easy-dsh|@deepseek-ai\//,
         'root tooling must not depend on the opt-in adapter or its host');
     }
   }
   for (const script of Object.values(rootManifest.scripts || {})) {
-    assert.doesNotMatch(script, /deepseek-harness|archify-dsh|\bdsh\b/,
+    assert.doesNotMatch(script, /deepseek-harness|archi-made-easy-dsh|\bdsh\b/,
       'root scripts must not couple ordinary tests to the opt-in adapter');
   }
   const rootLock = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package-lock.json'), 'utf8'));
   for (const [location, entry] of Object.entries(rootLock.packages)) {
-    assert.doesNotMatch(location, /deepseek-harness|archify-dsh|@deepseek-ai\//);
+    assert.doesNotMatch(location, /deepseek-harness|archi-made-easy-dsh|@deepseek-ai\//);
     assert.notEqual(entry.link, true, 'root lock must not link adapter workspaces');
   }
   assert.equal(fs.existsSync(path.join(repoRoot, 'pnpm-workspace.yaml')), false);
   assert.equal(fs.existsSync(path.join(repoRoot, 'integrations/deepseek-harness/package.json')), true);
 });
 
-test('publishable manifest is @tt-a1i/archify-dsh@1.1.0 with a DSH bundle patch and no install surface', () => {
+test('publishable manifest is @OWNER/archi-made-easy-dsh@1.1.0 with a DSH bundle patch and no install surface', () => {
   const pkg = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  assert.equal(pkg.name, '@tt-a1i/archify-dsh');
+  assert.equal(pkg.name, '@OWNER/archi-made-easy-dsh');
   assert.equal(pkg.version, '1.1.0');
   assert.equal(pkg.license, 'MIT');
   assert.equal(pkg.type, 'module');
   assert.equal(pkg.main, './lib/index.js');
   assert.equal(pkg.dsh?.bundle?.patch, './cordis.patch.yml');
   assert.equal(fs.existsSync(path.join(integrationRoot, pkg.dsh.bundle.patch)), true);
-  assert.equal(pkg.repository?.url, 'git+https://github.com/tt-a1i/archify.git');
+  assert.equal(pkg.repository?.url, 'git+https://github.com/OWNER/archi-made-easy.git');
   assert.equal(pkg.repository?.directory, 'integrations/deepseek-harness');
   for (const keyword of ['dsh-plugin', 'deepseek-harness', 'agent-skill', 'architecture-diagram']) {
     assert.ok(pkg.keywords?.includes(keyword), `missing keyword ${keyword}`);
@@ -67,22 +67,22 @@ test('publishable manifest is @tt-a1i/archify-dsh@1.1.0 with a DSH bundle patch 
 test('bundle patch inserts one uniquely named filesystem Skill provider resolved from the installed package', () => {
   const patch = fs.readFileSync(path.join(integrationRoot, 'cordis.patch.yml'), 'utf8');
   assert.match(patch, /^- insert:/m);
-  assert.match(patch, /id:\s*archify-skill-filesystem/);
+  assert.match(patch, /id:\s*archi-made-easy-skill-filesystem/);
   assert.match(patch, /name:\s*'@deepseek-ai\/dsh-skill-filesystem'/);
-  assert.match(patch, /providerName:\s*archify-plugin/);
+  assert.match(patch, /providerName:\s*archi-made-easy-plugin/);
   assert.match(patch, /includeDefaultRoots:\s*true/);
   assert.match(patch, /bundledSkillDir:\s*!!js/);
   assert.doesNotMatch(patch, /customSkillDirs/);
   assert.match(
     patch,
-    /createRequire\(baseUrl\)\.resolve\('@tt-a1i\/archify-dsh\/package\.json'\)/,
+    /createRequire\(baseUrl\)\.resolve\('@OWNER\/archi-made-easy-dsh\/package\.json'\)/,
   );
   assert.doesNotMatch(patch, /new URL\(\s*['"]skills\//);
-  assert.doesNotMatch(patch, /archify_render|archify_deliver|dsh\.client|ui-deliverables/);
+  assert.doesNotMatch(patch, /archi_made_easy_render|archi_made_easy_deliver|dsh\.client|ui-deliverables/);
   const insertBlocks = patch.split(/^- insert:/m).slice(1);
   assert.equal(insertBlocks.length, 1);
   const insertedIds = [...insertBlocks[0].matchAll(/^\s+- id:\s*(\S+)/gm)].map((match) => match[1]);
-  assert.deepEqual(insertedIds, ['archify-skill-filesystem']);
+  assert.deepEqual(insertedIds, ['archi-made-easy-skill-filesystem']);
 });
 
 test('distribution acceptance reserves stdout for its machine-readable JSON receipt', () => {

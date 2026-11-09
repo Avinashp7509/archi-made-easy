@@ -5,14 +5,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
-const cli = path.resolve('archify/bin/archify.mjs');
+const cli = path.resolve('archi-made-easy/bin/archi-made-easy.mjs');
 const draft = chart => `# Why did P99 jump? {#p99}\n\nOnly the slowest requests got slower.\n\n@meta locale=en\n\n## How did the numbers move? {#shift}\n\n\`\`\`mermaid title="Before and after"\n${chart}\n\`\`\`\n`;
 function finalize(t, chart) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-explainer-chart-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-explainer-chart-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const input = path.join(dir, 'draft.md'), output = path.join(dir, 'page.html');
   fs.writeFileSync(input, draft(chart));
-  const run = spawnSync(process.execPath, [cli, 'finalize', 'explainer', input, output, '--json'], { encoding: 'utf8', env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' } });
+  const run = spawnSync(process.execPath, [cli, 'finalize', 'explainer', input, output, '--json'], { encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' } });
   return { status: run.status, receipt: JSON.parse(run.stdout), html: fs.existsSync(output) ? fs.readFileSync(output, 'utf8') : null };
 }
 
@@ -53,10 +53,10 @@ test('explainer charts label bar values and give pie slices their value and shar
 });
 
 test('a data chart reads its CSV next to the draft, freezes it, and names a missing column', t => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-explainer-data-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-explainer-data-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   fs.writeFileSync(path.join(dir, 'latency.csv'), 'day,p50,p99\nMon,78,82\nTue,79,600\n');
-  const run = draft => { const input = path.join(dir, 'draft.md'), output = path.join(dir, 'page.html'); fs.writeFileSync(input, draft); const r = spawnSync(process.execPath, [cli, 'finalize', 'explainer', input, output, '--json'], { encoding: 'utf8', env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' } }); return { status: r.status, receipt: JSON.parse(r.stdout), html: fs.existsSync(output) ? fs.readFileSync(output, 'utf8') : '' }; };
+  const run = draft => { const input = path.join(dir, 'draft.md'), output = path.join(dir, 'page.html'); fs.writeFileSync(input, draft); const r = spawnSync(process.execPath, [cli, 'finalize', 'explainer', input, output, '--json'], { encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' } }); return { status: r.status, receipt: JSON.parse(r.stdout), html: fs.existsSync(output) ? fs.readFileSync(output, 'utf8') : '' }; };
   const page = draft => `# Why did P99 jump?\n\nOnly the slowest requests got slower.\n\n@meta locale=en\n\n## How did it move? {#week}\n\n${draft}\n`;
   const ok = run(page('@chart type=bar data=latency.csv x=day y=p50,p99 unit=ms title="Week"'));
   assert.equal(ok.status, 0, JSON.stringify(ok.receipt.diagnostics));
@@ -69,7 +69,7 @@ test('a data chart reads its CSV next to the draft, freezes it, and names a miss
 });
 
 test('a blank data cell is missing data, never drawn as zero', async () => {
-  const { chartFromData } = await import('../archify/explainer/charts.mjs');
+  const { chartFromData } = await import('../archi-made-easy/explainer/charts.mjs');
   for (const [file, bytes] of [['a.csv', 'day,p99\nMon,80\nTue,\n'], ['a.json', '[{"day":"Mon","p99":80},{"day":"Tue","p99":null}]'], ['b.json', '[{"day":"Mon","p99":80},{"day":"Tue"}]']]) {
     const result = chartFromData(Buffer.from(bytes), file, { kind: 'bar', x: 'day', y: ['p99'] });
     assert.equal(result.text, undefined, file);

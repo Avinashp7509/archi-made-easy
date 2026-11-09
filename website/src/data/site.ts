@@ -1,6 +1,6 @@
-import packageJson from '../../../archify/package.json';
+import packageJson from '../../../archi-made-easy/package.json';
 import manifest from '../../../docs/gallery/manifest.json';
-import { publicGuideData, SCENARIO_RECIPES, startPromptsFor } from '../../../archify/recipes/scenarios.mjs';
+import { publicGuideData, SCENARIO_RECIPES, startPromptsFor } from '../../../archi-made-easy/recipes/scenarios.mjs';
 import { CASES } from './gallery-presentation.mjs';
 
 export const version = packageJson.version;
@@ -28,5 +28,5 @@ export function jsonScript(value: unknown, pretty = false): string {
   return JSON.stringify(value, null, pretty ? 2 : undefined).replaceAll('&', '\\u0026').replaceAll('<', '\\u003c').replaceAll('>', '\\u003e');
 }
 export function versioned(value: string): string {
-  return value.replaceAll('[[ARCHIFY_VERSION]]', version);
+  return value.replaceAll('[[ARCHI_MADE_EASY_VERSION]]', version);
 }

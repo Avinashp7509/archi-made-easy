@@ -1,3 +1,21 @@
+Archi-Made-Easy
+Copyright (c) 2026 Avinash Roy
+
+Archi-Made-Easy is distributed under the Apache License, Version 2.0 (LICENSE),
+except where a file, package manifest, or third-party notice specifies otherwise.
+
+Archi-Made-Easy is a modified version of a work published at
+https://github.com/tt-a1i/archify (commit 11b0d6031853bdae89eed57e7979aabbf0034097).
+Modifications by Avinash Roy include renaming the product and all of its
+identifiers, and adding the architecture workbench, review, simulation,
+knowledge and export capabilities; see ATTRIBUTION.md and the repository
+history for details. The original work's NOTICE is reproduced below in full,
+as required by section 4(d) of the Apache License, Version 2.0.
+
+----------------------------------------------------------------------------
+NOTICE of the original work
+----------------------------------------------------------------------------
+
 Archify
 Copyright (c) 2026 tt-a1i (Archify)
 Copyright (c) 2025 Cocoon AI
@@ -24,3 +42,9 @@ permission.
 
 These software licenses cover Archify's embedded runtime and templates, not
 ownership of a user's authored content, business data, or source repository.
+
+----------------------------------------------------------------------------
+
+Archi-Made-Easy is not affiliated with or endorsed by the authors of the
+original work. Names of the original work above are used only to attribute
+its origin.

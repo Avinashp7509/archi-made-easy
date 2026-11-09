@@ -9,23 +9,23 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   createHorizontalRankMapper,
   migrateWorkflowDocument,
-} from '../archify/migrations/workflow-v2.mjs';
+} from '../archi-made-easy/migrations/workflow-v2.mjs';
 import {
   createMappedWorkflowCandidate,
   intrinsicWorkflow,
   planningWorkflow,
-} from '../archify/renderers/workflow/workflow-migration-geometry.mjs';
-import { compileWorkflow } from '../archify/renderers/workflow/workflow-compiler.mjs';
+} from '../archi-made-easy/renderers/workflow/workflow-migration-geometry.mjs';
+import { compileWorkflow } from '../archi-made-easy/renderers/workflow/workflow-compiler.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
-const cli = path.join(skillRoot, 'bin', 'archify.mjs');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
+const cli = path.join(skillRoot, 'bin', 'archi-made-easy.mjs');
 const fixture = path.join(
   __dirname,
   'fixtures',
   'v1-workflow-explicit-coordinates.workflow.json',
 );
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-workflow-migration-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-workflow-migration-'));
 
 function sha256(value) {
   return createHash('sha256').update(value).digest('hex');
@@ -366,7 +366,7 @@ test('CLI migration ignores ambient standard for an authored showcase workflow',
   fs.writeFileSync(source, sourceBytes);
 
   const migration = runMigration(source, destination, {
-    env: { ARCHIFY_QUALITY_PROFILE: 'standard' },
+    env: { ARCHI_MADE_EASY_QUALITY_PROFILE: 'standard' },
   });
 
   assert.notEqual(migration.status, 0);
@@ -389,7 +389,7 @@ test('CLI migration ignores ambient showcase for an authored standard workflow',
   fs.writeFileSync(source, sourceBytes);
 
   const migration = runMigration(source, destination, {
-    env: { ARCHIFY_QUALITY_PROFILE: 'showcase' },
+    env: { ARCHI_MADE_EASY_QUALITY_PROFILE: 'showcase' },
   });
 
   assert.equal(migration.status, 0, migration.stderr || migration.stdout);
@@ -408,7 +408,7 @@ test('CLI migration makes the blocking new-schema diagnostic primary over pre-ex
   fs.writeFileSync(source, `${JSON.stringify(profileDivergenceWorkflow(), null, 2)}\n`);
 
   const migration = runMigration(source, destination, {
-    env: { ARCHIFY_QUALITY_PROFILE: 'showcase' },
+    env: { ARCHI_MADE_EASY_QUALITY_PROFILE: 'showcase' },
   });
 
   assert.notEqual(migration.status, 0);
@@ -526,7 +526,7 @@ import path from 'node:path';
 const rmdirSync = fs.rmdirSync.bind(fs);
 let failed = false;
 fs.rmdirSync = (directory, ...args) => {
-  if (!failed && path.basename(String(directory)).startsWith('.archify-migration-')) {
+  if (!failed && path.basename(String(directory)).startsWith('.archi-made-easy-migration-')) {
     failed = true;
     rmdirSync(directory, ...args);
     const error = new Error('simulated migration cleanup failure');
@@ -556,7 +556,7 @@ import path from 'node:path';
 const rmdirSync = fs.rmdirSync.bind(fs);
 let claimed = false;
 fs.rmdirSync = (directory, ...args) => {
-  if (!claimed && path.basename(String(directory)).startsWith('.archify-migration-')) {
+  if (!claimed && path.basename(String(directory)).startsWith('.archi-made-easy-migration-')) {
     claimed = true;
     fs.writeFileSync(path.join(directory, 'unknown-claimant.txt'), 'preserve migration claimant');
   }
@@ -787,7 +787,7 @@ fs.linkSync = (sourcePath, targetPath, ...args) => {
   assert.equal(parseJsonOutput(result).diagnostics[0].code, 'migration/destination-changed');
   assert.equal(fs.readFileSync(destination, 'utf8'), claimant);
   const staging = fs.readdirSync(tmp)
-    .find((entry) => entry.startsWith('.archify-migration-')
+    .find((entry) => entry.startsWith('.archi-made-easy-migration-')
       && fs.existsSync(path.join(tmp, entry, 'candidate.workflow.json')));
   assert.ok(staging, 'the candidate claimant must remain named in private staging');
   assert.equal(fs.readFileSync(path.join(tmp, staging, 'candidate.workflow.json'), 'utf8'), claimant);
@@ -809,7 +809,7 @@ fs.unlinkSync = (file, ...args) => {
   const result = unlinkSync(file, ...args);
   if (!claimed
       && path.basename(String(file)) === 'candidate.workflow.json'
-      && path.basename(path.dirname(String(file))).startsWith('.archify-remove-')) {
+      && path.basename(path.dirname(String(file))).startsWith('.archi-made-easy-remove-')) {
     claimed = true;
     fs.renameSync(${JSON.stringify(destination)}, ${JSON.stringify(detachedPublished)});
     fs.writeFileSync(${JSON.stringify(destination)}, ${JSON.stringify(claimant)}, { flag: 'wx' });
@@ -845,7 +845,7 @@ fs.chmodSync = (file, ...args) => {
   const result = chmodSync(file, ...args);
   if (!claimed
     && path.basename(String(file)) === 'candidate.workflow.json'
-    && path.basename(path.dirname(String(file))).startsWith('.archify-migration-')) {
+    && path.basename(path.dirname(String(file))).startsWith('.archi-made-easy-migration-')) {
     claimed = true;
     renameSync(${JSON.stringify(destination)}, ${JSON.stringify(detached)});
     writeFileSync(${JSON.stringify(destination)}, ${JSON.stringify(claimant)}, { flag: 'wx' });

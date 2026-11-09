@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { compileWorkflow } from '../archify/renderers/workflow/workflow-compiler.mjs';
+import { compileWorkflow } from '../archi-made-easy/renderers/workflow/workflow-compiler.mjs';
 
 const fixture = new URL('./fixtures/workflow-return-arrival.json', import.meta.url);
 

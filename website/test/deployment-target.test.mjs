@@ -7,7 +7,7 @@ import { SEO_BLOCK_START, SEO_BLOCK_END, stripPublishedArtifactMetadata, artifac
 import { CASES } from '../src/data/gallery-presentation.mjs';
 import { PUBLISHED_CASES } from '../src/data/published-cases.mjs';
 
-const cloudflare = process.env.ARCHIFY_SITE_TARGET === 'cloudflare';
+const cloudflare = process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare';
 const output = new URL(cloudflare ? '../dist-cloudflare/' : '../dist/', import.meta.url);
 const nodes = node => [node, ...(node.childNodes || []).flatMap(nodes)];
 const attr = (node, name) => node?.attrs?.find(item => item.name === name)?.value;
@@ -34,37 +34,37 @@ test('built deployment uses host-compatible generated assets and canonical metad
     const file = page === 'index' ? `${lang === 'zh' ? 'zh' : 'index'}.html` : `${lang === 'zh' ? 'zh/' : ''}${page}.html`;
     const dom = parse(fs.readFileSync(new URL(file, output), 'utf8'));
     const all = nodes(dom);
-    const canonicalUrl = `https://archify.si/${page === 'index' ? (lang === 'zh' ? 'zh' : '') : `${lang === 'zh' ? 'zh/' : ''}${page}`}`;
+    const canonicalUrl = `https://OWNER.github.io/archi-made-easy/${page === 'index' ? (lang === 'zh' ? 'zh' : '') : `${lang === 'zh' ? 'zh/' : ''}${page}`}`;
     const bases = all.filter(node => node.tagName === 'base');
     assert.equal(bases.length, 1, file);
     assert.equal(attr(bases[0], 'href'), '../'.repeat(file.split('/').length - 1) || './', file);
-    const documentUrl = cloudflare ? canonicalUrl : `https://tt-a1i.github.io/archify/${file}`;
+    const documentUrl = cloudflare ? canonicalUrl : `https://OWNER.github.io/archi-made-easy/${file}`;
     const baseUri = new URL(attr(bases[0], 'href'), documentUrl);
     const nav = all.find(node => node.tagName === 'nav' && attr(node, 'class') === 'site-nav');
     const navLinks = nodes(nav).filter(node => node.tagName === 'a' && (attr(node, 'class') || '').split(/\s+/).includes('nav-link'));
     assert.deepEqual(navLinks.map(node => new URL(attr(node, 'href'), baseUri).href), [
-      ...['guide', 'gallery', 'start', 'community'].map(target => `${cloudflare ? 'https://archify.si/' : 'https://tt-a1i.github.io/archify/'}${lang === 'zh' ? 'zh/' : ''}${target}${cloudflare ? '' : '.html'}`),
-      'https://github.com/tt-a1i/archify',
+      ...['guide', 'gallery', 'start', 'community'].map(target => `${cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/'}${lang === 'zh' ? 'zh/' : ''}${target}${cloudflare ? '' : '.html'}`),
+      'https://github.com/OWNER/archi-made-easy',
     ], `${file}: routes resolved against the actual document base`);
     const canonical = all.filter(node => node.tagName === 'link' && attr(node, 'rel') === 'canonical');
     assert.equal(canonical.length, 1, file);
     assert.equal(attr(canonical[0], 'href'), canonicalUrl, file);
     const alternates = all.filter(node => node.tagName === 'link' && attr(node, 'rel') === 'alternate');
     assert.deepEqual(alternates.map(node => [attr(node, 'hreflang'), attr(node, 'href')]), [
-      ['en', `https://archify.si/${page === 'index' ? '' : page}`],
-      ['zh-Hans', `https://archify.si/${page === 'index' ? 'zh' : `zh/${page}`}`],
-      ['x-default', `https://archify.si/${page === 'index' ? '' : page}`],
+      ['en', `https://OWNER.github.io/archi-made-easy/${page === 'index' ? '' : page}`],
+      ['zh-Hans', `https://OWNER.github.io/archi-made-easy/${page === 'index' ? 'zh' : `zh/${page}`}`],
+      ['x-default', `https://OWNER.github.io/archi-made-easy/${page === 'index' ? '' : page}`],
     ], file);
     const generatedAssets = all.flatMap(node => ['src', 'href'].map(name => attr(node, name))).filter(value => value?.includes('/_astro/'));
     for (const asset of generatedAssets) {
-      assert.ok(asset.startsWith(cloudflare ? '/_astro/' : '/archify/_astro/'), asset);
-      const relative = asset.replace(cloudflare ? /^\// : /^\/archify\//, '').split(/[?#]/)[0];
+      assert.ok(asset.startsWith(cloudflare ? '/_astro/' : '/archi-made-easy/_astro/'), asset);
+      const relative = asset.replace(cloudflare ? /^\// : /^\/archi-made-easy\//, '').split(/[?#]/)[0];
       assert.ok(fs.statSync(new URL(relative, output)).isFile(), asset);
     }
     for (const property of ['og:url', 'og:image']) {
       const meta = all.filter(node => attr(node, 'property') === property);
       assert.equal(meta.length, 1, `${file}: ${property}`);
-      assert.equal(attr(meta[0], 'content'), property === 'og:url' ? canonicalUrl : 'https://archify.si/assets/archify-social-preview.png');
+      assert.equal(attr(meta[0], 'content'), property === 'og:url' ? canonicalUrl : 'https://OWNER.github.io/archi-made-easy/assets/archi-made-easy-social-preview.png');
     }
   }
 });
@@ -87,7 +87,7 @@ test('deployment preserves standalone proof outside its exact metadata block and
   assert.equal(structured.attrs.length, 1);
   assert.equal(JSON.parse(structured.childNodes.map(node => node.value || '').join(''))['@type'], 'CreativeWork');
   assert.deepEqual(Buffer.from(stripPublishedArtifactMetadata(published)), fs.readFileSync(new URL(`../../docs/${file}`, import.meta.url)));
-  for (const asset of ['skill-updates/archify/stable.json', 'assets/site-language.js']) {
+  for (const asset of ['skill-updates/archi-made-easy/stable.json', 'assets/site-language.js']) {
     assert.deepEqual(fs.readFileSync(new URL(asset, output)), fs.readFileSync(new URL(`../../docs/${asset}`, import.meta.url)), asset);
   }
   assert.equal(fs.existsSync(new URL('404.html', output)), cloudflare);

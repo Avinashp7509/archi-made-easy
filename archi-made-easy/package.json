@@ -1,0 +1,38 @@
+{
+  "name": "archi-made-easy",
+  "version": "0.1.0-dev.0",
+  "private": true,
+  "type": "module",
+  "description": "Archi-Made-Easy: describe a system in plain language and get validated, interactive architecture and diagram artifacts as standalone HTML.",
+  "license": "Apache-2.0",
+  "bin": {
+    "archi-made-easy": "./bin/archi-made-easy.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "generate:viewer": "node ../scripts/generate-viewer.mjs",
+    "check:viewer": "node ../scripts/generate-viewer.mjs --check",
+    "generate:brand-marks": "node scripts/generate-brand-marks.mjs",
+    "check:brand-marks": "node scripts/generate-brand-marks.mjs --check",
+    "generate:validators": "node scripts/generate-validators.mjs",
+    "check:validators": "node scripts/generate-validators.mjs --check",
+    "check:release-identity": "node ../scripts/check-release-identity.mjs",
+    "build:gallery": "node ../scripts/build-gallery.mjs ../docs",
+    "build:guide": "node ../scripts/build-guide.mjs ../docs/guide.html",
+    "build:start": "node ../scripts/build-start.mjs ../docs/start.html",
+    "build:readme-showcase": "node ../scripts/build-readme-showcase.mjs",
+    "test:webm": "npm --prefix .. run test:webm",
+    "test:browser": "npm --prefix .. run test:browser",
+    "test": "npm --prefix .. test",
+    "render:examples": "node scripts/render-examples.mjs ../examples"
+  },
+  "devDependencies": {
+    "ajv": "^8.17.1",
+    "simple-icons": "16.28.0"
+  },
+  "overrides": {
+    "fast-uri": "^3.1.7"
+  }
+}

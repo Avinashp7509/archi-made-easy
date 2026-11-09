@@ -5,8 +5,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const discovery = 'npx -y skills@latest add https://archify.si --list --full-depth';
-const doctor = 'node <installed-path>/bin/archify.mjs doctor';
+const discovery = 'npx -y skills@latest add https://OWNER.github.io/archi-made-easy --list --full-depth';
+const doctor = 'node <installed-path>/bin/archi-made-easy.mjs doctor';
 
 function read(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
@@ -20,17 +20,17 @@ function switcherAgents() {
 }
 
 test('llms.txt states the package version and the bounded install', () => {
-  const version = JSON.parse(read('archify/package.json')).version;
+  const version = JSON.parse(read('archi-made-easy/package.json')).version;
   const root = read('llms.txt');
   const site = read('docs/llms.txt');
   assert.equal(site, root);
   assert.match(root, new RegExp(`^Version: ${version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'm'));
-  assert.match(root, /https:\/\/github\.com\/tt-a1i\/archify/);
-  assert.match(root, /https:\/\/archify\.si/);
+  assert.match(root, /https:\/\/github\.com\/OWNER\/archi-made-easy/);
+  assert.match(root, /https:\/\/archi-made-easy\.si/);
   assert.match(root, /confirm the scope before you install/i);
-  assert.match(root, /exactly one skill named `archify`/);
+  assert.match(root, /exactly one skill named `archi-made-easy`/);
   assert.match(root, new RegExp(discovery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  assert.match(root, /--skill archify --agent <agent> --global --copy --yes/);
+  assert.match(root, /--skill archi-made-easy --agent <agent> --global --copy --yes/);
   assert.match(root, /unmanaged files/);
   assert.match(root, /Before either install command, inspect every selected agent destination/);
   assert.match(root, /stop and report the conflict before running the installer/);

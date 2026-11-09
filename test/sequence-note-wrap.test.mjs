@@ -5,12 +5,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { minimumNodeTextWidth } from '../archify/renderers/shared/text-fit.mjs';
+import { minimumNodeTextWidth } from '../archi-made-easy/renderers/shared/text-fit.mjs';
 
 // Sequence message notes wrap inside one gap between neighbouring lifelines and
 // keep every character (#676).
-const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archify');
-const cli = path.join(skillRoot, 'bin/archify.mjs');
+const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archi-made-easy');
+const cli = path.join(skillRoot, 'bin/archi-made-easy.mjs');
 const LONG_NOTE = 'this note explains the whole retry and backoff policy in a lot of detail so it is very long';
 const URL_NOTE = 'see https://api.example.com/v2/users/profile/settings/notifications/email-preferences';
 
@@ -26,7 +26,7 @@ function sequence({ messages, participants = ['client', 'api', 'db'], quality = 
 }
 
 function run(t, command, spec) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-sequence-note-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-sequence-note-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const input = path.join(dir, 'candidate.json');
   const output = path.join(dir, 'note.html');

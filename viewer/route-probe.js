@@ -4,7 +4,7 @@
        endpoints. BFS order follows authored DOM edge order, so equal-length
        choices are deterministic without adding weights or a graph runtime.
        ============================================================ */
-    Archify.routeProbe = (function () {
+    ArchiMadeEasy.routeProbe = (function () {
       var html = document.documentElement;
       var container = document.querySelector('.diagram-container');
       var svg = container.querySelector(':scope > svg');
@@ -116,10 +116,10 @@
         Array.prototype.forEach.call(svg.querySelectorAll('[data-route-journey-overlay]'), function (overlay) {
           overlay.remove();
         });
-        if (journeyOwnerToken && options.release !== false && Archify.motionGovernor) {
+        if (journeyOwnerToken && options.release !== false && ArchiMadeEasy.motionGovernor) {
           var token = journeyOwnerToken;
           journeyOwnerToken = 0;
-          Archify.motionGovernor.release(token);
+          ArchiMadeEasy.motionGovernor.release(token);
         }
       }
       function stopJourneyTimer(options) {
@@ -234,8 +234,8 @@
       function clear(options) {
         options = options || {};
         var wasActive = mode !== 'idle';
-        if (Archify.finder && Archify.finder.isOpen() && typeof Archify.finder.context === 'function' && Archify.finder.context().indexOf('route-') === 0) {
-          Archify.finder.close({ restoreFocus: false });
+        if (ArchiMadeEasy.finder && ArchiMadeEasy.finder.isOpen() && typeof ArchiMadeEasy.finder.context === 'function' && ArchiMadeEasy.finder.context().indexOf('route-') === 0) {
+          ArchiMadeEasy.finder.close({ restoreFocus: false });
         }
         mode = 'idle';
         startId = null;
@@ -254,10 +254,10 @@
         findBtn.setAttribute('aria-label', viewerText('viewer.route.start.find.aria'));
         copyBtn.hidden = true;
         copyBtn.textContent = viewerText('viewer.route.copy');
-        if (Archify.exportMenu && typeof Archify.exportMenu.syncRouteShare === 'function') Archify.exportMenu.syncRouteShare();
+        if (ArchiMadeEasy.exportMenu && typeof ArchiMadeEasy.exportMenu.syncRouteShare === 'function') ArchiMadeEasy.exportMenu.syncRouteShare();
         setTrigger(false);
-        if (wasActive && options.preserveView !== true && Archify.view && typeof Archify.view.reset === 'function') {
-          Archify.view.reset({ automatic: true });
+        if (wasActive && options.preserveView !== true && ArchiMadeEasy.view && typeof ArchiMadeEasy.view.reset === 'function') {
+          ArchiMadeEasy.view.reset({ automatic: true });
         }
         if (options.updateUrl !== false) replaceRouteHash('');
         if (options.restoreFocus === true) trigger.focus();
@@ -381,9 +381,9 @@
       function journeyMotionAllowed() {
         return html.getAttribute('data-embed') !== 'true' &&
           !document.hidden &&
-          Archify.motionGovernor &&
-          Archify.motionGovernor.capable === true &&
-          !Archify.motionGovernor.isPaused();
+          ArchiMadeEasy.motionGovernor &&
+          ArchiMadeEasy.motionGovernor.capable === true &&
+          !ArchiMadeEasy.motionGovernor.isPaused();
       }
       function routeOverviewStatus() {
         return viewerText('viewer.route.overview.status', {
@@ -476,9 +476,9 @@
         var firstNode = svg.querySelector('[data-node-id]');
         if (firstNode) svg.insertBefore(overlay, firstNode);
         else svg.appendChild(overlay);
-        if (Archify.motionGovernor && Archify.motionGovernor.capable) {
+        if (ArchiMadeEasy.motionGovernor && ArchiMadeEasy.motionGovernor.capable) {
           var token = 0;
-          token = Archify.motionGovernor.claim('route', function () {
+          token = ArchiMadeEasy.motionGovernor.claim('route', function () {
             if (journeyOwnerToken === token) journeyOwnerToken = 0;
             removeJourneyPulse({ release: false });
           });
@@ -536,8 +536,8 @@
           label: nodeLabel(byId[activeNodeIds[journeyIndex]], activeNodeIds[journeyIndex])
         });
         if (options.pulse === true && journeyIndex > 0) renderJourneyPulse(activeEdges[journeyIndex - 1]);
-        if (options.reveal !== false && Archify.view && typeof Archify.view.reveal === 'function') {
-          Archify.view.reveal(activeNodeIds.slice(Math.max(0, journeyIndex - 1), Math.min(activeNodeIds.length, journeyIndex + 2)), {
+        if (options.reveal !== false && ArchiMadeEasy.view && typeof ArchiMadeEasy.view.reveal === 'function') {
+          ArchiMadeEasy.view.reveal(activeNodeIds.slice(Math.max(0, journeyIndex - 1), Math.min(activeNodeIds.length, journeyIndex + 2)), {
             includeNeighbors: false,
             reason: 'route-journey',
             maxScale: 1.65,
@@ -582,8 +582,8 @@
         clearJourneyPresentation({ keepControls: true });
         status.textContent = routeOverviewStatus();
         renderJourneyControls();
-        if (options.reveal !== false && Archify.view && typeof Archify.view.reveal === 'function') {
-          Archify.view.reveal(activeNodeIds, { includeNeighbors: false, reason: 'route', instant: !journeyMotionAllowed() });
+        if (options.reveal !== false && ArchiMadeEasy.view && typeof ArchiMadeEasy.view.reveal === 'function') {
+          ArchiMadeEasy.view.reveal(activeNodeIds, { includeNeighbors: false, reason: 'route', instant: !journeyMotionAllowed() });
         }
         requestDocking();
         return true;
@@ -753,13 +753,13 @@
         findBtn.hidden = true;
         copyBtn.hidden = false;
         setTrigger(true);
-        if (Archify.exportMenu && typeof Archify.exportMenu.syncRouteShare === 'function') Archify.exportMenu.syncRouteShare();
+        if (ArchiMadeEasy.exportMenu && typeof ArchiMadeEasy.exportMenu.syncRouteShare === 'function') ArchiMadeEasy.exportMenu.syncRouteShare();
         if (options.updateUrl !== false) {
           replaceRouteHash(encodeURIComponent(startId) + '~' + encodeURIComponent(endId));
         }
         showJourneyOverview({ reveal: false });
-        if (Archify.view && typeof Archify.view.reveal === 'function') {
-          Archify.view.reveal(result.nodes, { includeNeighbors: false, reason: 'route' });
+        if (ArchiMadeEasy.view && typeof ArchiMadeEasy.view.reveal === 'function') {
+          ArchiMadeEasy.view.reveal(result.nodes, { includeNeighbors: false, reason: 'route' });
         }
         return true;
       }
@@ -790,19 +790,19 @@
       function begin(options) {
         options = options || {};
         if (html.getAttribute('data-embed') === 'true') return false;
-        if (Archify.semanticLens && typeof Archify.semanticLens.clearPreview === 'function') Archify.semanticLens.clearPreview();
-        if (Archify.semanticLens && Archify.semanticLens.active()) {
-          Archify.semanticLens.clear({ updateUrl: false, preserveView: true, closePanel: true });
+        if (ArchiMadeEasy.semanticLens && typeof ArchiMadeEasy.semanticLens.clearPreview === 'function') ArchiMadeEasy.semanticLens.clearPreview();
+        if (ArchiMadeEasy.semanticLens && ArchiMadeEasy.semanticLens.active()) {
+          ArchiMadeEasy.semanticLens.clear({ updateUrl: false, preserveView: true, closePanel: true });
         }
-        var focused = options.source || (Archify.focus && typeof Archify.focus.active === 'function' ? Archify.focus.active() : null);
+        var focused = options.source || (ArchiMadeEasy.focus && typeof ArchiMadeEasy.focus.active === 'function' ? ArchiMadeEasy.focus.active() : null);
         if (Array.isArray(focused)) focused = null;
         clear({ updateUrl: false, preserveView: true, restoreFocus: false });
-        if (Archify.intentTrace && typeof Archify.intentTrace.clear === 'function') Archify.intentTrace.clear({ announce: false });
-        if (Archify.focus && typeof Archify.focus.clear === 'function') {
-          Archify.focus.clear({ updateUrl: false, preserveView: true });
+        if (ArchiMadeEasy.intentTrace && typeof ArchiMadeEasy.intentTrace.clear === 'function') ArchiMadeEasy.intentTrace.clear({ announce: false });
+        if (ArchiMadeEasy.focus && typeof ArchiMadeEasy.focus.clear === 'function') {
+          ArchiMadeEasy.focus.clear({ updateUrl: false, preserveView: true });
         }
-        if (Archify.finder && Archify.finder.isOpen()) Archify.finder.close({ restoreFocus: false });
-        if (Archify.radar && Archify.radar.isOpen()) Archify.radar.close({ restoreFocus: false });
+        if (ArchiMadeEasy.finder && ArchiMadeEasy.finder.isOpen()) ArchiMadeEasy.finder.close({ restoreFocus: false });
+        if (ArchiMadeEasy.radar && ArchiMadeEasy.radar.isOpen()) ArchiMadeEasy.radar.close({ restoreFocus: false });
         mode = 'source';
         panel.hidden = false;
         panel.setAttribute('data-state', 'source');
@@ -882,8 +882,8 @@
       }
       function openFinder() {
         var context = finderContext();
-        if (!context || !Archify.finder) return false;
-        return Archify.finder.open({ context: context });
+        if (!context || !ArchiMadeEasy.finder) return false;
+        return ArchiMadeEasy.finder.open({ context: context });
       }
       function copyLink() {
         if (mode !== 'result') return Promise.resolve(false);

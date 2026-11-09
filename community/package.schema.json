@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://tt-a1i.github.io/archify/community/package.schema.json",
-  "title": "Archify Community Package",
-  "description": "Registry metadata for a standalone community package that builds on Archify. One file per package under community/packages/. The package content lives in the author's own repository; this file only indexes it.",
+  "$id": "https://OWNER.github.io/archi-made-easy/community/package.schema.json",
+  "title": "Archi-Made-Easy Community Package",
+  "description": "Registry metadata for a standalone community package that builds on Archi-Made-Easy. One file per package under community/packages/. The package content lives in the author's own repository; this file only indexes it.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["name", "type", "summary", "author", "repository", "archify", "schemaVersions"],
+  "required": ["name", "type", "summary", "author", "repository", "archi-made-easy", "schemaVersions"],
   "properties": {
     "name": {
       "type": "string",
@@ -14,7 +14,7 @@
     },
     "type": {
       "enum": ["skill", "recipe", "brand-marks", "locale", "wrapper"],
-      "description": "skill: agent skill pack; recipe: scenario/recipe library; brand-marks: brand-mark catalog or preset; locale: meta.translations catalog; wrapper: standalone tool that emits Archify JSON IR and calls the CLI."
+      "description": "skill: agent skill pack; recipe: scenario/recipe library; brand-marks: brand-mark catalog or preset; locale: meta.translations catalog; wrapper: standalone tool that emits Archi-Made-Easy JSON IR and calls the CLI."
     },
     "summary": {
       "type": "object",
@@ -39,17 +39,17 @@
       "pattern": "^https://[^\\s\\\\/?#@]+(?:[/?#][^\\s\\\\]*)?$", "format": "uri",
       "description": "Public URL of the package source (git repository, npm page, or directory inside one)."
     },
-    "archify": {
+    "archi-made-easy": {
       "type": "string",
       "pattern": "^(\\^|~)\\d+\\.\\d+\\.\\d+$|^\\d+\\.\\d+\\.\\d+$|^>=\\d+\\.\\d+\\.\\d+ <\\d+\\.\\d+\\.\\d+$",
-      "description": "Compatible Archify version range, e.g. ^3.0.1 or >=3.0.0 <4.0.0."
+      "description": "Compatible Archi-Made-Easy version range, e.g. ^3.0.1 or >=3.0.0 <4.0.0."
     },
     "schemaVersions": {
       "type": "array",
       "items": { "type": "integer", "minimum": 1 },
       "minItems": 1,
       "uniqueItems": true,
-      "description": "Archify JSON IR schema_version values the package can author."
+      "description": "Archi-Made-Easy JSON IR schema_version values the package can author."
     },
     "homepage": {
       "type": "string",
@@ -73,7 +73,7 @@
           "url": { "type": "string", "pattern": "^https://[^\\s\\\\/?#@]+(?:[/?#][^\\s\\\\]*)?$", "format": "uri" }
         }
       },
-      "description": "Links to verification evidence: validation receipts, screenshots, rendered example artifacts. Evidence is authored by the submitter; Archify never executes third-party package code."
+      "description": "Links to verification evidence: validation receipts, screenshots, rendered example artifacts. Evidence is authored by the submitter; Archi-Made-Easy never executes third-party package code."
     }
   }
 }

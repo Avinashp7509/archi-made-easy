@@ -5,7 +5,7 @@ import { pathToFileURL } from 'node:url';
 import { browserTestFiles } from './browser-test-inventory.mjs';
 
 const modes = 'architecture|workflow|sequence|dataflow|lifecycle|erd|class|tree|timeline|waterfall';
-const rendererPath = new RegExp(`^archify/(?:renderers/(${modes})/|schemas/(${modes})\\.schema\\.json$)`);
+const rendererPath = new RegExp(`^archi-made-easy/(?:renderers/(${modes})/|schemas/(${modes})\\.schema\\.json$)`);
 const renderShared = /^(geometry|utils|i18n|route-quality|diagnostics|brand-marks|generated-validators|legend|layout-report|engineering-profiles|validator|generated-brand-marks|desktop-readability|text-fit|svg-path-analysis|automatic-labels|spatial-grid)\.mjs$/;
 const gates = ['generated', 'browser', 'webm', 'package', 'windows', 'manifest', 'website'];
 export function classifyPaths(paths) {
@@ -16,9 +16,9 @@ export function classifyPaths(paths) {
   let archiveChanged = false;
   let requireFull = false;
   for (const name of paths) {
-    if (/^(docs|examples|archify\/examples)\/.*\.(html|svg)$/.test(name) && !name.startsWith('docs/assets/community/')) own('artifact');
+    if (/^(docs|examples|archi-made-easy\/examples)\/.*\.(html|svg)$/.test(name) && !name.startsWith('docs/assets/community/')) own('artifact');
     if (/^examples\/checkout-platform-delta\.(html|receipt\.json)$/.test(name)) own('delta');
-    if (name === 'archify.zip') { archiveChanged = true; plan.package = true; continue; }
+    if (name === 'archi-made-easy.zip') { archiveChanged = true; plan.package = true; continue; }
     if (/^test\/[^/]+\.test\.mjs$/.test(name)) {
       plan.changedTests.push(name);
       if (browserTestFiles.includes(name.slice(5)) || name.endsWith('-browser.test.mjs')) {
@@ -40,23 +40,23 @@ export function classifyPaths(paths) {
     if (renderer) {
       own(renderer[1] || renderer[2]);
       // These mode-local helpers also serve other renderers directly.
-      if (name === 'archify/renderers/erd/grid.mjs') own('class');
-      if (name === 'archify/renderers/architecture/routing.mjs') {
+      if (name === 'archi-made-easy/renderers/erd/grid.mjs') own('class');
+      if (name === 'archi-made-easy/renderers/architecture/routing.mjs') {
         own('erd'); own('class');
       }
       if (renderer[2]) own('schema');
       plan.generated = plan.browser = plan.package = true;
       continue;
     }
-    if (name.startsWith('archify/renderers/shared/') && renderShared.test(name.slice('archify/renderers/shared/'.length))) {
+    if (name.startsWith('archi-made-easy/renderers/shared/') && renderShared.test(name.slice('archi-made-easy/renderers/shared/'.length))) {
       own('renderer'); plan.generated = plan.browser = plan.package = true; continue;
     }
-    if (/^(viewer\/|archify\/assets\/)/.test(name)) {
+    if (/^(viewer\/|archi-made-easy\/assets\/)/.test(name)) {
       own('viewer'); plan.generated = plan.browser = plan.webm = plan.package = true; continue;
     }
-    if (/^archify\/(SKILL\.md$|references\/|recipes\/|examples\/)/.test(name)) {
+    if (/^archi-made-easy\/(SKILL\.md$|references\/|recipes\/|examples\/)/.test(name)) {
       own('authoring'); plan.generated = plan.package = true;
-      if (name.startsWith('archify/recipes/')) plan.website = true;
+      if (name.startsWith('archi-made-easy/recipes/')) plan.website = true;
       continue;
     }
     if (/^examples\//.test(name)) { plan.generated = true; continue; }

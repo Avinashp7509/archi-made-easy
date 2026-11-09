@@ -4,11 +4,11 @@
   "purpose": "feedback-efficiency",
   "evidence_eligible": false,
   "fixtures": {
-    "architecture": "../../archify/examples/web-app.architecture.json",
-    "workflow": "../../archify/examples/agent-tool-call.workflow.json",
-    "sequence": "../../archify/examples/cache-miss-request.sequence.json",
-    "dataflow": "../../archify/examples/product-analytics.dataflow.json",
-    "lifecycle": "../../archify/examples/deployment-release.lifecycle.json"
+    "architecture": "../../archi-made-easy/examples/web-app.architecture.json",
+    "workflow": "../../archi-made-easy/examples/agent-tool-call.workflow.json",
+    "sequence": "../../archi-made-easy/examples/cache-miss-request.sequence.json",
+    "dataflow": "../../archi-made-easy/examples/product-analytics.dataflow.json",
+    "lifecycle": "../../archi-made-easy/examples/deployment-release.lifecycle.json"
   },
   "cases": [
     { "id": "arch-missing-output", "type": "architecture", "defects": [{ "class": "meta-missing-output" }] },

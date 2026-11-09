@@ -5,9 +5,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { analyzeSvgPath } from '../archify/renderers/shared/svg-path-analysis.mjs';
+import { analyzeSvgPath } from '../archi-made-easy/renderers/shared/svg-path-analysis.mjs';
 
-const cli = fileURLToPath(new URL('../archify/bin/archify.mjs', import.meta.url));
+const cli = fileURLToPath(new URL('../archi-made-easy/bin/archi-made-easy.mjs', import.meta.url));
 const epsilon = 0.0001;
 const attributes = tag => Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map(match => [match[1], match[2]]));
 
@@ -52,7 +52,7 @@ function fixture({ horizontal = false, conflict, dashed = false, offset = 0, wid
 }
 
 function render(t, document) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-erd-bridge-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-erd-bridge-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const input = path.join(directory, 'input.erd.json');
   const output = path.join(directory, 'output.html');
@@ -60,7 +60,7 @@ function render(t, document) {
   fs.writeFileSync(input, source);
   const result = spawnSync(process.execPath, [cli, 'render', 'erd', input, output], {
     encoding: 'utf8', timeout: 20_000,
-    env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+    env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
   });
   assert.equal(result.status, 0, `${result.error || ''}\n${result.stdout}\n${result.stderr}`);
   assert.equal(fs.readFileSync(input, 'utf8'), source, '作者输入必须保持原样');

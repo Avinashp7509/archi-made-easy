@@ -6,14 +6,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { ChromeVisualBrowser, findChrome } from '../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome } from '../archi-made-easy/bin/visual-check.mjs';
 
-import { translateMessage } from '../archify/renderers/shared/i18n.mjs';
+import { translateMessage } from '../archi-made-easy/renderers/shared/i18n.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-semantic-passport-'));
-const chromePath = process.env.ARCHIFY_CHROME ? findChrome() : null;
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-semantic-passport-'));
+const chromePath = process.env.ARCHI_MADE_EASY_CHROME ? findChrome() : null;
 
 const CASES = {
   architecture: 'web-app.architecture.json',
@@ -126,7 +126,7 @@ test('Relationship Lens renders one Semantic Passport and copyable stable focus 
   assert.match(html, /clearBtn\.addEventListener\('click', function \(\) \{ clear\(\{ restoreFocus: true \}\); \}\)/);
   assert.match(html, /chip\.hidden \|\| !target \|\| typeof target\.closest !== 'function' \|\| chip\.contains\(target\)/);
   assert.match(html, /document\.addEventListener\('click',[\s\S]+?clear\(\);\s+\}, true\);/);
-  assert.match(html, /Archify\.focus\.clear\(\{ restoreFocus: true \}\)/);
+  assert.match(html, /ArchiMadeEasy\.focus\.clear\(\{ restoreFocus: true \}\)/);
   assert.match(html, /renderRelationshipLens\(normalized\[0\],\s*byId\);\s*placeRelationshipLens\(\);/);
   assert.match(html, /applyReachability[\s\S]*?placeRelationshipLens\(\);/);
   assert.match(html, /clearRelationshipPreview[\s\S]*?renderRelationshipCopyAction\(\);\s*placeRelationshipLens\(\);/);
@@ -136,11 +136,11 @@ test('Relationship Lens renders one Semantic Passport and copyable stable focus 
 });
 
 test('semantic passport computes and applies target top synchronously on open and switch without a 1-frame snap', {
-  skip: chromePath ? false : 'Set ARCHIFY_CHROME to run the real browser regression.',
+  skip: chromePath ? false : 'Set ARCHI_MADE_EASY_CHROME to run the real browser regression.',
 }, async () => {
   const artifact = path.join(tmp, 'passport-synchronous-placement.html');
   execFileSync(process.execPath, [
-    path.join(skillRoot, 'bin', 'archify.mjs'),
+    path.join(skillRoot, 'bin', 'archi-made-easy.mjs'),
     'render',
     'architecture',
     path.join(skillRoot, 'examples', CASES.architecture),
@@ -155,12 +155,12 @@ test('semantic passport computes and applies target top synchronously on open an
       var initialTop = chip.style.top;
 
       // Focus node 'auth' (top rank): must compute and apply top synchronously before next paint
-      Archify.focus.set('auth', { toggle: false });
+      ArchiMadeEasy.focus.set('auth', { toggle: false });
       var synchronousTopAuth = chip.style.top;
       var hiddenAuth = chip.hidden;
 
       // Switch focus to node 's3' (bottom rank): must update top synchronously without stale 1-frame delay
-      Archify.focus.set('s3', { toggle: false });
+      ArchiMadeEasy.focus.set('s3', { toggle: false });
       var synchronousTopS3 = chip.style.top;
       var hiddenS3 = chip.hidden;
 

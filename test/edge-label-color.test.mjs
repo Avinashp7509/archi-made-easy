@@ -7,9 +7,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
-const cli = path.join(skillRoot, 'bin/archify.mjs');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-edge-label-color-'));
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
+const cli = path.join(skillRoot, 'bin/archi-made-easy.mjs');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-edge-label-color-'));
 
 const PRESETS = ['classic', 'signal-flow', 'blueprint', 'editorial'];
 const VARIANTS = ['default', 'emphasis', 'security', 'dashed'];

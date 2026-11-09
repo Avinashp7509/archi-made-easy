@@ -4,7 +4,7 @@
        selection delegates to the Finder's focus-and-reveal path. It reads
        the canonical SVG and never changes geometry or export state.
        ============================================================ */
-    Archify.outline = (function () {
+    ArchiMadeEasy.outline = (function () {
       var panel = document.getElementById('node-outline');
       var list = document.getElementById('node-outline-list');
       var count = document.getElementById('node-outline-count');
@@ -22,21 +22,21 @@
         return match && TONES.indexOf(match[1]) !== -1 ? match[1] : 'external';
       }
       function preview(id) {
-        if (Archify.intentTrace && typeof Archify.intentTrace.show === 'function') Archify.intentTrace.show(id);
+        if (ArchiMadeEasy.intentTrace && typeof ArchiMadeEasy.intentTrace.show === 'function') ArchiMadeEasy.intentTrace.show(id);
       }
       function clearPreview() {
-        if (Archify.intentTrace && typeof Archify.intentTrace.clear === 'function') Archify.intentTrace.clear({ announce: false });
+        if (ArchiMadeEasy.intentTrace && typeof ArchiMadeEasy.intentTrace.clear === 'function') ArchiMadeEasy.intentTrace.clear({ announce: false });
       }
       function select(id) {
         clearPreview();
-        var finder = Archify.finder;
+        var finder = ArchiMadeEasy.finder;
         if (finder && typeof finder.select === 'function') {
           if (finder.select(id)) return;
-          var routeMode = Archify.routeProbe && typeof Archify.routeProbe.active === 'function' ? Archify.routeProbe.active() : 'idle';
+          var routeMode = ArchiMadeEasy.routeProbe && typeof ArchiMadeEasy.routeProbe.active === 'function' ? ArchiMadeEasy.routeProbe.active() : 'idle';
           // Only an active endpoint picker owns a refused selection.
           if (routeMode === 'source' || routeMode === 'target') return;
         }
-        if (Archify.focus && typeof Archify.focus.set === 'function') Archify.focus.set(id, { toggle: false });
+        if (ArchiMadeEasy.focus && typeof ArchiMadeEasy.focus.set === 'function') ArchiMadeEasy.focus.set(id, { toggle: false });
       }
 
       var groups = [];
@@ -131,7 +131,7 @@
       if (count) count.textContent = String(nodes.length);
       panel.hidden = nodes.length < 2;
       syncCurrent();
-      if (Archify.readerLayout && typeof Archify.readerLayout.schedule === 'function') Archify.readerLayout.schedule();
+      if (ArchiMadeEasy.readerLayout && typeof ArchiMadeEasy.readerLayout.schedule === 'function') ArchiMadeEasy.readerLayout.schedule();
 
       return { count: nodes.length, select: select };
     })();

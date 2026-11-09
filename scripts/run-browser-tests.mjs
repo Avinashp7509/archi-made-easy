@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { findChrome } from '../archify/bin/visual-check.mjs';
+import { findChrome } from '../archi-made-easy/bin/visual-check.mjs';
 import { testRunnerOptions } from './test-runner-options.mjs';
 
 import { browserTestFiles as testFiles } from './browser-test-inventory.mjs';
@@ -29,19 +29,19 @@ if (options.list) {
 
 const chrome = findChrome();
 if (!chrome) {
-  console.error('Browser tests require an executable Chrome/Chromium (or Microsoft Edge). Set ARCHIFY_CHROME to its path; this gate cannot skip browser coverage.');
+  console.error('Browser tests require an executable Chrome/Chromium (or Microsoft Edge). Set ARCHI_MADE_EASY_CHROME to its path; this gate cannot skip browser coverage.');
   process.exit(1);
 }
 
 console.error(`Browser tests: ${options.files.length} files, concurrency ${options.concurrency}${options.shard ? `, shard ${options.shard.index}/${options.shard.count}` : ''}`);
 // Browser fixtures also deliver artifacts and check for updates. Give each
 // invocation its own cache, just like the ordinary repository test runner.
-const updateCache = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'archify-browser-update-')));
+const updateCache = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-browser-update-')));
 let result;
 try {
   result = spawnSync(process.execPath, options.args, {
     cwd: repoRoot,
-    env: { ...process.env, ARCHIFY_CHROME: chrome, ARCHIFY_UPDATE_CACHE_DIRECTORY: updateCache },
+    env: { ...process.env, ARCHI_MADE_EASY_CHROME: chrome, ARCHI_MADE_EASY_UPDATE_CACHE_DIRECTORY: updateCache },
     stdio: 'inherit',
   });
 } finally {

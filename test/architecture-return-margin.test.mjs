@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createRouter } from '../archify/renderers/architecture/routing.mjs';
-import { reservedLabelRect } from '../archify/renderers/architecture/labels.mjs';
-import { labelPoint, properSegmentIntersection, routeHonorsEndpointSides } from '../archify/renderers/shared/geometry.mjs';
-import { textUnits } from '../archify/renderers/shared/utils.mjs';
+import { createRouter } from '../archi-made-easy/renderers/architecture/routing.mjs';
+import { reservedLabelRect } from '../archi-made-easy/renderers/architecture/labels.mjs';
+import { labelPoint, properSegmentIntersection, routeHonorsEndpointSides } from '../archi-made-easy/renderers/shared/geometry.mjs';
+import { textUnits } from '../archi-made-easy/renderers/shared/utils.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -84,7 +84,7 @@ test('an already clear scene keeps its routes when lower room is available', () 
 
 test('the architecture renderer reserves extra room only for an automatic canvas', t => {
   const { boxes, connections } = fixture();
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-return-room-'));
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-return-room-'));
   t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
   const diagram = {
     schema_version: 1, diagram_type: 'architecture',
@@ -92,7 +92,7 @@ test('the architecture renderer reserves extra room only for an automatic canvas
     components: [...boxes.values()].map(b => ({ id: b.id, label: b.id, type: 'backend', pos: [b.x, b.y], size: [b.width, b.height] })),
     connections,
   };
-  const cli = fileURLToPath(new URL('../archify/bin/archify.mjs', import.meta.url));
+  const cli = fileURLToPath(new URL('../archi-made-easy/bin/archi-made-easy.mjs', import.meta.url));
   const reports = [];
   for (const fixed of [false, true]) {
     if (fixed) diagram.meta.viewBox = [720, 700];
@@ -100,7 +100,7 @@ test('the architecture renderer reserves extra room only for an automatic canvas
     const bytes = JSON.stringify(diagram);
     fs.writeFileSync(input, bytes);
     const result = spawnSync(process.execPath, [cli, 'validate', 'architecture', input, '--layout-json'], {
-      encoding: 'utf8', env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+      encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
     });
     assert.equal(result.status, 0, result.stdout + result.stderr);
     assert.equal(fs.readFileSync(input, 'utf8'), bytes);

@@ -12,8 +12,8 @@ import { estimateTokens, initialReadingPaths, failureReadingPaths, measureFiles 
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../..');
-const skillRoot = path.join(repoRoot, 'archify');
-const archifyCli = path.join(skillRoot, 'bin/archify.mjs');
+const skillRoot = path.join(repoRoot, 'archi-made-easy');
+const archiMadeEasyCli = path.join(skillRoot, 'bin/archi-made-easy.mjs');
 const GATE_ORDER = ['validate', 'deliver', 'check', 'browser-check'];
 const LATE_GATES = new Set(['check', 'browser-check']);
 const DEFAULT_MAX_ROUNDS = 8;
@@ -67,17 +67,17 @@ function manifestPaths(manifestFile, manifest) {
 }
 
 function invokeCli(command, type, candidateFile, quality, roundDir) {
-  const env = { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' };
+  const env = { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' };
   if (command === 'finalize') {
     fs.mkdirSync(roundDir, { recursive: true });
     const output = path.join(roundDir, 'candidate.html');
     return spawnSync(process.execPath, [
-      archifyCli, 'finalize', type, candidateFile, output,
+      archiMadeEasyCli, 'finalize', type, candidateFile, output,
       '--json', '--out-dir', roundDir, '--quality', quality,
     ], { encoding: 'utf8', env, timeout: 180000 });
   }
   return spawnSync(process.execPath, [
-    archifyCli, 'validate', type, candidateFile, '--quality', quality, '--json',
+    archiMadeEasyCli, 'validate', type, candidateFile, '--quality', quality, '--json',
   ], { encoding: 'utf8', env, timeout: 180000 });
 }
 
@@ -134,7 +134,7 @@ function runCase(manifestCase, fixtures, config) {
 
   const workDir = config.workDir
     ? path.join(config.workDir, manifestCase.id)
-    : fs.mkdtempSync(path.join(os.tmpdir(), `archify-repair-rounds-${manifestCase.id}-`));
+    : fs.mkdtempSync(path.join(os.tmpdir(), `archi-made-easy-repair-rounds-${manifestCase.id}-`));
   fs.mkdirSync(workDir, { recursive: true });
   const candidateFile = path.join(workDir, 'candidate.json');
 

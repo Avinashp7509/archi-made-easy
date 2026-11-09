@@ -4,10 +4,10 @@
       var filterButtons = Array.prototype.slice.call(document.querySelectorAll('[data-filter]'));
       var empty = document.getElementById('empty-state');
       var previewTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-      var language = ArchifySiteLanguage.read();
+      var language = ArchiMadeEasySiteLanguage.read();
 
       function applyLanguage(next) {
-        language = ArchifySiteLanguage.write(next);
+        language = ArchiMadeEasySiteLanguage.write(next);
         document.documentElement.lang = language === 'zh' ? 'zh-Hans' : 'en';
         document.querySelectorAll('[data-en][data-zh]').forEach(function (node) {
           node.innerHTML = node.getAttribute(language === 'zh' ? 'data-zh' : 'data-en');
@@ -55,7 +55,7 @@
       applyFilter(allowed.indexOf(requested) >= 0 ? requested : 'all', false);
       applyLanguage(language);
       if (previewTheme === 'light') applyPreviewTheme('light');
-      window.addEventListener('archify:themechange', function (event) { applyPreviewTheme(event.detail.theme); });
+      window.addEventListener('archi-made-easy:themechange', function (event) { applyPreviewTheme(event.detail.theme); });
 
       if ('IntersectionObserver' in window) {
         var observer = new IntersectionObserver(function (entries) {

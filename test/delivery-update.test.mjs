@@ -6,36 +6,36 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { checkForUpdate } from '../archify/scripts/check-update.mjs';
-import { startDeliveryUpdateCheck } from '../archify/bin/delivery-update.mjs';
-import { runFinalize } from '../archify/bin/finalize.mjs';
+import { checkForUpdate } from '../archi-made-easy/scripts/check-update.mjs';
+import { startDeliveryUpdateCheck } from '../archi-made-easy/bin/delivery-update.mjs';
+import { runFinalize } from '../archi-made-easy/bin/finalize.mjs';
 
-const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archify');
-const cli = path.join(skillRoot, 'bin', 'archify.mjs');
+const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archi-made-easy');
+const cli = path.join(skillRoot, 'bin', 'archi-made-easy.mjs');
 const installed = '2.15.0';
 const available = '2.16.0';
 
 function fixture(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-delivery-update-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-delivery-update-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const releasePath = path.join(root, 'skill-release.json');
   const cacheDirectory = path.join(root, 'cache');
   fs.writeFileSync(releasePath, `${JSON.stringify({
-    schemaVersion: 1, skillId: 'archify', channel: 'stable', version: installed,
-    source: { repository: 'https://github.com/tt-a1i/archify' },
-    updateManifestUrl: 'https://tt-a1i.github.io/archify/skill-updates/archify/stable.json',
+    schemaVersion: 1, skillId: 'archi-made-easy', channel: 'stable', version: installed,
+    source: { repository: 'https://github.com/OWNER/archi-made-easy' },
+    updateManifestUrl: 'https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
   })}\n`);
   return { root, releasePath, cacheDirectory };
 }
 
 function manifest() {
   return {
-    schemaVersion: 1, skillId: 'archify', channel: 'stable', version: available,
+    schemaVersion: 1, skillId: 'archi-made-easy', channel: 'stable', version: available,
     publishedAt: '2026-08-28T07:00:00Z',
-    source: { repository: 'https://github.com/tt-a1i/archify', ref: 'v2.16.0', treeSha: 'a'.repeat(40) },
+    source: { repository: 'https://github.com/OWNER/archi-made-easy', ref: 'v2.16.0', treeSha: 'a'.repeat(40) },
     artifact: { sha256: 'b'.repeat(64) },
     summary: 'A release is available.',
-    releaseNotes: 'https://github.com/tt-a1i/archify/releases/tag/v2.16.0',
+    releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.16.0',
     severity: 'normal',
   };
 }
@@ -50,8 +50,8 @@ async function seed(testFixture) {
 
 function env(testFixture) {
   return { ...process.env,
-    ARCHIFY_UPDATE_RELEASE_PATH: testFixture.releasePath,
-    ARCHIFY_UPDATE_CACHE_DIRECTORY: testFixture.cacheDirectory,
+    ARCHI_MADE_EASY_UPDATE_RELEASE_PATH: testFixture.releasePath,
+    ARCHI_MADE_EASY_UPDATE_CACHE_DIRECTORY: testFixture.cacheDirectory,
   };
 }
 
@@ -65,7 +65,7 @@ test('bounded service returns the same cached notice on repeated deliveries', as
     assert.equal(result.source, 'cache');
     assert.equal(result.noticeRequired, true);
     assert.match(result.noticeText, /previous check/);
-    assert.match(result.noticeText, /Would you like me to update Archify/);
+    assert.match(result.noticeText, /Would you like me to update Archi-Made-Easy/);
     assert.equal(result.summary, manifest().summary);
     assert.ok(performance.now() - started < 1_200);
   }
@@ -163,7 +163,7 @@ test('a killed checker holding the cache claim can be followed by a new check', 
   const testFixture = fixture(t);
   const blockedChecker = path.join(testFixture.root, 'blocked-checker.mjs');
   fs.writeFileSync(blockedChecker, `
-    import { checkForUpdate } from ${JSON.stringify(new URL('../archify/scripts/check-update.mjs', import.meta.url).href)};
+    import { checkForUpdate } from ${JSON.stringify(new URL('../archi-made-easy/scripts/check-update.mjs', import.meta.url).href)};
     await checkForUpdate({
       releasePath: ${JSON.stringify(testFixture.releasePath)},
       cacheDirectory: ${JSON.stringify(testFixture.cacheDirectory)},
@@ -187,7 +187,7 @@ test('standalone deliver and finalize receipts include one update without changi
   assert.equal((await seed(testFixture)).status, 'update_available');
   const input = path.join(skillRoot, 'examples', 'web-app.architecture.json');
   const output = path.join(testFixture.root, 'diagram.html');
-  const environment = { ...env(testFixture), ARCHIFY_CHROME: path.join(testFixture.root, 'missing-chrome') };
+  const environment = { ...env(testFixture), ARCHI_MADE_EASY_CHROME: path.join(testFixture.root, 'missing-chrome') };
   const deliver = spawnSync(process.execPath,
     [cli, 'deliver', 'architecture', input, output, '--quality', 'showcase', '--json'],
     { cwd: skillRoot, encoding: 'utf8', env: environment, timeout: 15_000 });
@@ -197,7 +197,7 @@ test('standalone deliver and finalize receipts include one update without changi
   const artifactHash = deliveryReceipt.artifact.sha256;
   const disabled = spawnSync(process.execPath,
     [cli, 'deliver', 'architecture', input, output, '--quality', 'showcase', '--json'],
-    { cwd: skillRoot, encoding: 'utf8', env: { ...environment, ARCHIFY_UPDATE_CHECK_DISABLED: '1' }, timeout: 15_000 });
+    { cwd: skillRoot, encoding: 'utf8', env: { ...environment, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' }, timeout: 15_000 });
   assert.equal(disabled.status, 0, disabled.stdout || disabled.stderr);
   const disabledReceipt = JSON.parse(disabled.stdout);
   assert.equal(disabledReceipt.update.reason, 'disabled');
@@ -216,12 +216,12 @@ test('standalone deliver and finalize receipts include one update without changi
     [cli, 'deliver', 'architecture', input, output, '--quality', 'showcase'],
     { cwd: skillRoot, encoding: 'utf8', env: environment, timeout: 15_000 });
   assert.equal(readableDeliver.status, 0, readableDeliver.stdout || readableDeliver.stderr);
-  assert.match(readableDeliver.stdout, /Archify update:.*2\.15\.0.*2\.16\.0/);
+  assert.match(readableDeliver.stdout, /Archi-Made-Easy update:.*2\.15\.0.*2\.16\.0/);
   const readableFinalize = spawnSync(process.execPath,
     [cli, 'finalize', 'architecture', input, output, '--quality', 'showcase'],
     { cwd: skillRoot, encoding: 'utf8', env: environment, timeout: 30_000 });
   assert.equal(readableFinalize.status, 2, readableFinalize.stdout || readableFinalize.stderr);
-  assert.match(readableFinalize.stdout, /Archify update:.*2\.15\.0.*2\.16\.0/);
+  assert.match(readableFinalize.stdout, /Archi-Made-Easy update:.*2\.15\.0.*2\.16\.0/);
 });
 
 test('a failed finalize gate preserves update in full and compact receipts', async (t) => {
@@ -273,5 +273,5 @@ test('release description stays separate from the local update offer', async (t)
   const result = await startDeliveryUpdateCheck({ env: env(testFixture) });
   assert.equal(result.summary, summary);
   assert.ok(!result.noticeText.includes(summary));
-  assert.match(result.noticeText, /Would you like me to update Archify/);
+  assert.match(result.noticeText, /Would you like me to update Archi-Made-Easy/);
 });

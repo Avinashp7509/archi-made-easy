@@ -11,10 +11,10 @@ const runner = path.join(repoRoot, 'scripts/run-tests.mjs');
 const [nodeMajor, nodeMinor] = process.versions.node.split('.').map(Number);
 const supportsConcurrency = nodeMajor > 18 || (nodeMajor === 18 && nodeMinor >= 19);
 const supportsNamePattern = nodeMajor > 18 || (nodeMajor === 18 && nodeMinor >= 11);
-const defaultConcurrency = process.env.ARCHIFY_CHROME ? 2 : Math.max(1, Math.min(4, os.availableParallelism?.() ?? os.cpus().length));
+const defaultConcurrency = process.env.ARCHI_MADE_EASY_CHROME ? 2 : Math.max(1, Math.min(4, os.availableParallelism?.() ?? os.cpus().length));
 
 function interceptedRun(t, args = [], outcome = { status: 0 }, nodeVersion = process.versions.node, runtime = {}) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-runner-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-runner-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const preload = path.join(directory, 'capture.cjs');
   fs.writeFileSync(preload, `
@@ -23,7 +23,7 @@ const fs = require('node:fs');
 ${runtime.parallelism === undefined ? '' : `require('node:os').availableParallelism = () => ${runtime.parallelism};`}
 Object.defineProperty(process.versions, 'node', { value: ${JSON.stringify(nodeVersion)} });
 childProcess.spawnSync = (command, args, options) => {
-  const cache = options.env.ARCHIFY_UPDATE_CACHE_DIRECTORY;
+  const cache = options.env.ARCHI_MADE_EASY_UPDATE_CACHE_DIRECTORY;
   console.log(JSON.stringify({ command, args, cwd: options.cwd, cache, cacheExists: fs.existsSync(cache) }));
   return ${JSON.stringify(outcome)};
 };
@@ -31,7 +31,7 @@ require('node:module').syncBuiltinESMExports();
 `);
   return spawnSync(process.execPath, ['--require', preload, runner, ...args], {
     cwd: directory, encoding: 'utf8',
-    env: { ...process.env, ...(runtime.chrome === undefined ? {} : { ARCHIFY_CHROME: runtime.chrome }), ARCHIFY_UPDATE_CACHE_DIRECTORY: path.join(directory, 'user-cache') },
+    env: { ...process.env, ...(runtime.chrome === undefined ? {} : { ARCHI_MADE_EASY_CHROME: runtime.chrome }), ARCHI_MADE_EASY_UPDATE_CACHE_DIRECTORY: path.join(directory, 'user-cache') },
   });
 }
 
@@ -44,7 +44,7 @@ test('focused runner selects exact files from an unrelated cwd and cleans isolat
   assert.deepEqual(call.args, ['--test', ...(supportsConcurrency ? ['--test-concurrency=3'] : []), ...files]);
   assert.equal(fs.realpathSync(call.cwd), fs.realpathSync(repoRoot));
   assert.equal(call.cacheExists, true);
-  assert.match(path.basename(call.cache), /^archify-test-update-/);
+  assert.match(path.basename(call.cache), /^archi-made-easy-test-update-/);
   assert.equal(fs.existsSync(call.cache), false);
   assert.match(result.stderr, supportsConcurrency ? /2 files, concurrency 3/ : /2 files, concurrency Node default/);
 });
@@ -179,7 +179,7 @@ for (const outcome of [{ status: 7 }, { status: null, signal: 'SIGTERM' }, { err
 }
 
 test('repository runner discovers every test suite from an unrelated working directory', (t) => {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-discovery-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-discovery-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const preload = path.join(directory, 'capture.cjs');
   fs.writeFileSync(preload, `
@@ -204,5 +204,5 @@ require('node:module').syncBuiltinESMExports();
     .filter(file => file.endsWith('.test.mjs')).sort().map(file => path.join('test', file));
   assert.deepEqual(invocation.args.filter(arg => !arg.startsWith('--')), expected);
   for (const file of expected) assert.ok(fs.existsSync(path.join(invocation.cwd, file)), file);
-  assert.equal(fs.existsSync(path.join(repoRoot, 'archify/test')), false);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'archi-made-easy/test')), false);
 });

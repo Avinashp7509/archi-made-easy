@@ -4,11 +4,11 @@
       var recipes = JSON.parse(document.getElementById('guide-data').textContent);
       var types = Array.from(new Set(recipes.map(function (recipe) { return recipe.type; })));
       var colors = { architecture:'var(--hue-cyan)', workflow:'var(--hue-emerald)', sequence:'var(--hue-violet)', dataflow:'var(--hue-amber)', lifecycle:'var(--hue-rose)', erd:'var(--hue-emerald)' };
-      var language = ArchifySiteLanguage.read();
+      var language = ArchiMadeEasySiteLanguage.read();
       var activeType = 'all';
       var lastRecipe = null;
       var copy = JSON.parse(document.getElementById('site-copy').textContent);
-      var languageStateKey = 'archify-guide-language-state.v1';
+      var languageStateKey = 'archi-made-easy-guide-language-state.v1';
 
       // A language navigation may carry one short-lived draft within this tab.
       // Consume before validating so a stale or unrelated visit cannot reuse it.
@@ -82,7 +82,7 @@
         var recipe = local(rawRecipe);
         lastRecipe = rawRecipe;
         var alt = alternatives || [];
-        var html = '<div class="result-main"><div><span class="result-kicker">'+escapeHtml(t('recommended'))+' · '+escapeHtml(confidence)+' '+escapeHtml(t('confidence'))+'</span><h3 id="result-title" tabindex="-1">'+escapeHtml(recipe.title)+'</h3><p class="result-question">'+escapeHtml(recipe.question)+'</p><p class="result-summary">'+escapeHtml(recipe.summary)+'</p>'+(recipe.proof ? '<a class="proof-link" href="'+ArchifySiteLanguage.page('gallery', '#proof-'+encodeURIComponent(recipe.proof))+'">'+escapeHtml(t('proofLink'))+'</a>' : '')+'</div><div class="boundary"><div class="boundary-item"><small>'+escapeHtml(t('use'))+'</small><p>'+escapeHtml(recipe.useWhen)+'</p></div><div class="boundary-item avoid"><small>'+escapeHtml(t('avoid'))+'</small><p>'+escapeHtml(recipe.avoidWhen)+'</p></div></div></div>';
+        var html = '<div class="result-main"><div><span class="result-kicker">'+escapeHtml(t('recommended'))+' · '+escapeHtml(confidence)+' '+escapeHtml(t('confidence'))+'</span><h3 id="result-title" tabindex="-1">'+escapeHtml(recipe.title)+'</h3><p class="result-question">'+escapeHtml(recipe.question)+'</p><p class="result-summary">'+escapeHtml(recipe.summary)+'</p>'+(recipe.proof ? '<a class="proof-link" href="'+ArchiMadeEasySiteLanguage.page('gallery', '#proof-'+encodeURIComponent(recipe.proof))+'">'+escapeHtml(t('proofLink'))+'</a>' : '')+'</div><div class="boundary"><div class="boundary-item"><small>'+escapeHtml(t('use'))+'</small><p>'+escapeHtml(recipe.useWhen)+'</p></div><div class="boundary-item avoid"><small>'+escapeHtml(t('avoid'))+'</small><p>'+escapeHtml(recipe.avoidWhen)+'</p></div></div></div>';
         html += '<div class="result-grid"><div class="checklist"><div class="mini-heading">'+escapeHtml(t('must'))+'</div><ul>'+recipe.include.map(function (item) { return '<li>'+escapeHtml(item)+'</li>'; }).join('')+'</ul><div class="presentation"><span class="tag">'+escapeHtml(recipe.type)+'</span><span class="tag">'+escapeHtml(recipe.presentation.preset)+'</span><span class="tag">'+escapeHtml(recipe.presentation.motion)+'</span></div></div>';
         html += '<div class="prompt-box"><div class="prompt-bar"><div class="mini-heading" style="margin:0">'+escapeHtml(t('prompt'))+'</div><button class="copy" id="copy-prompt" aria-describedby="prompt-copy-status" type="button">'+escapeHtml(t('copyPrompt'))+'</button></div><p id="prompt-copy-status" class="copy-status" role="status" aria-live="polite"></p><p class="prompt-text">'+escapeHtml(recipe.prompt)+'</p></div></div>';
         if (alt.length) html += '<div class="alternatives">'+escapeHtml(t('alternatives'))+alt.map(function (entry) { var item=local(entry.recipe); return '<button type="button" data-alt="'+item.id+'">'+escapeHtml(item.title)+' ['+item.type+']</button>'; }).join('')+'</div>';
@@ -97,7 +97,7 @@
         renderResult(picked.recipe,picked.confidence,picked.alternatives);
       }
       function applyLanguage(next) {
-        language = ArchifySiteLanguage.write(next);
+        language = ArchiMadeEasySiteLanguage.write(next);
         document.documentElement.lang = language === 'zh' ? 'zh-Hans' : 'en';
         document.getElementById('language').textContent = language === 'zh' ? 'EN' : '中文';
         document.getElementById('language').setAttribute('aria-label', language === 'zh' ? 'Switch to English' : '切换到中文');
@@ -117,7 +117,7 @@
         var attempt = ++copyAttempt;
         status.textContent = '';
         var isCurrent = function () { return attempt === copyAttempt && button.isConnected && recipe === lastRecipe; };
-        var ok = await ArchifyClipboard.copy(text, isCurrent);
+        var ok = await ArchiMadeEasyClipboard.copy(text, isCurrent);
         if (isCurrent()) status.textContent = t(ok ? 'copySuccess' : 'copyFailure');
       }
       document.getElementById('recommend').addEventListener('click',runRecommendation);

@@ -1,4 +1,4 @@
-    Archify.view = (function () {
+    ArchiMadeEasy.view = (function () {
       var container = document.querySelector('.diagram-container');
       var svg = container.querySelector('svg');
       var outBtn = container.querySelector('[data-view="out"]');
@@ -182,8 +182,8 @@
           var rendered = sampleRenderedState();
           syncPageFlow(rendered);
           clipToViewport(rendered);
-          if (Archify.radar && Archify.radar.isOpen()) Archify.radar.sync();
-          if (Archify.readerLayout && typeof Archify.readerLayout.syncLegend === 'function') Archify.readerLayout.syncLegend();
+          if (ArchiMadeEasy.radar && ArchiMadeEasy.radar.isOpen()) ArchiMadeEasy.radar.sync();
+          if (ArchiMadeEasy.readerLayout && typeof ArchiMadeEasy.readerLayout.syncLegend === 'function') ArchiMadeEasy.readerLayout.syncLegend();
           if (!cameraSettled(rendered)) clipFrame = requestAnimationFrame(sample);
         }
         sample();
@@ -197,9 +197,9 @@
         outBtn.disabled = state.scale <= minimumZoom;
         inBtn.disabled = state.scale >= maximumZoom;
         container.classList.toggle('is-pannable', state.scale > 1);
-        if (Archify.radar && typeof Archify.radar.sync === 'function') Archify.radar.sync();
-        if (Archify.viewerChromeLayout && typeof Archify.viewerChromeLayout.schedule === 'function') {
-          Archify.viewerChromeLayout.schedule();
+        if (ArchiMadeEasy.radar && typeof ArchiMadeEasy.radar.sync === 'function') ArchiMadeEasy.radar.sync();
+        if (ArchiMadeEasy.viewerChromeLayout && typeof ArchiMadeEasy.viewerChromeLayout.schedule === 'function') {
+          ArchiMadeEasy.viewerChromeLayout.schedule();
         }
       }
       function sampleRenderedState() {
@@ -227,7 +227,7 @@
         container.classList.remove('is-camera-moving');
         container.classList.remove('is-camera-transaction');
         container.removeAttribute('data-camera-transaction');
-        if (Archify.focus && Archify.focus.reposition) Archify.focus.reposition();
+        if (ArchiMadeEasy.focus && ArchiMadeEasy.focus.reposition) ArchiMadeEasy.focus.reposition();
         transaction.resolve({ id: transaction.id, state: transaction.state });
         return true;
       }
@@ -282,8 +282,8 @@
         state.mode = 'manual';
         apply();
         renderControls();
-        if (Archify.routeProbe && Archify.routeProbe.isJourneyPlaying && Archify.routeProbe.isJourneyPlaying()) {
-          Archify.routeProbe.pauseJourney({ preserveElapsed: true, reason: reason || 'manual' });
+        if (ArchiMadeEasy.routeProbe && ArchiMadeEasy.routeProbe.isJourneyPlaying && ArchiMadeEasy.routeProbe.isJourneyPlaying()) {
+          ArchiMadeEasy.routeProbe.pauseJourney({ preserveElapsed: true, reason: reason || 'manual' });
         }
       }
       function zoom(next, options) {
@@ -362,7 +362,7 @@
         state.mode = 'manual';
         apply();
         scrollLongDiagramTo(contentY, metrics, options);
-        if (Archify.focus && Archify.focus.reposition) Archify.focus.reposition();
+        if (ArchiMadeEasy.focus && ArchiMadeEasy.focus.reposition) ArchiMadeEasy.focus.reposition();
         return true;
       }
       function semanticIds(ids, includeNeighbors) {
@@ -524,17 +524,17 @@
         return transaction;
       }
       function syncSemantic() {
-        var active = Archify.focus && typeof Archify.focus.active === 'function' ? Archify.focus.active() : null;
+        var active = ArchiMadeEasy.focus && typeof ArchiMadeEasy.focus.active === 'function' ? ArchiMadeEasy.focus.active() : null;
         if (typeof active === 'string') return reveal([active], { includeNeighbors: true, reason: 'focus-sync' });
         if (Array.isArray(active) && active.length) return reveal(active, { reason: 'selection-sync' });
         return false;
       }
       function pinControls() {
-        container.style.setProperty('--archify-scroll-x', container.scrollLeft + 'px');
+        container.style.setProperty('--archi-made-easy-scroll-x', container.scrollLeft + 'px');
       }
       function onScroll() {
         pinControls();
-        if (Archify.radar && typeof Archify.radar.sync === 'function') Archify.radar.sync();
+        if (ArchiMadeEasy.radar && typeof ArchiMadeEasy.radar.sync === 'function') ArchiMadeEasy.radar.sync();
         if (window.innerWidth <= 720 && container.hasAttribute('data-wide-diagram') && Date.now() > autoScrollUntil) {
           interruptCamera();
         }

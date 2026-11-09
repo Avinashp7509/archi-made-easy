@@ -3,7 +3,7 @@
 The maintainer-selected compact-row treatment is now integrated into the default
 desktop bottom Viewer index. The review variants below remain as the decision
 record; production styling lives in `viewer/viewer.css` and is regenerated into
-`archify/assets/template.html`.
+`archi-made-easy/assets/template.html`.
 
 `prototype.css` replaces bottom-index columns with full-width group sections
 and a wrapping grid of items. Existing group/node order, counts, text,
@@ -14,8 +14,8 @@ Run the matched comparison with an installed Chrome and an output directory
 outside the checkout:
 
 ```powershell
-$env:ARCHIFY_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
-node experiments/node-index-rows/compare.mjs C:\Temp\archify-node-index-review
+$env:ARCHI_MADE_EASY_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+node experiments/node-index-rows/compare.mjs C:\Temp\archi-made-easy-node-index-review
 ```
 
 The script saves HTML, PNG, and JSON observations for Sample Web App and a
@@ -27,7 +27,7 @@ against the column baseline. The production browser regression additionally
 uses native Tab and Enter input, native hover, and the bottom/side panel toggle:
 
 ```powershell
-$env:ARCHIFY_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+$env:ARCHI_MADE_EASY_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 npm run test:browser -- test/bottom-node-index-browser.test.mjs
 ```
 
@@ -57,7 +57,7 @@ Visually reviewed the unselected Sample Web App desktop comparison and the
 long-text narrow candidate. Group membership is clear; desktop whitespace is
 used better, and narrow labels wrap. Exact spacing remains open for review.
 
-Related issue: https://github.com/tt-a1i/archify/issues/664
+Related issue: https://github.com/OWNER/archi-made-easy/issues/664
 
 ## Maintainer-requested alternatives
 

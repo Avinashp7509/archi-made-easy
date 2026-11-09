@@ -2,7 +2,7 @@
 
 ## Product contract
 
-An Agent's long answer is tiring to read and its main point is hard to find. Explainer puts the conclusion first, explains the reasons with structure and useful diagrams, and leaves room for visual refinement. This is a reading surface. The implementation uses Archify's own author format, renderer and native diagram runtime.
+An Agent's long answer is tiring to read and its main point is hard to find. Explainer puts the conclusion first, explains the reasons with structure and useful diagrams, and leaves room for visual refinement. This is a reading surface. The implementation uses Archi-Made-Easy's own author format, renderer and native diagram runtime.
 
 ## Content model
 
@@ -18,7 +18,7 @@ An Agent's long answer is tiring to read and its main point is hard to find. Exp
 - Sources contain a title and optional safe URL or repository position (`path`, `lines`, `revision`). Sources are a numbered footer list. Code blocks load committed Git bytes from their source location.
 - Internal revisions support patch and delivery identity. They are not displayed.
 
-A restricted Markdown draft compiles to the same JSON model. The first paragraph after `# title` is the summary; an immediately following flat bullet list supplies reasons; `@answer scope="..."` supplies the applicability line. Detailed grammar and examples live in [the authoring guide](../../archify/references/explainer-authoring.md).
+A restricted Markdown draft compiles to the same JSON model. The first paragraph after `# title` is the summary; an immediately following flat bullet list supplies reasons; `@answer scope="..."` supplies the applicability line. Detailed grammar and examples live in [the authoring guide](../../archi-made-easy/references/explainer-authoring.md).
 
 ## Board layout
 
@@ -72,4 +72,4 @@ Build with `node docs/specs/explainer/prototypes/build.mjs /tmp/explainer-board`
 
 Required regression coverage: summary/reasons/scope parsing and bounds; first-panel placement; 12-column row sums and fixed spans; first-use citations and empty labels; qualifier exclusions; fast finalize receipts; unchanged native finalize; Git excerpt safety; data-chart reading and diagnostics; patch, packaged runtime, no-JavaScript, print and native target navigation; side-by-side steps and their wrap; walk-throughs, text-to-node links, follow-up questions, style menu and long-image export.
 
-Run `node --test test/explainer-*.test.mjs` and `npm test`; browser coverage runs with `ARCHIFY_EXPLAINER_BROWSER_TESTS=1 node --test test/explainer-browser.test.mjs`. Measure all three fast finalizations. Tests confirm behavior; visual tuning remains a separate task.
+Run `node --test test/explainer-*.test.mjs` and `npm test`; browser coverage runs with `ARCHI_MADE_EASY_EXPLAINER_BROWSER_TESTS=1 node --test test/explainer-browser.test.mjs`. Measure all three fast finalizations. Tests confirm behavior; visual tuning remains a separate task.

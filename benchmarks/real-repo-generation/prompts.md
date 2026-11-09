@@ -1,10 +1,10 @@
 # Composing a generation prompt
 
-For architecture/workflow, use the exact `task` text from the selected entry in [projects.json](projects.json), followed by one variant below. Save the fully composed prompt before launching either arm. Replace `<OUTPUT_DIR>` with the equivalent isolated output path and supply the chosen Archify `SKILL.md` path as environment context. Source paths and output roots may differ; all substantive task text stays identical. The recorder handles evidence collection outside the Agent task.
+For architecture/workflow, use the exact `task` text from the selected entry in [projects.json](projects.json), followed by one variant below. Save the fully composed prompt before launching either arm. Replace `<OUTPUT_DIR>` with the equivalent isolated output path and supply the chosen Archi-Made-Easy `SKILL.md` path as environment context. Source paths and output roots may differ; all substantive task text stays identical. The recorder handles evidence collection outside the Agent task.
 
 ## Architecture
 
-Create an architecture diagram of that implementation. Show the main components, their responsibilities, communication paths and important boundaries at a useful overview level. Ground the relationships in source code and keep relevant source references. Use readable labels and a clear layout for a laptop screen. Deliver the diagram and its source JSON in <OUTPUT_DIR> using Archify's normal workflow. Keep application source unchanged. If something cannot be established from the code, explain the uncertainty rather than inventing it.
+Create an architecture diagram of that implementation. Show the main components, their responsibilities, communication paths and important boundaries at a useful overview level. Ground the relationships in source code and keep relevant source references. Use readable labels and a clear layout for a laptop screen. Deliver the diagram and its source JSON in <OUTPUT_DIR> using Archi-Made-Easy's normal workflow. Keep application source unchanged. If something cannot be established from the code, explain the uncertainty rather than inventing it.
 
 ## Workflow
 
@@ -12,7 +12,7 @@ Create a workflow diagram for this scenario:
 
 <workflow_scenario from the same project entry>
 
-Show the actual steps, decisions, branches and failure/recovery paths needed to understand the scenario. Ground them in source code and keep relevant source references. Use readable labels and a clear layout for a laptop screen. Deliver the diagram and its source JSON in <OUTPUT_DIR> using Archify's normal workflow. Keep application source unchanged. If something cannot be established from the code, explain the uncertainty rather than inventing it.
+Show the actual steps, decisions, branches and failure/recovery paths needed to understand the scenario. Ground them in source code and keep relevant source references. Use readable labels and a clear layout for a laptop screen. Deliver the diagram and its source JSON in <OUTPUT_DIR> using Archi-Made-Easy's normal workflow. Keep application source unchanged. If something cannot be established from the code, explain the uncertainty rather than inventing it.
 
 ## Other diagram types
 

@@ -7,9 +7,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
-const cli = path.join(skillRoot, 'bin/archify.mjs');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-legend-contract-'));
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
+const cli = path.join(skillRoot, 'bin/archi-made-easy.mjs');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-legend-contract-'));
 let sequence = 0;
 
 const FIXTURES = {
@@ -412,7 +412,7 @@ test('measured legend rows share baselines and stay within the viewBox for local
 process.on('exit', () => fs.rmSync(tmp, { recursive: true, force: true }));
 
 test('legend entries reserve the width of their rendered label font', async () => {
-  const { renderLegend } = await import('../archify/renderers/shared/legend.mjs');
+  const { renderLegend } = await import('../archi-made-easy/renderers/shared/legend.mjs');
   const label = 'post-start-input-writer';
   const svg = renderLegend({
     entries: [{ kind: 'a', label }, { kind: 'b', label: 'next' }],

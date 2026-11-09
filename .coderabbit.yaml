@@ -43,21 +43,21 @@ reviews:
   # Filters also affect sparse checkout: keep runtime resources and authored inputs.
   # New outputs remain reviewable until their generation/freshness proof is checked.
   path_filters:
-    - "!archify/examples/class-payment-processors-rendered.html"
-    - "!archify/examples/class-payments-rendered.html"
-    - "!archify/examples/dataflow-product-analytics.html"
-    - "!archify/examples/erd-orders-rendered.html"
-    - "!archify/examples/lifecycle-agent-run.html"
-    - "!archify/examples/sequence-cache-miss-request.html"
-    - "!archify/examples/subscription-billing-rendered.html"
-    - "!archify/examples/timeline-archify-dev-activity-rendered.html"
-    - "!archify/examples/timeline-payment-incident-rendered.html"
-    - "!archify/examples/tree-archify-repository-rendered.html"
-    - "!archify/examples/tree-payment-platform-rendered.html"
-    - "!archify/examples/waterfall-checkout-request-rendered.html"
-    - "!archify/examples/waterfall-example-rebuild-rendered.html"
-    - "!archify/examples/web-app-rendered.html"
-    - "!archify/examples/workflow-agent-tool-call-rendered.html"
+    - "!archi-made-easy/examples/class-payment-processors-rendered.html"
+    - "!archi-made-easy/examples/class-payments-rendered.html"
+    - "!archi-made-easy/examples/dataflow-product-analytics.html"
+    - "!archi-made-easy/examples/erd-orders-rendered.html"
+    - "!archi-made-easy/examples/lifecycle-agent-run.html"
+    - "!archi-made-easy/examples/sequence-cache-miss-request.html"
+    - "!archi-made-easy/examples/subscription-billing-rendered.html"
+    - "!archi-made-easy/examples/timeline-project-dev-activity-rendered.html"
+    - "!archi-made-easy/examples/timeline-payment-incident-rendered.html"
+    - "!archi-made-easy/examples/tree-project-repository-rendered.html"
+    - "!archi-made-easy/examples/tree-payment-platform-rendered.html"
+    - "!archi-made-easy/examples/waterfall-checkout-request-rendered.html"
+    - "!archi-made-easy/examples/waterfall-example-rebuild-rendered.html"
+    - "!archi-made-easy/examples/web-app-rendered.html"
+    - "!archi-made-easy/examples/workflow-agent-tool-call-rendered.html"
     - "!examples/class-payment-processors-rendered.html"
     - "!examples/class-payments-rendered.html"
     - "!examples/dataflow-product-analytics.html"
@@ -65,9 +65,9 @@ reviews:
     - "!examples/lifecycle-agent-run.html"
     - "!examples/sequence-cache-miss-request.html"
     - "!examples/subscription-billing-rendered.html"
-    - "!examples/timeline-archify-dev-activity-rendered.html"
+    - "!examples/timeline-project-dev-activity-rendered.html"
     - "!examples/timeline-payment-incident-rendered.html"
-    - "!examples/tree-archify-repository-rendered.html"
+    - "!examples/tree-project-repository-rendered.html"
     - "!examples/tree-payment-platform-rendered.html"
     - "!examples/waterfall-checkout-request-rendered.html"
     - "!examples/waterfall-example-rebuild-rendered.html"
@@ -76,7 +76,7 @@ reviews:
   path_instructions:
     - path: "**"
       instructions: >-
-        Use .agents/skills/archify-review/SKILL.md for value, cost, and impact
+        Use .agents/skills/archi-made-easy-review/SKILL.md for value, cost, and impact
         judgments, and consult its linked repository guidance as needed. For changed
         tests or testing decisions, use .agents/skills/test-value/SKILL.md in scoped
         review mode and read its references when relevant. Identify the concrete
@@ -100,7 +100,7 @@ reviews:
         on new changes and unresolved findings, reusing unaffected evidence with
         its original revision. Reuse maintainer scope decisions and consolidate
         requests already answered rather than repeating them inline.
-    - path: "archify/**"
+    - path: "archi-made-easy/**"
       instructions: >-
         Trace callers of changed shared code across diagram types and public
         modes. Preserve schema-v1 behavior, explicit authored geometry, standard
@@ -182,12 +182,12 @@ knowledge_base:
   code_guidelines:
     enabled: true
     filePatterns:
-      - .agents/skills/archify-review/SKILL.md
+      - .agents/skills/archi-made-easy-review/SKILL.md
       - .agents/skills/test-value/SKILL.md
       - CONTRIBUTING.md
       - REVIEWING.md
       - .github/PULL_REQUEST_TEMPLATE.md
-      - archify/references/delivery-contract.md
+      - archi-made-easy/references/delivery-contract.md
   learnings:
     scope: local
   issues:

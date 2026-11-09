@@ -18,22 +18,22 @@ function read(relativePath) {
 test('Hermes adapter lives only under integrations/hermes-agent', () => {
   assert.equal(fs.existsSync(path.join(integrationRoot, 'plugin.yaml')), true);
   assert.equal(fs.existsSync(path.join(integrationRoot, '__init__.py')), true);
-  assert.equal(fs.existsSync(path.join(repoRoot, 'archify', 'SKILL.md')), true);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'archi-made-easy', 'SKILL.md')), true);
   assert.equal(fs.existsSync(path.join(integrationRoot, 'skills')), false);
 });
 
 test('plugin is skill-only and does not declare native tools', () => {
   const manifest = read('plugin.yaml');
-  assert.match(manifest, /^name: archify$/m);
+  assert.match(manifest, /^name: archiMadeEasy$/m);
   assert.match(manifest, /^kind: standalone$/m);
   assert.doesNotMatch(manifest, /provides_tools/);
   assert.doesNotMatch(manifest, /provides_hooks/);
 
   const init = read('__init__.py');
-  assert.match(init, /register_skill\("archify"/);
+  assert.match(init, /register_skill\("archi-made-easy"/);
   assert.doesNotMatch(init, /register_tool\(/);
-  assert.match(init, /node bin\/archify\.mjs/);
-  assert.match(init, /ARCHIFY_SKILL_ROOT/);
+  assert.match(init, /node bin\/archi-made-easy\.mjs/);
+  assert.match(init, /ARCHI_MADE_EASY_SKILL_ROOT/);
   assert.match(init, /HERMES_HOME/);
 });
 
@@ -43,25 +43,25 @@ import importlib.util
 import re
 from pathlib import Path
 plugin = Path(${JSON.stringify(path.join(integrationRoot, '__init__.py'))})
-spec = importlib.util.spec_from_file_location('archify_hermes_plugin', plugin)
+spec = importlib.util.spec_from_file_location('archi_made_easy_hermes_plugin', plugin)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 resolved = mod.resolve_skill_md()
 print(resolved)
 assert resolved.name == 'SKILL.md'
-assert resolved.parent.name == 'archify'
+assert resolved.parent.name == 'archi-made-easy'
 from types import SimpleNamespace
 calls = []
 mod.register(SimpleNamespace(register_skill=lambda *args, **kw: calls.append((args, kw))))
 assert len(calls) == 1
-assert calls[0][0] == ('archify', resolved)
+assert calls[0][0] == ('archi-made-easy', resolved)
 description = calls[0][1]['description']
 for mode in ('architecture', 'workflow', 'sequence', 'data-flow', 'lifecycle',
              'ERD', 'class', 'tree', 'timeline', 'waterfall'):
     assert re.search(r'\\b' + re.escape(mode) + r'\\b', description, re.IGNORECASE), mode
 `], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  assert.equal(path.resolve(result.stdout.trim()), path.join(repoRoot, 'archify', 'SKILL.md'));
+  assert.equal(path.resolve(result.stdout.trim()), path.join(repoRoot, 'archi-made-easy', 'SKILL.md'));
 });
 
 test('docs stay community opt-in, cover Windows, and refuse a Python rewrite', () => {
@@ -70,9 +70,9 @@ test('docs stay community opt-in, cover Windows, and refuse a Python rewrite', (
   assert.match(docs, /Skill-only/);
   assert.match(docs, /Node\.js 18\+/);
   assert.match(docs, /no Python port/i);
-  assert.match(docs, /hermes skills install skills-sh\/tt-a1i\/archify\/archify -y/);
-  assert.match(docs, /~\/\.hermes\/skills\/archify/);
-  assert.match(docs, /skill_view\("archify:archify"\)/);
+  assert.match(docs, /hermes skills install skills-sh\/OWNER\/archi-made-easy\/archi-made-easy -y/);
+  assert.match(docs, /~\/\.hermes\/skills\/archi-made-easy/);
+  assert.match(docs, /skill_view\("archi-made-easy:archi-made-easy"\)/);
   assert.match(docs, /New-Item -ItemType SymbolicLink/);
   assert.match(docs, /USERPROFILE/);
   assert.match(docs, /not an agent-switcher target/i);
@@ -87,20 +87,20 @@ test('README install tables mention Hermes without adding a switcher agent', () 
   assert.match(chinese, /\| \*\*Hermes Agent\*\* \|/);
   assert.match(japanese, /\| \*\*Hermes Agent\*\* \|/);
   assert.match(english, /integrations\/hermes-agent\/README\.md/);
-  assert.match(english, /hermes skills install skills-sh\/tt-a1i\/archify\/archify -y/);
-  const skill = fs.readFileSync(path.join(repoRoot, 'archify', 'SKILL.md'), 'utf8');
-  assert.match(skill, /^name: archify$/m);
+  assert.match(english, /hermes skills install skills-sh\/OWNER\/archi-made-easy\/archi-made-easy -y/);
+  const skill = fs.readFileSync(path.join(repoRoot, 'archi-made-easy', 'SKILL.md'), 'utf8');
+  assert.match(skill, /^name: archiMadeEasy$/m);
   assert.doesNotMatch(start, /data-agent="hermes"/);
 });
 
-test('Archify core does not import or branch on Hermes Agent', () => {
+test('Archi-Made-Easy core does not import or branch on Hermes Agent', () => {
   const grep = spawnSync('git', [
     'grep',
     '-n',
     '-E',
-    'hermes-agent|HERMES_HOME|ARCHIFY_SKILL_ROOT',
+    'hermes-agent|HERMES_HOME|ARCHI_MADE_EASY_SKILL_ROOT',
     '--',
-    'archify',
+    'archi-made-easy',
     'scripts/build-zip.sh',
     'scripts/package-smoke.mjs',
   ], { cwd: repoRoot, encoding: 'utf8' });
@@ -119,8 +119,8 @@ with tempfile.TemporaryDirectory() as tmp:
     plugin.parent.mkdir()
     shutil.copyfile(${JSON.stringify(path.join(integrationRoot, '__init__.py'))}, plugin)
     os.environ['HERMES_HOME'] = str(root / 'home')
-    os.environ.pop('ARCHIFY_SKILL_ROOT', None)
-    spec = importlib.util.spec_from_file_location('isolated_archify', plugin)
+    os.environ.pop('ARCHI_MADE_EASY_SKILL_ROOT', None)
+    spec = importlib.util.spec_from_file_location('isolated_archi_made_easy', plugin)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     try:
@@ -128,14 +128,14 @@ with tempfile.TemporaryDirectory() as tmp:
         raise AssertionError('missing Skill must fail')
     except FileNotFoundError:
         pass
-    home_skill = root / 'home' / 'skills' / 'archify' / 'SKILL.md'
+    home_skill = root / 'home' / 'skills' / 'archi-made-easy' / 'SKILL.md'
     home_skill.parent.mkdir(parents=True)
     home_skill.write_text('home skill')
     assert mod.resolve_skill_md() == home_skill
     explicit = root / 'explicit'
     explicit.mkdir()
     (explicit / 'SKILL.md').write_text('configured skill')
-    os.environ['ARCHIFY_SKILL_ROOT'] = str(explicit)
+    os.environ['ARCHI_MADE_EASY_SKILL_ROOT'] = str(explicit)
     assert mod.resolve_skill_md() == explicit / 'SKILL.md'
 `], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr || result.stdout);

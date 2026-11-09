@@ -1,4 +1,4 @@
-// Golden-file harness for the archify renderers. No test framework needed:
+// Golden-file harness for the archi-made-easy renderers. No test framework needed:
 // renderers are deterministic, so fresh renders must match both checked-in
 // development and packaged example HTML aside from platform checkout line endings. Also covers schema enforcement (negative cases),
 // template freshness of the architecture-mode example, and version sync.
@@ -12,9 +12,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-test-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-test-'));
 
 let failures = 0;
 
@@ -82,11 +82,11 @@ const GOLDEN = [
   ['erd', 'orders.erd.json', 'erd-orders-rendered.html'],
   ['erd', 'subscription-billing.erd.json', 'subscription-billing-rendered.html'],
   ['tree', 'payment-platform.tree.json', 'tree-payment-platform-rendered.html'],
-  ['tree', 'archify-repository.tree.json', 'tree-archify-repository-rendered.html'],
+  ['tree', 'project-repository.tree.json', 'tree-project-repository-rendered.html'],
   ['class', 'payments.class.json', 'class-payments-rendered.html'],
   ['class', 'payment-processors.class.json', 'class-payment-processors-rendered.html'],
   ['timeline', 'payment-incident.timeline.json', 'timeline-payment-incident-rendered.html'],
-  ['timeline', 'archify-dev-activity.timeline.json', 'timeline-archify-dev-activity-rendered.html'],
+  ['timeline', 'project-dev-activity.timeline.json', 'timeline-project-dev-activity-rendered.html'],
   ['waterfall', 'checkout-request.waterfall.json', 'waterfall-checkout-request-rendered.html'],
   ['waterfall', 'example-rebuild.waterfall.json', 'waterfall-example-rebuild-rendered.html'],
 ];
@@ -101,7 +101,7 @@ for (const [mode, input, golden] of GOLDEN) {
     check(`${mode}: ${golden}`, normalizeNewlines(fresh) === normalizeNewlines(checked),
       `fresh render differs from examples/${golden}; if the change is intentional, re-render the examples and commit them`);
     check(`${mode}: packaged ${golden}`, normalizeNewlines(fresh) === normalizeNewlines(packaged),
-      `fresh render differs from archify/examples/${golden}; re-render the packaged examples and rebuild archify.zip`);
+      `fresh render differs from archi-made-easy/examples/${golden}; re-render the packaged examples and rebuild archi-made-easy.zip`);
   } catch (err) {
     check(`${mode}: ${golden}`, false, String(err.stderr || err.message).slice(0, 300));
   }
@@ -232,7 +232,7 @@ console.log('version sync');
 
 const pkg = JSON.parse(fs.readFileSync(path.join(skillRoot, 'package.json'), 'utf8'));
 check('template generator meta matches package.json version',
-  template.includes(`<meta name="generator" content="archify ${pkg.version}">`),
+  template.includes(`<meta name="generator" content="archi-made-easy ${pkg.version}">`),
   `package.json says ${pkg.version}`);
 
 const lock = JSON.parse(fs.readFileSync(path.join(skillRoot, 'package-lock.json'), 'utf8'));
@@ -247,7 +247,10 @@ check('SKILL.md metadata version matches package.json major.minor',
   !!packageMajorMinor && skillVersion === packageMajorMinor,
   `SKILL.md says ${skillVersion}, package.json says ${pkg.version}`);
 
-for (const readmeName of ['README.md', 'README_EN.md', 'README_ZH.md', 'README_JA.md']) {
+// Translated READMEs are optional until they are re-translated from the product README;
+// any that exist must carry the same version badge.
+for (const readmeName of ['README.md', 'README_EN.md', 'README_ZH.md', 'README_JA.md']
+  .filter((name, index) => index < 2 || fs.existsSync(path.join(repoRoot, name)))) {
   const readme = fs.readFileSync(path.join(repoRoot, readmeName), 'utf8');
   const badgeVersions = shieldsBadgeMessages(readme, 'version');
   check(`${readmeName} badge matches package.json version`,

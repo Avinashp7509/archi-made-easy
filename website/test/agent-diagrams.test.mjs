@@ -5,7 +5,7 @@ import { stripPublishedArtifactMetadata } from '../scripts/publish-seo.mjs';
 import { parse } from 'parse5';
 import { parseSitemap } from '../scripts/indexnow.mjs';
 
-const cloudflare = process.env.ARCHIFY_SITE_TARGET === 'cloudflare';
+const cloudflare = process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare';
 const output = new URL(cloudflare ? '../dist-cloudflare/' : '../dist/', import.meta.url);
 const nodes = node => [node, ...(node.childNodes || []).flatMap(nodes)];
 const attr = (node, name) => node.attrs?.find(item => item.name === name)?.value;
@@ -15,7 +15,7 @@ test('agent guide is readable without JavaScript, honest about examples, and lin
   for (const lang of ['en', 'zh']) {
     const prefix = lang === 'zh' ? 'zh/' : '';
     const all = nodes(parse(fs.readFileSync(new URL(`${prefix}agent-diagrams.html`, output), 'utf8')));
-    const documentUrl = new URL(`${prefix}agent-diagrams${cloudflare ? '' : '.html'}`, cloudflare ? 'https://archify.si/' : 'https://tt-a1i.github.io/archify/');
+    const documentUrl = new URL(`${prefix}agent-diagrams${cloudflare ? '' : '.html'}`, cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/');
     const baseUri = new URL(attr(all.find(node => node.tagName === 'base'), 'href'), documentUrl);
     const article = all.find(node => node.tagName === 'article');
     assert.ok(article);
@@ -27,7 +27,7 @@ test('agent guide is readable without JavaScript, honest about examples, and lin
     for (const name of ['Claude Code', 'Codex', 'Cursor', 'OpenCode', 'GitHub Copilot']) assert.ok(visible.includes(name));
     const schema = JSON.parse(text(all.find(node => node.tagName === 'script' && attr(node, 'type') === 'application/ld+json')));
     const structuredArticle = schema['@graph'].find(item => item['@type'] === 'TechArticle');
-    assert.equal(structuredArticle.url, `https://archify.si/${prefix}agent-diagrams`);
+    assert.equal(structuredArticle.url, `https://OWNER.github.io/archi-made-easy/${prefix}agent-diagrams`);
     assert.equal(structuredArticle.inLanguage, lang === 'zh' ? 'zh-Hans' : 'en');
     const ids = new Set(all.map(node => attr(node, 'id')).filter(Boolean));
     for (const id of ['responsibilities', 'setup', 'description-workflow', 'mermaid-input', 'cache-scenarios', 'repository-evidence', 'review-and-share', 'questions']) assert.ok(ids.has(id), `${lang}: stable cross-language section ${id}`);
@@ -53,7 +53,7 @@ test('agent guide is readable without JavaScript, honest about examples, and lin
     assert.ok(discovery, `${lang}: homepage discovery is present without JavaScript`);
     const homeLink = nodes(discovery).find(node => node.tagName === 'a');
     assert.equal(text(homeLink), lang === 'en' ? 'Learn to create and check diagrams with your agent →' : '学习用 Agent 画图并检查结果 →');
-    const homeUrl = new URL(homeFile, documentUrl.origin + (cloudflare ? '/' : '/archify/'));
+    const homeUrl = new URL(homeFile, documentUrl.origin + (cloudflare ? '/' : '/archi-made-easy/'));
     const homeBase = new URL(attr(homeNodes.find(node => node.tagName === 'base'), 'href'), homeUrl);
     assert.equal(new URL(attr(homeLink, 'href'), homeBase).href, documentUrl.href);
     for (const entry of ['start', 'guide']) {
@@ -67,15 +67,15 @@ test('agent guide is readable without JavaScript, honest about examples, and lin
 
 test('both agent guide routes are included in the actual sitemap and allowed IndexNow inventory', () => {
   const urls = parseSitemap(fs.readFileSync(new URL('sitemap.xml', output), 'utf8'));
-  for (const url of ['https://archify.si/agent-diagrams', 'https://archify.si/zh/agent-diagrams']) assert.ok(urls.includes(url));
+  for (const url of ['https://OWNER.github.io/archi-made-easy/agent-diagrams', 'https://OWNER.github.io/archi-made-easy/zh/agent-diagrams']) assert.ok(urls.includes(url));
 });
 
 test('README entry points link directly to the matching language guide', () => {
   for (const name of ['README.md', 'README_EN.md', 'README_ZH.md']) {
     const source = fs.readFileSync(new URL(`../../${name}`, import.meta.url), 'utf8');
     const link = name === 'README_ZH.md'
-      ? '[用 Agent 画图并检查结果](https://archify.si/zh/agent-diagrams)'
-      : '[Create and check diagrams with your agent](https://archify.si/agent-diagrams)';
+      ? '[用 Agent 画图并检查结果](https://OWNER.github.io/archi-made-easy/zh/agent-diagrams)'
+      : '[Create and check diagrams with your agent](https://OWNER.github.io/archi-made-easy/agent-diagrams)';
     assert.ok(source.includes(link), `${name}: descriptive guide discovery`);
     assert.ok(source.indexOf(link) < source.indexOf('<a id="sponsors">'), `${name}: link stays with quick start`);
   }
@@ -84,7 +84,7 @@ test('README entry points link directly to the matching language guide', () => {
 
 
 test('description workflow exposes pinned evidence, honest limits and localized setup without changing the artifact', () => {
-  const origin = cloudflare ? 'https://archify.si/' : 'https://tt-a1i.github.io/archify/';
+  const origin = cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/';
   for (const lang of ['en', 'zh']) {
     const prefix = lang === 'zh' ? 'zh/' : '';
     const all = nodes(parse(fs.readFileSync(new URL(`${prefix}agent-diagrams.html`, output), 'utf8')));
@@ -103,7 +103,7 @@ test('description workflow exposes pinned evidence, honest limits and localized 
     assert.match(visible, lang === 'en' ? /not a real-world guarantee/ : /不是现实保证/);
     const links = section.filter(node => node.tagName === 'a').map(node => new URL(attr(node, 'href'), base));
     assert.ok(links.some(url => url.href === origin + 'cases/life/leave-plan.workflow.html'));
-    assert.ok(links.some(url => url.href === 'https://github.com/tt-a1i/archify/blob/68031cf978e0b906aa56c684a394049a3ea9d583/docs/cases/life/leave-plan.workflow.json'));
+    assert.ok(links.some(url => url.href === 'https://github.com/OWNER/archi-made-easy/blob/68031cf978e0b906aa56c684a394049a3ea9d583/docs/cases/life/leave-plan.workflow.json'));
     const quickstart = links.find(url => url.searchParams.get('type') === 'workflow');
     assert.equal(quickstart.href, origin + `${prefix}start${cloudflare ? '' : '.html'}?type=workflow&input=description`);
   }
@@ -116,7 +116,7 @@ test('description workflow exposes pinned evidence, honest limits and localized 
 });
 
 test('Mermaid guidance preserves the literal example, explains semantic reauthoring and is linked from localized Start pages', () => {
-  const origin = cloudflare ? 'https://archify.si/' : 'https://tt-a1i.github.io/archify/';
+  const origin = cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/';
   for (const lang of ['en', 'zh']) {
     const prefix = lang === 'zh' ? 'zh/' : '';
     const all = nodes(parse(fs.readFileSync(new URL(`${prefix}agent-diagrams.html`, output), 'utf8')));
@@ -142,7 +142,7 @@ test('Mermaid guidance preserves the literal example, explains semantic reauthor
       { from: 'B', to: 'D', label: 'Changes needed' },
       { from: 'D', to: 'B', label: '' },
     ]);
-    assert.match(visible, lang === 'en' ? /authors fresh Archify JSON/ : /编写新的 Archify JSON/);
+    assert.match(visible, lang === 'en' ? /authors fresh Archi-Made-Easy JSON/ : /编写新的 Archi-Made-Easy JSON/);
     assert.match(visible, lang === 'en' ? /not a Mermaid parser.*lossless round-trip converter/ : /不是 Mermaid 解析器.*不承诺无损往返转换/);
     assert.match(visible, lang === 'en' ? /not a recorded conversion or a checked output/ : /不是一次实测转换，也不是已经校验过的成品/);
     const prompt = text(section.find(node => node.tagName === 'blockquote'));
@@ -150,7 +150,7 @@ test('Mermaid guidance preserves the literal example, explains semantic reauthor
     assert.match(prompt, lang === 'en' ? /explain the limitation before simplifying/ : /先说明限制，再讨论简化方式/);
     assert.equal(section.filter(node => node.tagName === 'li').length, 4, 'the semantic review checklist is readable without JavaScript');
     const links = section.filter(node => node.tagName === 'a').map(node => new URL(attr(node, 'href'), base).href);
-    assert.ok(links.includes('https://github.com/tt-a1i/archify/blob/88d1ae4498b6a1df610badf690c5406882622d15/archify/SKILL.md#mermaid-input'));
+    assert.ok(links.includes('https://github.com/OWNER/archi-made-easy/blob/88d1ae4498b6a1df610badf690c5406882622d15/archi-made-easy/SKILL.md#mermaid-input'));
     assert.ok(links.includes('https://mermaid.ai/open-source/config/usage.html'));
     assert.ok(nodes(article).some(node => node.tagName === 'a' && new URL(attr(node, 'href'), base).hash === '#mermaid-input'), 'the FAQ points to the full explanation');
 
@@ -166,7 +166,7 @@ test('Mermaid guidance preserves the literal example, explains semantic reauthor
 
 
 test('setup answers are readable without scripts and distinguish prerequisites from optional source code', () => {
-  const origin = cloudflare ? 'https://archify.si/' : 'https://tt-a1i.github.io/archify/';
+  const origin = cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/';
   for (const lang of ['en', 'zh']) {
     const prefix = lang === 'zh' ? 'zh/' : '';
     const page = nodes(parse(fs.readFileSync(new URL(`${prefix}agent-diagrams.html`, output), 'utf8')));
@@ -179,7 +179,7 @@ test('setup answers are readable without scripts and distinguish prerequisites f
     const base = new URL(attr(page.find(node => node.tagName === 'base'), 'href'), origin + `${prefix}agent-diagrams.html`);
     for (const [agent, directory] of [['claude-code', '.claude'], ['codex', '.agents']]) {
       assert.equal(page.filter(node => attr(node, 'id') === `setup-${agent}`).length, 1);
-      const command = `npx -y skills add tt-a1i/archify --skill archify --agent ${agent} --global --copy --yes`;
+      const command = `npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent ${agent} --global --copy --yes`;
       assert.ok(nodes(article).some(node => node.tagName === 'pre' && text(node).trim() === command), `${agent}: exact existing Start command is visible in SSR`);
       for (const location of [`~/${directory}/skills/`, `${directory}/skills/`]) assert.ok(visible.includes(location));
       const link = nodes(article).find(node => node.tagName === 'a' && attr(node, 'href')?.includes(`agent=${agent}#install`));

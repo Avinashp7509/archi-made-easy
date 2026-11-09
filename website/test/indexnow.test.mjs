@@ -26,7 +26,7 @@ test('public key is a root verification file and default mode only reads the dep
   assert.equal(result.status, 'dry-run');
   assert.equal(service.calls.length, 1);
   assert.equal(service.calls[0].url, sitemapLocation);
-  assert.deepEqual(result.payload, { host: 'archify.si', key, keyLocation, urlList: urls });
+  assert.deepEqual(result.payload, { host: 'OWNER.github.io/archi-made-easy', key, keyLocation, urlList: urls });
 });
 
 for (const status of [200, 202]) test(`HTTP ${status} confirms receipt without claiming indexing`, async () => {
@@ -57,7 +57,7 @@ test('public preflight requires HTTP 200 and matching deployed key before POST',
 test('sitemap XML parser rejects foreign, query, source, duplicate, incomplete and malformed inventories', () => {
   assert.deepEqual(parseSitemap(xml), urls);
   assert.equal(urls.length, 31);
-  for (const sitemap of [xml.replace('https://archify.si/', 'http://archify.si/'), xml.replace('https://archify.si/', 'https://other.example/'), xml.replace(urls[0], `${urls[0]}?preview=1`), xml.replace(urls[0], `${canonicalOrigin}/gallery/manifest.json`), xml.replace(urls[0], urls[1]), xml.replace(/<url>[\s\S]*?<\/url>/, ''), xml.replace('<loc>', '<wrong>'), '<!DOCTYPE foo>' + xml]) {
+  for (const sitemap of [xml.replace('https://OWNER.github.io/archi-made-easy/', 'http://OWNER.github.io/archi-made-easy/'), xml.replace('https://OWNER.github.io/archi-made-easy/', 'https://other.example/'), xml.replace(urls[0], `${urls[0]}?preview=1`), xml.replace(urls[0], `${canonicalOrigin}/gallery/manifest.json`), xml.replace(urls[0], urls[1]), xml.replace(/<url>[\s\S]*?<\/url>/, ''), xml.replace('<loc>', '<wrong>'), '<!DOCTYPE foo>' + xml]) {
     assert.throws(() => parseSitemap(sitemap));
   }
   for (const entry of PUBLISHED_CASES) {

@@ -6,8 +6,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const skillRoot = fileURLToPath(new URL('../archify/', import.meta.url));
-const cli = path.join(skillRoot, 'bin/archify.mjs');
+const skillRoot = fileURLToPath(new URL('../archi-made-easy/', import.meta.url));
+const cli = path.join(skillRoot, 'bin/archi-made-easy.mjs');
 
 function fixture(translations, locale = 'zh-CN') {
   return {
@@ -25,7 +25,7 @@ function fixture(translations, locale = 'zh-CN') {
 }
 
 function workspace(t) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-erd-i18n-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-erd-i18n-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   return directory;
 }
@@ -37,7 +37,7 @@ function run(directory, document, command = 'render') {
   if (command !== 'render') args.push('--json');
   return spawnSync(process.execPath, args, {
     cwd: directory, encoding: 'utf8',
-    env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+    env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
   });
 }
 
@@ -46,7 +46,7 @@ function html(directory) {
 }
 
 function messages(artifact) {
-  const match = artifact.match(/<script id="archify-i18n-data" type="application\/json">([\s\S]*?)<\/script>/);
+  const match = artifact.match(/<script id="archi-made-easy-i18n-data" type="application\/json">([\s\S]*?)<\/script>/);
   assert.ok(match, 'the standalone artifact embeds its Viewer messages');
   return JSON.parse(match[1]);
 }

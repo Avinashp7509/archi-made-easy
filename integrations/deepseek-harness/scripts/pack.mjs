@@ -15,13 +15,13 @@ function argValue(flag) {
 
 const json = process.argv.includes('--json');
 const out = argValue('--out');
-const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-dsh-pack-'));
-const snapshot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-dsh-source-'));
+const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-dsh-pack-'));
+const snapshot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-dsh-source-'));
 
 try {
   stageAdapter(stage);
   releaseSnapshot(snapshot);
-  stageCleanSkill({ repoRoot: snapshot, destination: path.join(stage, 'skills', 'archify') });
+  stageCleanSkill({ repoRoot: snapshot, destination: path.join(stage, 'skills', 'archi-made-easy') });
 
 
   const packed = spawnCliSync('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', stage], {
@@ -49,7 +49,7 @@ try {
     } else if (parsed?.name) {
       packMeta = parsed;
     } else {
-      packMeta = Object.values(parsed || {}).find((entry) => entry?.name === '@tt-a1i/archify-dsh') || {};
+      packMeta = Object.values(parsed || {}).find((entry) => entry?.name === '@OWNER/archi-made-easy-dsh') || {};
     }
   } catch {
     packMeta = {};
@@ -59,14 +59,14 @@ try {
   }
   const files = packMeta.files.map((file) => ({ path: file.path }));
   const packagedPaths = new Set(files.map(({ path: filePath }) => filePath.replace(/^package\//, '')));
-  for (const required of ['package.json', 'release.json', 'cordis.patch.yml', 'README.md', 'CHANGELOG.md', 'LICENSE', 'lib/index.js', 'skills/archify/SKILL.md']) {
+  for (const required of ['package.json', 'release.json', 'cordis.patch.yml', 'README.md', 'CHANGELOG.md', 'LICENSE', 'lib/index.js', 'skills/archi-made-easy/SKILL.md']) {
     if (!packagedPaths.has(required)) throw new Error(`DSH tarball is missing required file: ${required}`);
   }
   const destination = path.resolve(out || path.join(process.cwd(), produced));
   fs.mkdirSync(path.dirname(destination), { recursive: true });
   fs.copyFileSync(path.join(stage, produced), destination);
   const result = {
-    name: packMeta.name || '@tt-a1i/archify-dsh',
+    name: packMeta.name || '@OWNER/archi-made-easy-dsh',
     version: packMeta.version || manifest.version,
     adapterCommit,
     sourceCommit: release.sourceCommit,

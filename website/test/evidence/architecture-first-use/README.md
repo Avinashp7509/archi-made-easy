@@ -18,10 +18,10 @@ The homepage navigation's Install Skill anchor resolved to `#quickstart`, althou
 
 - `npm --prefix website run check`: 0 errors, 0 warnings, one existing clipboard deprecation hint.
 - Default build: 14 pages. `npm --prefix website test`: 79 passed, 7 browser tests skipped by their opt-in conditions, 0 failed.
-- Cloudflare build: 14 pages. `ARCHIFY_SITE_TARGET=cloudflare node --test website/test/mco-source-case.test.mjs website/test/seo-content.test.mjs website/test/deployment-target.test.mjs`: 18 passed.
+- Cloudflare build: 14 pages. `ARCHI_MADE_EASY_SITE_TARGET=cloudflare node --test website/test/mco-source-case.test.mjs website/test/seo-content.test.mjs website/test/deployment-target.test.mjs`: 18 passed.
 - Existing homepage and MCO real Chrome browser suites: 2 passed, 0 skipped on each host build. Covers English/Chinese, light/dark, widths 1440/390/320, text bounds, section navigation, language continuity, gallery links and artifact load.
-- Replay command ran successfully using this Archify base and the existing local MCO checkout containing `9f1a1cf1afdc04d7b5406782b40dfec76d9bc798`, passed as `--repo-root`. It produced `/tmp/archify-mco-replay.html`. The initial probe without `--repo-root` failed as designed; the documented commands now include cloning and pinning that repository. The full network clone commands were not repeated for the replay.
-- Ego keyboard checks: focus homepage Install Skill and Enter → `/archify/start.html#install`; focus Chinese homepage MCO link and Enter → `/archify/zh/cases/mco-runtime.html`; case repository-mode action and Enter → Start preserving `type=architecture&input=repository#install`. No installation was executed.
+- Replay command ran successfully using this Archi-Made-Easy base and the existing local MCO checkout containing `9f1a1cf1afdc04d7b5406782b40dfec76d9bc798`, passed as `--repo-root`. It produced `/tmp/archi-made-easy-mco-replay.html`. The initial probe without `--repo-root` failed as designed; the documented commands now include cloning and pinning that repository. The full network clone commands were not repeated for the replay.
+- Ego keyboard checks: focus homepage Install Skill and Enter → `/archi-made-easy/start.html#install`; focus Chinese homepage MCO link and Enter → `/archi-made-easy/zh/cases/mco-runtime.html`; case repository-mode action and Enter → Start preserving `type=architecture&input=repository#install`. No installation was executed.
 - `git diff --check`: passed.
 
 ## Visual evidence

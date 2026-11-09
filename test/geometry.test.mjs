@@ -40,8 +40,8 @@ import {
   suggestLabelObstacleFix,
   suggestComponentSeparation,
   cleanLabelCanvasContainmentProblems,
-} from '../archify/renderers/shared/geometry.mjs';
-import { textUnits, applyTemplate, renderSemanticSigil } from '../archify/renderers/shared/utils.mjs';
+} from '../archi-made-easy/renderers/shared/geometry.mjs';
+import { textUnits, applyTemplate, renderSemanticSigil } from '../archi-made-easy/renderers/shared/utils.mjs';
 
 const rect = (x, y, w, h) => ({ x, y, width: w, height: h, cx: x + w / 2, cy: y + h / 2 });
 
@@ -976,7 +976,7 @@ test('unknown semantic sigils fail closed to a neutral role stamp', () => {
 });
 
 test('every authored icon has SVG geometry while keeping its node tone and placement', () => {
-  const icons = JSON.parse(readFileSync(new URL('../archify/schemas/common.schema.json', import.meta.url), 'utf8')).$defs.nodeIcon.enum;
+  const icons = JSON.parse(readFileSync(new URL('../archi-made-easy/schemas/common.schema.json', import.meta.url), 'utf8')).$defs.nodeIcon.enum;
   for (const icon of icons) {
     const svg = renderSemanticSigil('frontend', { x: 12, y: 18, icon });
     if (icon === 'none') {
@@ -1262,9 +1262,9 @@ test('applyTemplate preserves dollar sequences in titles', () => {
 <title>[PROJECT NAME] Architecture Diagram</title>
 <h1>[PROJECT NAME] Architecture</h1>
 <p class="subtitle">[Subtitle description]</p>
-    <!-- ARCHIFY:I18N_DATA -->
-      <!-- ARCHIFY:SVG_SLOT_START --><svg></svg>      <!-- ARCHIFY:SVG_SLOT_END -->
-    <!-- ARCHIFY:CARDS_SLOT_START --><div></div>    <!-- ARCHIFY:CARDS_SLOT_END -->`;
+    <!-- ARCHI_MADE_EASY:I18N_DATA -->
+      <!-- ARCHI_MADE_EASY:SVG_SLOT_START --><svg></svg>      <!-- ARCHI_MADE_EASY:SVG_SLOT_END -->
+    <!-- ARCHI_MADE_EASY:CARDS_SLOT_START --><div></div>    <!-- ARCHI_MADE_EASY:CARDS_SLOT_END -->`;
   const html = applyTemplate(template, {
     title: 'Plan $$50 tier',
     subtitle: 'test',
@@ -1280,9 +1280,9 @@ test('applyTemplate omits the subtitle row when no subtitle is authored', () => 
 <title>[PROJECT NAME] Architecture Diagram</title>
 <h1>[PROJECT NAME] Architecture</h1>
 <p class="subtitle">[Subtitle description]</p>
-    <!-- ARCHIFY:I18N_DATA -->
-      <!-- ARCHIFY:SVG_SLOT_START --><svg></svg>      <!-- ARCHIFY:SVG_SLOT_END -->
-    <!-- ARCHIFY:CARDS_SLOT_START --><div></div>    <!-- ARCHIFY:CARDS_SLOT_END -->`;
+    <!-- ARCHI_MADE_EASY:I18N_DATA -->
+      <!-- ARCHI_MADE_EASY:SVG_SLOT_START --><svg></svg>      <!-- ARCHI_MADE_EASY:SVG_SLOT_END -->
+    <!-- ARCHI_MADE_EASY:CARDS_SLOT_START --><div></div>    <!-- ARCHI_MADE_EASY:CARDS_SLOT_END -->`;
   const html = applyTemplate(template, {
     title: 'Focused title',
     subtitle: '   ',
@@ -1298,9 +1298,9 @@ test('applyTemplate requires the new evidence slot only when evidence is present
 <title>[PROJECT NAME] Architecture Diagram</title>
 <h1>[PROJECT NAME] Architecture</h1>
 <p class="subtitle">[Subtitle description]</p>
-    <!-- ARCHIFY:I18N_DATA -->
-      <!-- ARCHIFY:SVG_SLOT_START --><svg></svg>      <!-- ARCHIFY:SVG_SLOT_END -->
-    <!-- ARCHIFY:CARDS_SLOT_START --><div></div>    <!-- ARCHIFY:CARDS_SLOT_END -->`;
+    <!-- ARCHI_MADE_EASY:I18N_DATA -->
+      <!-- ARCHI_MADE_EASY:SVG_SLOT_START --><svg></svg>      <!-- ARCHI_MADE_EASY:SVG_SLOT_END -->
+    <!-- ARCHI_MADE_EASY:CARDS_SLOT_START --><div></div>    <!-- ARCHI_MADE_EASY:CARDS_SLOT_END -->`;
   assert.doesNotThrow(() => applyTemplate(legacyTemplate, {
     title: 'Legacy', subtitle: '', svg: '<svg/>', cards: '',
   }));

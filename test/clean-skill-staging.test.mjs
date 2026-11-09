@@ -28,22 +28,22 @@ function write(root, relative, content, mode = null) {
 }
 
 function repositoryFixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-clean-stage-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-clean-stage-'));
   write(root, 'THIRD_PARTY_NOTICES.md', canonicalNotices);
-  write(root, 'archify/LICENSE', 'MIT License\n');
-  write(root, 'archify/THIRD_PARTY_NOTICES.md', canonicalNotices);
-  write(root, 'archify/package.json', JSON.stringify({
-    name: 'archify-fixture',
+  write(root, 'archi-made-easy/LICENSE', 'MIT License\n');
+  write(root, 'archi-made-easy/THIRD_PARTY_NOTICES.md', canonicalNotices);
+  write(root, 'archi-made-easy/package.json', JSON.stringify({
+    name: 'archi-made-easy-fixture',
     scripts: { test: 'node --test' },
     devDependencies: { ajv: '1.0.0' },
   }));
-  write(root, 'archify/package-lock.json', '{}\n');
-  write(root, 'archify/skill-release.json', '{}\n');
-  write(root, 'archify/scripts/check-update.mjs', 'export {};\n');
-  write(root, 'archify/scripts/update-contract.mjs', 'export {};\n');
-  write(root, 'archify/renderers/shared/generated-validators.mjs', 'export {};\n');
-  write(root, 'archify/renderers/shared/path-semantics.mjs', 'export {};\n');
-  write(root, 'archify/renderers/shared/portable-path.mjs', 'export {};\n');
+  write(root, 'archi-made-easy/package-lock.json', '{}\n');
+  write(root, 'archi-made-easy/skill-release.json', '{}\n');
+  write(root, 'archi-made-easy/scripts/check-update.mjs', 'export {};\n');
+  write(root, 'archi-made-easy/scripts/update-contract.mjs', 'export {};\n');
+  write(root, 'archi-made-easy/renderers/shared/generated-validators.mjs', 'export {};\n');
+  write(root, 'archi-made-easy/renderers/shared/path-semantics.mjs', 'export {};\n');
+  write(root, 'archi-made-easy/renderers/shared/portable-path.mjs', 'export {};\n');
   write(root, 'test/repository-only.test.mjs', 'throw new Error();\n');
   git(root, ['init']);
   git(root, ['add', 'THIRD_PARTY_NOTICES.md']);
@@ -51,7 +51,7 @@ function repositoryFixture() {
 }
 
 test('clean staging entry detection accepts a physical alias and fails closed when identity is unknown', (t) => {
-  const aliasRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-stage-entry-alias-'));
+  const aliasRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-stage-entry-alias-'));
   t.after(() => fs.rmSync(aliasRoot, { recursive: true, force: true }));
   const aliasPath = path.join(aliasRoot, 'stage-clean-alias.mjs');
   try {
@@ -77,7 +77,7 @@ test('clean staging rejects a packaged notice that diverges from the repository 
   try {
     git(root, ['add', '.']);
     fs.writeFileSync(
-      path.join(root, 'archify', 'THIRD_PARTY_NOTICES.md'),
+      path.join(root, 'archi-made-easy', 'THIRD_PARTY_NOTICES.md'),
       canonicalNotices.replace('Simple Icons 16.28.0', 'Simple Icons 16.28.0 modified'),
     );
 
@@ -98,12 +98,12 @@ test('clean staging rejects untracked required release inputs before creating ou
     git(root, ['add', '.']);
     for (const relative of [
       'THIRD_PARTY_NOTICES.md',
-      'archify/LICENSE',
-      'archify/THIRD_PARTY_NOTICES.md',
-      'archify/skill-release.json',
-      'archify/scripts/check-update.mjs',
-      'archify/scripts/update-contract.mjs',
-      'archify/renderers/shared/generated-validators.mjs',
+      'archi-made-easy/LICENSE',
+      'archi-made-easy/THIRD_PARTY_NOTICES.md',
+      'archi-made-easy/skill-release.json',
+      'archi-made-easy/scripts/check-update.mjs',
+      'archi-made-easy/scripts/update-contract.mjs',
+      'archi-made-easy/renderers/shared/generated-validators.mjs',
     ]) {
       git(root, ['rm', '--cached', '-f', relative]);
       assert.throws(() => stageCleanSkill({ repoRoot: root, destination }), error => {
@@ -124,15 +124,15 @@ test('clean staging requires shared path runtimes only when packaged code import
   const destination = path.join(root, 'staged-skill');
   try {
     fs.writeFileSync(
-      path.join(root, 'archify', 'renderers', 'shared', 'generated-validators.mjs'),
+      path.join(root, 'archi-made-easy', 'renderers', 'shared', 'generated-validators.mjs'),
       "const runtime = import /* keep release dependencies complete */ (`./portable-path.mjs`);\nexport { runtime };\n",
     );
     git(root, ['add', '.']);
-    git(root, ['rm', '--cached', '-f', 'archify/renderers/shared/portable-path.mjs']);
+    git(root, ['rm', '--cached', '-f', 'archi-made-easy/renderers/shared/portable-path.mjs']);
 
     assert.throws(
       () => stageCleanSkill({ repoRoot: root, destination }),
-      /required package input is not tracked by Git: archify\/renderers\/shared\/portable-path[.]mjs/,
+      /required package input is not tracked by Git: archi-made-easy\/renderers\/shared\/portable-path[.]mjs/,
     );
     assert.equal(fs.existsSync(destination), false);
   } finally {
@@ -146,7 +146,7 @@ test('clean staging rejects byte-identical but incomplete repository and package
   try {
     const incomplete = canonicalNotices.replace(/## OpenAI mark[\s\S]*?## No additional rights granted/, '## No additional rights granted');
     fs.writeFileSync(path.join(root, 'THIRD_PARTY_NOTICES.md'), incomplete);
-    fs.writeFileSync(path.join(root, 'archify', 'THIRD_PARTY_NOTICES.md'), incomplete);
+    fs.writeFileSync(path.join(root, 'archi-made-easy', 'THIRD_PARTY_NOTICES.md'), incomplete);
     git(root, ['add', '.']);
 
     assert.throws(
@@ -163,12 +163,12 @@ test('clean staging preserves index modes and strips repository-only package met
   const root = repositoryFixture();
   const destination = path.join(root, 'staged-skill');
   try {
-    write(root, 'archify/bin/executable.mjs', '#!/usr/bin/env node\n', 0o644);
-    write(root, 'archify/runtime/test/required.dat', 'runtime fixture\n', 0o755);
-    git(root, ['add', 'archify']);
+    write(root, 'archi-made-easy/bin/executable.mjs', '#!/usr/bin/env node\n', 0o644);
+    write(root, 'archi-made-easy/runtime/test/required.dat', 'runtime fixture\n', 0o755);
+    git(root, ['add', 'archi-made-easy']);
     // Index modes must win over working-tree permissions, including on Windows.
-    git(root, ['update-index', '--chmod=+x', 'archify/bin/executable.mjs']);
-    git(root, ['update-index', '--chmod=-x', 'archify/runtime/test/required.dat']);
+    git(root, ['update-index', '--chmod=+x', 'archi-made-easy/bin/executable.mjs']);
+    git(root, ['update-index', '--chmod=-x', 'archi-made-easy/runtime/test/required.dat']);
     const result = stageCleanSkill({ repoRoot: root, destination });
 
     const executable = path.join(destination, 'bin', 'executable.mjs');
@@ -200,13 +200,13 @@ test('clean staging records Git index modes in a manifest outside the staged tre
   const destination = path.join(root, 'staged-skill');
   const manifest = path.join(root, 'staged-modes.json');
   try {
-    write(root, 'archify/bin/executable.mjs', '#!/usr/bin/env node\n');
-    write(root, 'archify/renderers/shared/plain.mjs', 'export {};\n');
-    git(root, ['add', 'archify']);
+    write(root, 'archi-made-easy/bin/executable.mjs', '#!/usr/bin/env node\n');
+    write(root, 'archi-made-easy/renderers/shared/plain.mjs', 'export {};\n');
+    git(root, ['add', 'archi-made-easy']);
     // Set the index modes explicitly so the expectation does not depend on
     // whether this checkout can represent executable bits (core.fileMode).
-    git(root, ['update-index', '--chmod=+x', 'archify/bin/executable.mjs']);
-    git(root, ['update-index', '--chmod=-x', 'archify/renderers/shared/plain.mjs']);
+    git(root, ['update-index', '--chmod=+x', 'archi-made-easy/bin/executable.mjs']);
+    git(root, ['update-index', '--chmod=-x', 'archi-made-easy/renderers/shared/plain.mjs']);
 
     const result = stageCleanSkill({ repoRoot: root, destination, modeManifest: manifest });
 
@@ -239,7 +239,7 @@ test('clean staging refuses to write the mode manifest inside the staged tree', 
   const root = repositoryFixture();
   const destination = path.join(root, 'staged-skill');
   try {
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
     const rejected = [
       destination,
       path.join(destination, 'modes.json'),
@@ -262,7 +262,7 @@ test('clean staging refuses an existing mode manifest path and leaves it untouch
   const destination = path.join(root, 'staged-skill');
   const manifest = path.join(root, 'existing-modes.json');
   try {
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
     fs.writeFileSync(manifest, 'not ours\n');
     assert.throws(
       () => stageCleanSkill({ repoRoot: root, destination, modeManifest: manifest }),
@@ -282,7 +282,7 @@ test('clean staging never adopts a claimant that wins destination-root creation'
   const originalMkdirSync = fs.mkdirSync;
   let injected = false;
   try {
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
     fs.mkdirSync = function injectDestinationClaimant(target, ...args) {
       if (!injected && path.resolve(target) === path.resolve(destination)) {
         injected = true;
@@ -315,7 +315,7 @@ test('clean staging never overwrites or recursively removes a claimant file', ()
   const originalOpenSync = fs.openSync;
   let injected = false;
   try {
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
     fs.openSync = function injectFileClaimant(target, ...args) {
       if (!injected && path.resolve(String(target)) === path.resolve(claimant)) {
         injected = true;
@@ -350,7 +350,7 @@ test('clean staging preserves a file claimant swapped at the retirement syscall 
   const originalRenameSync = fs.renameSync;
   let injected = false;
   try {
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
     fs.openSync = function failAfterFirstStagedFile(target, ...args) {
       if (path.resolve(String(target)) === path.resolve(laterFile)) {
         throw Object.assign(new Error('injected staging failure'), { code: 'EIO' });
@@ -360,7 +360,7 @@ test('clean staging preserves a file claimant swapped at the retirement syscall 
     fs.renameSync = function swapClaimantAtRetirement(source, target, ...args) {
       if (!injected
         && path.resolve(String(source)) === path.resolve(ownedFile)
-        && path.basename(path.dirname(String(target))).startsWith('.archify-remove-')) {
+        && path.basename(path.dirname(String(target))).startsWith('.archi-made-easy-remove-')) {
         injected = true;
         originalRenameSync.call(fs, ownedFile, displacedOwnedFile);
         fs.writeFileSync(ownedFile, 'claimant file\n', { flag: 'wx' });
@@ -402,7 +402,7 @@ test('clean staging preserves a directory claimant swapped at the retirement sys
     return matches;
   };
   try {
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
     fs.openSync = function failModeManifest(target, ...args) {
       if (path.resolve(String(target)) === path.resolve(modeManifest)) {
         throw Object.assign(new Error('injected manifest failure'), { code: 'EIO' });
@@ -412,7 +412,7 @@ test('clean staging preserves a directory claimant swapped at the retirement sys
     fs.renameSync = function swapDirectoryClaimantAtRetirement(source, target, ...args) {
       if (!injected
         && path.resolve(String(source)) === path.resolve(ownedDirectory)
-        && path.basename(path.dirname(String(target))).startsWith('.archify-stage-remove-')) {
+        && path.basename(path.dirname(String(target))).startsWith('.archi-made-easy-stage-remove-')) {
         injected = true;
         originalRenameSync.call(fs, ownedDirectory, displacedOwnedDirectory);
         fs.mkdirSync(ownedDirectory);
@@ -456,7 +456,7 @@ test('clean staging detects a destination-ancestor swap before writing through t
   let redirectedIdentity;
   let wroteRedirectedFile = false;
   try {
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
     fs.mkdirSync(external);
     fs.writeFileSync(sentinel, 'external sentinel\n');
     const probe = path.join(root, 'destination-symlink-probe');
@@ -514,7 +514,7 @@ test('clean staging rejects a mode manifest that aliases the staged tree through
   const physical = path.join(root, 'physical');
   const alias = path.join(root, 'alias');
   try {
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
     fs.mkdirSync(physical);
     try {
       fs.symlinkSync(physical, alias, process.platform === 'win32' ? 'junction' : 'dir');
@@ -549,9 +549,9 @@ test('clean staging rejects a symlink in a tracked file ancestor before copying 
   const root = repositoryFixture();
   const destination = path.join(root, 'staged-skill');
   try {
-    const runtime = path.join(root, 'archify', 'runtime');
-    write(root, 'archify/runtime/payload.txt', 'tracked fixture\n');
-    git(root, ['add', 'archify']);
+    const runtime = path.join(root, 'archi-made-easy', 'runtime');
+    write(root, 'archi-made-easy/runtime/payload.txt', 'tracked fixture\n');
+    git(root, ['add', 'archi-made-easy']);
     fs.rmSync(runtime, { recursive: true });
     const external = path.join(root, 'outside-runtime');
     write(root, 'outside-runtime/payload.txt', 'external secret\n');
@@ -567,7 +567,7 @@ test('clean staging rejects a symlink in a tracked file ancestor before copying 
 
     assert.throws(
       () => stageCleanSkill({ repoRoot: root, destination }),
-      /refusing to package path through symlink: archify\/runtime/,
+      /refusing to package path through symlink: archi-made-easy\/runtime/,
     );
     assert.equal(fs.existsSync(destination), false);
   } finally {
@@ -580,7 +580,7 @@ test('clean staging rejects tracked symlinks before reading through them', (t) =
   const destination = path.join(root, 'staged-skill');
   try {
     const external = write(root, 'outside.txt', 'private fixture\n');
-    const linked = path.join(root, 'archify', 'linked.txt');
+    const linked = path.join(root, 'archi-made-easy', 'linked.txt');
     try {
       fs.symlinkSync(external, linked);
     } catch (error) {
@@ -590,11 +590,11 @@ test('clean staging rejects tracked symlinks before reading through them', (t) =
       }
       throw error;
     }
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
 
     assert.throws(
       () => stageCleanSkill({ repoRoot: root, destination }),
-      /refusing to package tracked symlink: archify\/linked\.txt/,
+      /refusing to package tracked symlink: archi-made-easy\/linked\.txt/,
     );
     assert.equal(fs.existsSync(destination), false);
   } finally {
@@ -605,14 +605,14 @@ test('clean staging rejects tracked symlinks before reading through them', (t) =
 test('clean staging snapshots unstaged tracked bytes before a source ancestor can be swapped', (t) => {
   const root = repositoryFixture();
   const destination = path.join(root, 'staged-skill');
-  const runtime = path.join(root, 'archify', 'runtime');
+  const runtime = path.join(root, 'archi-made-easy', 'runtime');
   const external = path.join(root, 'outside-runtime');
   const originalMkdirSync = fs.mkdirSync;
   let swapped = false;
   try {
-    const payload = write(root, 'archify/runtime/payload.txt', 'indexed fixture\n');
+    const payload = write(root, 'archi-made-easy/runtime/payload.txt', 'indexed fixture\n');
     write(root, 'outside-runtime/payload.txt', 'external secret\n');
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
     fs.writeFileSync(payload, 'unstaged working-tree fixture\n');
 
     const probe = path.join(root, 'symlink-probe');
@@ -654,15 +654,15 @@ test('clean staging snapshots unstaged tracked bytes before a source ancestor ca
 test('clean staging rejects a source ancestor swapped during preflight traversal', (t) => {
   const root = repositoryFixture();
   const destination = path.join(root, 'staged-skill');
-  const runtime = path.join(root, 'archify', 'runtime');
+  const runtime = path.join(root, 'archi-made-easy', 'runtime');
   const external = path.join(root, 'outside-runtime');
   const originalLstatSync = fs.lstatSync;
   let swapped = false;
   try {
-    write(root, 'archify/runtime/payload.txt', 'tracked fixture\n');
+    write(root, 'archi-made-easy/runtime/payload.txt', 'tracked fixture\n');
     write(root, 'outside-runtime/payload.txt', 'external secret\n');
-    git(root, ['add', 'archify']);
-    const canonicalRuntime = path.join(fs.realpathSync(root), 'archify', 'runtime');
+    git(root, ['add', 'archi-made-easy']);
+    const canonicalRuntime = path.join(fs.realpathSync(root), 'archi-made-easy', 'runtime');
 
     const probe = path.join(root, 'symlink-probe');
     try {
@@ -690,7 +690,7 @@ test('clean staging rejects a source ancestor swapped during preflight traversal
 
     assert.throws(
       () => stageCleanSkill({ repoRoot: root, destination }),
-      /(?:tracked package path changed before it could be read: archify\/|tracked package input is missing or unreadable: archify\/runtime\/payload\.txt)/,
+      /(?:tracked package path changed before it could be read: archi-made-easy\/|tracked package input is missing or unreadable: archi-made-easy\/runtime\/payload\.txt)/,
     );
     assert.equal(swapped, true, 'the deterministic mid-preflight ancestor swap must run');
     assert.equal(fs.existsSync(destination), false);
@@ -704,7 +704,7 @@ test('clean staging reports the Git spawn error when Git cannot start', () => {
   const root = repositoryFixture();
   const destination = path.join(root, 'staged-skill');
   try {
-    git(root, ['add', 'archify']);
+    git(root, ['add', 'archi-made-easy']);
     const result = spawnSync(process.execPath, [
       stagerPath,
       '--root', root,
@@ -714,8 +714,8 @@ test('clean staging reports the Git spawn error when Git cannot start', () => {
       env: { ...process.env, PATH: '' },
     });
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /unable to enumerate tracked Archify files: .*ENOENT/);
-    assert.doesNotMatch(result.stderr, /tracked Archify paths must be valid UTF-8/);
+    assert.match(result.stderr, /unable to enumerate tracked Archi-Made-Easy files: .*ENOENT/);
+    assert.doesNotMatch(result.stderr, /tracked Archi-Made-Easy paths must be valid UTF-8/);
     assert.equal(fs.existsSync(destination), false);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
@@ -723,7 +723,7 @@ test('clean staging reports the Git spawn error when Git cannot start', () => {
 });
 
 // Historical DSH snapshots predate embedded fonts and must remain packageable.
-for (const fontPath of [null, 'archify/assets/template.html', 'archify/examples/standalone.html']) {
+for (const fontPath of [null, 'archi-made-easy/assets/template.html', 'archi-made-easy/examples/standalone.html']) {
   const embedded = fontPath !== null;
   test(`clean staging applies font disclosures to snapshot contents (fontPath=${fontPath})`, () => {
     const root = repositoryFixture();
@@ -731,20 +731,20 @@ for (const fontPath of [null, 'archify/assets/template.html', 'archify/examples/
     try {
       const legacy = canonicalNotices.replace(/## JetBrains Mono[\s\S]*?(?=\n## |$)/, '');
       write(root, 'THIRD_PARTY_NOTICES.md', legacy);
-      write(root, 'archify/THIRD_PARTY_NOTICES.md', legacy);
-      write(root, 'archify/assets/template.html', '<html>legacy viewer</html>');
+      write(root, 'archi-made-easy/THIRD_PARTY_NOTICES.md', legacy);
+      write(root, 'archi-made-easy/assets/template.html', '<html>legacy viewer</html>');
       if (embedded) write(root, fontPath, '@font-face { src: url(data:font/woff2;base64,fixture); }');
-      write(root, 'archify/assets/JetBrainsMono-OFL.txt', 'fixture license');
+      write(root, 'archi-made-easy/assets/JetBrainsMono-OFL.txt', 'fixture license');
       git(root, ['add', '.']);
       if (embedded) {
         assert.throws(() => stageCleanSkill({ repoRoot: root, destination }), /missing required disclosure: JetBrains Mono/);
         assert.equal(fs.existsSync(destination), false);
         write(root, 'THIRD_PARTY_NOTICES.md', canonicalNotices);
-        write(root, 'archify/THIRD_PARTY_NOTICES.md', canonicalNotices);
+        write(root, 'archi-made-easy/THIRD_PARTY_NOTICES.md', canonicalNotices);
         stageCleanSkill({ repoRoot: root, destination });
         assert.equal(fs.readFileSync(path.join(destination, 'assets/JetBrainsMono-OFL.txt'), 'utf8'), 'fixture license');
         fs.rmSync(destination, { recursive: true });
-        fs.unlinkSync(path.join(root, 'archify/assets/JetBrainsMono-OFL.txt'));
+        fs.unlinkSync(path.join(root, 'archi-made-easy/assets/JetBrainsMono-OFL.txt'));
         git(root, ['add', '.']);
         assert.throws(() => stageCleanSkill({ repoRoot: root, destination }), /requires assets\/JetBrainsMono-OFL.txt/);
       } else {

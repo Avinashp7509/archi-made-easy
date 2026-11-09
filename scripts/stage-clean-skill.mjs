@@ -10,31 +10,31 @@ import {
   captureRegularFileBinding,
   quarantineRemoveRegularFileBinding,
   releaseRegularFileBinding,
-} from '../archify/renderers/shared/atomic-output.mjs';
-import { containedBy, sameEntry } from '../archify/renderers/shared/path-semantics.mjs';
-import { validatePortablePathSet } from '../archify/renderers/shared/portable-path.mjs';
+} from '../archi-made-easy/renderers/shared/atomic-output.mjs';
+import { containedBy, sameEntry } from '../archi-made-easy/renderers/shared/path-semantics.mjs';
+import { validatePortablePathSet } from '../archi-made-easy/renderers/shared/portable-path.mjs';
 import { assertThirdPartyNotices } from './third-party-notices-contract.mjs';
 
 const scriptRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REQUIRED_INPUTS = new Set([
-  'archify/LICENSE',
-  'archify/THIRD_PARTY_NOTICES.md',
-  'archify/renderers/shared/generated-validators.mjs',
-  'archify/scripts/check-update.mjs',
-  'archify/scripts/update-contract.mjs',
-  'archify/skill-release.json',
+  'archi-made-easy/LICENSE',
+  'archi-made-easy/THIRD_PARTY_NOTICES.md',
+  'archi-made-easy/renderers/shared/generated-validators.mjs',
+  'archi-made-easy/scripts/check-update.mjs',
+  'archi-made-easy/scripts/update-contract.mjs',
+  'archi-made-easy/skill-release.json',
 ]);
 const RUNTIME_DEPENDENCIES = Object.freeze([
-  'archify/renderers/shared/atomic-output.mjs',
-  'archify/renderers/shared/output-path.mjs',
-  'archify/renderers/shared/path-semantics.mjs',
-  'archify/renderers/shared/portable-path.mjs',
-  'archify/renderers/shared/sidecar-path.mjs',
+  'archi-made-easy/renderers/shared/atomic-output.mjs',
+  'archi-made-easy/renderers/shared/output-path.mjs',
+  'archi-made-easy/renderers/shared/path-semantics.mjs',
+  'archi-made-easy/renderers/shared/portable-path.mjs',
+  'archi-made-easy/renderers/shared/sidecar-path.mjs',
 ]);
 const EXCLUDED_FILES = new Set([
-  'archify/package-lock.json',
-  'archify/scripts/generate-brand-marks.mjs',
-  'archify/scripts/generate-validators.mjs',
+  'archi-made-easy/package-lock.json',
+  'archi-made-easy/scripts/generate-brand-marks.mjs',
+  'archi-made-easy/scripts/generate-validators.mjs',
 ]);
 const EXCLUDED_SEGMENTS = new Set([
   '.DS_Store',
@@ -52,7 +52,7 @@ function decodeGitOutput(value) {
   try {
     return new TextDecoder('utf-8', { fatal: true }).decode(value);
   } catch {
-    throw new Error('tracked Archify paths must be valid UTF-8');
+    throw new Error('tracked Archi-Made-Easy paths must be valid UTF-8');
   }
 }
 
@@ -63,19 +63,19 @@ function gitFailureDetail(result) {
 }
 
 function trackedEntries(repoRoot) {
-  const result = spawnSync('git', ['ls-files', '--stage', '-z', '--', 'archify'], {
+  const result = spawnSync('git', ['ls-files', '--stage', '-z', '--', 'archi-made-easy'], {
     cwd: repoRoot,
     encoding: 'buffer',
   });
   if (result.status !== 0) {
-    throw new Error(`unable to enumerate tracked Archify files: ${gitFailureDetail(result)}`);
+    throw new Error(`unable to enumerate tracked Archi-Made-Easy files: ${gitFailureDetail(result)}`);
   }
   return decodeGitOutput(result.stdout).split('\0').filter(Boolean).map((record) => {
     const separator = record.indexOf('\t');
     const metadata = separator === -1 ? [] : record.slice(0, separator).split(' ');
     const relative = separator === -1 ? '' : record.slice(separator + 1);
     // path-contract-allow: git-path -- git ls-files emits repository-relative POSIX paths.
-    if (metadata.length !== 3 || !relative.startsWith('archify/')) {
+    if (metadata.length !== 3 || !relative.startsWith('archi-made-easy/')) {
       throw new Error(`invalid tracked package record: ${JSON.stringify(record)}`);
     }
     return {
@@ -98,7 +98,7 @@ function requireTrackedFile(repoRoot, relative) {
 
 function excluded(relative) {
   if (EXCLUDED_FILES.has(relative)) return true;
-  const insideSkill = relative.slice('archify/'.length);
+  const insideSkill = relative.slice('archi-made-easy/'.length);
   if (insideSkill === 'test' || insideSkill.startsWith('test/')) return true;
   return insideSkill.split('/').some((segment) => (
     EXCLUDED_SEGMENTS.has(segment) || segment.startsWith('.validator-check-')
@@ -198,8 +198,8 @@ function snapshotSourceEntry(entry) {
 }
 
 function cleanPackageManifestEntry(packageEntries) {
-  const packageEntry = packageEntries.find((entry) => entry.relative === 'archify/package.json');
-  if (!packageEntry) throw new Error('required package input is missing: archify/package.json');
+  const packageEntry = packageEntries.find((entry) => entry.relative === 'archi-made-easy/package.json');
+  if (!packageEntry) throw new Error('required package input is missing: archi-made-easy/package.json');
   const packageJson = JSON.parse(packageEntry.content.toString('utf8'));
   delete packageJson.scripts;
   delete packageJson.devDependencies;
@@ -372,7 +372,7 @@ function createDirectoryRetirementQuarantine(parent) {
   for (let attempt = 0; attempt < 8; attempt += 1) {
     const directory = path.join(
       parent,
-      `.archify-stage-remove-${randomBytes(16).toString('hex')}`,
+      `.archi-made-easy-stage-remove-${randomBytes(16).toString('hex')}`,
     );
     try {
       fs.mkdirSync(directory, { mode: 0o700 });
@@ -440,11 +440,11 @@ function cleanupOwnedStaging(ownership) {
 }
 
 function validateLicenseInputs(repoRoot, packageEntries) {
-  const manifest = packageEntries.find(entry => entry.relative === 'archify/package.json');
+  const manifest = packageEntries.find(entry => entry.relative === 'archi-made-easy/package.json');
   // Historical MIT snapshots remain packable by the separately pinned adapter.
   if (JSON.parse(manifest.content.toString('utf8')).license !== 'Apache-2.0') return;
   for (const name of ['LICENSE', 'LICENSE-MIT', 'NOTICE']) {
-    const relative = `archify/${name}`;
+    const relative = `archi-made-easy/${name}`;
     // path-contract-allow: portable-logical-path -- Both values are tracked package entry names, not native paths.
     const entry = packageEntries.find(candidate => candidate.relative === relative);
     if (!entry) throw new Error(`required package input is missing: ${relative}`);
@@ -457,10 +457,10 @@ function validateLicenseInputs(repoRoot, packageEntries) {
 
 function validateThirdPartyNoticeInputs(repoRoot, packageEntries) {
   const packagedEntry = packageEntries.find((entry) => (
-    entry.relative === 'archify/THIRD_PARTY_NOTICES.md'
+    entry.relative === 'archi-made-easy/THIRD_PARTY_NOTICES.md'
   ));
   if (!packagedEntry) {
-    throw new Error('required package input is missing: archify/THIRD_PARTY_NOTICES.md');
+    throw new Error('required package input is missing: archi-made-easy/THIRD_PARTY_NOTICES.md');
   }
 
   const repositoryPath = path.join(repoRoot, 'THIRD_PARTY_NOTICES.md');
@@ -474,14 +474,14 @@ function validateThirdPartyNoticeInputs(repoRoot, packageEntries) {
   }
 
   const embeddedFonts = packageEntries.some((entry) => entry.content.includes('data:font/woff2'));
-  if (embeddedFonts && !packageEntries.some((entry) => entry.relative === 'archify/assets/JetBrainsMono-OFL.txt')) {
+  if (embeddedFonts && !packageEntries.some((entry) => entry.relative === 'archi-made-easy/assets/JetBrainsMono-OFL.txt')) {
     throw new Error('embedded viewer font requires assets/JetBrainsMono-OFL.txt');
   }
   const packagedNotices = packagedEntry.content;
   assertThirdPartyNotices(repositoryNotices.toString('utf8'), 'repository THIRD_PARTY_NOTICES.md', { embeddedFonts });
-  assertThirdPartyNotices(packagedNotices.toString('utf8'), 'archify/THIRD_PARTY_NOTICES.md', { embeddedFonts });
+  assertThirdPartyNotices(packagedNotices.toString('utf8'), 'archi-made-easy/THIRD_PARTY_NOTICES.md', { embeddedFonts });
   if (!packagedNotices.equals(repositoryNotices)) {
-    throw new Error('archify/THIRD_PARTY_NOTICES.md must byte-match the repository notice');
+    throw new Error('archi-made-easy/THIRD_PARTY_NOTICES.md must byte-match the repository notice');
   }
 }
 
@@ -550,7 +550,7 @@ export function stageCleanSkill({ repoRoot = scriptRoot, destination, modeManife
 
   const includedEntries = entries.filter((entry) => !excluded(entry.relative));
   validatePortablePathSet(
-    includedEntries.map((entry) => entry.relative.slice('archify/'.length)),
+    includedEntries.map((entry) => entry.relative.slice('archi-made-easy/'.length)),
     { profile: 'archive' },
   );
 
@@ -566,7 +566,7 @@ export function stageCleanSkill({ repoRoot = scriptRoot, destination, modeManife
 
   const modes = Object.fromEntries(
     packageEntries
-      .map((entry) => [entry.relative.slice('archify/'.length), entry.mode])
+      .map((entry) => [entry.relative.slice('archi-made-easy/'.length), entry.mode])
       .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0)),
   );
 
@@ -587,7 +587,7 @@ export function stageCleanSkill({ repoRoot = scriptRoot, destination, modeManife
       destinationRoot: true,
     });
     for (const entry of packageEntries) {
-      const relativeInsideSkill = entry.relative.slice('archify/'.length);
+      const relativeInsideSkill = entry.relative.slice('archi-made-easy/'.length);
       const target = path.join(resolvedDestination, ...relativeInsideSkill.split('/'));
       const ancestors = ensureOwnedParentDirectories(
         resolvedDestination,

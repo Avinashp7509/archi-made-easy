@@ -4,9 +4,9 @@ import fs from 'node:fs';
 import { parse } from 'parse5';
 import { parseSitemap } from '../scripts/indexnow.mjs';
 import { stripPublishedArtifactMetadata } from '../scripts/publish-seo.mjs';
-const cloudflare = process.env.ARCHIFY_SITE_TARGET === 'cloudflare';
+const cloudflare = process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare';
 const output = new URL(cloudflare ? '../dist-cloudflare/' : '../dist/', import.meta.url);
-const origin = cloudflare ? 'https://archify.si/' : 'https://tt-a1i.github.io/archify/';
+const origin = cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/';
 const nodes = node => [node, ...(node.childNodes || []).flatMap(nodes)];
 const attr = (node, name) => node?.attrs?.find(item => item.name === name)?.value;
 const text = node => node.nodeName === '#text' ? node.value : (node.childNodes || []).map(text).join('');
@@ -31,7 +31,7 @@ test('MCO case exposes pinned source, honest limits, stable sections and nested 
     assert.ok(sourceLinks.length >= 12);
     for (const link of sourceLinks) assert.match(attr(link, 'href'), /\/blob\/(9f1a1cf1afdc04d7b5406782b40dfec76d9bc798|04dc1916e1651086564f16076eab6d2f6ba1ae42)\//);
     const schema = JSON.parse(text(all.find(node => attr(node, 'type') === 'application/ld+json')));
-    assert.equal(schema['@graph'].find(item => item['@type'] === 'TechArticle').url, `https://archify.si/${route}`);
+    assert.equal(schema['@graph'].find(item => item['@type'] === 'TechArticle').url, `https://OWNER.github.io/archi-made-easy/${route}`);
     const toc = all.find(node => attr(node, 'class') === 'article-toc');
     for (const link of nodes(toc).filter(node => node.tagName === 'a')) {
       const destination = new URL(attr(link, 'href'), base);
@@ -65,8 +65,8 @@ test('MCO case exposes pinned source, honest limits, stable sections and nested 
 
 test('MCO case inventory includes both wrappers and preserves original artifact and typed source bytes', () => {
   const urls = parseSitemap(fs.readFileSync(new URL('sitemap.xml', output), 'utf8'));
-  for (const prefix of ['', 'zh/']) assert.ok(urls.includes(`https://archify.si/${prefix}cases/mco-runtime`));
-  assert.ok(urls.includes('https://archify.si/cases/mco-runtime.architecture'), 'the standalone artifact is distinct from the explanatory article');
+  for (const prefix of ['', 'zh/']) assert.ok(urls.includes(`https://OWNER.github.io/archi-made-easy/${prefix}cases/mco-runtime`));
+  assert.ok(urls.includes('https://OWNER.github.io/archi-made-easy/cases/mco-runtime.architecture'), 'the standalone artifact is distinct from the explanatory article');
   for (const extension of ['html', 'json']) {
     const file = `cases/mco-runtime.architecture.${extension}`;
     const published = fs.readFileSync(new URL(file, output));

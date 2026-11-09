@@ -5,15 +5,15 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { ChromeVisualBrowser, findChrome } from '../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome } from '../archi-made-easy/bin/visual-check.mjs';
 
-const cli = fileURLToPath(new URL('../archify/bin/archify.mjs', import.meta.url));
+const cli = fileURLToPath(new URL('../archi-made-easy/bin/archi-made-easy.mjs', import.meta.url));
 
 test('workflow default labels and lane headings remain readable without recoloring semantic ink', async (t) => {
-  if (!Object.hasOwn(process.env, 'ARCHIFY_CHROME')) return t.skip('Set ARCHIFY_CHROME for real browser checks');
+  if (!Object.hasOwn(process.env, 'ARCHI_MADE_EASY_CHROME')) return t.skip('Set ARCHI_MADE_EASY_CHROME for real browser checks');
   const chrome = findChrome();
   assert.ok(chrome, 'The configured browser regression requires Chrome');
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-workflow-label-contrast-'));
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-workflow-label-contrast-'));
   t.after(() => fs.rmSync(scratch, { recursive: true, force: true }));
   const input = path.join(scratch, 'workflow.json');
   const artifact = path.join(scratch, 'workflow.html');
@@ -48,7 +48,7 @@ test('workflow default labels and lane headings remain readable without recolori
         awaitPromise: true, returnByValue: true,
         expression: `(async () => {
           await document.fonts.ready;
-          Archify.view.reveal([...document.querySelectorAll('[data-node-id]')].map(node => node.dataset.nodeId), { instant: true, maxScale: 1 });
+          ArchiMadeEasy.view.reveal([...document.querySelectorAll('[data-node-id]')].map(node => node.dataset.nodeId), { instant: true, maxScale: 1 });
           const panel = document.querySelector('.diagram-container');
           await Promise.all(panel.getAnimations({ subtree: true }).map(animation => animation.finished.catch(() => {})));
           const rgba = value => {
@@ -124,7 +124,7 @@ test('workflow default labels and lane headings remain readable without recolori
           });
           return { theme: document.documentElement.dataset.theme, preset: document.documentElement.dataset.preset,
             motion: document.documentElement.dataset.motion, securityInk,
-            detail: panel.dataset.detailLevel, scale: Archify.view.state().scale, edges, lanes, beneathPanel,
+            detail: panel.dataset.detailLevel, scale: ArchiMadeEasy.view.state().scale, edges, lanes, beneathPanel,
             surface: { image: surface.backgroundImage,
               bodyImage: body.backgroundImage, bodyAlpha: rgba(body.backgroundColor)[3], dotColors,
               dotEndAlpha: dotColors.length === 2 ? rgba(dotColors[1])[3] : null,

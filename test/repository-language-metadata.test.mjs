@@ -17,8 +17,8 @@ function linguistGenerated(relativePath) {
 
 test('repository language metadata separates generated artifacts from implementation source', () => {
   for (const generatedPath of [
-    'archify/assets/template.html',
-    'archify/examples/web-app-rendered.html',
+    'archi-made-easy/assets/template.html',
+    'archi-made-easy/examples/web-app-rendered.html',
     'examples/web-app.html',
     'docs/cases/mco-runtime.architecture.html',
     'docs/gallery.html',
@@ -26,8 +26,8 @@ test('repository language metadata separates generated artifacts from implementa
     'docs/guide.html',
     'docs/start.html',
     'experiments/mco-showcase/mco-runtime.html',
-    'archify/renderers/shared/generated-brand-marks.mjs',
-    'archify/renderers/shared/generated-validators.mjs',
+    'archi-made-easy/renderers/shared/generated-brand-marks.mjs',
+    'archi-made-easy/renderers/shared/generated-validators.mjs',
   ]) {
     assert.equal(
       linguistGenerated(generatedPath),
@@ -56,7 +56,7 @@ test('repository language metadata separates generated artifacts from implementa
     'scripts/guide-template.html',
     'scripts/start-template.html',
     'docs/index.html',
-    'archify/renderers/shared/geometry.mjs',
+    'archi-made-easy/renderers/shared/geometry.mjs',
   ]) {
     assert.equal(
       linguistGenerated(sourcePath),

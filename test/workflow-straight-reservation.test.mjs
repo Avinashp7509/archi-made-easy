@@ -5,12 +5,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { compileWorkflow } from '../archify/renderers/workflow/workflow-compiler.mjs';
-import { labelPoint } from '../archify/renderers/shared/geometry.mjs';
+import { compileWorkflow } from '../archi-made-easy/renderers/workflow/workflow-compiler.mjs';
+import { labelPoint } from '../archi-made-easy/renderers/shared/geometry.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const fixture = path.join(root, 'test/fixtures/workflow-first-draft/automatic-fanout.workflow.json');
-const cli = path.join(root, 'archify/bin/archify.mjs');
+const cli = path.join(root, 'archi-made-easy/bin/archi-made-easy.mjs');
 const load = () => JSON.parse(fs.readFileSync(fixture, 'utf8'));
 const length = points => points.slice(1).reduce((sum, point, index) => (
   sum + Math.hypot(point[0] - points[index][0], point[1] - points[index][1])
@@ -38,10 +38,10 @@ test('a facing but non-straight automatic branch keeps short collision-free rout
 });
 
 test('public validation and rendered SVG preserve the mixed fan-out without a large detour', t => {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-straight-reservation-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-straight-reservation-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const run = args => spawnSync(process.execPath, [cli, ...args], {
-    encoding: 'utf8', env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+    encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
   });
   const validated = run(['validate', 'workflow', fixture, '--quality', 'showcase', '--json']);
   assert.equal(validated.status, 0, validated.stdout + validated.stderr);

@@ -6,12 +6,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SCENARIO_RECIPES } from '../archify/recipes/scenarios.mjs';
+import { SCENARIO_RECIPES } from '../archi-made-easy/recipes/scenarios.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-gallery-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-gallery-'));
 const generatedRoot = path.join(tmp, 'docs');
 
 function sha256(file) {
@@ -32,7 +32,7 @@ test('generated proof gallery matches its sources, receipts, and checked-in arti
   const manifestPath = path.join(generatedRoot, 'gallery', 'manifest.json');
   const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
   assert.equal(manifest.schemaVersion, 1);
-  assert.equal(manifest.archifyVersion, JSON.parse(fs.readFileSync(path.join(skillRoot, 'package.json'))).version);
+  assert.equal(manifest.archiMadeEasyVersion, JSON.parse(fs.readFileSync(path.join(skillRoot, 'package.json'))).version);
   assert.equal(manifest.entryCount, 12);
   assert.equal(manifest.checkCount, 108);
   assert.deepEqual(new Set(manifest.entries.map((entry) => entry.type)), new Set([
@@ -103,7 +103,7 @@ test('generated proof gallery matches its sources, receipts, and checked-in arti
     assert.match(html, new RegExp(`start\\.html\\?type=${type}&amp;source=gallery`), `${type}: gallery-to-start link missing`);
   }
   assert.match(html, /class="community-callout"/);
-  assert.match(html, /href="https:\/\/github\.com\/tt-a1i\/archify\/issues\/new\?template=showcase\.yml"[^>]+rel="noopener noreferrer"/);
+  assert.match(html, /href="https:\/\/github\.com\/OWNER\/archi-made-easy\/issues\/new\?template=showcase\.yml"[^>]+rel="noopener noreferrer"/);
   assert.match(html, /Share a verified diagram/);
   assert.match(html, /提交已验证成品/);
 

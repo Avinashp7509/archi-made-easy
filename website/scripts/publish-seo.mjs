@@ -7,15 +7,15 @@ import { CASES } from '../src/data/gallery-presentation.mjs';
 import { PUBLISHED_CASES } from '../src/data/published-cases.mjs';
 
 export const CANONICAL_ORIGIN = canonicalOrigin;
-export const SEO_BLOCK_START = '<!-- archify:published-artifact-metadata:start -->';
-export const SEO_BLOCK_END = '<!-- archify:published-artifact-metadata:end -->';
+export const SEO_BLOCK_START = '<!-- archi-made-easy:published-artifact-metadata:start -->';
+export const SEO_BLOCK_END = '<!-- archi-made-easy:published-artifact-metadata:end -->';
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 
 // This narrowly scoped removal lets byte-parity checks retain the standalone
 // renderer contract while allowing publication-only discovery metadata.
 export function stripPublishedArtifactMetadata(html) {
-  return html.replace(/<!-- archify:published-artifact-metadata:start -->\n[\s\S]*?<!-- archify:published-artifact-metadata:end -->\n/g, '');
+  return html.replace(/<!-- archi-made-easy:published-artifact-metadata:start -->\n[\s\S]*?<!-- archi-made-easy:published-artifact-metadata:end -->\n/g, '');
 }
 
 function publicationMetadata(entry, { title, description, language, twitter = false }) {

@@ -7,14 +7,14 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(here, '..', 'archify');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-base-input-compatibility-'));
+const skillRoot = path.resolve(here, '..', 'archi-made-easy');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-base-input-compatibility-'));
 
 function renderBaseFixture(type, name) {
   const input = path.join(skillRoot, '..', 'test', 'fixtures', 'v1-baseline', name);
   const output = path.join(tmp, `${name}.html`);
   return spawnSync(process.execPath, [
-    path.join(skillRoot, 'bin', 'archify.mjs'),
+    path.join(skillRoot, 'bin', 'archi-made-easy.mjs'),
     'render',
     type,
     input,

@@ -7,12 +7,12 @@ import { fileURLToPath } from 'node:url';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repositoryRoot = path.resolve(here, '..');
 const productionSourceRoots = [
-  'archify/bin',
-  'archify/delta',
-  'archify/migrations',
-  'archify/recipes',
-  'archify/renderers',
-  'archify/scripts',
+  'archi-made-easy/bin',
+  'archi-made-easy/delta',
+  'archi-made-easy/migrations',
+  'archi-made-easy/recipes',
+  'archi-made-easy/renderers',
+  'archi-made-easy/scripts',
   'integrations/deepseek-harness/lib',
   'integrations/deepseek-harness/scripts',
   'scripts',

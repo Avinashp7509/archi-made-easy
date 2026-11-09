@@ -5,17 +5,17 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { ChromeVisualBrowser, findChrome } from '../../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome } from '../../archi-made-easy/bin/visual-check.mjs';
 
 const website = fileURLToPath(new URL('../', import.meta.url));
-const enabled = process.env.ARCHIFY_SITE_INTEGRATION === '1';
-const root = path.resolve(process.env.ARCHIFY_SITE_ROOT || path.join(website, 'dist'));
-const mount = process.env.ARCHIFY_SITE_BASE ?? '/archify';
+const enabled = process.env.ARCHI_MADE_EASY_SITE_INTEGRATION === '1';
+const root = path.resolve(process.env.ARCHI_MADE_EASY_SITE_ROOT || path.join(website, 'dist'));
+const mount = process.env.ARCHI_MADE_EASY_SITE_BASE ?? '/archi-made-easy';
 const target = mount ? 'github' : 'cloudflare';
 const output = path.join(website, '.browser-evidence', target);
 
 test('real Chrome: MCO case stays readable and navigable in both languages, themes and narrow viewports', {
-  skip: enabled ? false : 'Set ARCHIFY_SITE_INTEGRATION=1 and ARCHIFY_CHROME to run MCO case browser evidence.',
+  skip: enabled ? false : 'Set ARCHI_MADE_EASY_SITE_INTEGRATION=1 and ARCHI_MADE_EASY_CHROME to run MCO case browser evidence.',
   timeout: 180000,
 }, async () => {
   const chrome = findChrome();

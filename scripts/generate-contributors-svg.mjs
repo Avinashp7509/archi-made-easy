@@ -79,7 +79,7 @@ function repoParts(repo) {
 function githubHeaders(token, accept = 'application/vnd.github+json') {
   const headers = {
     Accept: accept,
-    'User-Agent': 'archify-contributors-svg',
+    'User-Agent': 'archi-made-easy-contributors-svg',
     'X-GitHub-Api-Version': '2022-11-28',
   };
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -100,7 +100,7 @@ function nextPage(linkHeader) {
   return '';
 }
 
-export async function fetchContributors({ repo = 'tt-a1i/archify', token = '', fetchImpl = fetch } = {}) {
+export async function fetchContributors({ repo = 'OWNER/archi-made-easy', token = '', fetchImpl = fetch } = {}) {
   const { owner, name } = repoParts(repo);
   let url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(name)}/contributors?per_page=100`;
   const people = [];
@@ -189,15 +189,15 @@ export function renderContributorsSvg(contributors) {
     const centerY = AVATAR_Y + AVATAR / 2;
     return `  <g transform="translate(${column * CELL_WIDTH} ${row * ROW_HEIGHT})">
     <title>${xmlEscape(person.login)}</title>
-    <defs><clipPath id="archify-contributor-${index}"><circle cx="${centerX}" cy="${centerY}" r="${AVATAR / 2}"/></clipPath></defs>
-    <image href="${person.dataUri}" x="${AVATAR_X}" y="${AVATAR_Y}" width="${AVATAR}" height="${AVATAR}" clip-path="url(#archify-contributor-${index})" preserveAspectRatio="xMidYMid slice"/>
+    <defs><clipPath id="archi-made-easy-contributor-${index}"><circle cx="${centerX}" cy="${centerY}" r="${AVATAR / 2}"/></clipPath></defs>
+    <image href="${person.dataUri}" x="${AVATAR_X}" y="${AVATAR_Y}" width="${AVATAR}" height="${AVATAR}" clip-path="url(#archi-made-easy-contributor-${index})" preserveAspectRatio="xMidYMid slice"/>
     <circle class="ring" cx="${centerX}" cy="${centerY}" r="${AVATAR / 2}" fill="none" stroke-width="1"/>
     <text class="name" x="${centerX}" y="${AVATAR_Y + AVATAR + 22}" text-anchor="middle">${xmlEscape(label)}</text>
   </g>`;
   });
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${WALL_WIDTH}" height="${rows * ROW_HEIGHT}" viewBox="0 0 ${WALL_WIDTH} ${rows * ROW_HEIGHT}" role="img">
-  <title>Archify contributors</title>
+  <title>Archi-Made-Easy contributors</title>
   <style><![CDATA[
     .name { fill: #24292f; stroke: #ffffff; stroke-width: 3px; paint-order: stroke fill; font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; }
     .ring { stroke: #d0d7de; }
@@ -224,7 +224,7 @@ export async function buildContributorsSvg(options = {}) {
 }
 
 function parseArgs(argv) {
-  const options = { repo: 'tt-a1i/archify', out: '' };
+  const options = { repo: 'OWNER/archi-made-easy', out: '' };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--repo') options.repo = argv[++index];

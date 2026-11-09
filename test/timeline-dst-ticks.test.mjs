@@ -6,8 +6,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const cli = fileURLToPath(new URL('../archify/bin/archify.mjs', import.meta.url));
-const renderer = fileURLToPath(new URL('../archify/renderers/timeline/render-timeline.mjs', import.meta.url));
+const cli = fileURLToPath(new URL('../archi-made-easy/bin/archi-made-easy.mjs', import.meta.url));
+const renderer = fileURLToPath(new URL('../archi-made-easy/renderers/timeline/render-timeline.mjs', import.meta.url));
 const hour = 60 * 60 * 1000;
 
 function fixture(timezone, first, last, width = 480) {
@@ -23,7 +23,7 @@ function fixture(timezone, first, last, width = 480) {
 }
 
 function run(t, document) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-timeline-dst-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-timeline-dst-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const input = path.join(directory, 'input.timeline.json');
   const output = path.join(directory, 'output.html');
@@ -32,7 +32,7 @@ function run(t, document) {
   const command = (args) => {
     const result = spawnSync(process.execPath, args, {
       encoding: 'utf8', timeout: 15_000,
-      env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+      env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
     });
     assert.equal(result.status, 0, `${result.error || ''}\n${result.stdout}\n${result.stderr}`);
     return result.stdout;

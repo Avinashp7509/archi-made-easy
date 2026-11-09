@@ -1,6 +1,6 @@
 // Shared only by the website copy controls. A failed browser API must never
 // become a successful UI receipt; the legacy fallback can also fail or throw.
-window.ArchifyClipboard = {
+window.ArchiMadeEasyClipboard = {
   async copy(text, isCurrent = () => true) {
     try {
       if (navigator.clipboard?.writeText) {

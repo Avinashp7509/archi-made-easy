@@ -10,7 +10,7 @@ const repoRoot = fileURLToPath(new URL('../', import.meta.url));
 
 for (const autocrlf of ['true', 'input', 'false']) {
   test(`Git checkout preserves committed text and binary bytes with core.autocrlf=${autocrlf}`, () => {
-    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-checkout-eol-'));
+    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-checkout-eol-'));
     const source = path.join(fixture, 'source');
     const checkout = path.join(fixture, 'checkout');
     const emptyConfig = path.join(fixture, 'empty-git-config');
@@ -34,16 +34,16 @@ for (const autocrlf of ['true', 'input', 'false']) {
       fs.mkdirSync(source);
       runGit(source, ['init', '--quiet', '--template=']);
       runGit(source, ['config', 'core.autocrlf', 'false']);
-      runGit(source, ['config', 'user.name', 'Archify Test']);
-      runGit(source, ['config', 'user.email', 'archify@example.invalid']);
+      runGit(source, ['config', 'user.name', 'Archi-Made-Easy Test']);
+      runGit(source, ['config', 'user.email', 'archi-made-easy@example.invalid']);
       const files = new Map([
         ['.gitattributes', fs.readFileSync(path.join(repoRoot, '.gitattributes'))],
         ['README.md', Buffer.from('# Checkout proof\n文本 stays LF.\n')],
-        ['archify/bin/example.mjs', Buffer.from('export const value = 1;\n')],
+        ['archi-made-easy/bin/example.mjs', Buffer.from('export const value = 1;\n')],
         ['examples/proof.html', Buffer.from('<!doctype html>\n<p>diagram</p>\n')],
         ['scripts/proof.sh', Buffer.from('#!/bin/sh\nprintf "proof"\n')],
         // NUL identifies binary data; embedded CRLF must remain byte-for-byte intact.
-        ['archify.zip', Buffer.from([0x50, 0x4b, 3, 4, 0, 13, 10, 0xff])],
+        ['archi-made-easy.zip', Buffer.from([0x50, 0x4b, 3, 4, 0, 13, 10, 0xff])],
         ['docs/assets/proof.png', Buffer.from([0x89, 0x50, 0x4e, 0x47, 13, 10, 0, 0xff])],
       ]);
       for (const [relative, bytes] of files) {

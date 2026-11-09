@@ -12,7 +12,7 @@ const repoRoot = path.resolve(here, '../../../..');
 const [outputArg, ...extra] = process.argv.slice(2);
 if (!outputArg || extra.length) throw new Error('Usage: node build.mjs <output-directory>');
 const output = path.resolve(outputArg);
-const cli = path.join(repoRoot, 'archify/bin/archify.mjs');
+const cli = path.join(repoRoot, 'archi-made-easy/bin/archi-made-easy.mjs');
 const examples = path.resolve(here, '../examples');
 const stages = ['validate', 'deliver', 'check'];
 const receiptFile = path.join(output, 'prototype-build.json');

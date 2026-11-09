@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/tt-a1i/archify/schemas/explainer.schema.json",
-  "title": "Archify Explainer v1",
+  "$id": "https://github.com/OWNER/archi-made-easy/schemas/explainer.schema.json",
+  "title": "Archi-Made-Easy Explainer v1",
   "type": "object",
   "additionalProperties": false,
   "required": [

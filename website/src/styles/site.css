@@ -1,6 +1,6 @@
 
     /* ══════════════════════════════════════
-       ARCHIFY SITE SYSTEM — shared by every page (prepended by SiteLayout).
+       ARCHI-MADE-EASY SITE SYSTEM — shared by every page (prepended by SiteLayout).
        Night-plate tokens; legacy token names stay so page sheets map onto them.
     ══════════════════════════════════════ */
     :root {
@@ -18,7 +18,7 @@
       --emerald:#059669; --signal:#0d9488; --rose:#e11d48; --violet:#7c3aed;
       --hue-cyan:#0891b2; --hue-emerald:#059669; --hue-violet:#7c3aed; --hue-amber:#d97706; --hue-rose:#e11d48; --hue-orange:#ea580c; --hue-slate:#64748b; --hue-blue:#2563eb;
       --star:#f5a524;
-      --lockup:url("assets/archify-lockup-light.svg");
+      --lockup:url("assets/archi-made-easy-lockup-light.svg");
       color-scheme:light;
     }
     :root[data-theme="dark"] {
@@ -33,7 +33,7 @@
       --emerald:#34d399; --signal:#5eead4; --rose:#fb7185; --violet:#a78bfa;
       --hue-cyan:#22d3ee; --hue-emerald:#34d399; --hue-violet:#a78bfa; --hue-amber:#fbbf24; --hue-rose:#fb7185; --hue-orange:#fb923c; --hue-slate:#94a3b8; --hue-blue:#60a5fa;
       --star:#fbbf24;
-      --lockup:url("assets/archify-lockup-dark.svg");
+      --lockup:url("assets/archi-made-easy-lockup-dark.svg");
       color-scheme:dark;
     }
     :root {

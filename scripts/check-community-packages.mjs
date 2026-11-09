@@ -13,11 +13,11 @@ const rootFlag = process.argv.indexOf('--root');
 const repoRoot = rootFlag === -1 ? scriptRoot : path.resolve(process.argv[rootFlag + 1] || '');
 
 export const PACKAGE_TYPES = Object.freeze(['skill', 'recipe', 'brand-marks', 'locale', 'wrapper']);
-export const REQUIRED_FIELDS = Object.freeze(['name', 'type', 'summary', 'author', 'repository', 'archify', 'schemaVersions']);
+export const REQUIRED_FIELDS = Object.freeze(['name', 'type', 'summary', 'author', 'repository', 'archi-made-easy', 'schemaVersions']);
 const ALLOWED_FIELDS = new Set([...REQUIRED_FIELDS, 'homepage', 'tags', 'evidence']);
 const NAME_PATTERN = /^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/;
 const HTTPS_PATTERN = /^https:\/\/[^\s\\/?#@]+(?:[/?#][^\s\\]*)?$/;
-const ARCHIFY_RANGE_PATTERN = /^(\^|~)\d+\.\d+\.\d+$|^\d+\.\d+\.\d+$|^>=\d+\.\d+\.\d+ <\d+\.\d+\.\d+$/;
+const ARCHI_MADE_EASY_RANGE_PATTERN = /^(\^|~)\d+\.\d+\.\d+$|^\d+\.\d+\.\d+$|^>=\d+\.\d+\.\d+ <\d+\.\d+\.\d+$/;
 const TAG_PATTERN = /^[a-z0-9-]{1,32}$/;
 
 function isPlainObject(value) {
@@ -89,8 +89,8 @@ export function validatePackage(value) {
   }
 
   if (!isHttpsUrl(value.repository)) fail('repository must be an https:// URL.');
-  if (!isString(value.archify) || !ARCHIFY_RANGE_PATTERN.test(value.archify)) {
-    fail('archify must be a version range like ^3.0.1 or >=3.0.0 <4.0.0.');
+  if (!isString(value.archiMadeEasy) || !ARCHI_MADE_EASY_RANGE_PATTERN.test(value.archiMadeEasy)) {
+    fail('archi-made-easy must be a version range like ^3.0.1 or >=3.0.0 <4.0.0.');
   }
 
   if (!Array.isArray(value.schemaVersions) || value.schemaVersions.length === 0) {

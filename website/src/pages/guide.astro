@@ -21,7 +21,7 @@ const { lang = 'en' } = Astro.props;
       <div>
         <div class="lead-label" data-i18n="eyebrow">Question-first diagramming</div>
         <h1 data-i18n-html="headline">Choose the question.<br>Get the <em>right diagram.</em></h1>
-        <p class="lede" data-i18n="lede">Describe what your audience needs to understand. Archify recommends one bounded visual recipe—plus the evidence it must contain, when not to use it, and a prompt you can copy.</p>
+        <p class="lede" data-i18n="lede">Describe what your audience needs to understand. Archi-Made-Easy recommends one bounded visual recipe—plus the evidence it must contain, when not to use it, and a prompt you can copy.</p>
       </div>
       <SupportedDiagrams />
       <div class="metrics" aria-label="Guide metrics">
@@ -60,7 +60,7 @@ const { lang = 'en' } = Astro.props;
     </aside>
   </main>
 
-  <footer><div class="shell"><span data-i18n="footerLeft">Generated from the same recipe source as the Archify CLI.</span><span>archify guide "your scenario"</span><span data-i18n="versionLabel">Scenario guide / development / v{version}</span></div></footer>
+  <footer><div class="shell"><span data-i18n="footerLeft">Generated from the same recipe source as the Archi-Made-Easy CLI.</span><span>archi-made-easy guide "your scenario"</span><span data-i18n="versionLabel">Scenario guide / development / v{version}</span></div></footer>
 
   <script is:inline id="guide-data" type="application/json" set:html={jsonScript(guide)}></script>
   <script is:inline src="assets/site-language.js"></script>

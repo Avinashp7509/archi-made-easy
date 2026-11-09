@@ -13,7 +13,7 @@ const digest = value => createHash('sha256').update(value).digest('hex');
 // Regression ported from #826, with the selected case fixture added and exact
 // original closing-tag bytes checked alongside literal replacement tokens.
 test('SEO insertion preserves replacement tokens in authored gallery copy', t => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-seo-dollar-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-seo-dollar-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   fs.cpSync(new URL('../../docs/cases/', import.meta.url), path.join(root, 'cases'), { recursive: true });
   for (const page of sitePages) for (const lang of ['en', 'zh']) {

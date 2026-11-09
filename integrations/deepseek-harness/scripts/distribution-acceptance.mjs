@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { containedBy, sameEntry } from '../../../archify/renderers/shared/path-semantics.mjs';
+import { containedBy, sameEntry } from '../../../archi-made-easy/renderers/shared/path-semantics.mjs';
 import { spawnCli, spawnCliSync } from './resolve-cli.mjs';
 import { runWithTransientNetworkRetry } from './transient-retry.mjs';
 import { adapterCommit, manifest, release, releaseSnapshot } from './release-source.mjs';
@@ -18,7 +18,7 @@ const PACKAGE_VERSION = manifest.version;
 const DSH_RELEASE_REF = release.sourceCommit;
 const DSH_PACKAGE_NAME = '@deepseek-ai/dsh';
 const DSH_SPEC = `${DSH_PACKAGE_NAME}@${release.dshVersion}`;
-const PROFILE = 'archify-dsh-acceptance';
+const PROFILE = 'archi-made-easy-dsh-acceptance';
 const PREVIOUS_RELEASES = Object.freeze([{
   version: '0.1.0',
   skillVersion: '2.14.0',
@@ -146,8 +146,8 @@ function waitForProbe(child, file, timeoutMs) {
   });
 }
 
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-dsh-acceptance-'));
-const tarball = path.join(scratch, `tt-a1i-archify-dsh-${PACKAGE_VERSION}.tgz`);
+const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-dsh-acceptance-'));
+const tarball = path.join(scratch, `OWNER-archi-made-easy-dsh-${PACKAGE_VERSION}.tgz`);
 const dshHome = path.join(scratch, 'dsh-home');
 const agentsHome = path.join(scratch, 'agents-home');
 const dshRuntime = path.join(scratch, 'dsh-runtime');
@@ -174,7 +174,7 @@ const defaultSkills = [
   fs.writeFileSync(file, `---\nname: ${name}\ndescription: Disposable default-root fixture\n---\n\n${content}\n`);
   return { name, file, contentSha256: createHash('sha256').update(content).digest('hex') };
 });
-const candidateSkills = ['archify', ...defaultSkills.map(({ name }) => name)];
+const candidateSkills = ['archi-made-easy', ...defaultSkills.map(({ name }) => name)];
 
 function cleanup() {
   fs.rmSync(scratch, { recursive: true, force: true });
@@ -232,8 +232,8 @@ const forbidden = packedFiles.filter((file) => (
 if (packedPkg.name !== PACKAGE_NAME || packedPkg.version !== PACKAGE_VERSION || forbidden.length > 0) {
   fail('tarball-inspect', 'packed identity or exclusions failed', { forbidden, packedPkg });
 }
-if (!packedFiles.includes('skills/archify/SKILL.md')) {
-  fail('tarball-inspect', 'packed tarball is missing the clean Archify Skill');
+if (!packedFiles.includes('skills/archi-made-easy/SKILL.md')) {
+  fail('tarball-inspect', 'packed tarball is missing the clean Archi-Made-Easy Skill');
 }
 pass('tarball-inspect', { fileCount: packedFiles.length });
 
@@ -325,35 +325,35 @@ pass('profile-identity', { bundles, dependency: deps[PACKAGE_NAME] });
 const dump = dsh(['--profile', PROFILE, '--dump-config']);
 requireStatus('compose', dump, { command: 'dsh --dump-config' });
 const composed = parseDump(dump.stdout);
-const archifyLayer = composed.layers.find((layer) => layer.name === PACKAGE_NAME);
+const archiMadeEasyLayer = composed.layers.find((layer) => layer.name === PACKAGE_NAME);
 const originalFilesystem = composed.rows.find((row) => row.id === 'skill-filesystem');
-const archifyProvider = composed.rows.find((row) => row.id === 'archify-skill-filesystem');
-const extraProviders = composed.rows.filter((row) => row.config.providerName === 'archify-plugin');
-if (!dump.stdout.includes(`# == ${PACKAGE_NAME}`) || !archifyLayer) {
-  fail('compose', 'composed dump does not include the Archify bundle layer', { layers: composed.layers.map((layer) => layer.name) });
+const archiMadeEasyProvider = composed.rows.find((row) => row.id === 'archi-made-easy-skill-filesystem');
+const extraProviders = composed.rows.filter((row) => row.config.providerName === 'archi-made-easy-plugin');
+if (!dump.stdout.includes(`# == ${PACKAGE_NAME}`) || !archiMadeEasyLayer) {
+  fail('compose', 'composed dump does not include the Archi-Made-Easy bundle layer', { layers: composed.layers.map((layer) => layer.name) });
 }
-if (!originalFilesystem || originalFilesystem.config.providerName === 'archify-plugin') {
+if (!originalFilesystem || originalFilesystem.config.providerName === 'archi-made-easy-plugin') {
   fail('compose', 'original DSH skill-filesystem row was replaced', { originalFilesystem });
 }
-if (!archifyProvider || extraProviders.length !== 1 || archifyLayer.rows.length !== 1) {
-  fail('compose', 'composed config did not insert exactly one Archify Skill provider', {
+if (!archiMadeEasyProvider || extraProviders.length !== 1 || archiMadeEasyLayer.rows.length !== 1) {
+  fail('compose', 'composed config did not insert exactly one Archi-Made-Easy Skill provider', {
     extra: extraProviders.map((row) => row.id),
-    layerRows: archifyLayer.rows.map((row) => row.id),
+    layerRows: archiMadeEasyLayer.rows.map((row) => row.id),
   });
 }
-if (archifyProvider.config.includeDefaultRoots !== true || archifyProvider.config.providerName !== 'archify-plugin') {
-  fail('compose', 'Archify provider does not preserve default Skill roots', { archifyProvider });
+if (archiMadeEasyProvider.config.includeDefaultRoots !== true || archiMadeEasyProvider.config.providerName !== 'archi-made-easy-plugin') {
+  fail('compose', 'Archi-Made-Easy provider does not preserve default Skill roots', { archiMadeEasyProvider });
 }
 pass('compose', {
-  extraIds: archifyLayer.rows.map((row) => row.id),
-  providerName: 'archify-plugin',
+  extraIds: archiMadeEasyLayer.rows.map((row) => row.id),
+  providerName: 'archi-made-easy-plugin',
   includeDefaultRoots: true,
 });
 
 const probePatch = path.join(scratch, 'probe.patch.yml');
 const probeModule = path.join(integrationRoot, 'test', 'probe-skills.mjs');
 fs.writeFileSync(probePatch, `- insert:
-    - id: archify-dsh-skill-probe
+    - id: archi-made-easy-dsh-skill-probe
       name: ${JSON.stringify(pathToFileURL(probeModule).href)}
       inject: [skills]
 `);
@@ -368,10 +368,10 @@ async function probeProfile(profile, stage, { isolated = false, expectedNames = 
     cwd: workspace,
     env: {
       ...dshEnv,
-      ARCHIFY_DSH_PROBE_OUT: probeOut,
+      ARCHI_MADE_EASY_DSH_PROBE_OUT: probeOut,
       // Query the fixture project explicitly, independently of the host process cwd.
-      ARCHIFY_DSH_PROBE_CWD: workspace,
-      ARCHIFY_DSH_PROBE_SKILLS: JSON.stringify(expectedNames),
+      ARCHI_MADE_EASY_DSH_PROBE_CWD: workspace,
+      ARCHI_MADE_EASY_DSH_PROBE_SKILLS: JSON.stringify(expectedNames),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -396,7 +396,7 @@ function verifyDefaultSkills(stage, probe, { isolated = false } = {}) {
     const definition = probe.definitions[fixture.name];
     if (hits.length !== 1 || !definition || definition.contentSha256 !== fixture.contentSha256
       || !definition.path || sameEntry(fixture.file, definition.path).status !== 'match'
-      || (isolated && (hits[0].provider !== 'archify-plugin' || definition.provider !== 'archify-plugin'))) {
+      || (isolated && (hits[0].provider !== 'archi-made-easy-plugin' || definition.provider !== 'archi-made-easy-plugin'))) {
       fail(stage, 'personal/project Skill was not uniquely discovered and loaded from its original root', {
         skill: fixture.name, hits, definition, isolated,
       });
@@ -408,10 +408,10 @@ function verifyDefaultSkills(stage, probe, { isolated = false } = {}) {
 async function verifyIsolatedRoots(profile, stage, includeDefaultRoots) {
   const { probe } = await probeProfile(profile, stage, {
     isolated: true,
-    expectedNames: includeDefaultRoots ? candidateSkills : ['archify'],
+    expectedNames: includeDefaultRoots ? candidateSkills : ['archi-made-easy'],
   });
-  if (!probe.definitions.archify?.contentLength || probe.definitions.archify.provider !== 'archify-plugin') {
-    fail(stage, 'isolated provider did not load Archify', { probe });
+  if (!probe.definitions.archiMadeEasy?.contentLength || probe.definitions.archiMadeEasy.provider !== 'archi-made-easy-plugin') {
+    fail(stage, 'isolated provider did not load Archi-Made-Easy', { probe });
   }
   if (includeDefaultRoots) {
     verifyDefaultSkills(stage, probe, { isolated: true });
@@ -426,23 +426,23 @@ async function verifyIsolatedRoots(profile, stage, includeDefaultRoots) {
 const { probe: probeReceipt, stdout: probeStdout, stderr: probeStderr } = await probeProfile(PROFILE, 'skill-discovery');
 verifyDefaultSkills('default-skill-roots', probeReceipt);
 await verifyIsolatedRoots(PROFILE, 'isolated-default-skill-roots', true);
-const archifyHits = (probeReceipt.skills || []).filter((skill) => skill.name === 'archify');
-if (archifyHits.length !== 1 || archifyHits[0].provider !== 'archify-plugin') {
-  fail('skill-discovery', 'public Skill registry did not discover archify only from archify-plugin', {
+const archiMadeEasyHits = (probeReceipt.skills || []).filter((skill) => skill.name === 'archi-made-easy');
+if (archiMadeEasyHits.length !== 1 || archiMadeEasyHits[0].provider !== 'archi-made-easy-plugin') {
+  fail('skill-discovery', 'public Skill registry did not discover archi-made-easy only from archi-made-easy-plugin', {
     probeReceipt,
     stdout: probeStdout,
     stderr: probeStderr,
   });
 }
-pass('skill-discovery', { provider: 'archify-plugin' });
+pass('skill-discovery', { provider: 'archi-made-easy-plugin' });
 
-if (!probeReceipt.definitions.archify?.contentLength || probeReceipt.definitions.archify.provider !== 'archify-plugin') {
-  fail('skill-load', 'full Skill definition was not loaded', { definition: probeReceipt.definitions.archify });
+if (!probeReceipt.definitions.archiMadeEasy?.contentLength || probeReceipt.definitions.archiMadeEasy.provider !== 'archi-made-easy-plugin') {
+  fail('skill-load', 'full Skill definition was not loaded', { definition: probeReceipt.definitions.archiMadeEasy });
 }
-pass('skill-load', { contentLength: probeReceipt.definitions.archify.contentLength });
+pass('skill-load', { contentLength: probeReceipt.definitions.archiMadeEasy.contentLength });
 
-const resourcePath = probeReceipt.definitions.archify.resourceBase?.path || probeReceipt.definitions.archify.path;
-const installedPackage = path.join(profileDir, 'node_modules', '@tt-a1i', 'archify-dsh');
+const resourcePath = probeReceipt.definitions.archiMadeEasy.resourceBase?.path || probeReceipt.definitions.archiMadeEasy.path;
+const installedPackage = path.join(profileDir, 'node_modules', '@tt-a1i', 'archi-made-easy-dsh');
 let resourceReal;
 let packageReal;
 try {
@@ -454,7 +454,7 @@ try {
 const resourceContainment = containedBy(packageReal, resourceReal);
 const expectedResourceRoots = [
   path.join(packageReal, 'skills'),
-  path.join(packageReal, 'skills', 'archify'),
+  path.join(packageReal, 'skills', 'archi-made-easy'),
 ];
 const expectedResource = expectedResourceRoots.some((candidate) => (
   fs.existsSync(candidate) && sameEntry(candidate, resourceReal).status === 'match'
@@ -470,22 +470,22 @@ pass('resource-base', { resourcePath: resourceReal });
 
 const skillRoot = fs.existsSync(path.join(resourceReal, 'SKILL.md'))
   ? resourceReal
-  : path.join(resourceReal, 'archify');
+  : path.join(resourceReal, 'archi-made-easy');
 // Exercise the installed CLI without writing into the package manager's store.
-const installedCli = path.join(skillRoot, 'bin', 'archify.mjs');
+const installedCli = path.join(skillRoot, 'bin', 'archi-made-easy.mjs');
 for (const args of [['doctor'], ['demo', path.join(workspace, 'installed-smoke')]]) {
   const installedSmoke = run(process.execPath, [installedCli, ...args], {
     cwd: workspace,
     timeout: 120_000,
   });
-  requireStatus('installed-skill-smoke', installedSmoke, { command: `installed archify ${args[0]}` });
+  requireStatus('installed-skill-smoke', installedSmoke, { command: `installed archi-made-easy ${args[0]}` });
 }
 pass('installed-skill-smoke', { skillRoot, commands: ['doctor', 'demo'] });
 
 const sourceSnapshot = path.join(scratch, 'release-source');
 releaseSnapshot(sourceSnapshot);
 // The source's full package smoke rewrites bundled example HTML. pnpm may
-// hard-link those files to its content store, and Archify correctly refuses
+// hard-link those files to its content store, and Archi-Made-Easy correctly refuses
 // to replace a multiply linked output. Copy the installed bytes into an owned
 // scratch tree for this mutating suite; keep the actual installation intact.
 const smokeRoot = path.join(scratch, 'smoke-skill');
@@ -507,7 +507,7 @@ pass('package-smoke', {
 // A new bundle must not be mistaken for the effective Skill when an older
 // personal/project copy has precedence. Use a real historical Skill body,
 // only in disposable roots, and restart the host for each observation.
-const oldSkillSource = run('git', ['show', '7158026e852f3aa6578c741e673b46d7878c92c1:archify/SKILL.md'], { cwd: repoRoot });
+const oldSkillSource = run('git', ['show', '7158026e852f3aa6578c741e673b46d7878c92c1:archi-made-easy/SKILL.md'], { cwd: repoRoot });
 requireStatus('shadowing-source', oldSkillSource);
 // The pinned CLI host loads the frontmatter-free, trimmed Markdown body.
 // Hash that expected historical body independently of the host probe; hashing
@@ -515,14 +515,14 @@ requireStatus('shadowing-source', oldSkillSource);
 // A host parser change requires reviewing this exact-host contract, not weakening
 // the loaded-body/path checks or copying the observed hash into the expectation.
 const oldBody = oldSkillSource.stdout.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').trim();
-const personalShadow = path.join(agentsHome, 'skills', 'archify');
-const projectShadow = path.join(workspace, '.agents', 'skills', 'archify');
+const personalShadow = path.join(agentsHome, 'skills', 'archi-made-easy');
+const projectShadow = path.join(workspace, '.agents', 'skills', 'archi-made-easy');
 async function verifyShadow(stage, expectedFile, expectedHash) {
   const { probe } = await probeProfile(PROFILE, stage);
-  const definition = probe.definitions.archify;
+  const definition = probe.definitions.archiMadeEasy;
   if (!definition?.path || sameEntry(expectedFile, definition.path).status !== 'match'
     || definition.contentSha256 !== expectedHash) {
-    fail(stage, 'effective Archify body/path does not match the expected precedence', { definition, expectedFile });
+    fail(stage, 'effective Archi-Made-Easy body/path does not match the expected precedence', { definition, expectedFile });
   }
   pass(stage, { effectivePath: definition.path, contentSha256: definition.contentSha256 });
 }
@@ -540,8 +540,8 @@ fs.writeFileSync(path.join(projectShadow, 'SKILL.md'), oldSkillSource.stdout);
 await verifyShadow('shadowing-project-over-personal', path.join(projectShadow, 'SKILL.md'), oldBodyHash);
 fs.rmSync(projectShadow, { recursive: true });
 fs.rmSync(personalShadow, { recursive: true });
-await verifyShadow('shadowing-removal-restores-bundle', probeReceipt.definitions.archify.path,
-  probeReceipt.definitions.archify.contentSha256);
+await verifyShadow('shadowing-removal-restores-bundle', probeReceipt.definitions.archiMadeEasy.path,
+  probeReceipt.definitions.archiMadeEasy.contentSha256);
 
 const remove = dsh(['plugin', '--profile', PROFILE, 'remove', PACKAGE_NAME], { timeout: PLUGIN_MUTATION_TIMEOUT });
 requireStatus('uninstall', remove, { command: `dsh plugin --profile ${PROFILE} remove ${PACKAGE_NAME}` });
@@ -555,24 +555,24 @@ pass('uninstall', { bundles: removedManifest.dsh?.profile?.bundles || [] });
 const baseBootDump = dsh(['--profile', PROFILE, '--dump-config']);
 requireStatus('base-profile', baseBootDump, { command: 'dsh --dump-config after uninstall' });
 const leftover = parseDump(baseBootDump.stdout).rows.filter((row) => (
-  row.id === 'archify-skill-filesystem' || row.config.providerName === 'archify-plugin'
+  row.id === 'archi-made-easy-skill-filesystem' || row.config.providerName === 'archi-made-easy-plugin'
 ));
 if (leftover.length > 0) {
-  fail('base-profile', 'uninstalled profile still contains the Archify provider', { leftover });
+  fail('base-profile', 'uninstalled profile still contains the Archi-Made-Easy provider', { leftover });
 }
 pass('base-profile', { bundles: removedManifest.dsh?.profile?.bundles || [] });
 
 // Exercise an existing published installation independently of the clean
 // installation above. Pin its registry bytes, not just an npm dist-tag.
 for (const PREVIOUS_RELEASE of PREVIOUS_RELEASES) {
-  const UPGRADE_PROFILE = `archify-dsh-upgrade-${PREVIOUS_RELEASE.version}`;
+  const UPGRADE_PROFILE = `archi-made-easy-dsh-upgrade-${PREVIOUS_RELEASE.version}`;
   const previousSpec = `${PACKAGE_NAME}@${PREVIOUS_RELEASE.version}`;
   const previousPack = runWithTransientNetworkRetry(() => run('npm', [
     'pack', previousSpec, '--ignore-scripts', '--json',
     '--registry=https://registry.npmjs.org', '--pack-destination', scratch,
   ], { cwd: scratch, env: dshEnv, timeout: 120_000 }));
   requireStatus(`upgrade-baseline-download-${PREVIOUS_RELEASE.version}`, previousPack.result, { command: `npm pack ${previousSpec}` });
-  const previousTarball = path.join(scratch, `tt-a1i-archify-dsh-${PREVIOUS_RELEASE.version}.tgz`);
+  const previousTarball = path.join(scratch, `OWNER-archi-made-easy-dsh-${PREVIOUS_RELEASE.version}.tgz`);
   const previousIntegrity = `sha512-${createHash('sha512').update(fs.readFileSync(previousTarball)).digest('base64')}`;
   if (previousIntegrity !== PREVIOUS_RELEASE.integrity) {
     fail(`upgrade-baseline-download-${PREVIOUS_RELEASE.version}`, 'published baseline tarball integrity mismatch', { previousIntegrity });
@@ -584,9 +584,9 @@ for (const PREVIOUS_RELEASE of PREVIOUS_RELEASES) {
 
   async function verifyUpgradeProfile(stage, version, skillVersion, expectedRoot, includeDefaultRoots) {
     const root = path.join(dshHome, 'profiles', UPGRADE_PROFILE);
-    const installed = path.join(root, 'node_modules', '@tt-a1i', 'archify-dsh');
+    const installed = path.join(root, 'node_modules', '@tt-a1i', 'archi-made-easy-dsh');
     const pkg = JSON.parse(fs.readFileSync(path.join(installed, 'package.json'), 'utf8'));
-    const skill = path.join(installed, 'skills', 'archify');
+    const skill = path.join(installed, 'skills', 'archi-made-easy');
     const skillPkg = JSON.parse(fs.readFileSync(path.join(skill, 'package.json'), 'utf8'));
     if (pkg.name !== PACKAGE_NAME || pkg.version !== version || skillPkg.version !== skillVersion) {
       fail(stage, 'installed upgrade identity mismatch', { version: pkg.version, skillVersion: skillPkg.version });
@@ -599,23 +599,23 @@ for (const PREVIOUS_RELEASE of PREVIOUS_RELEASES) {
     const config = dsh(['--profile', UPGRADE_PROFILE, '--dump-config']);
     requireStatus(stage, config);
     const rows = parseDump(config.stdout).rows;
-    const providers = rows.filter((row) => row.config.providerName === 'archify-plugin');
+    const providers = rows.filter((row) => row.config.providerName === 'archi-made-easy-plugin');
     if (providers.length !== 1 || providers[0].config.includeDefaultRoots !== includeDefaultRoots
-      || !rows.some((row) => row.id === 'skill-filesystem' && row.config.providerName !== 'archify-plugin')) {
+      || !rows.some((row) => row.id === 'skill-filesystem' && row.config.providerName !== 'archi-made-easy-plugin')) {
       fail(stage, 'upgrade duplicated the provider, replaced the base Skill provider, or has the wrong default-root policy');
     }
     const { probe } = await probeProfile(UPGRADE_PROFILE, stage, {
-      expectedNames: includeDefaultRoots ? candidateSkills : ['archify'],
+      expectedNames: includeDefaultRoots ? candidateSkills : ['archi-made-easy'],
     });
-    const hits = (probe.skills || []).filter((entry) => entry.name === 'archify');
-    const resource = probe.definitions.archify?.resourceBase?.path || probe.definitions.archify?.path;
+    const hits = (probe.skills || []).filter((entry) => entry.name === 'archi-made-easy');
+    const resource = probe.definitions.archiMadeEasy?.resourceBase?.path || probe.definitions.archiMadeEasy?.path;
     const expectedRoots = [path.join(installed, 'skills'), skill];
-    if (hits.length !== 1 || hits[0].provider !== 'archify-plugin'
-      || !probe.definitions.archify?.contentLength || probe.definitions.archify.provider !== 'archify-plugin'
+    if (hits.length !== 1 || hits[0].provider !== 'archi-made-easy-plugin'
+      || !probe.definitions.archiMadeEasy?.contentLength || probe.definitions.archiMadeEasy.provider !== 'archi-made-easy-plugin'
       || !resource || !expectedRoots.some((entry) => sameEntry(entry, resource).status === 'match')) {
-      fail(stage, 'upgrade did not discover and load exactly one installed Archify Skill', { probe });
+      fail(stage, 'upgrade did not discover and load exactly one installed Archi-Made-Easy Skill', { probe });
     }
-    pass(stage, { version, skillVersion, provider: 'archify-plugin', includeDefaultRoots, fileCount: expectedFiles.length });
+    pass(stage, { version, skillVersion, provider: 'archi-made-easy-plugin', includeDefaultRoots, fileCount: expectedFiles.length });
     if (includeDefaultRoots) verifyDefaultSkills(`${stage}-default-roots`, probe);
     await verifyIsolatedRoots(UPGRADE_PROFILE, `${stage}-isolated-roots`, includeDefaultRoots);
     return skill;
@@ -632,7 +632,7 @@ for (const PREVIOUS_RELEASE of PREVIOUS_RELEASES) {
   const upgradedSkill = await verifyUpgradeProfile(`plugin-upgrade-load-${PREVIOUS_RELEASE.version}`, PACKAGE_VERSION, release.skillVersion,
     path.join(inspectRoot, 'package'), true);
   for (const args of [['doctor'], ['demo', path.join(workspace, 'upgraded-smoke')]]) {
-    requireStatus(`upgraded-skill-smoke-${PREVIOUS_RELEASE.version}`, run(process.execPath, [path.join(upgradedSkill, 'bin', 'archify.mjs'), ...args], {
+    requireStatus(`upgraded-skill-smoke-${PREVIOUS_RELEASE.version}`, run(process.execPath, [path.join(upgradedSkill, 'bin', 'archi-made-easy.mjs'), ...args], {
       cwd: workspace,
       timeout: 120_000,
     }));
@@ -646,17 +646,17 @@ for (const PREVIOUS_RELEASE of PREVIOUS_RELEASES) {
   requireStatus(`upgrade-uninstall-${PREVIOUS_RELEASE.version}`, afterUpgradeDump);
   const afterRows = parseDump(afterUpgradeDump.stdout).rows;
   if (afterUpgrade.dependencies?.[PACKAGE_NAME] || (afterUpgrade.dsh?.profile?.bundles || []).includes(PACKAGE_NAME)
-    || afterRows.some((row) => row.id === 'archify-skill-filesystem' || row.config.providerName === 'archify-plugin')
+    || afterRows.some((row) => row.id === 'archi-made-easy-skill-filesystem' || row.config.providerName === 'archi-made-easy-plugin')
     || !afterRows.some((row) => row.id === 'skill-filesystem')) {
     fail(`upgrade-uninstall-${PREVIOUS_RELEASE.version}`, 'upgraded plugin did not uninstall cleanly while preserving the base profile');
   }
   pass(`upgrade-uninstall-${PREVIOUS_RELEASE.version}`, { profile: UPGRADE_PROFILE, bundles: afterUpgrade.dsh?.profile?.bundles || [] });
 }
 
-const zipBlob = run('git', ['hash-object', 'archify.zip'], { cwd: repoRoot });
-const pkgBlob = run('git', ['hash-object', 'archify/package.json'], { cwd: repoRoot });
+const zipBlob = run('git', ['hash-object', 'archi-made-easy.zip'], { cwd: repoRoot });
+const pkgBlob = run('git', ['hash-object', 'archi-made-easy/package.json'], { cwd: repoRoot });
 const skipFreshZipRebuild = process.platform === 'win32';
-const committedZip = path.join(repoRoot, 'archify.zip');
+const committedZip = path.join(repoRoot, 'archi-made-easy.zip');
 let unzipContentsIdentical = 'not-asserted';
 let canonicalZipBytes = 'not-asserted';
 if (skipFreshZipRebuild) {
@@ -667,7 +667,7 @@ if (skipFreshZipRebuild) {
   requireStatus('zero-regression', run('tar', ['-xf', 'committed.zip'], { cwd: checkedDir }));
   const currentSmoke = run(process.execPath, [
     path.join(repoRoot, 'scripts', 'package-smoke.mjs'),
-    path.join(checkedDir, 'archify'),
+    path.join(checkedDir, 'archi-made-easy'),
   ], { cwd: repoRoot, timeout: 120_000 });
   requireStatus('zero-regression', currentSmoke, { command: 'current package-smoke.mjs <committed-zip-skill-root>' });
   unzipContentsIdentical = 'not-asserted-on-windows';
@@ -680,7 +680,7 @@ if (skipFreshZipRebuild) {
   fs.mkdirSync(checkedDir);
   requireStatus('zero-regression', run('unzip', ['-q', freshZip, '-d', freshDir]));
   requireStatus('zero-regression', run('unzip', ['-q', committedZip, '-d', checkedDir]));
-  const unzipDiff = run('diff', ['-r', path.join(freshDir, 'archify'), path.join(checkedDir, 'archify')]);
+  const unzipDiff = run('diff', ['-r', path.join(freshDir, 'archi-made-easy'), path.join(checkedDir, 'archi-made-easy')]);
   if (unzipDiff.status !== 0) {
     fail('zero-regression', 'fresh ZIP contents drifted from the committed ZIP', { diff: unzipDiff.stdout });
   }
@@ -695,8 +695,8 @@ if (skipFreshZipRebuild) {
 const skillsList = run('npx', ['-y', 'skills', 'add', repoRoot, '--list', '--full-depth'], { cwd: repoRoot, timeout: 120_000 });
 requireStatus('zero-regression', skillsList, { command: 'npx skills add --list --full-depth' });
 pass('zero-regression', {
-  archifyZipBlob: zipBlob.stdout.trim(),
-  archifyPackageBlob: pkgBlob.stdout.trim(),
+  archiMadeEasyZipBlob: zipBlob.stdout.trim(),
+  archiMadeEasyPackageBlob: pkgBlob.stdout.trim(),
   unzipContentsIdentical,
   canonicalZipBytes,
   crossPlatformZipCheck: 'extracted-content',

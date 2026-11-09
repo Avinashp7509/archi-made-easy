@@ -73,16 +73,16 @@ test('community catalog: navigation, language toggle and disclaimer are present'
   const bases = elements(dom, 'base');
   assert.equal(bases.length, 1);
   assert.equal(attr(bases[0], 'href'), './');
-  const baseUri = new URL(attr(bases[0], 'href'), 'https://tt-a1i.github.io/archify/community.html');
+  const baseUri = new URL(attr(bases[0], 'href'), 'https://OWNER.github.io/archi-made-easy/community.html');
   const links = elements(dom, 'a').map(node => new URL(attr(node, 'href'), baseUri).pathname);
-  assert.ok(links.includes('/archify/community.html'), 'primary navigation must link to the catalog under the Pages base');
+  assert.ok(links.includes('/archi-made-easy/community.html'), 'primary navigation must link to the catalog under the Pages base');
   const languageButton = elements(dom, 'a').find((node) => attr(node, 'id') === 'language');
   assert.ok(languageButton, 'language route link must be present');
-  assert.equal(new URL(attr(languageButton, 'href'), baseUri).href, 'https://tt-a1i.github.io/archify/zh/community.html');
+  assert.equal(new URL(attr(languageButton, 'href'), baseUri).href, 'https://OWNER.github.io/archi-made-easy/zh/community.html');
   assert.equal(attr(languageButton, 'hreflang'), 'zh-Hans');
   const html = fs.readFileSync(path.join(dist, 'community.html'), 'utf8');
   assert.match(html, /Listing is not endorsement/, 'must carry the no-endorsement disclaimer');
-  const submission = elements(dom, 'a').find((node) => (attr(node, 'href') || '').includes('github.com/tt-a1i/archify/tree/main/community'));
+  const submission = elements(dom, 'a').find((node) => (attr(node, 'href') || '').includes('github.com/OWNER/archi-made-easy/tree/main/community'));
   assert.ok(submission, 'must link to the submission guide');
 });
 

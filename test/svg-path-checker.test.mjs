@@ -6,10 +6,10 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { after, test } from 'node:test';
 
-const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archify');
+const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archi-made-easy');
 const checker = path.join(skillRoot, 'scripts/check-render-output.mjs');
-const cli = path.join(skillRoot, 'bin/archify.mjs');
-const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-svg-path-checker-'));
+const cli = path.join(skillRoot, 'bin/archi-made-easy.mjs');
+const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-svg-path-checker-'));
 const deadlineMs = process.platform === 'win32' ? 10000 : 3000;
 let sequence = 0;
 after(() => fs.rmSync(scratch, { recursive: true, force: true }));
@@ -42,7 +42,7 @@ async function execute(t, args, description, timeoutMs = deadlineMs) {
   const child = spawn(process.execPath, args, {
     detached: process.platform !== 'win32',
     stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+    env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
   });
   let stdout = '', stderr = '', timedOut = false, exited = false, spawnError, cleanupError;
   child.stdout.on('data', chunk => { stdout += chunk; });

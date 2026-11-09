@@ -7,8 +7,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-animation-'));
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-animation-'));
 
 const CASES = {
   architecture: 'web-app.architecture.json',
@@ -73,11 +73,11 @@ test('signal-flow preset reaches the page, SVG, and motion export surface', () =
   assert.match(html, /data-preset-badge-signal-flow="SIGNAL FLOW"/);
   assert.match(html, /data-format="webm"/);
   assert.match(html, /data-last-motion-bytes/);
-  assert.match(html, /Archify\.motion = \{ canRecord: canRecordMotion, recordWebm: recordWebm \}/);
+  assert.match(html, /ArchiMadeEasy\.motion = \{ canRecord: canRecordMotion, recordWebm: recordWebm \}/);
   assert.match(html, /recorder\.requestData\(\)/);
   assert.match(html, /aria-label="Diagram view controls"/);
-  assert.match(html, /Archify\.focus = \(function \(\)/);
-  assert.match(html, /Archify\.view = \(function \(\)/);
+  assert.match(html, /ArchiMadeEasy\.focus = \(function \(\)/);
+  assert.match(html, /ArchiMadeEasy\.view = \(function \(\)/);
   assert.match(html, /clone\.style\.removeProperty\('transform'\)/);
   assert.match(html, /clone\.removeAttribute\('data-view-scale'\)/);
   assert.match(html, /data-last-export-canonical/);
@@ -130,7 +130,7 @@ test('editorial preset reaches every visual surface and all five typed renderers
     assert.match(html, /content: attr\(data-preset-badge-editorial\)/, mode);
     assert.match(html, /data-preset-badge-editorial="EDITORIAL \/ FIELD NOTE"/, mode);
     assert.match(html, /content: attr\(data-preset-badge-editorial-plate\)/, mode);
-    assert.match(html, /data-preset-badge-editorial-plate="ARCHIFY \/ PLATE 04"/, mode);
+    assert.match(html, /data-preset-badge-editorial-plate="ARCHI-MADE-EASY \/ PLATE 04"/, mode);
     assert.match(html, /\[data-preset="editorial"\]\[data-theme="dark"\]/, mode);
     assert.match(html, /html\[data-preset="editorial"\] \.diagram-container/, mode);
   }
@@ -169,9 +169,9 @@ for (const [mode, example] of Object.entries(CASES)) {
     assert.match(svg, /<svg[^>]+data-animation="trace"/);
     assert.match(svg, /data-animate="edge" style="--step:0"/);
     assert.match(svg, /data-animate="node" style="--step:0"/);
-    assert.match(svg, /aria-labelledby="archify-diagram-title archify-diagram-description"/);
-    assert.match(svg, /<title id="archify-diagram-title">[^<]+<\/title>/);
-    assert.match(svg, /<desc id="archify-diagram-description">[^<]+<\/desc>/);
+    assert.match(svg, /aria-labelledby="archi-made-easy-diagram-title archi-made-easy-diagram-description"/);
+    assert.match(svg, /<title id="archi-made-easy-diagram-title">[^<]+<\/title>/);
+    assert.match(svg, /<desc id="archi-made-easy-diagram-description">[^<]+<\/desc>/);
     assert.match(svg, /id="node-[^"]+" data-node-id="[^"]+"[^>]+role="button"[^>]+aria-pressed="false"/);
     assert.match(svg, /data-edge-from="[^"]+" data-edge-to="[^"]+"/);
   });
@@ -189,7 +189,7 @@ test('Live relay ships comet layers whose timing the Motion Governor plans', () 
   for (const layer of ['wake', 'glow', 'halo', 'tail', 'head', 'ripple']) {
     assert.match(html, new RegExp(`\\.ambient-flow-${layer} \\{`));
   }
-  assert.match(html, /@keyframes archify-node-enter/);
+  assert.match(html, /@keyframes archi-made-easy-node-enter/);
   assert.match(html, /--flow-cycle: 6\.4s/);
   assert.match(html, /html\[data-theme="light"\] svg\[data-animation="trace"\] \{/);
   assert.match(html, /html\[data-theme="light"\] \.ambient-flow-head \{/);
@@ -197,9 +197,9 @@ test('Live relay ships comet layers whose timing the Motion Governor plans', () 
   // cascade, echo comet or load-time trace layer remains.
   assert.match(html, /function planRelay\(records, windows\)/);
   assert.match(html, /animation-name: var\(--flow-name, none\)/);
-  assert.doesNotMatch(html, /archify-cascade-|archify-flow-ripple-echo|tail echo|--flow-step-delay/);
-  assert.doesNotMatch(html, /archify-ambient-flow|--ambient-flow-duration/);
-  assert.doesNotMatch(html, /ambient-flow-trace|archify-trace-in|archify-trace-fade/);
+  assert.doesNotMatch(html, /archi-made-easy-cascade-|archi-made-easy-flow-ripple-echo|tail echo|--flow-step-delay/);
+  assert.doesNotMatch(html, /archi-made-easy-ambient-flow|--ambient-flow-duration/);
+  assert.doesNotMatch(html, /ambient-flow-trace|archi-made-easy-trace-in|archi-made-easy-trace-fade/);
 });
 
 process.on('exit', () => fs.rmSync(tmp, { recursive: true, force: true }));

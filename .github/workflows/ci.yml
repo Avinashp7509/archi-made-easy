@@ -77,9 +77,9 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            archify/package-lock.json
+            archi-made-easy/package-lock.json
       - name: Install regression dependencies
-        run: npm ci && npm --prefix archify ci
+        run: npm ci && npm --prefix archi-made-easy ci
       # Reuse a shard's installed runtime instead of bootstrapping after all
       # shards finish. These checks still run exactly once in complete CI.
       - name: Generated outputs and representative goldens
@@ -117,10 +117,10 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            archify/package-lock.json
+            archi-made-easy/package-lock.json
       - name: Install renderer dependencies
         if: needs.scope.outputs.scope != 'docs'
-        run: npm ci && npm --prefix archify ci
+        run: npm ci && npm --prefix archi-made-easy ci
       - name: Supported Node runtime compatibility
         if: needs.scope.outputs.scope != 'docs'
         run: npm run test:compat
@@ -159,10 +159,10 @@ jobs:
           cache: npm
           cache-dependency-path: |
             package-lock.json
-            archify/package-lock.json
+            archi-made-easy/package-lock.json
       - name: Install renderer dependencies
         if: needs.scope.outputs.scope == 'core'
-        run: npm ci && npm --prefix archify ci
+        run: npm ci && npm --prefix archi-made-easy ci
       - name: Core public CLI contracts
         if: needs.scope.outputs.scope == 'core'
         run: npm test
@@ -208,13 +208,13 @@ jobs:
           install-dependencies: true
       - name: Install browser test dependencies
         if: needs.scope.outputs.browser == 'true'
-        run: npm ci --ignore-scripts --no-audit --no-fund && npm --prefix archify ci --ignore-scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund && npm --prefix archi-made-easy ci --ignore-scripts
       - name: Run shared browser regression gate
         if: needs.scope.outputs.browser == 'true'
         run: npm run test:browser -- --shard=${{ matrix.shard }}/2
         env:
-          ARCHIFY_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
-          ARCHIFY_CHROME_NO_SANDBOX: '1'
+          ARCHI_MADE_EASY_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
+          ARCHI_MADE_EASY_CHROME_NO_SANDBOX: '1'
 
   webm-decode:
     needs: scope
@@ -250,7 +250,7 @@ jobs:
         if: needs.scope.outputs.webm == 'true'
         run: npm run test:webm
         env:
-          ARCHIFY_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
+          ARCHI_MADE_EASY_CHROME: ${{ steps.setup-chrome.outputs.chrome-path }}
 
   webm-artifact:
     needs: [scope, browser-regression, webm-decode]
@@ -290,12 +290,12 @@ jobs:
         if: needs.scope.outputs.package == 'true'
         with:
           node-version: 22
-      - name: Rebuild archify.zip and compare exact bytes
+      - name: Rebuild archi-made-easy.zip and compare exact bytes
         if: needs.scope.outputs.package == 'true'
         run: |
           scripts/build-zip.sh /tmp/fresh.zip
-          if ! cmp -s /tmp/fresh.zip archify.zip; then
-            echo '::error::archify.zip is stale — run scripts/build-zip.sh and commit the result'
+          if ! cmp -s /tmp/fresh.zip archi-made-easy.zip; then
+            echo '::error::archi-made-easy.zip is stale — run scripts/build-zip.sh and commit the result'
             exit 1
           fi
 
@@ -325,30 +325,30 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          manifest_version="$(node --input-type=module -e 'import fs from "node:fs"; import { validateStableUpdateManifest } from "./archify/scripts/update-contract.mjs"; process.stdout.write(validateStableUpdateManifest(JSON.parse(fs.readFileSync("./docs/skill-updates/archify/stable.json", "utf8"))).version);')"
-          # Independent adapter releases such as archify-dsh-v1.1.0 are stable
+          manifest_version="$(node --input-type=module -e 'import fs from "node:fs"; import { validateStableUpdateManifest } from "./archi-made-easy/scripts/update-contract.mjs"; process.stdout.write(validateStableUpdateManifest(JSON.parse(fs.readFileSync("./docs/skill-updates/archi-made-easy/stable.json", "utf8"))).version);')"
+          # Independent adapter releases such as archi-made-easy-dsh-v1.1.0 are stable
           # GitHub releases too, so releases/latest can name them instead of the
-          # Archify Skill. Select the newest release whose tag is an Archify
+          # Archi-Made-Easy Skill. Select the newest release whose tag is an Archi-Made-Easy
           # v<major>.<minor>.<patch> tag.
           latest_stable_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" --jq '[.[] | select(.draft == false and .prerelease == false) | select(.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))][0].tag_name')"
           if [[ "$latest_stable_tag" != "v${manifest_version}" ]]; then
             echo "::error::stable.json v${manifest_version} must match the latest published stable Release ${latest_stable_tag:-'(missing)'}"
             exit 1
           fi
-          release_asset_id="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/v${manifest_version}" --jq 'select(.draft == false and .prerelease == false) | .assets[] | select(.name == "archify.zip") | .id')"
+          release_asset_id="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/v${manifest_version}" --jq 'select(.draft == false and .prerelease == false) | .assets[] | select(.name == "archi-made-easy.zip") | .id')"
           if [[ -z "$release_asset_id" ]]; then
-            echo "::error::v${manifest_version} must have a published stable GitHub Release with an archify.zip asset before stable.json is merged"
+            echo "::error::v${manifest_version} must have a published stable GitHub Release with an archi-made-easy.zip asset before stable.json is merged"
             exit 1
           fi
-          published_archive="$RUNNER_TEMP/archify-v${manifest_version}.zip"
+          published_archive="$RUNNER_TEMP/archi-made-easy-v${manifest_version}.zip"
           gh api "repos/${GITHUB_REPOSITORY}/releases/assets/${release_asset_id}" \
             -H 'Accept: application/octet-stream' > "$published_archive"
           git fetch --force --no-tags --depth=1 origin \
             "refs/tags/v${manifest_version}:refs/tags/v${manifest_version}"
-          tagged_archive="$RUNNER_TEMP/archify-tag-v${manifest_version}.zip"
-          git show "v${manifest_version}:archify.zip" > "$tagged_archive"
+          tagged_archive="$RUNNER_TEMP/archi-made-easy-tag-v${manifest_version}.zip"
+          git show "v${manifest_version}:archi-made-easy.zip" > "$tagged_archive"
           if ! cmp -s "$published_archive" "$tagged_archive"; then
-            echo "::error::the published archify.zip asset must byte-match archify.zip committed at v${manifest_version}"
+            echo "::error::the published archi-made-easy.zip asset must byte-match archi-made-easy.zip committed at v${manifest_version}"
             exit 1
           fi
           node scripts/check-stable-update-manifest.mjs \
@@ -357,12 +357,12 @@ jobs:
             --source-ref "v${manifest_version}"
           if git cat-file -e "v${manifest_version}:scripts/stage-clean-skill.mjs" 2>/dev/null \
             && git cat-file -e "v${manifest_version}:scripts/write-deterministic-zip.mjs" 2>/dev/null; then
-            tag_checkout="$RUNNER_TEMP/archify-tag-v${manifest_version}"
-            rebuilt_archive="$RUNNER_TEMP/archify-rebuilt-v${manifest_version}.zip"
+            tag_checkout="$RUNNER_TEMP/archi-made-easy-tag-v${manifest_version}"
+            rebuilt_archive="$RUNNER_TEMP/archi-made-easy-rebuilt-v${manifest_version}.zip"
             git worktree add --detach "$tag_checkout" "v${manifest_version}"
             "$tag_checkout/scripts/build-zip.sh" "$rebuilt_archive"
             if ! cmp -s "$rebuilt_archive" "$tagged_archive"; then
-              echo "::error::archify.zip committed at v${manifest_version} is not the deterministic build of that tag"
+              echo "::error::archi-made-easy.zip committed at v${manifest_version} is not the deterministic build of that tag"
               exit 1
             fi
           elif [[ "$manifest_version" == "2.15.0" ]]; then
@@ -401,23 +401,23 @@ jobs:
         if: needs.scope.outputs.package == 'true' && (runner.os != 'Windows')
         run: |
           set -euo pipefail
-          package_root="$RUNNER_TEMP/archify-package"
+          package_root="$RUNNER_TEMP/archi-made-easy-package"
           rm -rf "$package_root"
           mkdir -p "$package_root"
-          unzip -q archify.zip -d "$package_root"
+          unzip -q archi-made-easy.zip -d "$package_root"
       - name: Extract packaged skill
         if: needs.scope.outputs.package == 'true' && (runner.os == 'Windows')
         shell: pwsh
         run: |
-          $packageRoot = Join-Path $env:RUNNER_TEMP 'archify-package'
+          $packageRoot = Join-Path $env:RUNNER_TEMP 'archi-made-easy-package'
           if (Test-Path $packageRoot) { Remove-Item -Recurse -Force $packageRoot }
-          Expand-Archive -Path archify.zip -DestinationPath $packageRoot
+          Expand-Archive -Path archi-made-easy.zip -DestinationPath $packageRoot
       - name: Validate packaged skill without installing dependencies
         if: needs.scope.outputs.package == 'true'
         run: node scripts/package-smoke.mjs
       - name: Install delivery-lock test dependencies
         if: needs.scope.outputs.windows == 'true' && runner.os != 'Linux'
-        run: npm ci --ignore-scripts && npm --prefix archify ci --ignore-scripts
+        run: npm ci --ignore-scripts && npm --prefix archi-made-easy ci --ignore-scripts
       - name: Verify delivery-lock ownership with real subprocesses
         if: needs.scope.outputs.windows == 'true' && runner.os != 'Linux'
         run: >-
@@ -461,24 +461,24 @@ jobs:
         run: npm run test:browser
         working-directory: website
         env:
-          ARCHIFY_SITE_ROOT: ${{ github.workspace }}/website/dist
-          ARCHIFY_SITE_INTEGRATION: '1'
-          ARCHIFY_CHROME: ${{ steps.website-chrome.outputs.chrome-path }}
-          ARCHIFY_CHROME_NO_SANDBOX: '1'
+          ARCHI_MADE_EASY_SITE_ROOT: ${{ github.workspace }}/website/dist
+          ARCHI_MADE_EASY_SITE_INTEGRATION: '1'
+          ARCHI_MADE_EASY_CHROME: ${{ steps.website-chrome.outputs.chrome-path }}
+          ARCHI_MADE_EASY_CHROME_NO_SANDBOX: '1'
       - name: Build and validate the Cloudflare static website
         run: npm run build && node scripts/check-cloudflare-output.mjs && node --test test/deployment-target.test.mjs
         working-directory: website
         env:
-          ARCHIFY_SITE_TARGET: cloudflare
+          ARCHI_MADE_EASY_SITE_TARGET: cloudflare
       - name: Verify Cloudflare navigation and language continuity
         run: npm run test:browser
         working-directory: website
         env:
-          ARCHIFY_SITE_ROOT: ${{ github.workspace }}/website/dist-cloudflare
-          ARCHIFY_SITE_BASE: ''
-          ARCHIFY_SITE_INTEGRATION: '1'
-          ARCHIFY_CHROME: ${{ steps.website-chrome.outputs.chrome-path }}
-          ARCHIFY_CHROME_NO_SANDBOX: '1'
+          ARCHI_MADE_EASY_SITE_ROOT: ${{ github.workspace }}/website/dist-cloudflare
+          ARCHI_MADE_EASY_SITE_BASE: ''
+          ARCHI_MADE_EASY_SITE_INTEGRATION: '1'
+          ARCHI_MADE_EASY_CHROME: ${{ steps.website-chrome.outputs.chrome-path }}
+          ARCHI_MADE_EASY_CHROME_NO_SANDBOX: '1'
       - name: Upload homepage visual evidence
         if: always()
         uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
@@ -525,7 +525,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install test dependencies
         if: needs.scope.outputs.windows == 'true'
-        run: npm ci --ignore-scripts && npm --prefix archify ci --ignore-scripts
+        run: npm ci --ignore-scripts && npm --prefix archi-made-easy ci --ignore-scripts
       - name: Provision controlled Windows path fixtures
         if: needs.scope.outputs.windows == 'true'
         shell: pwsh
@@ -534,8 +534,8 @@ jobs:
         if: needs.scope.outputs.windows == 'true'
         run: node scripts/run-windows-path-tests.mjs ${{ matrix.node-version == 24 && '--smoke' || '' }}
         env:
-          ARCHIFY_REQUIRE_WINDOWS_8DOT3: '1'
-          ARCHIFY_REQUIRE_WINDOWS_REAL_PATHS: '1'
+          ARCHI_MADE_EASY_REQUIRE_WINDOWS_8DOT3: '1'
+          ARCHI_MADE_EASY_REQUIRE_WINDOWS_REAL_PATHS: '1'
       - name: Clean up controlled Windows path fixtures
         if: ${{ always() && needs.scope.outputs.windows == 'true' }}
         shell: pwsh

@@ -38,11 +38,11 @@ channelY=180 unchanged. Three long overlaps of 113/113/98 SVG units became zero;
 proper crossings, ambiguous corridors, arrowhead collisions and label-clearance
 issues were zero. Maximum bends decreased from 3 to 2; maximum stretch stayed
 1.64. Public, sanitized regressions are checked in as
-`archify/test/workflow-routing-clarity.test.mjs` and
-`archify/test/workflow-shared-trunks.test.mjs`, with their matching fixtures.
+`archi-made-easy/test/workflow-routing-clarity.test.mjs` and
+`archi-made-easy/test/workflow-shared-trunks.test.mjs`, with their matching fixtures.
 
-Prior focused checks: 279 passed. Prior complete `env -u ARCHIFY_CHROME npm test`
-from `archify/`: 2360 total, 2277 passed, 0 failed, 83 skipped (201.195 seconds).
+Prior focused checks: 279 passed. Prior complete `env -u ARCHI_MADE_EASY_CHROME npm test`
+from `archi-made-easy/`: 2360 total, 2277 passed, 0 failed, 83 skipped (201.195 seconds).
 Skipped tests are not browser passes. This evidence predates integration of
 `upstream/dev` at `9a76b742`; final integration results are recorded in the PR.
 
@@ -55,9 +55,9 @@ screenshot above. Workflow runtime source SHA-256 at that acceptance:
 
 | Source | SHA-256 |
 | --- | --- |
-| `archify/renderers/shared/geometry.mjs` | `dafdd8d3233a6e7a5ef3588a6f21a2651799af95f412afada201d6b68cdee68f` |
-| `archify/renderers/workflow/workflow-compiler.mjs` | `4f494c35e5b9fbffd33a47e50adee14e0738c54f4900bc76bcacc8e8340ec266` |
-| `archify/scripts/check-render-output.mjs` | `82ea7d9a826cbf2cf3c629a84b29d87b32a70a7fb439e87c2852e75164b13f15` |
+| `archi-made-easy/renderers/shared/geometry.mjs` | `dafdd8d3233a6e7a5ef3588a6f21a2651799af95f412afada201d6b68cdee68f` |
+| `archi-made-easy/renderers/workflow/workflow-compiler.mjs` | `4f494c35e5b9fbffd33a47e50adee14e0738c54f4900bc76bcacc8e8340ec266` |
+| `archi-made-easy/scripts/check-render-output.mjs` | `82ea7d9a826cbf2cf3c629a84b29d87b32a70a7fb439e87c2852e75164b13f15` |
 
 Performance: Node 22.23.1, three warm-ups and ten measured runs per fixed input.
 Median milliseconds (second-round baseline → candidate): OpenPI 31.890→38.163;
@@ -87,7 +87,7 @@ diagram delivery. No quality gate was lowered to hide this limitation.
 The bundled/root workflow example, Gallery HTML/artifact/manifest, README GIF
 and its proof receipt were regenerated during implementation. The README GIF
 was actually re-recorded by the user, not merely rehashed. The distributable
-`archify.zip` must be rebuilt with Node 22 from the combined tracked sources
+`archi-made-easy.zip` must be rebuilt with Node 22 from the combined tracked sources
 after integrating dev's independent lifecycle fixes. Remote CI remains a
 separate requirement; local success does not imply CI or maintainer approval.
 

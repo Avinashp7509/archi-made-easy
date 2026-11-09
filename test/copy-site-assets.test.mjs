@@ -52,7 +52,7 @@ function createFileSymlink(t, target, alias) {
 }
 
 test('copySiteAssets rejects an assets-directory symlink without modifying its external target', (t) => {
-  const root = workspace(t, 'archify-copy-site-assets-directory-link-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-directory-link-');
   const outputParent = path.join(root, 'site');
   const external = path.join(root, 'external');
   fs.mkdirSync(outputParent);
@@ -72,7 +72,7 @@ test('copySiteAssets rejects an assets-directory symlink without modifying its e
 });
 
 test('copySiteAssets rejects existing and dangling asset symlinks without following them', (t) => {
-  const root = workspace(t, 'archify-copy-site-assets-leaf-link-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-leaf-link-');
   for (const kind of ['existing', 'dangling']) {
     const outputParent = path.join(root, kind, 'site');
     const assets = path.join(outputParent, 'assets');
@@ -98,7 +98,7 @@ test('copySiteAssets rejects existing and dangling asset symlinks without follow
 });
 
 test('copySiteAssets preflights both asset targets before publishing either one', (t) => {
-  const root = workspace(t, 'archify-copy-site-assets-two-target-preflight-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-two-target-preflight-');
   const outputParent = path.join(root, 'site');
   const assets = path.join(outputParent, 'assets');
   const first = path.join(assets, 'site-language.js');
@@ -119,7 +119,7 @@ test('copySiteAssets preflights both asset targets before publishing either one'
 });
 
 test('copySiteAssets rolls back the pair when publishing the second asset fails', (t) => {
-  const root = workspace(t, 'archify-copy-site-assets-pair-rollback-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-pair-rollback-');
   const outputParent = path.join(root, 'site');
   const assets = path.join(outputParent, 'assets');
   const language = path.join(assets, 'site-language.js');
@@ -133,7 +133,7 @@ test('copySiteAssets rolls back the pair when publishing the second asset fails'
   t.mock.method(fs, 'linkSync', (source, destination) => {
     if (!injected
       && path.basename(destination) === 'site-navigation.css'
-      && path.basename(source).startsWith('.site-navigation.css.archify-')) {
+      && path.basename(source).startsWith('.site-navigation.css.archi-made-easy-')) {
       injected = true;
       throw Object.assign(new Error('injected second publication failure'), { code: 'EIO' });
     }
@@ -155,7 +155,7 @@ test('copySiteAssets rolls back the pair when publishing the second asset fails'
 });
 
 test('copySiteAssets keeps the committed pair when retiring a previous backup needs recovery', (t) => {
-  const root = workspace(t, 'archify-copy-site-assets-backup-recovery-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-backup-recovery-');
   const outputParent = path.join(root, 'site');
   const assets = path.join(outputParent, 'assets');
   const language = path.join(assets, 'site-language.js');
@@ -168,8 +168,8 @@ test('copySiteAssets keeps the committed pair when retiring a previous backup ne
   let injected = false;
   t.mock.method(fs, 'unlinkSync', (file, ...args) => {
     if (!injected
-      && path.basename(String(file)).startsWith('.archify-site-backup-')
-      && path.basename(path.dirname(String(file))).startsWith('.archify-remove-')) {
+      && path.basename(String(file)).startsWith('.archi-made-easy-site-backup-')
+      && path.basename(path.dirname(String(file))).startsWith('.archi-made-easy-remove-')) {
       injected = true;
       throw Object.assign(new Error('injected previous-backup cleanup failure'), { code: 'EIO' });
     }
@@ -186,7 +186,7 @@ test('copySiteAssets keeps the committed pair when retiring a previous backup ne
 });
 
 test('copySiteAssets rolls back the first asset and preserves a claimant of the second target', (t) => {
-  const root = workspace(t, 'archify-copy-site-assets-second-claimant-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-second-claimant-');
   const outputParent = path.join(root, 'site');
   const assets = path.join(outputParent, 'assets');
   const language = path.join(assets, 'site-language.js');
@@ -198,7 +198,7 @@ test('copySiteAssets rolls back the first asset and preserves a claimant of the 
   t.mock.method(fs, 'linkSync', (source, destination) => {
     if (!injected
       && path.basename(destination) === 'site-navigation.css'
-      && path.basename(source).startsWith('.site-navigation.css.archify-')) {
+      && path.basename(source).startsWith('.site-navigation.css.archi-made-easy-')) {
       fs.writeFileSync(navigation, 'concurrent navigation claimant\n', { flag: 'wx' });
       injected = true;
     }
@@ -216,7 +216,7 @@ test('copySiteAssets rolls back the first asset and preserves a claimant of the 
 });
 
 test('copySiteAssets preserves a target introduced after capture and before publication', (t) => {
-  const root = workspace(t, 'archify-copy-site-assets-target-swap-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-target-swap-');
   const outputParent = path.join(root, 'site');
   const assets = path.join(outputParent, 'assets');
   const target = path.join(assets, 'site-language.js');
@@ -257,7 +257,7 @@ test('copySiteAssets preserves a target introduced after capture and before publ
 });
 
 test('copySiteAssets rejects a candidate modified while the final target state is checked', (t) => {
-  const root = workspace(t, 'archify-copy-site-assets-candidate-mutation-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-candidate-mutation-');
   const outputParent = path.join(root, 'site');
   const assets = path.join(outputParent, 'assets');
   const target = path.join(assets, 'site-language.js');
@@ -273,7 +273,7 @@ test('copySiteAssets rejects a candidate modified while the final target state i
   t.mock.method(fs, 'lstatSync', (file, options) => {
     const metadata = lstatSync(file, options);
     const basename = path.basename(String(file));
-    if (basename.startsWith('.site-language.js.archify-') && basename.endsWith('.tmp')) {
+    if (basename.startsWith('.site-language.js.archi-made-easy-') && basename.endsWith('.tmp')) {
       candidatePath = String(file);
       candidateInspections += 1;
       if (candidateInspections === 3) armed = true;
@@ -298,7 +298,7 @@ test('copySiteAssets preserves a successor that replaces the random candidate du
     t.skip('Replacing an open candidate is not portable to Windows.');
     return;
   }
-  const root = workspace(t, 'archify-copy-site-assets-candidate-successor-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-candidate-successor-');
   const outputParent = path.join(root, 'site');
   const assets = path.join(outputParent, 'assets');
   const target = path.join(assets, 'site-language.js');
@@ -315,7 +315,7 @@ test('copySiteAssets preserves a successor that replaces the random candidate du
   t.mock.method(fs, 'lstatSync', (file, options) => {
     const metadata = lstatSync(file, options);
     const basename = path.basename(String(file));
-    if (basename.startsWith('.site-language.js.archify-') && basename.endsWith('.tmp')) {
+    if (basename.startsWith('.site-language.js.archi-made-easy-') && basename.endsWith('.tmp')) {
       candidatePath = String(file);
       candidateInspections += 1;
       if (candidateInspections === 3) armed = true;
@@ -332,14 +332,14 @@ test('copySiteAssets preserves a successor that replaces the random candidate du
     'site-asset-candidate-identity-changed',
   );
   assert.equal(injected, true, 'the race fixture must replace the staged candidate');
-  assert.match(path.basename(candidatePath), /^\.site-language\.js\.archify-[a-f\d]{32}\.tmp$/);
+  assert.match(path.basename(candidatePath), /^\.site-language\.js\.archi-made-easy-[a-f\d]{32}\.tmp$/);
   assert.equal(fs.readFileSync(target, 'utf8'), 'original public asset\n');
   assert.equal(fs.readFileSync(candidatePath, 'utf8'), 'candidate successor\n');
   assert.deepEqual(fs.readFileSync(displaced), fs.readFileSync(path.join(canonicalAssets, 'site-language.js')));
 });
 
 test('copySiteAssets rejects a hardlinked asset without modifying either name', (t) => {
-  const root = workspace(t, 'archify-copy-site-assets-hardlink-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-hardlink-');
   const outputParent = path.join(root, 'site');
   const assets = path.join(outputParent, 'assets');
   const external = path.join(root, 'external.js');
@@ -371,7 +371,7 @@ test('copySiteAssets rejects a special asset entry without replacing it', (t) =>
     t.skip('FIFO fixture is POSIX-only.');
     return;
   }
-  const root = workspace(t, 'archify-copy-site-assets-special-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-special-');
   const outputParent = path.join(root, 'site');
   const assets = path.join(outputParent, 'assets');
   const target = path.join(assets, 'site-language.js');
@@ -391,7 +391,7 @@ test('copySiteAssets rejects a special asset entry without replacing it', (t) =>
 });
 
 test('copySiteAssets atomically refreshes regular assets and leaves no temporary entries', (t) => {
-  const root = workspace(t, 'archify-copy-site-assets-success-');
+  const root = workspace(t, 'archi-made-easy-copy-site-assets-success-');
   const outputParent = path.join(root, 'site');
   const assets = path.join(outputParent, 'assets');
   fs.mkdirSync(assets, { recursive: true });
@@ -412,8 +412,8 @@ test('copySiteAssets atomically refreshes regular assets and leaves no temporary
   for (const asset of [
     'site-language.js',
     'site-navigation.css',
-    'archify-lockup-light.svg',
-    'archify-mark.svg',
+    'archi-made-easy-lockup-light.svg',
+    'archi-made-easy-mark.svg',
   ]) {
     assert.deepEqual(
       fs.readFileSync(path.join(assets, asset)),
@@ -424,8 +424,8 @@ test('copySiteAssets atomically refreshes regular assets and leaves no temporary
     assert.equal(fs.statSync(existing).mode & 0o777, 0o666);
   }
   assert.deepEqual(fs.readdirSync(assets).sort(), [
-    'archify-lockup-light.svg',
-    'archify-mark.svg',
+    'archi-made-easy-lockup-light.svg',
+    'archi-made-easy-mark.svg',
     'site-language.js',
     'site-navigation.css',
   ]);

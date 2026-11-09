@@ -33,16 +33,16 @@ test('DSH documentation identifies the published release and its pinned snapshot
   const integration = read('integrations/deepseek-harness/README.md');
   assert.ok(integration.includes(`currently published npm package is **v${published.adapterVersion}**`));
   assert.ok(integration.includes(`@deepseek-ai/dsh@${published.dshVersion}`));
-  assert.ok(integration.includes(`Archify Skill **${published.skillVersion}**`));
-  assert.ok(integration.includes(`Archify ${bundled.skillVersion}`));
+  assert.ok(integration.includes(`Archi-Made-Easy Skill **${published.skillVersion}**`));
+  assert.ok(integration.includes(`Archi-Made-Easy ${bundled.skillVersion}`));
   assert.ok(integration.includes(bundled.sourceCommit));
   assert.ok(integration.includes(`@deepseek-ai/dsh@${bundled.dshVersion}`));
   assert.doesNotMatch(integration, /not published or available as an npm install yet|pending \*\*v1\.0\.0/);
-  assert.ok(integration.includes(`releases/tag/archify-dsh-v${published.adapterVersion}`));
+  assert.ok(integration.includes(`releases/tag/archi-made-easy-dsh-v${published.adapterVersion}`));
   assert.match(integration, /pinned to stable `main` commit/);
   assert.match(integration, /after the `v3\.2\.0` tag/);
   assert.match(integration, /not a byte-for-byte copy of that tag/);
-  assert.match(integration, /Version 1\.0\.0 \(2026-10-04\) bundled \*\*Archify 3\.0\.1\*\*/);
+  assert.match(integration, /Version 1\.0\.0 \(2026-10-04\) bundled \*\*Archi-Made-Easy 3\.0\.1\*\*/);
   assert.match(integration, /notification-only/);
   assert.match(integration, /does not update an already installed plugin/);
   assert.match(integration, /repository root is not a DSH package/);
@@ -59,7 +59,7 @@ test('DSH documentation identifies the published release and its pinned snapshot
 
 test('effective-Skill shadowing and bundled licenses stay documented', () => {
   const integration = read('integrations/deepseek-harness/README.md');
-  const section = integration.split('## Which Archify actually loads?')[1]?.split('\n## ')[0];
+  const section = integration.split('## Which Archi-Made-Easy actually loads?')[1]?.split('\n## ')[0];
   assert.ok(section, 'keep the effective-Skill caveat separate from the install instructions');
   assert.match(section, /personal and project Skill sources outrank the bundled snapshot/);
   assert.match(section, /does \*\*not\*\* necessarily upgrade the effective Skill/);
@@ -87,16 +87,16 @@ test('English, Chinese, and Japanese docs cover install, invoke, uninstall, comm
   const english = [englishRoot, integration].join('\n');
   const chinese = [chineseRoot, integration].join('\n');
   const japanese = [japaneseRoot, integration].join('\n');
-  const publishedInstall = `dsh plugin --profile web add @tt-a1i/archify-dsh@${published.adapterVersion}`;
+  const publishedInstall = `dsh plugin --profile web add @OWNER/archi-made-easy-dsh@${published.adapterVersion}`;
 
   for (const source of [english, chinese, japanese, englishRoot, chineseRoot, japaneseRoot]) {
     assert.ok(source.includes(publishedInstall));
-    assert.ok(!source.includes('dsh plugin --profile web add @tt-a1i/archify-dsh@0.1.0'));
+    assert.ok(!source.includes('dsh plugin --profile web add @OWNER/archi-made-easy-dsh@0.1.0'));
     assert.ok(source.includes(`@deepseek-ai/dsh@${published.dshVersion}`));
     assert.ok(source.replaceAll('\\|', '|').includes(manifest.engines.node));
-    assert.match(source, /dsh plugin --profile web remove @tt-a1i\/archify-dsh/);
-    assert.match(source, /Use the archify skill to map this repository's runtime architecture/);
-    assert.doesNotMatch(source, /dsh plugin[^\n]*github:tt-a1i\/archify/);
+    assert.match(source, /dsh plugin --profile web remove @OWNER\/archi-made-easy-dsh/);
+    assert.match(source, /Use the archi-made-easy skill to map this repository's runtime architecture/);
+    assert.doesNotMatch(source, /dsh plugin[^\n]*github:OWNER\/archi-made-easy/);
     assert.doesNotMatch(source, /allowBuilds:\s*true/);
     assert.doesNotMatch(source, /npm install github:/);
   }
@@ -127,7 +127,7 @@ test('Skills CLI, Cursor, Codex, Claude Code, OpenCode, and Raven remain the def
   const english = read('README.md');
   const chinese = read('README_ZH.md');
   const japanese = read('README_JA.md');
-  const quickStartInstall = /^```bash\nnpx -y skills@latest add https:\/\/archify\.si --skill archify --agent cursor --global --copy --yes\n```$/m;
+  const quickStartInstall = /^```bash\nnpx -y skills@latest add https:\/\/archi-made-easy\.si --skill archi-made-easy --agent cursor --global --copy --yes\n```$/m;
   assert.match(english, quickStartInstall);
   assert.match(chinese, quickStartInstall);
   assert.match(japanese, quickStartInstall);
@@ -141,12 +141,12 @@ test('Skills CLI, Cursor, Codex, Claude Code, OpenCode, and Raven remain the def
 
 test('npm README describes the packaged version independently of publication status', () => {
   const packaged = read('integrations/deepseek-harness/PACKAGE_README.md');
-  assert.ok(packaged.includes(`@tt-a1i/archify-dsh@${bundled.adapterVersion}`));
-  assert.ok(packaged.includes(`Archify ${bundled.skillVersion}`));
+  assert.ok(packaged.includes(`@OWNER/archi-made-easy-dsh@${bundled.adapterVersion}`));
+  assert.ok(packaged.includes(`Archi-Made-Easy ${bundled.skillVersion}`));
   assert.ok(packaged.includes(`@deepseek-ai/dsh@${bundled.dshVersion}`));
   assert.ok(packaged.includes(bundled.sourceCommit));
   assert.ok(packaged.includes(manifest.engines.node));
   assert.doesNotMatch(packaged, /currently published npm package|not published or available as an npm install yet|After this version is available in the npm registry/);
-  assert.match(packaged, /^Install the exact version in each profile that uses Archify:$/m);
+  assert.match(packaged, /^Install the exact version in each profile that uses Archi-Made-Easy:$/m);
   assert.match(packaged, /outside the agent sandbox/);
 });

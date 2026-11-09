@@ -2,9 +2,9 @@
 
 **Evidence scope:** synthetic diagnostic regression checks. The injected inputs and rules repairer are not real Agent behavior. Use [real repository generation comparisons](../real-repo-generation/README.md) for claims about authoring quality, rework or end-to-end speed.
 
-This benchmark measures a narrow product question: **how efficiently do Archify receipts let a caller converge to a passing artifact?** It complements `ordinary-model-floor` (first-pass usability) and the `authoring-cost` studies (real agent time and token spend) by isolating the part of authoring cost that lives inside the feedback loop — how many validation rounds a defect costs, how early each defect is surfaced, and how much text each round forces the caller to read.
+This benchmark measures a narrow product question: **how efficiently do Archi-Made-Easy receipts let a caller converge to a passing artifact?** It complements `ordinary-model-floor` (first-pass usability) and the `authoring-cost` studies (real agent time and token spend) by isolating the part of authoring cost that lives inside the feedback loop — how many validation rounds a defect costs, how early each defect is surfaced, and how much text each round forces the caller to read.
 
-It is a measurement harness, not a model leaderboard, and it contains no human or model judgment. Everything is driven by deterministic defect injection against the checked-in example fixtures and the real Archify CLI.
+It is a measurement harness, not a model leaderboard, and it contains no human or model judgment. Everything is driven by deterministic defect injection against the checked-in example fixtures and the real Archi-Made-Easy CLI.
 
 ## What it measures
 
@@ -46,7 +46,7 @@ node benchmarks/repair-rounds/benchmark.mjs run --manifest benchmarks/repair-rou
 node benchmarks/repair-rounds/benchmark.mjs report --results results.jsonl --manifest benchmarks/repair-rounds/manifest.json
 ```
 
-`run` sets `ARCHIFY_UPDATE_CHECK_DISABLED=1` so receipts are not perturbed by the update check. `browser-check` needs local Chrome; without it the late-discovery cases report the gate truthfully as skipped rather than passed.
+`run` sets `ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED=1` so receipts are not perturbed by the update check. `browser-check` needs local Chrome; without it the late-discovery cases report the gate truthfully as skipped rather than passed.
 
 Reports require one command and repair mode per input file; mixed configurations are rejected. Coverage compares unique case IDs against the manifest, so repeated cases cannot fill missing cases.
 

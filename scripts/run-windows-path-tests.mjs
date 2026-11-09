@@ -9,13 +9,13 @@ import { fileURLToPath } from 'node:url';
 import {
   sameLocation,
   sidecarNamespaceComponentKey,
-} from '../archify/renderers/shared/path-semantics.mjs';
-import { checkForUpdate } from '../archify/scripts/check-update.mjs';
+} from '../archi-made-easy/renderers/shared/path-semantics.mjs';
+import { checkForUpdate } from '../archi-made-easy/scripts/check-update.mjs';
 import { stageCleanSkill } from './stage-clean-skill.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const skillRoot = path.join(repoRoot, 'archify');
-const cli = path.join(skillRoot, 'bin', 'archify.mjs');
+const skillRoot = path.join(repoRoot, 'archi-made-easy');
+const cli = path.join(skillRoot, 'bin', 'archi-made-easy.mjs');
 const options = process.argv.slice(2);
 for (const option of options) {
   if (!['--smoke', '--list'].includes(option)) throw new Error(`Unknown Windows test option: ${option}`);
@@ -34,7 +34,7 @@ function runCli(args, { timeout = 120_000 } = {}) {
   return spawnSync(process.execPath, [cli, ...args], {
     cwd: skillRoot,
     encoding: 'utf8',
-    env: { ...process.env, ARCHIFY_DIAGNOSTIC_FORMAT: 'json' },
+    env: { ...process.env, ARCHI_MADE_EASY_DIAGNOSTIC_FORMAT: 'json' },
     timeout,
   });
 }
@@ -134,18 +134,18 @@ async function waitForVerifiedPreview(url, timeoutMs = 30_000) {
 }
 
 async function runControlledWindowsPathE2E() {
-  const required = process.env.ARCHIFY_REQUIRE_WINDOWS_REAL_PATHS === '1';
+  const required = process.env.ARCHI_MADE_EASY_REQUIRE_WINDOWS_REAL_PATHS === '1';
   if (process.platform !== 'win32') {
-    assert.equal(required, false, 'ARCHIFY_REQUIRE_WINDOWS_REAL_PATHS=1 requires Windows');
+    assert.equal(required, false, 'ARCHI_MADE_EASY_REQUIRE_WINDOWS_REAL_PATHS=1 requires Windows');
     return;
   }
   if (!required) return;
 
-  const caseRoot = requireControlledDirectory('ARCHIFY_WINDOWS_CASE_SENSITIVE_ROOT');
-  const uncRoot = requireControlledDirectory('ARCHIFY_WINDOWS_UNC_ROOT');
-  const extendedUncRoot = requireControlledDirectory('ARCHIFY_WINDOWS_EXTENDED_UNC_ROOT');
-  const eightDotThreeRoot = requireControlledDirectory('ARCHIFY_WINDOWS_8DOT3_ROOT');
-  const eightDotThreeShortRoot = requireControlledDirectory('ARCHIFY_WINDOWS_8DOT3_SHORT_ROOT');
+  const caseRoot = requireControlledDirectory('ARCHI_MADE_EASY_WINDOWS_CASE_SENSITIVE_ROOT');
+  const uncRoot = requireControlledDirectory('ARCHI_MADE_EASY_WINDOWS_UNC_ROOT');
+  const extendedUncRoot = requireControlledDirectory('ARCHI_MADE_EASY_WINDOWS_EXTENDED_UNC_ROOT');
+  const eightDotThreeRoot = requireControlledDirectory('ARCHI_MADE_EASY_WINDOWS_8DOT3_ROOT');
+  const eightDotThreeShortRoot = requireControlledDirectory('ARCHI_MADE_EASY_WINDOWS_8DOT3_SHORT_ROOT');
   assert.match(uncRoot, /^\\\\[^\\]+\\[^\\]+$/u, 'ordinary UNC fixture must name a share root');
   assert.match(
     extendedUncRoot,
@@ -170,7 +170,7 @@ async function runControlledWindowsPathE2E() {
     'drive-letter case aliases must resolve to the same controlled directory',
   );
 
-  const token = `archify-windows-${process.pid}-${Date.now().toString(36)}`;
+  const token = `archi-made-easy-windows-${process.pid}-${Date.now().toString(36)}`;
   const architectureInput = path.join(skillRoot, 'examples', 'web-app.architecture.json');
   const workflowInput = path.join(skillRoot, 'examples', 'agent-tool-call.workflow.json');
   const comparisonBase = path.join(skillRoot, 'examples', 'checkout-platform.base.architecture.json');
@@ -256,11 +256,11 @@ async function runControlledWindowsPathE2E() {
     requireSuccess('repository revision discovery', revision);
     const evidenceDiagram = JSON.parse(fs.readFileSync(architectureInput, 'utf8'));
     evidenceDiagram.meta.repository = {
-      url: 'https://github.com/tt-a1i/archify',
+      url: 'https://github.com/OWNER/archi-made-easy',
       revision: revision.stdout.trim(),
     };
     evidenceDiagram.components[0].sources = [{
-      path: 'archify/bin/archify.mjs',
+      path: 'archi-made-easy/bin/archi-made-easy.mjs',
       line: 1,
       label: 'CLI entry point',
     }];
@@ -333,7 +333,7 @@ async function runControlledWindowsPathE2E() {
     const releasePath = path.join(caseRoot, `${token}-skill-release.json`);
     fs.writeFileSync(releasePath, `${JSON.stringify(localRelease)}\n`);
     const stableManifest = fs.readFileSync(
-      path.join(repoRoot, 'docs', 'skill-updates', 'archify', 'stable.json'),
+      path.join(repoRoot, 'docs', 'skill-updates', 'archi-made-easy', 'stable.json'),
       'utf8',
     );
     const updateCache = path.win32.join(eightDotThreeShortRoot, `${token}-update-cache`);
@@ -372,8 +372,8 @@ async function runControlledWindowsPathE2E() {
     requireSuccess('ordinary UNC delivery beyond traditional MAX_PATH', ordinaryLongDelivery);
     assert.equal(JSON.parse(ordinaryLongDelivery.stdout).ok, true);
     assert.ok(fs.existsSync(ordinaryLongOutput));
-    assertNoPrivateStaging(ordinaryLongDirectory, '.archify-delivery-', ordinaryLongDelivery);
-    assertNoPrivateStaging(ordinaryLongDirectory, '.archify-provenance-', ordinaryLongDelivery);
+    assertNoPrivateStaging(ordinaryLongDirectory, '.archi-made-easy-delivery-', ordinaryLongDelivery);
+    assertNoPrivateStaging(ordinaryLongDirectory, '.archi-made-easy-provenance-', ordinaryLongDelivery);
 
     let extendedLongDirectory = extendedUncRoot;
     for (let index = 0; extendedLongDirectory.length <= 320; index += 1) {
@@ -411,7 +411,7 @@ async function runControlledWindowsPathE2E() {
       ordinaryLongVisualReceipt.sidecars.directory,
       ordinaryLongVisualReceipt.sidecars.receipt,
     )));
-    assertNoPrivateStaging(evidenceDirectory, '.archify-visual-check-');
+    assertNoPrivateStaging(evidenceDirectory, '.archi-made-easy-visual-check-');
 
     const sharedCaseEvidenceDirectory = path.win32.join(
       uncRoot,
@@ -494,7 +494,7 @@ async function runControlledWindowsPathE2E() {
     )));
 
     const previewOutput = path.win32.join(ordinaryLongDirectory, `${token}-preview.html`);
-    const { startPreview } = await import('../archify/bin/preview.mjs');
+    const { startPreview } = await import('../archi-made-easy/bin/preview.mjs');
     preview = await startPreview({
       type: 'architecture',
       input: architectureInput,
@@ -508,10 +508,10 @@ async function runControlledWindowsPathE2E() {
     assert.ok(fs.existsSync(previewOutput));
     await preview.stop();
     preview = null;
-    assertNoPrivateStaging(ordinaryLongDirectory, '.archify-preview-');
+    assertNoPrivateStaging(ordinaryLongDirectory, '.archi-made-easy-preview-');
 
     if (Number(process.versions.node.split('.')[0]) === 22) {
-      const uncArchive = path.win32.join(uncRoot, `${token}-archify.zip`);
+      const uncArchive = path.win32.join(uncRoot, `${token}-archi-made-easy.zip`);
       const bashCandidates = [
         process.env.BASH,
         'C:\\Program Files\\Git\\bin\\bash.exe',

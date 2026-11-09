@@ -10,7 +10,7 @@ const repoRoot = path.resolve(websiteRoot, '..');
 export const payload = '<svg onload="document.documentElement.dataset.communityAudit=1"></svg>';
 
 export function createCommunityFixture() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-community-build-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-community-build-'));
   const copy = relative => {
     const target = path.join(root, relative);
     let source = repoRoot;
@@ -25,7 +25,7 @@ export function createCommunityFixture() {
   // replacing only the community registry. Do not copy arbitrary untracked files.
   const tracked = execFileSync('git', ['ls-files', '-z', '--',
     'website/src/', 'website/public/', 'website/astro.config.mjs', 'website/scripts/', 'website/package.json',
-    'archify/package.json', 'archify/skill-release.json', 'archify/recipes/',
+    'archi-made-easy/package.json', 'archi-made-easy/skill-release.json', 'archi-made-easy/recipes/',
     'scripts/site-copy.mjs', 'scripts/check-community-packages.mjs',
     'docs/gallery/', 'docs/assets/', ...PUBLISHED_CASES.flatMap(entry => [`docs/${entry.artifact}`, `docs/${entry.input}`])], { cwd: repoRoot, encoding: 'utf8' })
     .split('\0').filter(Boolean);
@@ -47,7 +47,7 @@ export function createCommunityFixture() {
     name: 'security-demo', type: 'skill',
     summary: { en: payload, zh: `测试 ${payload}` },
     author: { name: 'demo' }, repository: 'https://example.com/source',
-    archify: '3.0.1', schemaVersions: [1],
+    archiMadeEasy: '3.0.1', schemaVersions: [1],
     evidence: [{ label: payload, url: 'https://example.com/receipt' }, { label: 'Example HTML', url: 'https://example.com/example' }],
   };
   const write = value => fs.writeFileSync(path.join(registry, 'security-demo.json'), JSON.stringify(value));
@@ -58,7 +58,7 @@ export function createCommunityFixture() {
       fs.rmSync(path.join(root, 'website/dist'), { recursive: true, force: true });
       return spawnSync(process.execPath, [path.join(websiteRoot, 'node_modules/astro/bin/astro.mjs'), 'build'], {
         cwd: path.join(root, 'website'), encoding: 'utf8', timeout: 60000,
-        env: { ...process.env, ARCHIFY_SITE_TARGET: 'github' },
+        env: { ...process.env, ARCHI_MADE_EASY_SITE_TARGET: 'github' },
       });
     },
     close() { fs.rmSync(root, { recursive: true, force: true }); },

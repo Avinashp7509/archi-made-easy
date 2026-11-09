@@ -11,7 +11,7 @@ export async function verifyPackagedUpdateChecker(skillRoot, cacheDirectory) {
   const updateCheck = spawnSync(process.execPath, [updateChecker], {
     cwd: skillRoot,
     encoding: 'utf8',
-    env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+    env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
   });
   if (updateCheck.status !== 0) {
     throw new Error(`packaged update checker failed with ${updateCheck.status}\n${updateCheck.stderr}`);
@@ -32,18 +32,18 @@ export async function verifyPackagedUpdateChecker(skillRoot, cacheDirectory) {
   const candidateVersion = `${versionCore[1]}.${versionCore[2]}.${BigInt(versionCore[3]) + 1n}`;
   const candidate = {
     schemaVersion: 1,
-    skillId: 'archify',
+    skillId: 'archi-made-easy',
     channel: 'stable',
     version: candidateVersion,
     publishedAt: '2026-08-28T00:00:00Z',
     source: {
-      repository: 'https://github.com/tt-a1i/archify',
+      repository: 'https://github.com/OWNER/archi-made-easy',
       ref: `v${candidateVersion}`,
       treeSha: 'a'.repeat(40),
     },
     artifact: { sha256: 'b'.repeat(64) },
     summary: 'Package smoke candidate.',
-    releaseNotes: `https://github.com/tt-a1i/archify/releases/tag/v${candidateVersion}`,
+    releaseNotes: `https://github.com/OWNER/archi-made-easy/releases/tag/v${candidateVersion}`,
     severity: 'normal',
   };
   const notifierReceipt = await checker.checkForUpdate({

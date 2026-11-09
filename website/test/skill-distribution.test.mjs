@@ -10,7 +10,7 @@ import { stageSkillDistribution } from '../scripts/stage-skill-distribution.mjs'
 
 const repo = fileURLToPath(new URL('../../', import.meta.url));
 test('discovery archive preserves every canonical package file without its wrapper', () => {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-discovery-test-'));
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-discovery-test-'));
   try {
     const output = path.join(scratch, 'public');
     stageSkillDistribution(repo, output);
@@ -19,20 +19,20 @@ test('discovery archive preserves every canonical package file without its wrapp
     assert.equal(index.$schema, 'https://schemas.agentskills.io/discovery/0.2.0/schema.json');
     assert.equal(index.skills.length, 1);
     const [entry] = index.skills;
-    assert.equal(entry.name, 'archify');
+    assert.equal(entry.name, 'archi-made-easy');
     assert.equal(entry.type, 'archive');
     const archive = fileURLToPath(new URL(entry.url, pathToFileURL(indexPath)));
     assert.equal(entry.digest, `sha256:${createHash('sha256').update(fs.readFileSync(archive)).digest('hex')}`);
     const original = path.join(scratch, 'canonical');
     const downloaded = path.join(scratch, 'downloaded');
-    for (const [zip, destination] of [[path.join(repo, 'archify.zip'), original], [archive, downloaded]]) {
+    for (const [zip, destination] of [[path.join(repo, 'archi-made-easy.zip'), original], [archive, downloaded]]) {
       fs.mkdirSync(destination, { recursive: true });
       if (process.platform === 'win32') execFileSync('tar', ['-xf', zip, '-C', destination]);
       else execFileSync('unzip', ['-q', zip, '-d', destination]);
     }
     const inventory = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry =>
       entry.isDirectory() ? inventory(path.join(dir, entry.name)).map(name => `${entry.name}/${name}`) : [entry.name]).sort();
-    const expected = path.join(original, 'archify');
+    const expected = path.join(original, 'archi-made-easy');
     assert.deepEqual(inventory(downloaded), inventory(expected));
     for (const name of inventory(expected)) {
       assert.deepEqual(fs.readFileSync(path.join(downloaded, name)), fs.readFileSync(path.join(expected, name)), name);

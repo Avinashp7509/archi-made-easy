@@ -1,0 +1,43 @@
+{
+  "name": "archi-made-easy-dsh",
+  "type": "wrapper",
+  "summary": {
+    "en": "DSH 1.1.0 bundles Archi-Made-Easy 3.2.0. Supports exact developer-preview DSH 0.2.1-rc.2; independent community Skill-only integration.",
+    "zh": "已发布 DSH 技能包 1.1.0，内含 Archi-Made-Easy 3.2.0；支持明确测试的开发者预览版 DSH 0.2.1-rc.2，属于独立社区集成。"
+  },
+  "author": {
+    "name": "tt-a1i",
+    "url": "https://github.com/tt-a1i"
+  },
+  "repository": "https://github.com/OWNER/archi-made-easy/tree/archi-made-easy-dsh-v1.1.0/integrations/deepseek-harness",
+  "homepage": "https://www.npmjs.com/package/@OWNER/archi-made-easy-dsh/v/1.1.0",
+  "archi-made-easy": "3.2.0",
+  "schemaVersions": [
+    1,
+    2
+  ],
+  "tags": [
+    "deepseek-harness",
+    "dsh",
+    "npm",
+    "integration"
+  ],
+  "evidence": [
+    {
+      "label": "Published 1.1.0 package guide",
+      "url": "https://github.com/OWNER/archi-made-easy/blob/archi-made-easy-dsh-v1.1.0/integrations/deepseek-harness/PACKAGE_README.md"
+    },
+    {
+      "label": "Bundled Archi-Made-Easy 3.2.0 source",
+      "url": "https://github.com/OWNER/archi-made-easy/blob/edf158c4e7a1d18d20cc329840f864289634c090/archi-made-easy/package.json"
+    },
+    {
+      "label": "Published 1.1.0 release and tarball checksum",
+      "url": "https://github.com/OWNER/archi-made-easy/releases/tag/archi-made-easy-dsh-v1.1.0"
+    },
+    {
+      "label": "Three-platform installation and upgrade acceptance",
+      "url": "https://github.com/OWNER/archi-made-easy/actions/runs/42499004935"
+    }
+  ]
+}

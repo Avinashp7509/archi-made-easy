@@ -21,12 +21,12 @@
 
       function exportError(key, values) {
         var error = new Error(viewerText(key, values));
-        error.archifyViewerMessage = true;
+        error.archiMadeEasyViewerMessage = true;
         return error;
       }
 
       function exportMessage(error) {
-        return error && error.archifyViewerMessage
+        return error && error.archiMadeEasyViewerMessage
           ? error.message
           : viewerText('viewer.export.unknown');
       }
@@ -45,7 +45,7 @@
         return getComputedStyle(document.body).backgroundColor || '#ffffff';
       }
 
-/* ARCHIFY:EXPORT_CLEANUP */
+/* ARCHI_MADE_EASY:EXPORT_CLEANUP */
 
       /**
        * Serialize the main SVG into a standalone document.
@@ -237,10 +237,10 @@
         var autoTheme = requestedTheme === 'auto';
         var svg = document.querySelector('.diagram-container svg');
         var clone = svg.cloneNode(true);
-        var softwareNotices = document.getElementById('archify-software-notices');
+        var softwareNotices = document.getElementById('archi-made-easy-software-notices');
         if (softwareNotices) {
           var softwareMetadata = document.createElementNS('http://www.w3.org/2000/svg', 'metadata');
-          softwareMetadata.setAttribute('id', 'archify-software-notices');
+          softwareMetadata.setAttribute('id', 'archi-made-easy-software-notices');
           softwareMetadata.textContent = JSON.parse(softwareNotices.textContent);
           clone.insertBefore(softwareMetadata, clone.firstChild);
         }
@@ -278,7 +278,7 @@
             try { rules = sheet.cssRules; } catch (_) { return; } // cross-origin
             if (!rules) return;
             Array.prototype.forEach.call(rules, function (rule) {
-              if (rule.type === 7 && /^archify-/.test(rule.name || '')) {
+              if (rule.type === 7 && /^archi-made-easy-/.test(rule.name || '')) {
                 out.push(rule.cssText);
                 return;
               }
@@ -338,7 +338,7 @@
 
         // Keep the same font bytes, character coverage, and attribution in
         // standalone SVGs and the SVG images used by every raster export.
-        var fontCss = document.getElementById('archify-fonts').textContent;
+        var fontCss = document.getElementById('archi-made-easy-fonts').textContent;
 
         var style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
         var bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -760,12 +760,12 @@
           return Promise.reject(exportError('viewer.export.unknownVariant', { variant: options.variant }));
         }
         if (options.variant === 'route') {
-          var routeSnapshot = Archify.routeProbe && Archify.routeProbe.exportSnapshot();
+          var routeSnapshot = ArchiMadeEasy.routeProbe && ArchiMadeEasy.routeProbe.exportSnapshot();
           if (!routeSnapshot) return Promise.reject(exportError('viewer.export.routeRequired'));
           return renderShareCard({ routeSnapshot: routeSnapshot });
         }
-        var snapshot = Archify.focus && typeof Archify.focus.reachabilitySnapshot === 'function'
-          ? Archify.focus.reachabilitySnapshot()
+        var snapshot = ArchiMadeEasy.focus && typeof ArchiMadeEasy.focus.reachabilitySnapshot === 'function'
+          ? ArchiMadeEasy.focus.reachabilitySnapshot()
           : null;
         if (!snapshot) return Promise.reject(exportError('viewer.export.reachRequired'));
         return renderShareCard({ reachSnapshot: snapshot });
@@ -1070,8 +1070,8 @@
       };
 
       function syncRouteShareItem() {
-        var snapshot = Archify.routeProbe && typeof Archify.routeProbe.exportSnapshot === 'function'
-          ? Archify.routeProbe.exportSnapshot()
+        var snapshot = ArchiMadeEasy.routeProbe && typeof ArchiMadeEasy.routeProbe.exportSnapshot === 'function'
+          ? ArchiMadeEasy.routeProbe.exportSnapshot()
           : null;
         routeShareItem.hidden = !snapshot;
         routeShareItem.disabled = !snapshot;
@@ -1079,8 +1079,8 @@
       }
 
       function syncReachShareItem() {
-        var snapshot = Archify.focus && typeof Archify.focus.reachabilitySnapshot === 'function'
-          ? Archify.focus.reachabilitySnapshot()
+        var snapshot = ArchiMadeEasy.focus && typeof ArchiMadeEasy.focus.reachabilitySnapshot === 'function'
+          ? ArchiMadeEasy.focus.reachabilitySnapshot()
           : null;
         reachShareItem.hidden = !snapshot;
         reachShareItem.disabled = !snapshot;
@@ -1124,7 +1124,7 @@
       // A live region only announces CHANGES to an existing node, so the toast
       // element is created once up front and updated in place.
       var toastEl = document.createElement('div');
-      toastEl.className = 'archify-toast';
+      toastEl.className = 'archi-made-easy-toast';
       toastEl.setAttribute('role', 'status');
       document.body.appendChild(toastEl);
       var toastTimer = null;
@@ -1140,9 +1140,9 @@
       }
 
       function open(focusLast) {
-        if (Archify.preset && Archify.preset.isOpen()) Archify.preset.close(false);
-        if (Archify.semanticLens && typeof Archify.semanticLens.clearPreview === 'function') Archify.semanticLens.clearPreview();
-        if (Archify.semanticLens && Archify.semanticLens.isOpen()) Archify.semanticLens.close({ restoreFocus: false });
+        if (ArchiMadeEasy.preset && ArchiMadeEasy.preset.isOpen()) ArchiMadeEasy.preset.close(false);
+        if (ArchiMadeEasy.semanticLens && typeof ArchiMadeEasy.semanticLens.clearPreview === 'function') ArchiMadeEasy.semanticLens.clearPreview();
+        if (ArchiMadeEasy.semanticLens && ArchiMadeEasy.semanticLens.isOpen()) ArchiMadeEasy.semanticLens.close({ restoreFocus: false });
         syncRouteShareItem();
         syncReachShareItem();
         menu.classList.add('open');
@@ -1256,7 +1256,7 @@
       function runRouteShareCard() {
         close(false);
         clearExportReceipt();
-        var snapshot = Archify.routeProbe && Archify.routeProbe.exportSnapshot();
+        var snapshot = ArchiMadeEasy.routeProbe && ArchiMadeEasy.routeProbe.exportSnapshot();
         var blobPromise = snapshot
           ? renderShareCard({ routeSnapshot: snapshot })
           : Promise.reject(exportError('viewer.export.routeRequired'));
@@ -1278,8 +1278,8 @@
       function runReachShareCard() {
         close(false);
         clearExportReceipt();
-        var snapshot = Archify.focus && typeof Archify.focus.reachabilitySnapshot === 'function'
-          ? Archify.focus.reachabilitySnapshot()
+        var snapshot = ArchiMadeEasy.focus && typeof ArchiMadeEasy.focus.reachabilitySnapshot === 'function'
+          ? ArchiMadeEasy.focus.reachabilitySnapshot()
           : null;
         var blobPromise = snapshot
           ? renderShareCard({ reachSnapshot: snapshot })
@@ -1388,8 +1388,8 @@
         if (formatBtn && !formatBtn.disabled) { runExport(formatBtn.dataset.format); }
       });
 
-      Archify.motion = { canRecord: canRecordMotion, recordWebm: recordWebm };
-      Archify.exportMenu = {
+      ArchiMadeEasy.motion = { canRecord: canRecordMotion, recordWebm: recordWebm };
+      ArchiMadeEasy.exportMenu = {
         open: open,
         close: close,
         isOpen: isOpen,

@@ -5,17 +5,17 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { ChromeVisualBrowser, findChrome } from '../../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome } from '../../archi-made-easy/bin/visual-check.mjs';
 
 const website = fileURLToPath(new URL('../', import.meta.url));
-const enabled = process.env.ARCHIFY_SITE_INTEGRATION === '1';
-const root = path.resolve(process.env.ARCHIFY_SITE_ROOT || path.join(website, 'dist'));
-const mount = process.env.ARCHIFY_SITE_BASE ?? '/archify';
+const enabled = process.env.ARCHI_MADE_EASY_SITE_INTEGRATION === '1';
+const root = path.resolve(process.env.ARCHI_MADE_EASY_SITE_ROOT || path.join(website, 'dist'));
+const mount = process.env.ARCHI_MADE_EASY_SITE_BASE ?? '/archi-made-easy';
 const target = mount ? 'github' : 'cloudflare';
 const output = path.join(website, '.browser-evidence', target);
 
 test('real Chrome: homepage category and identity remain readable across languages, themes and viewports', {
-  skip: enabled ? false : 'Set ARCHIFY_SITE_INTEGRATION=1 and ARCHIFY_CHROME to run homepage browser evidence.',
+  skip: enabled ? false : 'Set ARCHI_MADE_EASY_SITE_INTEGRATION=1 and ARCHI_MADE_EASY_CHROME to run homepage browser evidence.',
   timeout: 120000,
 }, async () => {
   const chrome = findChrome();
@@ -102,7 +102,7 @@ test('real Chrome: homepage category and identity remain readable across languag
             assert.equal(receipt.nodes[0].href, `${lang === 'zh' ? 'zh/' : ''}agent-diagrams${mount ? '.html' : ''}`);
           } else {
             assert.deepEqual(receipt.nodes.slice(1).map(node => [node.text, node.href]), [
-              ['archify.si', 'https://archify.si/'], ['tt-a1i/archify', 'https://github.com/tt-a1i/archify'],
+              ['OWNER.github.io/archi-made-easy', 'https://OWNER.github.io/archi-made-easy/'], ['OWNER/archi-made-easy', 'https://github.com/OWNER/archi-made-easy'],
             ]);
           }
         }

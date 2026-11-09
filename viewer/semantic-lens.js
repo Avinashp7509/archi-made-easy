@@ -4,7 +4,7 @@
        Two selected kinds compare only direct cross-kind relationships while
        preserving the full diagram as a dimmed spatial reference.
        ============================================================ */
-    Archify.semanticLens = (function () {
+    ArchiMadeEasy.semanticLens = (function () {
       var html = document.documentElement;
       var container = document.querySelector('.diagram-container');
       var svg = container.querySelector(':scope > svg');
@@ -451,14 +451,14 @@
       }
       function prepareForLens() {
         clearLegendPreview();
-        if (Archify.focus && typeof Archify.focus.clear === 'function') {
-          Archify.focus.clear({ updateUrl: false, preserveView: true });
+        if (ArchiMadeEasy.focus && typeof ArchiMadeEasy.focus.clear === 'function') {
+          ArchiMadeEasy.focus.clear({ updateUrl: false, preserveView: true });
         }
-        if (Archify.routeProbe && typeof Archify.routeProbe.clear === 'function') {
-          Archify.routeProbe.clear({ updateUrl: false, restoreFocus: false });
+        if (ArchiMadeEasy.routeProbe && typeof ArchiMadeEasy.routeProbe.clear === 'function') {
+          ArchiMadeEasy.routeProbe.clear({ updateUrl: false, restoreFocus: false });
         }
-        if (Archify.intentTrace && typeof Archify.intentTrace.clear === 'function') {
-          Archify.intentTrace.clear({ announce: false });
+        if (ArchiMadeEasy.intentTrace && typeof ArchiMadeEasy.intentTrace.clear === 'function') {
+          ArchiMadeEasy.intentTrace.clear({ announce: false });
         }
       }
       function select(kind, options) {
@@ -487,10 +487,10 @@
         options = options || {};
         if (html.getAttribute('data-embed') === 'true') return false;
         lensOpener = options.opener || trigger;
-        if (Archify.exportMenu && Archify.exportMenu.isOpen()) Archify.exportMenu.close(false);
-        if (Archify.finder && Archify.finder.isOpen()) Archify.finder.close({ restoreFocus: false });
-        if (Archify.radar && Archify.radar.isOpen()) Archify.radar.close({ restoreFocus: false });
-        if (Archify.guide && Archify.guide.isOpen()) Archify.guide.close({ restoreFocus: false });
+        if (ArchiMadeEasy.exportMenu && ArchiMadeEasy.exportMenu.isOpen()) ArchiMadeEasy.exportMenu.close(false);
+        if (ArchiMadeEasy.finder && ArchiMadeEasy.finder.isOpen()) ArchiMadeEasy.finder.close({ restoreFocus: false });
+        if (ArchiMadeEasy.radar && ArchiMadeEasy.radar.isOpen()) ArchiMadeEasy.radar.close({ restoreFocus: false });
+        if (ArchiMadeEasy.guide && ArchiMadeEasy.guide.isOpen()) ArchiMadeEasy.guide.close({ restoreFocus: false });
         renderKinds();
         panel.hidden = false;
         trigger.setAttribute('aria-expanded', 'true');
@@ -513,8 +513,8 @@
         renderKinds();
         status.textContent = viewerText('viewer.lens.choose');
         if (options.updateUrl !== false) updateHash();
-        if (options.preserveView !== true && Archify.view && typeof Archify.view.reset === 'function') {
-          Archify.view.reset({ automatic: true });
+        if (options.preserveView !== true && ArchiMadeEasy.view && typeof ArchiMadeEasy.view.reset === 'function') {
+          ArchiMadeEasy.view.reset({ automatic: true });
         }
         if (options.closePanel === true) close({ restoreFocus: false });
         return false;

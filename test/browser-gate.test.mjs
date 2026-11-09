@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 
-const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archify');
+const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archi-made-easy');
 const repoRoot = path.dirname(skillRoot);
 const runner = path.join(repoRoot, 'scripts/run-browser-tests.mjs');
 const [nodeMajor, nodeMinor] = process.versions.node.split('.').map(Number);
@@ -15,11 +15,11 @@ const supportsConcurrency = nodeMajor > 18 || (nodeMajor === 18 && nodeMinor >= 
 const supportsNamePattern = nodeMajor > 18 || (nodeMajor === 18 && nodeMinor >= 11);
 
 test('browser gate rejects an unavailable explicit browser instead of skipping', (t) => {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-browser-gate-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-browser-gate-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   for (const chrome of ['', path.join(directory, 'missing-chrome')]) {
     const result = spawnSync(process.execPath, [runner], {
-      encoding: 'utf8', env: { ...process.env, ARCHIFY_CHROME: chrome },
+      encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_CHROME: chrome },
     });
     assert.equal(result.status, 1, result.stdout || result.stderr);
     assert.match(result.stderr, /require an executable Chrome\/Chromium/);
@@ -30,7 +30,7 @@ test('browser gate rejects an unavailable explicit browser instead of skipping',
 // Observe the public runner's child invocation without starting real browsers
 // in the ordinary Node matrix. The explicit browser gate supplies real coverage.
 function interceptedRun(t, outcome, args = []) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-browser-gate-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-browser-gate-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const userCache = path.join(directory, 'user-cache');
   fs.mkdirSync(userCache);
@@ -39,9 +39,9 @@ function interceptedRun(t, outcome, args = []) {
   fs.writeFileSync(preload, `
 const childProcess = require('node:child_process');
 childProcess.spawnSync = (command, args, options) => {
-  const updateCache = options.env.ARCHIFY_UPDATE_CACHE_DIRECTORY;
+  const updateCache = options.env.ARCHI_MADE_EASY_UPDATE_CACHE_DIRECTORY;
   require('node:fs').writeFileSync(require('node:path').join(updateCache, 'fixture-update'), 'test receipt');
-  console.log(JSON.stringify({ command, args, cwd: options.cwd, chrome: options.env.ARCHIFY_CHROME, updateCache }));
+  console.log(JSON.stringify({ command, args, cwd: options.cwd, chrome: options.env.ARCHI_MADE_EASY_CHROME, updateCache }));
   return ${JSON.stringify(outcome)};
 };
 require('node:module').syncBuiltinESMExports();
@@ -49,7 +49,7 @@ require('node:module').syncBuiltinESMExports();
   const result = spawnSync(process.execPath, ['--require', preload, runner, ...args], {
     cwd: directory,
     encoding: 'utf8',
-    env: { ...process.env, ARCHIFY_CHROME: process.execPath, ARCHIFY_UPDATE_CACHE_DIRECTORY: userCache },
+    env: { ...process.env, ARCHI_MADE_EASY_CHROME: process.execPath, ARCHI_MADE_EASY_UPDATE_CACHE_DIRECTORY: userCache },
   });
   assert.equal(fs.readFileSync(path.join(userCache, 'preserved'), 'utf8'), 'existing cache');
   assert.deepEqual(fs.readdirSync(userCache), ['preserved']);
@@ -122,7 +122,7 @@ test('browser gate rejects files outside its inventory and invalid options befor
 
 test('browser inventory can be listed without Chrome or child execution', (t) => {
   const result = spawnSync(process.execPath, [runner, '--list'], {
-    encoding: 'utf8', env: { ...process.env, ARCHIFY_CHROME: '' },
+    encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_CHROME: '' },
   });
   assert.equal(result.status, 0, result.stderr);
   const invocation = JSON.parse(interceptedRun(t, { status: 0 }).stdout);
@@ -132,7 +132,7 @@ test('browser inventory can be listed without Chrome or child execution', (t) =>
 
 test('selected browser execution still requires Chrome', () => {
   const result = spawnSync(process.execPath, [runner, 'test/i18n-browser.test.mjs'], {
-    encoding: 'utf8', env: { ...process.env, ARCHIFY_CHROME: '' },
+    encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_CHROME: '' },
   });
   assert.equal(result.status, 1, result.stderr);
   assert.match(result.stderr, /require an executable Chrome\/Chromium/);
@@ -157,7 +157,7 @@ test('CI and release use the same browser command and retain WebM decoding', () 
     const gate = jobs[browserJob].steps.find(step => step.name === 'Run shared browser regression gate');
     assert.equal(gate?.run, browserCommand, `${workflow} must invoke the shared gate`);
     assert.equal(gate['working-directory'], undefined);
-    assert.equal(gate.env.ARCHIFY_CHROME, '${{ steps.setup-chrome.outputs.chrome-path }}');
+    assert.equal(gate.env.ARCHI_MADE_EASY_CHROME, '${{ steps.setup-chrome.outputs.chrome-path }}');
     assert.ok(jobs[webmJob].steps.some(step => step.run === 'npm run test:webm'));
   }
 });
@@ -183,11 +183,11 @@ test('browser shards are deterministic, nonempty, disjoint and cover the full ma
 
 test('browser shard listing requires neither Chrome nor test execution', () => {
   const full = spawnSync(process.execPath, [runner, '--list'], {
-    encoding: 'utf8', env: { ...process.env, ARCHIFY_CHROME: '' },
+    encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_CHROME: '' },
   }).stdout.trim().split('\n');
   for (const index of [1, 2]) {
     const result = spawnSync(process.execPath, [runner, `--shard=${index}/2`, '--list'], {
-      encoding: 'utf8', env: { ...process.env, ARCHIFY_CHROME: '' },
+      encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_CHROME: '' },
     });
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stderr, '');
@@ -211,7 +211,7 @@ test('browser shards reject invalid, duplicate, empty or partially selected cove
 
 test('sharded browser gates retain Chrome requirements and propagate child failures', (t) => {
   const unavailable = spawnSync(process.execPath, [runner, '--shard=1/2'], {
-    encoding: 'utf8', env: { ...process.env, ARCHIFY_CHROME: '' },
+    encoding: 'utf8', env: { ...process.env, ARCHI_MADE_EASY_CHROME: '' },
   });
   assert.equal(unavailable.status, 1);
   assert.match(unavailable.stderr, /require an executable Chrome\/Chromium/);
@@ -270,7 +270,7 @@ test('website CI uses the maintained browser script including community security
   assert.ok(gate, 'website must run its browser regression gate');
   assert.match(gate, /run: npm run test:browser\n/);
   assert.match(gate, /working-directory: website/);
-  assert.match(gate, /ARCHIFY_SITE_INTEGRATION: '1'/);
+  assert.match(gate, /ARCHI_MADE_EASY_SITE_INTEGRATION: '1'/);
   assert.match(manifest.scripts['test:browser'], /site-language-continuity\.test\.mjs/);
   assert.match(manifest.scripts['test:browser'], /community-browser\.test\.mjs/);
 });

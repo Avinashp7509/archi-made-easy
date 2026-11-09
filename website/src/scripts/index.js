@@ -18,7 +18,7 @@
       artifact: 'gallery/artifacts/agent-tool-call.workflow.html',
       hash: '#focus=planner&reach=downstream',
       beats: [MAP, '#focus=planner&reach=downstream', '#focus=approval&reach=upstream', '#lens=security~database'],
-      iframeTitle: { en: 'Agent Tool Call live Archify proof', zh: '智能体工具调用 Archify 实时成品' },
+      iframeTitle: { en: 'Agent Tool Call live Archi-Made-Easy proof', zh: '智能体工具调用 Archi-Made-Easy 实时成品' },
       name: { en: 'Agent Tool Call', zh: '智能体工具调用' },
       meta: DEFAULT_PROOF_LABELS.meta,
       title: DEFAULT_PROOF_LABELS.title
@@ -27,7 +27,7 @@
       artifact: 'gallery/artifacts/production-deployment.architecture.html',
       hash: '#lens=backend~database',
       beats: [MAP, '#focus=gateway&reach=downstream', '#focus=postgres&reach=upstream', '#lens=backend~database'],
-      iframeTitle: { en: 'Production Deployment live Archify proof', zh: '生产部署架构 Archify 实时成品' },
+      iframeTitle: { en: 'Production Deployment live Archi-Made-Easy proof', zh: '生产部署架构 Archi-Made-Easy 实时成品' },
       name: { en: 'Production Deployment', zh: '生产部署' },
       meta: { en: 'Architecture · Blueprint · 12 nodes · 12 edges', zh: '架构图 · Blueprint · 12 节点 · 12 条关系' },
       title: { en: 'Production Deployment — regions, ownership, state, and audit', zh: '生产部署——区域、归属、状态与审计边界' }
@@ -36,7 +36,7 @@
       artifact: 'cases/life/leave-plan.workflow.html',
       hash: '#focus=spring&reach=downstream',
       beats: [MAP, '#focus=spring&reach=downstream', '#focus=done&reach=upstream', '#lens=backend~security'],
-      iframeTitle: { en: 'Annual leave plan live Archify artifact', zh: '年假规划 Archify 实时成品' },
+      iframeTitle: { en: 'Annual leave plan live Archi-Made-Easy artifact', zh: '年假规划 Archi-Made-Easy 实时成品' },
       name: { en: 'Annual Leave', zh: '年假规划' },
       meta: { en: 'Workflow · Classic · 8 nodes · 7 edges', zh: '工作流 · Classic · 8 节点 · 7 条关系' },
       title: { en: 'Annual leave — four breaks, two rules, zero days wasted', zh: '一年的年假——四次拼假、两条规则、一天不浪费' }
@@ -46,7 +46,7 @@
       hash: '#route=web~db',
       embedHash: '#focus=web&reach=downstream',
       beats: [MAP, '#focus=web&reach=downstream', '#focus=db&reach=upstream', '#lens=database~security'],
-      iframeTitle: { en: 'Cache Miss Request live Archify proof', zh: '缓存未命中请求 Archify 实时成品' },
+      iframeTitle: { en: 'Cache Miss Request live Archi-Made-Easy proof', zh: '缓存未命中请求 Archi-Made-Easy 实时成品' },
       name: { en: 'Cache Miss', zh: '缓存未命中' },
       meta: { en: 'Sequence · Classic · 7 participants · 12 messages', zh: '时序图 · Classic · 7 个参与者 · 12 条消息' },
       title: { en: 'Cache Miss — authentication, fallback, return, and trace', zh: '缓存未命中——鉴权、回退、返回与追踪' }
@@ -68,7 +68,7 @@
       page: 'cases/explainer/finalize-delivery.html',
       name: { en: 'Read a Repo', zh: '读代码仓库' },
       meta: { en: 'One-page answer · 4 panels · code pinned to a commit', zh: '一页式解答 · 4 个面板 · 代码固定到提交' },
-      title: { en: 'Which modules does Archify finalize pass through, and how is the last good file kept?', zh: 'Archify finalize 经过哪些模块？失败时旧产物怎么保住？' },
+      title: { en: 'Which modules does Archi-Made-Easy finalize pass through, and how is the last good file kept?', zh: 'Archi-Made-Easy finalize 经过哪些模块？失败时旧产物怎么保住？' },
       ask: '提交前为什么要先备份旧文件？'
     }
   };
@@ -78,7 +78,7 @@
   const CHAPTERS = { map: 4, page: 5 };
   const TOTAL = CHAPTERS.map + CHAPTERS.page;
 
-  let lang = ArchifySiteLanguage.read();
+  let lang = ArchiMadeEasySiteLanguage.read();
   let activeProof = 'signal';
   let activePage = lang === 'zh' ? 'repo' : 'tls';
   let mode = 'map';
@@ -106,7 +106,7 @@
     try { proofFrame.contentDocument.documentElement.setAttribute('data-theme', siteTheme()); } catch (_) {}
     pageDoc()?.querySelector(`[data-theme-choice="${siteTheme()}"]`)?.click();
   }
-  window.addEventListener('archify:themechange', syncFrameTheme);
+  window.addEventListener('archi-made-easy:themechange', syncFrameTheme);
 
   function proofEmbedUrl(proof) {
     return `${proof.artifact}?embed=1&theme=${siteTheme()}${proof.embedHash || proof.hash}`;
@@ -164,7 +164,7 @@
     proofMeta.textContent = entry.meta[lang];
     proofTitle.textContent = entry.title[lang];
     addressFile.textContent = (entry.artifact || entry.page).split('/').pop();
-    pageFrame.title = lang === 'zh' ? `${PAGES[activePage].name.zh} Archify 一页式解答` : `${PAGES[activePage].name.en} live Archify one-page answer`;
+    pageFrame.title = lang === 'zh' ? `${PAGES[activePage].name.zh} Archi-Made-Easy 一页式解答` : `${PAGES[activePage].name.en} live Archi-Made-Easy one-page answer`;
     if (mode === 'map') renderBeat(beat, { apply: false }); else renderPageBeat(pageBeat);
   }
 
@@ -300,7 +300,7 @@
   }
 
   function applyLang(l) {
-    lang = ArchifySiteLanguage.write(l);
+    lang = ArchiMadeEasySiteLanguage.write(l);
     document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : 'en';
     btnLang.textContent = lang === 'zh' ? 'EN' : '中文';
     btnLang.setAttribute('aria-label', lang === 'zh' ? 'Switch to English' : '切换到中文');
@@ -408,8 +408,8 @@
   /* ══ Closing prompt — types example requests in turn, maps and pages alike; the first is in the
      HTML, and nothing cycles under reduced motion ══ */
   const PROMPTS = {
-    en: ['Use Archify to answer as one page: why did P99 jump while the mean stayed flat?', 'Use Archify to map our checkout services and show where the cache sits.', 'Use Archify to read this repository and show how a request reaches the database.', 'Use Archify to plan my annual leave around two comp days that expire in June.', 'Use Archify to answer as one page: what should I check before signing a lease?', "Use Archify to draw a timeline of last night's incident."],
-    zh: ['用 Archify 一页回答：P99 暴涨、平均值几乎没变，为什么？', '用 Archify 画出我们的结账服务，标出缓存在哪一层。', '用 Archify 读一下这个仓库，画出一个请求怎么走到数据库。', '用 Archify 帮我排年假，有两天调休 6 月底过期。', '用 Archify 一页回答：第一次租房，签合同前要确认什么？', '用 Archify 画出昨晚那次事故的时间线。']
+    en: ['Use Archi-Made-Easy to answer as one page: why did P99 jump while the mean stayed flat?', 'Use Archi-Made-Easy to map our checkout services and show where the cache sits.', 'Use Archi-Made-Easy to read this repository and show how a request reaches the database.', 'Use Archi-Made-Easy to plan my annual leave around two comp days that expire in June.', 'Use Archi-Made-Easy to answer as one page: what should I check before signing a lease?', "Use Archi-Made-Easy to draw a timeline of last night's incident."],
+    zh: ['用 Archi-Made-Easy 一页回答：P99 暴涨、平均值几乎没变，为什么？', '用 Archi-Made-Easy 画出我们的结账服务，标出缓存在哪一层。', '用 Archi-Made-Easy 读一下这个仓库，画出一个请求怎么走到数据库。', '用 Archi-Made-Easy 帮我排年假，有两天调休 6 月底过期。', '用 Archi-Made-Easy 一页回答：第一次租房，签合同前要确认什么？', '用 Archi-Made-Easy 画出昨晚那次事故的时间线。']
   };
   const ctaPrompt = $('cta-prompt');
   if (ctaPrompt && !reducedMotion.matches && 'IntersectionObserver' in window) {
@@ -476,7 +476,7 @@
     agentRevision++;
     agentTabs.forEach(t => { const on = t === tab; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; });
     $('agent-copy-status').textContent = '';
-    agentCommand.textContent = `npx -y skills@latest add https://archify.si --skill archify --agent ${tab.dataset.agent} --global --copy --yes`;
+    agentCommand.textContent = `npx -y skills@latest add https://OWNER.github.io/archi-made-easy --skill archi-made-easy --agent ${tab.dataset.agent} --global --copy --yes`;
     if (focus) tab.focus();
   }
   agentTabs.forEach((tab, i) => {
@@ -498,7 +498,7 @@
       const current = ++attempt, text = sourceText(), revision = agentRevision;
       status.textContent = '';
       const isCurrent = () => current === attempt && (!button.dataset.copyFrom || revision === agentRevision) && text === sourceText();
-      const ok = await ArchifyClipboard.copy(text, isCurrent);
+      const ok = await ArchiMadeEasyClipboard.copy(text, isCurrent);
       if (!isCurrent()) return;
       status.textContent = LANGS[lang][ok ? 'copySuccess' : 'copyFailure'];
     });

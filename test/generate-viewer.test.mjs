@@ -8,34 +8,34 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { generateViewer } from '../scripts/generate-viewer.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const marker = '/* ARCHIFY:READER_LAYOUT */';
-const viewerCssMarker = '/* ARCHIFY:VIEWER_CSS */';
-const exportMarker = '/* ARCHIFY:EXPORT */';
-const cleanupMarker = '/* ARCHIFY:EXPORT_CLEANUP */';
-const chromeMarker = '/* ARCHIFY:CHROME_LAYOUT */';
-const cameraMarker = '/* ARCHIFY:CAMERA */';
-const radarMarker = '/* ARCHIFY:RADAR */';
-const motionMarker = '/* ARCHIFY:MOTION_GOVERNOR */';
-const finderMarker = '/* ARCHIFY:NODE_FINDER */';
-const outlineMarker = '/* ARCHIFY:NODE_OUTLINE */';
-const treeMarker = '/* ARCHIFY:TREE_BRANCHES */';
-const intentMarker = '/* ARCHIFY:INTENT_TRACE */';
-const lensMarker = '/* ARCHIFY:SEMANTIC_LENS */';
-const routeMarker = '/* ARCHIFY:ROUTE_PROBE */';
-const focusMarker = '/* ARCHIFY:FOCUS */';
+const marker = '/* ARCHI_MADE_EASY:READER_LAYOUT */';
+const viewerCssMarker = '/* ARCHI_MADE_EASY:VIEWER_CSS */';
+const exportMarker = '/* ARCHI_MADE_EASY:EXPORT */';
+const cleanupMarker = '/* ARCHI_MADE_EASY:EXPORT_CLEANUP */';
+const chromeMarker = '/* ARCHI_MADE_EASY:CHROME_LAYOUT */';
+const cameraMarker = '/* ARCHI_MADE_EASY:CAMERA */';
+const radarMarker = '/* ARCHI_MADE_EASY:RADAR */';
+const motionMarker = '/* ARCHI_MADE_EASY:MOTION_GOVERNOR */';
+const finderMarker = '/* ARCHI_MADE_EASY:NODE_FINDER */';
+const outlineMarker = '/* ARCHI_MADE_EASY:NODE_OUTLINE */';
+const treeMarker = '/* ARCHI_MADE_EASY:TREE_BRANCHES */';
+const intentMarker = '/* ARCHI_MADE_EASY:INTENT_TRACE */';
+const lensMarker = '/* ARCHI_MADE_EASY:SEMANTIC_LENS */';
+const routeMarker = '/* ARCHI_MADE_EASY:ROUTE_PROBE */';
+const focusMarker = '/* ARCHI_MADE_EASY:FOCUS */';
 const fragments = { viewerCss: viewerCssMarker, export: exportMarker, reader: marker, cleanup: cleanupMarker, chrome: chromeMarker, camera: cameraMarker, radar: radarMarker, motion: motionMarker, finder: finderMarker, outline: outlineMarker, tree: treeMarker, intent: intentMarker, lens: lensMarker, route: routeMarker, focus: focusMarker };
 
 function fixture(t) {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-viewer-build-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-viewer-build-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   fs.mkdirSync(path.join(root, 'scripts'));
-  fs.mkdirSync(path.join(root, 'archify/assets'), { recursive: true });
-  fs.mkdirSync(path.join(root, 'archify/renderers/shared'), { recursive: true });
-  fs.copyFileSync(path.join(repoRoot, 'archify/renderers/shared/path-semantics.mjs'), path.join(root, 'archify/renderers/shared/path-semantics.mjs'));
+  fs.mkdirSync(path.join(root, 'archi-made-easy/assets'), { recursive: true });
+  fs.mkdirSync(path.join(root, 'archi-made-easy/renderers/shared'), { recursive: true });
+  fs.copyFileSync(path.join(repoRoot, 'archi-made-easy/renderers/shared/path-semantics.mjs'), path.join(root, 'archi-made-easy/renderers/shared/path-semantics.mjs'));
   fs.cpSync(path.join(repoRoot, 'viewer'), path.join(root, 'viewer'), { recursive: true });
   fs.copyFileSync(path.join(repoRoot, 'scripts/generate-viewer.mjs'), path.join(root, 'scripts/generate-viewer.mjs'));
-  const output = path.join(root, 'archify/assets/template.html');
-  fs.copyFileSync(path.join(repoRoot, 'archify/assets/template.html'), output);
+  const output = path.join(root, 'archi-made-easy/assets/template.html');
+  fs.copyFileSync(path.join(repoRoot, 'archi-made-easy/assets/template.html'), output);
   return {
     root, output,
     shell: path.join(root, 'viewer/template.source.html'),
@@ -93,7 +93,7 @@ test('Viewer generation runs through a preserved symlink entry', (t) => {
     cwd: os.tmpdir(), encoding: 'utf8',
   });
   assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout.trim(), 'generated archify/assets/template.html');
+  assert.equal(result.stdout.trim(), 'generated archi-made-easy/assets/template.html');
   assert.deepEqual(fs.readFileSync(f.output), previous);
 });
 

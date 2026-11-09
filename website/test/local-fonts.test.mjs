@@ -47,7 +47,7 @@ test('local font declarations preserve the original families, weights and swap b
 });
 
 test('tracked public staging ships authentic WOFF2 bytes, licenses and the CSS references', () => {
-  const output = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-local-fonts-'));
+  const output = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-local-fonts-'));
   try {
     stagePublic(fileURLToPath(repo), output);
     assert.equal(manifest.fonts.length, 5);
@@ -70,10 +70,10 @@ test('tracked public staging ships authentic WOFF2 bytes, licenses and the CSS r
 });
 
 // Integration evidence is selected explicitly after the corresponding build.
-if (process.env.ARCHIFY_FONT_BUILD_CHECK === '1') test('built font links resolve to deployed bytes for both languages and the selected host', () => {
-  const cloudflare = process.env.ARCHIFY_SITE_TARGET === 'cloudflare';
+if (process.env.ARCHI_MADE_EASY_FONT_BUILD_CHECK === '1') test('built font links resolve to deployed bytes for both languages and the selected host', () => {
+  const cloudflare = process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare';
   const output = new URL(cloudflare ? '../dist-cloudflare/' : '../dist/', import.meta.url);
-  const root = cloudflare ? 'https://archify.si/' : 'https://tt-a1i.github.io/archify/';
+  const root = cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/';
   for (const lang of ['en', 'zh']) for (const page of pages) {
     const file = page === 'index' ? `${lang === 'zh' ? 'zh' : 'index'}.html` : `${lang === 'zh' ? 'zh/' : ''}${page}.html`;
     const html = fs.readFileSync(new URL(file, output), 'utf8');

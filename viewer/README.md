@@ -13,17 +13,17 @@ and legend previews, `route-probe.js` for directed paths and Route Journey,
 main Viewer stylesheet, and `template.source.html` for the remaining shell.
 `viewer.css` owns the complete main `<style>` block; the font-face block remains
 in the shell because it carries its license notice and embedded font data.
-`archify/assets/template.html` is the committed generated artifact, consumed
+`archi-made-easy/assets/template.html` is the committed generated artifact, consumed
 unchanged by all ten renderers and the installed Skill. These maintainer
-sources live outside the packaged `archify/` directory.
+sources live outside the packaged `archi-made-easy/` directory.
 
-From `archify/`, run `npm run generate:viewer` after editing any source.
+From `archi-made-easy/`, run `npm run generate:viewer` after editing any source.
 `npm run check:viewer` verifies freshness without writing; root
 `npm run test:generated` and `npm run test:full` include that check. Shared Viewer changes also require rebuilding the checked-in
 Checkout comparison from its tracked snapshots. From the repository root, run:
 
 ```sh
-node archify/bin/archify.mjs compare architecture archify/examples/checkout-platform.base.architecture.json archify/examples/checkout-platform.head.architecture.json examples/checkout-platform-delta.html --receipt examples/checkout-platform-delta.receipt.json --quality showcase --json
+node archi-made-easy/bin/archi-made-easy.mjs compare architecture archi-made-easy/examples/checkout-platform.base.architecture.json archi-made-easy/examples/checkout-platform.head.architecture.json examples/checkout-platform-delta.html --receipt examples/checkout-platform-delta.receipt.json --quality showcase --json
 ```
 
 `test/architecture-delta.test.mjs` verifies those artifact and receipt
@@ -55,10 +55,10 @@ loader or a second runtime initialization step.
 
 ### Interface and dependencies
 
-The interface includes all nine `Archify.exportMenu` methods: open, close, isOpen,
+The interface includes all nine `ArchiMadeEasy.exportMenu` methods: open, close, isOpen,
 run, shareCard, downloadRouteShareCard, downloadReachShareCard, syncRouteShare,
 and syncReachShare. The same closure installs
-`Archify.motion.canRecord` and `recordWebm`; this recording capability is distinct
+`ArchiMadeEasy.motion.canRecord` and `recordWebm`; this recording capability is distinct
 from Motion Governor. Return values and synchronous/asynchronous failure modes
 are part of the interface, not normalized by the extraction.
 
@@ -75,7 +75,7 @@ are part of the interface, not normalized by the extraction.
 - Preset, Lens, Finder and Presentation close Export through its existing
   interface. Guide/Presentation open it; Route Probe and Focus synchronize their
   share items. The DOM menu routes clicks to the private ordinary PNG copy path.
-  External consumers of Archify.motion retain both recording methods.
+  External consumers of ArchiMadeEasy.motion retain both recording methods.
 
 ### DOM, styles and output state
 
@@ -137,8 +137,8 @@ failures/retry, synchronous serialization failure, real WebM decode and recorder
 failure cleanup. It intercepts download and clipboard boundaries without changing
 production serialization. `export-cleanup-browser.test.mjs` supplies five-mode
 canonical SVG and real raster/theme coverage. Existing share-card and WebM smoke
-checks retain their broader artifact contracts. Set ARCHIFY_CHROME for browser
-checks; ARCHIFY_EXPORT_RUNTIME_EVIDENCE optionally saves runtime observations,
+checks retain their broader artifact contracts. Set ARCHI_MADE_EASY_CHROME for browser
+checks; ARCHI_MADE_EASY_EXPORT_RUNTIME_EVIDENCE optionally saves runtime observations,
 menu screenshots and a real recording. CI runs the browser suite without relying
 on optional evidence capture. Compare the same final tests on a fixed baseline
 and candidate; encoding bytes/timing are not a deterministic oracle for video.
@@ -154,7 +154,7 @@ and hasDrawableGeometry stay in the template's classic-script scope.
 The interface is thirteen Focus methods: set, setMany, clear, copyLink, reach,
 clearReach, reachabilitySnapshot, inspectRelationship, inspectRelationshipById,
 reposition, relationship, reachability and active. The same closure also installs
-Archify.flowTokens.create/kind/path before Route can consume them. This shared
+ArchiMadeEasy.flowTokens.create/kind/path before Route can consume them. This shared
 provider is part of Focus ownership, not a second initialization step.
 
 - set writes neighborhood mode into its supplied options object and delegates to
@@ -518,7 +518,7 @@ position. Its interface is `open`, `close`, `toggle`, `select`, `isOpen`,
   and the shared `viewerText`, `viewerCount`, and `viewerKindLabel` functions.
   Source Evidence supplies search metadata; Finder does not verify repositories.
   Route Probe and Semantic Lens initialize later, so their references remain
-  runtime `Archify.*` lookups with the existing availability checks.
+  runtime `Archi-Made-Easy.*` lookups with the existing availability checks.
 - Search preserves authored DOM order and the existing ID, label, type, text,
   metadata, brand and source-reference matching. Queries are trimmed and
   lowercased for substring matching. Connections are counted by distinct
@@ -566,7 +566,7 @@ The source split narrows maintenance scope while preserving runtime dependencies
 ## Reader contract
 
 - The IIFE initializes once, after the page DOM and shared
-  `Archify.waitForStableLayout` exist, before `viewerChromeLayout` and `view`.
+  `ArchiMadeEasy.waitForStableLayout` exist, before `viewerChromeLayout` and `view`.
   It captures `.container`, `.diagram-container` and its direct child SVG,
   optional header/card elements, and the initial viewBox ratio.
 - The public Interface remains `measure`, `schedule`, `whenStable`, `active`,
@@ -574,11 +574,11 @@ The source split narrows maintenance scope while preserving runtime dependencies
   rendered transform so a corner legend stays fixed through zoom transitions.
   Viewer Chrome Layout calls `schedule` after changing the
   navigation reserve and `whenStable` while probing layout. The browser
-  visual checker also uses `window.Archify.readerLayout.whenStable`.
-- Reader owns the outer width (`html`'s `--archify-reader-width`) and temporary
+  visual checker also uses `window.ArchiMadeEasy.readerLayout.whenStable`.
+- Reader owns the outer width (`html`'s `--archi-made-easy-reader-width`) and temporary
   `data-reader-layout` / `data-reader-overflow` attributes. Automatic canvases
   whose enlargement cap binds also use `data-reader-area` and
-  `--archify-diagram-min-height` to keep a normal viewport-sized reading area.
+  `--archi-made-easy-diagram-min-height` to keep a normal viewport-sized reading area.
   Uncapped and ineligible measures clear these values
   and reset the recorded width. CSS consumes the width on `.container`.
   Reader never writes canonical SVG geometry, viewBox or semantic IDs.
@@ -629,7 +629,7 @@ The source split narrows maintenance scope while preserving runtime dependencies
 ## Viewer Chrome Layout contract
 
 The IIFE initializes once after the shared waiter and Reader Layout, before
-Camera (`Archify.view`). Its interface remains `measure`, `schedule`, `reprobe`,
+Camera (`ArchiMadeEasy.view`). Its interface remains `measure`, `schedule`, `reprobe`,
 `whenStable`, `stageRect`, `active`, and `receipt`. `measure` may return null while
 probing or arranging follow-up work; `receipt` may measure if no receipt exists.
 
@@ -645,7 +645,7 @@ probing or arranging follow-up work; `receipt` may measure if no receipt exists.
 
 | Owned state | Meaning and lifetime |
 | --- | --- |
-| Container `--archify-nav-reserve`; container and html `data-nav-stage-rail` | Current visible rail. Clearing removes these inline values/attributes. |
+| Container `--archi-made-easy-nav-reserve`; container and html `data-nav-stage-rail` | Current visible rail. Clearing removes these inline values/attributes. |
 | Reserve and rail latch | Keep the clearance decision stable while Reader incorporates the extra space. |
 | Baseline gap/intersection and restorable reserve | Preserve the unzoomed layout reference. Temporary ineligibility while zoomed can retain the recovery baseline even though the visible rail is zero. |
 | Probe fallback and pending Promise | If Camera changes during a probe, retain the prior reserve for recovery. They settle through the existing Reader Promise chain. |
@@ -675,7 +675,7 @@ Reader/Chrome feedback and Camera/CSS dependencies still exist.
 
 ## Camera contract
 
-`viewer-camera.js` initializes `Archify.view` once, after Reader and Chrome
+`viewer-camera.js` initializes `ArchiMadeEasy.view` once, after Reader and Chrome
 Layout, before Radar. It captures the diagram container, its first SVG, required
 zoom/reset controls and the initial viewBox. The existing `apply()`,
 `pinControls()` and next-frame semantic sync stay in that order. Focus already
@@ -737,7 +737,7 @@ Motion Governor and other callers retain their own responsibilities.
 | --- | --- |
 | Scale/x/y/mode, drag, transaction generation/object, camera frame/timer, clip/resize frames, automatic-scroll guard | Camera owns its page-lifetime state and pointer/scroll/resize/hashchange subscriptions. There is no destroy method. |
 | SVG `transform`, `clip-path`, `data-view-scale` | Camera applies runtime transforms and clipping without rewriting authored geometry, viewBox or semantic IDs. Export cleanup removes these from its clone. |
-| Container detail/camera attributes, `is-pannable`, camera movement/transaction flags, `data-just-panned`, `--archify-scroll-x` | Camera updates controls, drag suppression and mobile control positioning. `is-panning` is also used by Radar surface dragging; it is not exclusively owned by Camera. |
+| Container detail/camera attributes, `is-pannable`, camera movement/transaction flags, `data-just-panned`, `--archi-made-easy-scroll-x` | Camera updates controls, drag suppression and mobile control positioning. `is-panning` is also used by Radar surface dragging; it is not exclusively owned by Camera. |
 | Zoom/Reset labels, disabled state, detail attributes, title and ARIA text | Camera renders controls through shared translation helpers; associated CSS stays in the shell. |
 | Reader width/wide-diagram classification; Chrome navigation reserve | Owned by the layout modules. Camera consumes geometry and classification; `apply()` schedules Chrome and synchronizes Radar. |
 | Focus / Route | Finishing transactions repositions Focus. Manual takeover pauses Route Journey, preserving Route elapsed time as before. |
@@ -756,7 +756,7 @@ removing these runtime dependencies.
 
 ## Semantic Radar contract
 
-`semantic-radar.js` initializes `Archify.radar` once after Camera and before
+`semantic-radar.js` initializes `ArchiMadeEasy.radar` once after Camera and before
 Presentation. It captures the diagram container and direct-child SVG, initial
 viewBox, map panel/surface/controls, navigation and optional Passport. It creates
 one runtime map SVG outside the canonical diagram and schedules the initial
@@ -781,7 +781,7 @@ assumptions are unchanged.
 | State / dependency | Ownership and coordination |
 | --- | --- |
 | Open intent, panel hidden, trigger ARIA/labels/title and space feedback | Radar owns them. A hidden requested panel can recover on retry or reflow. Close clears intent and retries. |
-| Manual position and last placement; dock/side/compact/placement attributes; `--archify-radar-left/right/top` | Radar owns placement. Close clears current docking styles but retains position memory. Reopening or resizing can constrain it to current geometry. |
+| Manual position and last placement; dock/side/compact/placement attributes; `--archi-made-easy-radar-left/right/top` | Radar owns placement. Close clears current docking styles but retains position memory. Reopening or resizing can constrain it to current geometry. |
 | Panel drag and viewport drag | Titlebar input moves the panel; surface input calls Camera. Pointer matching, capture/release and cancellation retain their separate rules. `is-panning` is shared with Camera. |
 | Passport `data-radar-yielded` and saved `aria-hidden` | During compact expansion Radar can yield Passport space. Restoration reinstates the exact original attribute value, or removes it if originally absent. |
 | Map nodes, viewport rectangle, activity markers and status | Derived from main-node bounds, Camera logicalViewport and Focus state. Authored SVG geometry, viewBox and semantic IDs are not rewritten. |
@@ -816,7 +816,7 @@ continues cloning only the canonical diagram, excluding the runtime map SVG.
 
 ## Motion Governor contract
 
-`motion-governor.js` initializes `Archify.motionGovernor` once after Export,
+`motion-governor.js` initializes `ArchiMadeEasy.motionGovernor` once after Export,
 before Source Evidence and Focus. It captures the initial trace capability,
 main SVG, controls and reduced-motion query. Route initializes
 later; its existence checks remain necessary. The final `syncVisibility()`,
@@ -836,7 +836,7 @@ mode/isPaused report effective pause: reader intent OR reduced motion OR a
 nonempty suspension table. Thus resume can return false while mode remains still.
 setMode treats only `still` as a pause request, returns effective mode and honors
 `persist:false`. New readers default to Still. The storage key remains
-`archify-motion`; resume writes `live`, pause removes it, and storage errors are
+`archi-made-easy-motion`; resume writes `live`, pause removes it, and storage errors are
 ignored. An existing `still` value also stays Still. System suspension
 does not become a persisted user preference. Becoming live resumes continuous
 connection flow when no semantic owner is active; it does not restart Route
@@ -893,7 +893,7 @@ authored geometry/IDs and line styles.
 Route/Reach snapshot, then add dimensions, theme/font styles and serialize.
 It mutates only the supplied SVG clone and returns the existing
 `canonicalStateClean` boolean. It neither reads live selection nor calls a
-Viewer capability or changes the live DOM. No new `Archify` interface is exposed.
+Viewer capability or changes the live DOM. No new `Archi-Made-Easy` interface is exposed.
 
 | State owner | Clone treatment |
 | --- | --- |
@@ -925,11 +925,11 @@ isolated clone tests supplement them for restoration and idempotence.
 
 ## WebM 录制失败与资源生命周期
 
-`Archify.motion.recordWebm()` 的每次调用独立拥有背景 URL、捕获流、编码器、动画帧和停止定时器。背景加载、画布或流创建、编码器启动、绘制、编码事件以及停止失败时，返回的 Promise 拒绝，资源在同一次终态清理中释放；晚到的事件不会恢复成功状态。正常停止后只有非空 WebM 才能成功返回，`requestData()` 失败仍允许通过 `stop()` 完成最佳努力的最终片段收集。
+`ArchiMadeEasy.motion.recordWebm()` 的每次调用独立拥有背景 URL、捕获流、编码器、动画帧和停止定时器。背景加载、画布或流创建、编码器启动、绘制、编码事件以及停止失败时，返回的 Promise 拒绝，资源在同一次终态清理中释放；晚到的事件不会恢复成功状态。正常停止后只有非空 WebM 才能成功返回，`requestData()` 失败仍允许通过 `stop()` 完成最佳努力的最终片段收集。
 
 菜单沿用原有错误提示、失败回执与 WebM 禁用规则；接口调用之间互不清理对方资源。SVG 序列化发生在录制 Promise 之前，其同步异常契约保持不变。修复后的行为仅存在于重新生成的 HTML 中。
 
-回归入口：在仓库根目录设置 `ARCHIFY_CHROME` 后运行 `node --test test/export-browser.test.mjs`。该套件覆盖真实编码、故障边界、晚到事件、同页重试及并行调用；`node test/webm-artifact.smoke.mjs` 另行验证视频解码与实际帧变化。
+回归入口：在仓库根目录设置 `ARCHI_MADE_EASY_CHROME` 后运行 `node --test test/export-browser.test.mjs`。该套件覆盖真实编码、故障边界、晚到事件、同页重试及并行调用；`node test/webm-artifact.smoke.mjs` 另行验证视频解码与实际帧变化。
 
 For required browser, output and package evidence, follow
 [Contributing](../CONTRIBUTING.md#local-setup-and-verification).

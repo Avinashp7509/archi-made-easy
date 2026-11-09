@@ -7,9 +7,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
-const bin = path.join(skillRoot, 'bin', 'archify.mjs');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-vertical-edge-'));
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
+const bin = path.join(skillRoot, 'bin', 'archi-made-easy.mjs');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-vertical-edge-'));
 
 const REPRO = {
   schema_version: 1,

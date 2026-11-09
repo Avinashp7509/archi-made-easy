@@ -5,17 +5,17 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
-import { ChromeVisualBrowser, findChrome } from '../../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome } from '../../archi-made-easy/bin/visual-check.mjs';
 
 const website = fileURLToPath(new URL('../', import.meta.url));
-const enabled = process.env.ARCHIFY_SITE_INTEGRATION === '1';
-const root = path.resolve(process.env.ARCHIFY_SITE_ROOT || path.join(website, 'dist'));
-const mount = process.env.ARCHIFY_SITE_BASE ?? '/archify';
+const enabled = process.env.ARCHI_MADE_EASY_SITE_INTEGRATION === '1';
+const root = path.resolve(process.env.ARCHI_MADE_EASY_SITE_ROOT || path.join(website, 'dist'));
+const mount = process.env.ARCHI_MADE_EASY_SITE_BASE ?? '/archi-made-easy';
 const target = mount ? 'github' : 'cloudflare';
 const output = path.join(website, '.browser-evidence', target, 'clipboard');
 
 test('real Chrome: website copy controls report real outcomes and preserve selected text and focus', {
-  skip: enabled ? false : 'Set ARCHIFY_SITE_INTEGRATION=1 and ARCHIFY_CHROME to run clipboard browser evidence.',
+  skip: enabled ? false : 'Set ARCHI_MADE_EASY_SITE_INTEGRATION=1 and ARCHI_MADE_EASY_CHROME to run clipboard browser evidence.',
   timeout: 120000,
 }, async () => {
   const chrome = findChrome();
@@ -79,7 +79,7 @@ test('real Chrome: website copy controls report real outcomes and preserve selec
           else if (selector === '#copy-prompt') expected = document.getElementById('recipe-prompt').textContent;
           else {
             const command = document.getElementById('agent-install-prompt').textContent.trim(), prompt = document.getElementById('recipe-prompt').textContent;
-            expected = ${JSON.stringify(lang)} === 'zh' ? '为 Cursor 安装 Archify：\\n' + command + '\\n\\n然后在目标仓库中让 Cursor：\\n' + prompt : 'Install Archify for Cursor:\\n' + command + '\\n\\nThen, in your target repository, ask Cursor:\\n' + prompt;
+            expected = ${JSON.stringify(lang)} === 'zh' ? '为 Cursor 安装 Archi-Made-Easy：\\n' + command + '\\n\\n然后在目标仓库中让 Cursor：\\n' + prompt : 'Install Archi-Made-Easy for Cursor:\\n' + command + '\\n\\nThen, in your target repository, ask Cursor:\\n' + prompt;
           }
           const writes = [], legacy = [];
           Object.defineProperty(navigator, 'clipboard', { configurable: true, value: api === 'missing' ? undefined : { writeText: async text => { writes.push(text); if (api === 'reject') throw Error('denied'); } } });
@@ -91,11 +91,11 @@ test('real Chrome: website copy controls report real outcomes and preserve selec
           button.scrollIntoView({ block: 'center', behavior: 'instant' }); button.focus({ preventScroll: true });
           await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
           let events = 0; const onCopy = () => { events++; };
-          window.addEventListener('archify:start-funnel', onCopy);
+          window.addEventListener('archi-made-easy:start-funnel', onCopy);
           const before = { areas: document.querySelectorAll('textarea').length, scroll: scrollY };
           button.click();
           for (let i = 0; !status.textContent && i < 30; i++) await new Promise(resolve => setTimeout(resolve, 10));
-          window.removeEventListener('archify:start-funnel', onCopy);
+          window.removeEventListener('archi-made-easy:start-funnel', onCopy);
           const box = status.getBoundingClientRect();
           return { expected, writes, legacy, visible: box.width > 0 && box.height > 0 && box.top >= 0 && box.bottom <= innerHeight && box.left >= 0 && box.right <= innerWidth, status: status.textContent, role: status.getAttribute('role'), live: status.getAttribute('aria-live'), focus: document.activeElement === button, areas: document.querySelectorAll('textarea').length - before.areas, scrollDelta: scrollY - before.scroll, events };
         })()`);
@@ -163,7 +163,7 @@ test('real Chrome: website copy controls report real outcomes and preserve selec
         const page = ${JSON.stringify(page)}, button = document.querySelector(${JSON.stringify(controls.at(-1))});
         const status = document.querySelector('#' + button.getAttribute('aria-describedby'));
         let settleFirst, calls = 0, fallbacks = 0, events = 0;
-        const onCopy = () => { events++; }; window.addEventListener('archify:start-funnel', onCopy);
+        const onCopy = () => { events++; }; window.addEventListener('archi-made-easy:start-funnel', onCopy);
         Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => ++calls === 1 ? new Promise((resolve, reject) => { settleFirst = () => ${JSON.stringify(lateOutcome)} === 'resolve' ? resolve() : reject(Error('late')); }) : Promise.reject(Error('denied')) } });
         document.execCommand = () => { fallbacks++; return false; };
         button.click(); button.click();
@@ -177,7 +177,7 @@ test('real Chrome: website copy controls report real outcomes and preserve selec
         else { document.querySelector('.agent-tabs [data-agent="codex"]').click(); document.querySelector('.agent-tabs [data-agent="cursor"]').click(); }
         const focused = document.activeElement;
         settleFirst(); await new Promise(resolve => setTimeout(resolve, 20));
-        window.removeEventListener('archify:start-funnel', onCopy);
+        window.removeEventListener('archi-made-easy:start-funnel', onCopy);
         return { concurrency, fallbacks, events, focus: document.activeElement === focused, status: page === 'guide' ? document.getElementById('prompt-copy-status').textContent : status.textContent };
       })()`);
       assert.ok(stale.concurrency.latest); assert.equal(stale.concurrency.after, stale.concurrency.latest);

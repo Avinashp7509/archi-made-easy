@@ -4,7 +4,7 @@ const REQUIRED_DISCLOSURES = [
   ['Simple Icons collection license', 'https://github.com/simple-icons/simple-icons/blob/16.28.0/LICENSE.md'],
   ['Simple Icons disclaimer', 'https://github.com/simple-icons/simple-icons/blob/16.28.0/DISCLAIMER.md'],
   ['individual-license boundary', 'The absence\nof an individual license entry is not a grant of permission.'],
-  ['vector-path and color treatment', 'Archify embeds the selected icons as vector-path data and may render them in a\nuser-selected color.'],
+  ['vector-path and color treatment', 'Archi-Made-Easy embeds the selected icons as vector-path data and may render them in a\nuser-selected color.'],
   ['Angular source', 'https://angular.dev/press-kit'],
   ['Angular license', 'CC-BY-4.0'],
   ['Apache Airflow mark', '| Apache Airflow |'],
@@ -28,10 +28,10 @@ const REQUIRED_DISCLOSURES = [
   ['OpenAI source', 'https://openai.com/brand/'],
   ['OpenAI provenance boundary', 'not from Simple Icons'],
   ['no endorsement by OpenAI', 'does not state or imply endorsement by OpenAI'],
-  ['general no-endorsement statement', 'does not imply sponsorship, endorsement, partnership,\nor affiliation with Archify'],
+  ['general no-endorsement statement', 'does not imply sponsorship, endorsement, partnership,\nor affiliation with Archi-Made-Easy'],
   ['third-party rights boundary', 'does not\nreplace the copyright licenses, trademark policies, or brand guidelines'],
   ['ownership statement', 'Brand names, logos, and trademarks remain the property of their respective\nowners.'],
-  ['no additional rights statement', 'does not grant rights\nthat Archify does not hold'],
+  ['no additional rights statement', 'does not grant rights\nthat Archi-Made-Easy does not hold'],
   ['clearance boundary', 'does not state that every packaged mark has\nbeen cleared for every commercial, promotional, or redistributive use'],
 ];
 

@@ -1,4 +1,4 @@
-    Archify.readerLayout = (function () {
+    ArchiMadeEasy.readerLayout = (function () {
       var html = document.documentElement;
       var body = document.body;
       var shell = document.querySelector('.container');
@@ -47,8 +47,8 @@
       var railReveal = document.getElementById('rail-reveal');
       var railCollapse = document.getElementById('rail-collapse');
       var railPlacement = document.getElementById('rail-placement');
-      var RAIL_COLLAPSED_KEY = 'archify-rail-collapsed';
-      var RAIL_PLACEMENT_KEY = 'archify-rail-placement';
+      var RAIL_COLLAPSED_KEY = 'archi-made-easy-rail-collapsed';
+      var RAIL_PLACEMENT_KEY = 'archi-made-easy-rail-placement';
       // Memory is the page's source of truth; storage only carries the choice
       // to later artifacts, so a blocked or full localStorage cannot freeze it.
       var preferences = Object.create(null);
@@ -137,9 +137,9 @@
         );
       }
       function clear() {
-        html.style.removeProperty('--archify-reader-width');
-        html.style.removeProperty('--archify-diagram-max-width');
-        html.style.removeProperty('--archify-diagram-min-height');
+        html.style.removeProperty('--archi-made-easy-reader-width');
+        html.style.removeProperty('--archi-made-easy-diagram-max-width');
+        html.style.removeProperty('--archi-made-easy-diagram-min-height');
         html.removeAttribute('data-reader-area');
         html.removeAttribute('data-reader-narrow');
         html.removeAttribute('data-reader-layout');
@@ -153,7 +153,7 @@
       function clearLegend() {
         if (!legend || !legend.hasAttribute('data-reader-legend-corner')) return;
         legend.removeAttribute('data-reader-legend-corner');
-        legend.style.removeProperty('--archify-reader-legend-transform');
+        legend.style.removeProperty('--archi-made-easy-reader-legend-transform');
       }
       // Keep the original legend in its SVG: renderer hover/focus selectors and
       // canonical export still own that same group. Ordinary capped reading
@@ -194,8 +194,8 @@
         }
         var matrix = parentMatrix.inverse().translate(left, top).scale(scale).translate(-box.x, -box.y);
         var value = 'matrix(' + [matrix.a, matrix.b, matrix.c, matrix.d, matrix.e, matrix.f].join(',') + ')';
-        if (legend.style.getPropertyValue('--archify-reader-legend-transform') !== value) {
-          legend.style.setProperty('--archify-reader-legend-transform', value);
+        if (legend.style.getPropertyValue('--archi-made-easy-reader-legend-transform') !== value) {
+          legend.style.setProperty('--archi-made-easy-reader-legend-transform', value);
         }
         if (!legend.hasAttribute('data-reader-legend-corner')) legend.setAttribute('data-reader-legend-corner', '');
       }
@@ -205,12 +205,12 @@
       function setRail(mode) {
         if (mode) {
           html.setAttribute('data-reader-rail', mode);
-          html.style.setProperty('--archify-rail-width', RAIL_WIDTH + 'px');
-          html.style.setProperty('--archify-rail-gap', RAIL_GAP + 'px');
+          html.style.setProperty('--archi-made-easy-rail-width', RAIL_WIDTH + 'px');
+          html.style.setProperty('--archi-made-easy-rail-gap', RAIL_GAP + 'px');
         } else {
           html.removeAttribute('data-reader-rail');
-          html.style.removeProperty('--archify-rail-width');
-          html.style.removeProperty('--archify-rail-gap');
+          html.style.removeProperty('--archi-made-easy-rail-width');
+          html.style.removeProperty('--archi-made-easy-rail-gap');
         }
         if (railReveal) railReveal.hidden = mode !== 'collapsed';
         if (railCollapse) {
@@ -240,7 +240,7 @@
         if (html.getAttribute('data-reader-rail') !== 'true' || !railPanel) return;
         var top = railPanel.getBoundingClientRect().top + window.scrollY;
         var floor = window.innerHeight - number(window.getComputedStyle(body).paddingBottom) - top;
-        html.style.setProperty('--archify-rail-max', Math.max(diagram.getBoundingClientRect().height, floor) + 'px');
+        html.style.setProperty('--archi-made-easy-rail-max', Math.max(diagram.getBoundingClientRect().height, floor) + 'px');
       }
       function chromeMetrics() {
         var bodyStyle = window.getComputedStyle(body);
@@ -262,7 +262,7 @@
         var changed = Math.abs(rounded - lastWidth) >= 1;
         lastWidth = rounded;
         var shellFloor = Math.min(MIN_READER_WIDTH, Math.max(0, window.innerWidth - chromeMetrics().bodyX));
-        html.style.setProperty('--archify-reader-width', Math.max(rounded, shellFloor) + 'px');
+        html.style.setProperty('--archi-made-easy-reader-width', Math.max(rounded, shellFloor) + 'px');
         var railShare = html.getAttribute('data-reader-rail') === 'true' ? RAIL_WIDTH + RAIL_GAP : 0;
         var diagramWidth = Math.max(1, rounded - railShare - chromeMetrics().diagramX);
         // Content fitting and automatic enlargement never reduce the outer
@@ -271,19 +271,19 @@
           ? viewBox.width * MAX_AUTOMATIC_SCALE : 0;
         if (automaticWidthCap && diagramWidth > automaticWidthCap) {
           diagramWidth = automaticWidthCap;
-          html.style.setProperty('--archify-diagram-min-height', automaticAreaHeight + 'px');
+          html.style.setProperty('--archi-made-easy-diagram-min-height', automaticAreaHeight + 'px');
           html.setAttribute('data-reader-area', 'true');
         } else {
           // Ordinary automatic diagrams retain their existing document flow.
           // Settling can also stop binding the cap without a new measure.
-          html.style.removeProperty('--archify-diagram-min-height');
+          html.style.removeProperty('--archi-made-easy-diagram-min-height');
           html.removeAttribute('data-reader-area');
         }
         if (diagramWidth < Math.max(rounded, shellFloor) - railShare - chromeMetrics().diagramX) {
-          html.style.setProperty('--archify-diagram-max-width', diagramWidth + 'px');
+          html.style.setProperty('--archi-made-easy-diagram-max-width', diagramWidth + 'px');
           html.setAttribute('data-reader-narrow', 'true');
         } else {
-          html.style.removeProperty('--archify-diagram-max-width');
+          html.style.removeProperty('--archi-made-easy-diagram-max-width');
           html.removeAttribute('data-reader-narrow');
         }
         html.setAttribute('data-reader-layout', 'adaptive');
@@ -410,19 +410,19 @@
           Math.round(shellRect.height * 100) / 100,
           Math.round(diagramRect.width * 100) / 100,
           Math.round(diagramRect.height * 100) / 100,
-          legend && legend.hasAttribute('data-reader-legend-corner') ? legend.style.getPropertyValue('--archify-reader-legend-transform') : ''
+          legend && legend.hasAttribute('data-reader-legend-corner') ? legend.style.getPropertyValue('--archi-made-easy-reader-legend-transform') : ''
         ].join('|');
       }
       function layoutPending() { return Boolean(frame || settleFrame); }
       function whenStable() {
-        return Archify.waitForStableLayout({
+        return ArchiMadeEasy.waitForStableLayout({
           schedule: schedule,
           pending: layoutPending,
           snapshot: stableSnapshot,
           timeoutMessage: 'Adaptive reader layout did not reach stable dimensions.'
         });
       }
-      archifyLayoutOwners.reader = { schedule: schedule, pending: layoutPending, snapshot: stableSnapshot };
+      archiMadeEasyLayoutOwners.reader = { schedule: schedule, pending: layoutPending, snapshot: stableSnapshot };
 
       window.addEventListener('resize', function () {
         settledCap = 0;

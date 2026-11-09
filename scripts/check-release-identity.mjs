@@ -11,7 +11,7 @@ import {
   parseSemver,
   validateLocalRelease,
   validateStableUpdateManifest,
-} from '../archify/scripts/update-contract.mjs';
+} from '../archi-made-easy/scripts/update-contract.mjs';
 
 const scriptRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rootFlag = process.argv.indexOf('--root');
@@ -50,7 +50,7 @@ function checkSkillRelease(value, version, isDevelopment) {
   } catch {
     // Report the repository-specific cross-artifact requirement below.
   }
-  fail(`archify/skill-release.json must identify archify ${version} as ${expectedChannel}, use the official repository, and pin the trusted update manifest URL.`);
+  fail(`archi-made-easy/skill-release.json must identify archi-made-easy ${version} as ${expectedChannel}, use the official repository, and pin the trusted update manifest URL.`);
 }
 
 function checkStableUpdateManifest(value, expectedVersion, previousVersion, packageVersion, isDevelopment) {
@@ -67,7 +67,7 @@ function checkStableUpdateManifest(value, expectedVersion, previousVersion, pack
   const releaseWindow = !isDevelopment && previousVersion
     ? `newest stable v${expectedVersion} or immediate prior v${previousVersion} during the enforced post-Release publication window`
     : `newest published stable v${expectedVersion || '(missing)'}`;
-  fail(`docs/skill-updates/archify/stable.json must describe the ${releaseWindow} with the fixed repository, immutable tree/archive digests, and official release-notes URL.`);
+  fail(`docs/skill-updates/archi-made-easy/stable.json must describe the ${releaseWindow} with the fixed repository, immutable tree/archive digests, and official release-notes URL.`);
 }
 
 function shieldEscape(value) {
@@ -135,14 +135,14 @@ function checkIdentityTemplate(relativePath, source, isDevelopment) {
   const hasIdentity = isDevelopment
     ? /development/i.test(source) && /开发版/.test(source)
     : /stable/i.test(source) && /稳定版/.test(source);
-  if (!source.includes('[[ARCHIFY_VERSION]]') || !hasIdentity || hasHardcodedVersion) {
-    fail(`${relativePath} must use [[ARCHIFY_VERSION]] with ${identity} labels, never a hardcoded package version.`);
+  if (!source.includes('[[ARCHI_MADE_EASY_VERSION]]') || !hasIdentity || hasHardcodedVersion) {
+    fail(`${relativePath} must use [[ARCHI_MADE_EASY_VERSION]] with ${identity} labels, never a hardcoded package version.`);
   }
-  const versionLines = source.split('\n').filter(line => line.includes('[[ARCHIFY_VERSION]]'));
+  const versionLines = source.split('\n').filter(line => line.includes('[[ARCHI_MADE_EASY_VERSION]]'));
   const staleIdentity = isDevelopment ? /\bstable\b|稳定版/i : /\bdevelopment\b|开发版/i;
   if (versionLines.some(line => staleIdentity.test(line))) {
     const staleLabel = isDevelopment ? 'stable or 稳定版' : 'development or 开发版';
-    fail(`${relativePath} must not label [[ARCHIFY_VERSION]] as ${staleLabel}.`);
+    fail(`${relativePath} must not label [[ARCHI_MADE_EASY_VERSION]] as ${staleLabel}.`);
   }
 }
 
@@ -154,7 +154,7 @@ function checkRoadmap(relativePath, source, version, isDevelopment) {
   }
 }
 
-const packageJson = readJson('archify/package.json');
+const packageJson = readJson('archi-made-easy/package.json');
 const changelog = read('CHANGELOG.md');
 const unreleasedStart = changelog.search(/^## \[Unreleased\][^\n]*(?:\n|$)/m);
 const afterUnreleased = unreleasedStart === -1
@@ -202,51 +202,58 @@ if (hasSupportedVersion && hasRealUnreleasedChanges) {
 }
 
 if (hasSupportedVersion) {
-  checkSkillRelease(readJson('archify/skill-release.json'), version, isDevelopment);
-  checkStableUpdateManifest(
-    readJson('docs/skill-updates/archify/stable.json'),
-    newestStableLabel,
-    previousStableLabel,
-    version,
-    isDevelopment,
-  );
-
-  const lock = readJson('archify/package-lock.json');
-  if (lock.version !== version || lock.packages?.['']?.version !== version) {
-    fail(`archify/package-lock.json must match ${version} at the root and packages[""].`);
+  checkSkillRelease(readJson('archi-made-easy/skill-release.json'), version, isDevelopment);
+  const stableManifestPath = 'docs/skill-updates/archi-made-easy/stable.json';
+  if (newestStableLabel) {
+    checkStableUpdateManifest(
+      readJson(stableManifestPath),
+      newestStableLabel,
+      previousStableLabel,
+      version,
+      isDevelopment,
+    );
+  } else if (fs.existsSync(path.join(repoRoot, stableManifestPath))) {
+    // Nothing has been published yet, so nothing may be advertised as a stable update.
+    fail(`${stableManifestPath} must not exist before the first published release.`);
   }
 
-  const skill = read('archify/SKILL.md');
+  const lock = readJson('archi-made-easy/package-lock.json');
+  if (lock.version !== version || lock.packages?.['']?.version !== version) {
+    fail(`archi-made-easy/package-lock.json must match ${version} at the root and packages[""].`);
+  }
+
+  const skill = read('archi-made-easy/SKILL.md');
   const skillVersion = skill.match(/^\s*version:\s*["']?([^"'\s]+)["']?\s*$/m)?.[1];
   const expectedSkillVersion = `${parsedVersion.core[0]}.${parsedVersion.core[1]}`;
   if (skillVersion !== expectedSkillVersion) {
-    fail(`archify/SKILL.md metadata version ${skillVersion || '(missing)'} must map to package ${version} as ${expectedSkillVersion}.`);
+    fail(`archi-made-easy/SKILL.md metadata version ${skillVersion || '(missing)'} must map to package ${version} as ${expectedSkillVersion}.`);
   }
 
-  const rendererTemplate = read('archify/assets/template.html');
-  const generatorVersions = [...rendererTemplate.matchAll(/<meta\s+name="generator"\s+content="archify\s+([^"]+)"\s*\/?>/g)]
+  const rendererTemplate = read('archi-made-easy/assets/template.html');
+  const generatorVersions = [...rendererTemplate.matchAll(/<meta\s+name="generator"\s+content="archi-made-easy\s+([^"]+)"\s*\/?>/g)]
     .map((match) => match[1]);
   if (generatorVersions.length !== 1 || generatorVersions[0] !== version) {
-    fail(`archify/assets/template.html generator must be archify ${version}; found ${generatorVersions.join(', ') || '(missing)'}.`);
+    fail(`archi-made-easy/assets/template.html generator must be archi-made-easy ${version}; found ${generatorVersions.join(', ') || '(missing)'}.`);
   }
 
-  const english = read('README.md');
-  const englishMirror = read('README_EN.md');
-  const chinese = read('README_ZH.md');
-  const japanese = read('README_JA.md');
-  checkReadme('README.md', english, version, 'en', isDevelopment);
-  checkReadme('README_EN.md', englishMirror, version, 'en', isDevelopment);
-  checkReadme('README_ZH.md', chinese, version, 'zh', isDevelopment);
-  checkReadme('README_JA.md', japanese, version, 'ja', isDevelopment);
-  for (const [path, content] of [['README.md', english], ['README_EN.md', englishMirror], ['README_ZH.md', chinese], ['README_JA.md', japanese]]) {
-    checkNoRavenSwitcher(path, content);
+  // Translated READMEs return as translations of the product README (see ROADMAP);
+  // any that exist are held to the same identity rules.
+  const readmes = [['README.md', 'en'], ['README_EN.md', 'en'], ['README_ZH.md', 'zh'], ['README_JA.md', 'ja']]
+    .filter(([file], index) => index < 2 || fs.existsSync(path.join(repoRoot, file)))
+    .map(([file, language]) => [file, language, read(file)]);
+  for (const [file, language, content] of readmes) {
+    checkReadme(file, content, version, language, isDevelopment);
+    checkNoRavenSwitcher(file, content);
   }
+  const english = readmes[0][2];
+  const englishMirror = readmes[1][2];
+  const chinese = readmes.find(([file]) => file === 'README_ZH.md')?.[2] ?? '';
   if (english !== englishMirror) fail('README_EN.md must remain byte-identical to README.md.');
 
   if (newestStableLabel && isDevelopment) {
     const stableMinor = newestStableLabel.split('.').slice(0, 2).join('\\.');
-    if (new RegExp(`Archify ${stableMinor} includes\\b`).test(english)
-      || new RegExp(`Archify ${stableMinor} 已覆盖`).test(chinese)) {
+    if (new RegExp(`Archi-Made-Easy ${stableMinor} includes\\b`).test(english)
+      || new RegExp(`Archi-Made-Easy ${stableMinor} 已覆盖`).test(chinese)) {
       fail(`README capability summary must describe v${version} as development, not published ${newestStableLabel}.`);
     }
   }

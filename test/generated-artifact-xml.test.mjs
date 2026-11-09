@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url';
 import { extractSvgs, parseXml } from './helpers/xml.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
 const artifactRoots = [
-  'archify/examples',
+  'archi-made-easy/examples',
   'docs',
   'examples',
   'experiments',

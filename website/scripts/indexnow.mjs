@@ -29,7 +29,7 @@ export function parseSitemap(xml) {
     const value = item[1].replace(/&(?:amp|lt|gt|quot|apos);/g, entity => ({ '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&apos;': "'" })[entity]);
     requireValue(!/&(?:#\w+|\w+);/.test(value), 'Unsupported XML entity');
     const url = new URL(value);
-    requireValue(url.protocol === 'https:' && url.host === 'archify.si' && !url.username && !url.password && !url.search && !url.hash, `Noncanonical host or URL: ${value}`);
+    requireValue(url.protocol === 'https:' && url.host === 'OWNER.github.io/archi-made-easy' && !url.username && !url.password && !url.search && !url.hash, `Noncanonical host or URL: ${value}`);
     requireValue(url.href === value && allowedUrls.has(value), `URL outside the published page/artifact inventory: ${value}`);
     requireValue(!entries.includes(value), `Duplicate sitemap URL: ${value}`);
     entries.push(value);
@@ -51,7 +51,7 @@ export async function notifyIndexNow({ submit = false, fetchImpl = fetch } = {})
   const localKey = fs.readFileSync(new URL(`../public/${key}.txt`, import.meta.url), 'utf8');
   requireValue(localKey.trim() === key, 'Public key file does not match the configured key');
   const urlList = parseSitemap(await readPublic(sitemapLocation, fetchImpl));
-  const payload = { host: 'archify.si', key, keyLocation, urlList };
+  const payload = { host: 'OWNER.github.io/archi-made-easy', key, keyLocation, urlList };
   if (!submit) return { status: 'dry-run', endpoint, payload };
   const hostedKey = await readPublic(keyLocation, fetchImpl);
   requireValue(hostedKey.trim() === key, 'Deployed IndexNow key file does not match');

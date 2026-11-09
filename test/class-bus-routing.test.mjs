@@ -6,7 +6,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-const cli = fileURLToPath(new URL('../archify/bin/archify.mjs', import.meta.url));
+const cli = fileURLToPath(new URL('../archi-made-easy/bin/archi-made-easy.mjs', import.meta.url));
 const epsilon = 0.0001;
 const attrs = (tag) => Object.fromEntries([...tag.matchAll(/([\w-]+)="([^"]*)"/g)].map((match) => [match[1], match[2]]));
 
@@ -49,14 +49,14 @@ function interleavedHierarchy() {
 function run(args, cwd) {
   const result = spawnSync(process.execPath, [cli, ...args], {
     cwd, encoding: 'utf8', timeout: 20_000,
-    env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+    env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
   });
   assert.equal(result.status, 0, `${args.join(' ')}\n${result.error || ''}\n${result.stdout}\n${result.stderr}`);
   return result.stdout;
 }
 
 function render(t, document, quality = 'showcase') {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-class-bus-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-class-bus-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
   const input = path.join(directory, 'input.class.json');
   const output = path.join(directory, 'output.html');

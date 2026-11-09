@@ -33,11 +33,11 @@
       if (match) link.setAttribute('href', pagePath(match[1], language) + (match[2] || ''));
     });
   }
-  global.ArchifySiteLanguage = Object.freeze({
-    key: 'archify-lang',
+  global.ArchiMadeEasySiteLanguage = Object.freeze({
+    key: 'archi-made-easy-lang',
     read: function () { return language; },
     write: function () {
-      try { global.localStorage.setItem('archify-lang', language); } catch (_) {}
+      try { global.localStorage.setItem('archi-made-easy-lang', language); } catch (_) {}
       return language;
     },
     page: function (page, suffix) { return pagePath(page, language) + (suffix || ''); },

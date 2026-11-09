@@ -8,7 +8,7 @@ import test from 'node:test';
 const helper = new URL('./helpers/repository-evidence-fixture.mjs', import.meta.url).href;
 
 test('repository evidence fixtures clean successful and partially initialized repositories', (t) => {
-  const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-fixture-cleanup-'));
+  const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-fixture-cleanup-'));
   t.after(() => fs.rmSync(temporaryRoot, { recursive: true, force: true }));
   const child = spawnSync(process.execPath, ['--input-type=module', '-e', `
     import assert from 'node:assert/strict';

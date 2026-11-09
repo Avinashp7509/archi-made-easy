@@ -5,10 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { ChromeVisualBrowser, findChrome } from '../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome } from '../archi-made-easy/bin/visual-check.mjs';
 
-const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archify');
-const chrome = process.env.ARCHIFY_CHROME ? findChrome() : null;
+const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archi-made-easy');
+const chrome = process.env.ARCHI_MADE_EASY_CHROME ? findChrome() : null;
 const cases = {
   architecture: 'web-app.architecture.json', workflow: 'agent-tool-call.workflow.json',
   sequence: 'cache-miss-request.sequence.json', dataflow: 'product-analytics.dataflow.json',
@@ -16,11 +16,11 @@ const cases = {
 };
 
 test('Export cleanup preserves canonical artifacts and live interaction state', {
-  skip: chrome ? false : 'Set ARCHIFY_CHROME to run real-browser export checks.',
+  skip: chrome ? false : 'Set ARCHI_MADE_EASY_CHROME to run real-browser export checks.',
 }, async (t) => {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-export-cleanup-'));
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-export-cleanup-'));
   t.after(() => fs.rmSync(scratch, { recursive: true, force: true }));
-  const evidence = process.env.ARCHIFY_EXPORT_EVIDENCE;
+  const evidence = process.env.ARCHI_MADE_EASY_EXPORT_EVIDENCE;
   if (evidence) fs.mkdirSync(evidence, { recursive: true });
   const records = [];
   t.after(() => {
@@ -29,8 +29,8 @@ test('Export cleanup preserves canonical artifacts and live interaction state', 
   const files = {};
   for (const [mode, example] of Object.entries(cases)) {
     const file = path.join(scratch, `${mode}.html`);
-    if (process.env.ARCHIFY_EXPORT_BASELINE_DIR) {
-      fs.copyFileSync(path.join(process.env.ARCHIFY_EXPORT_BASELINE_DIR, `${mode}.html`), file);
+    if (process.env.ARCHI_MADE_EASY_EXPORT_BASELINE_DIR) {
+      fs.copyFileSync(path.join(process.env.ARCHI_MADE_EASY_EXPORT_BASELINE_DIR, `${mode}.html`), file);
     } else {
       execFileSync(process.execPath, [path.join(skillRoot, `renderers/${mode}/render-${mode}.mjs`),
         path.join(skillRoot, 'examples', example), file]);
@@ -60,7 +60,7 @@ test('Export cleanup preserves canonical artifacts and live interaction state', 
     const result = await send('Page.navigate', { url: pathToFileURL(file).href + `?theme=${theme}` });
     assert.equal(result.errorText, undefined);
     await loaded;
-    await evaluate('(async () => { await document.fonts.ready; await Archify.readerLayout.whenStable(); await Archify.viewerChromeLayout.whenStable(); })()', true);
+    await evaluate('(async () => { await document.fonts.ready; await ArchiMadeEasy.readerLayout.whenStable(); await ArchiMadeEasy.viewerChromeLayout.whenStable(); })()', true);
     assert.deepEqual(await evaluate('exportTestErrors'), []);
   }
   async function exported(label, action = '', format = 'svg') {
@@ -78,7 +78,7 @@ test('Export cleanup preserves canonical artifacts and live interaction state', 
       };
       let after;
       try {
-        const pending = Archify.exportMenu.run(${JSON.stringify(format)});
+        const pending = ArchiMadeEasy.exportMenu.run(${JSON.stringify(format)});
         after = svg.outerHTML;
         await pending;
       } finally { URL.createObjectURL = original; }
@@ -171,13 +171,13 @@ test('Export cleanup preserves canonical artifacts and live interaction state', 
     await load(files.architecture);
     const pristine = await exported('interaction-pristine');
     const actions = {
-      zoom: `Archify.view.zoomIn();`,
-      focus: `if (!Archify.focus.set('api', { toggle: false, updateUrl: false })) throw new Error('focus failed');`,
-      preview: `if (!Archify.intentTrace.show('api')) throw new Error('preview failed');`,
-      lens: `Archify.semanticLens.select('backend'); if (!Archify.semanticLens.active()) throw new Error('lens failed');`,
-      route: `Archify.routeProbe.begin({ source: 'users', focusNode: false }); if (!Archify.routeProbe.choose('db', { updateUrl: false })) throw new Error('route failed');`,
-      upstream: `Archify.focus.set('api', { toggle: false, updateUrl: false }); if (!Archify.focus.reach('upstream', { toggle: false, updateUrl: false, reveal: false })) throw new Error('reach failed');`,
-      downstream: `Archify.focus.set('api', { toggle: false, updateUrl: false }); if (!Archify.focus.reach('downstream', { toggle: false, updateUrl: false, reveal: false })) throw new Error('reach failed');`,
+      zoom: `ArchiMadeEasy.view.zoomIn();`,
+      focus: `if (!ArchiMadeEasy.focus.set('api', { toggle: false, updateUrl: false })) throw new Error('focus failed');`,
+      preview: `if (!ArchiMadeEasy.intentTrace.show('api')) throw new Error('preview failed');`,
+      lens: `ArchiMadeEasy.semanticLens.select('backend'); if (!ArchiMadeEasy.semanticLens.active()) throw new Error('lens failed');`,
+      route: `ArchiMadeEasy.routeProbe.begin({ source: 'users', focusNode: false }); if (!ArchiMadeEasy.routeProbe.choose('db', { updateUrl: false })) throw new Error('route failed');`,
+      upstream: `ArchiMadeEasy.focus.set('api', { toggle: false, updateUrl: false }); if (!ArchiMadeEasy.focus.reach('upstream', { toggle: false, updateUrl: false, reveal: false })) throw new Error('reach failed');`,
+      downstream: `ArchiMadeEasy.focus.set('api', { toggle: false, updateUrl: false }); if (!ArchiMadeEasy.focus.reach('downstream', { toggle: false, updateUrl: false, reveal: false })) throw new Error('reach failed');`,
     };
     for (const [name, action] of Object.entries(actions)) {
       await load(files.architecture);
@@ -193,7 +193,7 @@ test('Export cleanup preserves canonical artifacts and live interaction state', 
       await load(files.architecture, theme, theme === 'light');
       for (const format of ['png', 'jpeg', 'webp', 'share-card']) {
         const result = await evaluate(`(async () => {
-          Archify.focus.set('api', { toggle: false, updateUrl: false });
+          ArchiMadeEasy.focus.set('api', { toggle: false, updateUrl: false });
           const format = ${JSON.stringify(format)};
           const original = URL.createObjectURL;
           let blob;
@@ -203,11 +203,11 @@ test('Export cleanup preserves canonical artifacts and live interaction state', 
           };
           try {
             if (format === 'share-card') {
-              Archify.routeProbe.begin({ source: 'users', focusNode: false });
-              Archify.routeProbe.choose('api', { updateUrl: false });
-              blob = await Archify.exportMenu.shareCard({ variant: 'route' });
+              ArchiMadeEasy.routeProbe.begin({ source: 'users', focusNode: false });
+              ArchiMadeEasy.routeProbe.choose('api', { updateUrl: false });
+              blob = await ArchiMadeEasy.exportMenu.shareCard({ variant: 'route' });
             }
-            else await Archify.exportMenu.run(format);
+            else await ArchiMadeEasy.exportMenu.run(format);
           } finally { URL.createObjectURL = original; }
           if (!blob) throw new Error('Missing raster export');
           const bitmap = await createImageBitmap(blob);
@@ -242,7 +242,7 @@ test('Export cleanup preserves canonical artifacts and live interaction state', 
   // this disposable test artifact; production receives no testing interface.
   const html = fs.readFileSync(files.architecture, 'utf8');
   let cleanup = html.match(/function cleanExportClone\(clone\) \{[\s\S]*?\n      \}/)?.[0];
-  if (!cleanup && process.env.ARCHIFY_EXPORT_BASELINE_DIR) {
+  if (!cleanup && process.env.ARCHI_MADE_EASY_EXPORT_BASELINE_DIR) {
     const start = html.indexOf('        // View transforms and neighborhood focus');
     const end = html.indexOf('        var vb = svg.viewBox.baseVal;', start);
     assert.ok(start >= 0 && end > start);
@@ -309,13 +309,13 @@ test('Export cleanup preserves canonical artifacts and live interaction state', 
         const variant = ${JSON.stringify(variant)};
         let snapshot;
         if (variant === 'route') {
-          Archify.routeProbe.begin({ source: 'users', focusNode: false });
-          Archify.routeProbe.choose('db', { updateUrl: false });
-          snapshot = Archify.routeProbe.exportSnapshot();
+          ArchiMadeEasy.routeProbe.begin({ source: 'users', focusNode: false });
+          ArchiMadeEasy.routeProbe.choose('db', { updateUrl: false });
+          snapshot = ArchiMadeEasy.routeProbe.exportSnapshot();
         } else {
-          Archify.focus.set('api', { toggle: false, updateUrl: false });
-          Archify.focus.reach(variant, { toggle: false, updateUrl: false, reveal: false });
-          snapshot = Archify.focus.reachabilitySnapshot();
+          ArchiMadeEasy.focus.set('api', { toggle: false, updateUrl: false });
+          ArchiMadeEasy.focus.reach(variant, { toggle: false, updateUrl: false, reveal: false });
+          snapshot = ArchiMadeEasy.focus.reachabilitySnapshot();
         }
         if (!snapshot) throw new Error('missing ' + variant + ' snapshot');
         const key = variant === 'route' ? 'routeSnapshot' : 'reachSnapshot';

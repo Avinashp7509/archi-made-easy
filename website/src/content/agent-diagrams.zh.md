@@ -1,6 +1,6 @@
 # 用 Coding Agent 画出可检查的图
 
-Archify 是面向 Coding Agent 的开源画图技能，可配合 Claude Code、Codex、Cursor、OpenCode 和 GitHub Copilot 使用。Agent 理解你的描述或代码仓库证据，编写结构化 JSON；Archify 将其渲染并校验为可交互的 HTML 图。
+Archi-Made-Easy 是面向 Coding Agent 的开源画图技能，可配合 Claude Code、Codex、Cursor、OpenCode 和 GitHub Copilot 使用。Agent 理解你的描述或代码仓库证据，编写结构化 JSON；Archi-Made-Easy 将其渲染并校验为可交互的 HTML 图。
 
 当你需要讲清系统组成、流程步骤、调用顺序或其他受支持的关系结构时，可以使用它。没有仓库也能从文字开始；需要解释真实代码时，再让 Agent 查阅相关源码。
 
@@ -8,11 +8,11 @@ Archify 是面向 Coding Agent 的开源画图技能，可配合 Claude Code、C
 
 <span id="responsibilities" class="section-anchor" aria-hidden="true"></span>
 
-## Agent 和 Archify 分别负责什么？
+## Agent 和 Archi-Made-Easy 分别负责什么？
 
 Agent 阅读你提供的信息，询问关键缺失事实，选择图型，并编写或修改结构化源文件。任务涉及真实仓库时，Agent 还需要检查相关代码。
 
-Archify 根据源文件生成 HTML，并执行对应的渲染与校验。你可以保留结构化源文件，继续让 Agent 修改；读者只需在浏览器中打开生成的 HTML，不必安装 Archify。
+Archi-Made-Easy 根据源文件生成 HTML，并执行对应的渲染与校验。你可以保留结构化源文件，继续让 Agent 修改；读者只需在浏览器中打开生成的 HTML，不必安装 Archi-Made-Easy。
 
 因此，不要把它理解为独立的代码发现服务、生产监控系统或在线团队编辑器。一张好看的图，不能替一条没有依据的连线作证。
 
@@ -22,29 +22,29 @@ Archify 根据源文件生成 HTML，并执行对应的渲染与校验。你可�
 
 打开[快速开始](start.html)，选择自己的 Agent，再按需要选择项目级或全局安装。下面展示的是 Start 中相同的全局复制安装命令，不是在普通网页聊天框里执行的命令。
 
-### Archify 需要什么运行环境？
+### Archi-Made-Easy 需要什么运行环境？
 
 使用能够读写文件、通过 Node.js 执行命令的 Coding Agent 环境。“不需要代码库”是指可以只提供自然语言描述，不必已有源码；Agent 仍需工作目录来写入 JSON、HTML，并执行渲染和校验。查看生成的 HTML 则只需要浏览器。
 
-[安装说明](https://github.com/tt-a1i/archify/blob/main/README.md#installation-options)区分了这些入口：Claude Code 和 Codex CLI 支持完整渲染与校验流程；Claude.ai 取决于沙箱是否能使用 Node.js；向 Project Knowledge 上传 ZIP 是提示词驱动的回退方式，不等于具备相同执行环境。其他集成方式有各自的要求。
+[安装说明](https://github.com/OWNER/archi-made-easy/blob/main/README.md#installation-options)区分了这些入口：Claude Code 和 Codex CLI 支持完整渲染与校验流程；Claude.ai 取决于沙箱是否能使用 Node.js；向 Project Knowledge 上传 ZIP 是提示词驱动的回退方式，不等于具备相同执行环境。其他集成方式有各自的要求。
 
 <span id="setup-claude-code" class="section-anchor" aria-hidden="true"></span>
 
-### 为 Claude Code 安装 Archify
+### 为 Claude Code 安装 Archi-Made-Easy
 
 如果选择全局复制安装，在运行 Claude Code 的环境终端中执行：
 
-<pre><code>npx -y skills add tt-a1i/archify --skill archify --agent claude-code --global --copy --yes</code></pre>
+<pre><code>npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent claude-code --global --copy --yes</code></pre>
 
 Claude Code 的全局 Skill 目录是 `~/.claude/skills/`，项目目录是 `.claude/skills/`。如果只想在当前项目使用，打开 [Start 的 Claude Code 选项](start.html?agent=claude-code#install)，在目标项目目录中使用“仅安装到当前仓库”的命令。
 
 <span id="setup-codex" class="section-anchor" aria-hidden="true"></span>
 
-### 为 Codex CLI 安装 Archify
+### 为 Codex CLI 安装 Archi-Made-Easy
 
 如果选择全局复制安装，在运行 Codex CLI 的环境终端中执行：
 
-<pre><code>npx -y skills add tt-a1i/archify --skill archify --agent codex --global --copy --yes</code></pre>
+<pre><code>npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent codex --global --copy --yes</code></pre>
 
 Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agents/skills/`。如果只想在当前项目使用，打开 [Start 的 Codex 选项](start.html?agent=codex#install)，在目标项目目录中使用“仅安装到当前仓库”的命令。
 
@@ -54,7 +54,7 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 ## 不用代码仓库：读懂一张中文流程图
 
-没有代码仓库，也可以从步骤、额度和规则开始。打开现有的[中文休假流程图](cases/life/leave-plan.workflow.html)，对照[固定版本的 JSON 源文件](https://github.com/tt-a1i/archify/blob/68031cf978e0b906aa56c684a394049a3ea9d583/docs/cases/life/leave-plan.workflow.json)。这是已有源文件的阅读示例，不是一次新的 Agent 执行记录。
+没有代码仓库，也可以从步骤、额度和规则开始。打开现有的[中文休假流程图](cases/life/leave-plan.workflow.html)，对照[固定版本的 JSON 源文件](https://github.com/OWNER/archi-made-easy/blob/68031cf978e0b906aa56c684a394049a3ea9d583/docs/cases/life/leave-plan.workflow.json)。这是已有源文件的阅读示例，不是一次新的 Agent 执行记录。
 
 先看“休假计划”和“规则提醒”两条泳道：全图有 8 个节点、7 条关系；主路径只有 6 个节点，从年初额度经过四次安排，到全年用完。年假按 1 + 4 + 3 + 2 分配，正好 10 天；春节另用 2 天调休，合计 12 天。两条分支连接过期和审批提醒，不是再次扣减休假额度。
 
@@ -66,7 +66,7 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 ## 把 Mermaid 交给 Agent，而不是承诺自动转换
 
-如果已有 Mermaid 图，可以把源文本交给已配置好的 Coding Agent。Agent 理解其中的关系，再编写新的 Archify JSON；Archify 渲染并检查这份 JSON。这不是 Mermaid 解析器、换肤工具，也不承诺无损往返转换。
+如果已有 Mermaid 图，可以把源文本交给已配置好的 Coding Agent。Agent 理解其中的关系，再编写新的 Archi-Made-Easy JSON；Archi-Made-Easy 渲染并检查这份 JSON。这不是 Mermaid 解析器、换肤工具，也不承诺无损往返转换。
 
 例如，下面的流程图描述了四个步骤和四条有方向的关系：
 
@@ -78,7 +78,7 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 可以这样要求 Agent：
 
-> 用 Archify 把这段 Mermaid 输入画成交互式工作流图。保留四个步骤、Approved 和 Changes needed 两个分支标签，以及从 Revise request 返回 Review request 的关系。不要添加人物、期限或额外步骤。如果某种结构无法忠实表达，先说明限制，再讨论简化方式。
+> 用 Archi-Made-Easy 把这段 Mermaid 输入画成交互式工作流图。保留四个步骤、Approved 和 Changes needed 两个分支标签，以及从 Revise request 返回 Review request 的关系。不要添加人物、期限或额外步骤。如果某种结构无法忠实表达，先说明限制，再讨论简化方式。
 
 这是示例输入，不是一次实测转换，也不是已经校验过的成品。
 
@@ -89,7 +89,7 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 - 修改后是否回到审阅，而不是直接结束？
 - 是否遗漏、合并或新增了内容？
 
-保留原始 Mermaid，与新的 JSON 对照检查。不要假定 Mermaid 的样式、布局指令或回调会一并保留。[固定版本的 Skill](https://github.com/tt-a1i/archify/blob/88d1ae4498b6a1df610badf690c5406882622d15/archify/SKILL.md#mermaid-input) 说明了受支持的输入类型。如果只想保留 Mermaid 语法并在网页中直接渲染，应使用 [Mermaid 自己的渲染方式](https://mermaid.ai/open-source/config/usage.html)。
+保留原始 Mermaid，与新的 JSON 对照检查。不要假定 Mermaid 的样式、布局指令或回调会一并保留。[固定版本的 Skill](https://github.com/OWNER/archi-made-easy/blob/88d1ae4498b6a1df610badf690c5406882622d15/archi-made-easy/SKILL.md#mermaid-input) 说明了受支持的输入类型。如果只想保留 Mermaid 语法并在网页中直接渲染，应使用 [Mermaid 自己的渲染方式](https://mermaid.ai/open-source/config/usage.html)。
 
 <span id="cache-scenarios" class="section-anchor" aria-hidden="true"></span>
 
@@ -97,9 +97,9 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 时序图适合回答“谁调用谁，先后顺序怎样”。对于这里介绍的稳定版 3.1.0 工作流，应把这两种互斥场景分别画成两张图，不要放在同一次请求的时间线上。在完成配置的 Agent 中，可以这样描述：
 
-> 用 Archify 分别画两张时序图：缓存命中场景和缓存未命中场景。两者都从 Browser 调用 API、API 查询 Redis 开始。命中时，API 将缓存结果返回 Browser；未命中时，API 查询 PostgreSQL，把结果写入 Redis，再返回 Browser。明确标注每张图对应的场景，不要把互斥路径串成同一次请求的时间顺序。不要添加未说明的鉴权、队列、重试或实测耗时。缺失信息会实质影响顺序时，先问我。
+> 用 Archi-Made-Easy 分别画两张时序图：缓存命中场景和缓存未命中场景。两者都从 Browser 调用 API、API 查询 Redis 开始。命中时，API 将缓存结果返回 Browser；未命中时，API 查询 PostgreSQL，把结果写入 Redis，再返回 Browser。明确标注每张图对应的场景，不要把互斥路径串成同一次请求的时间顺序。不要添加未说明的鉴权、队列、重试或实测耗时。缺失信息会实质影响顺序时，先问我。
 
-这是演示输入，不是对你应用行为的断言。现有的[缓存未命中示例](https://archify.si/gallery/artifacts/cache-miss.sequence.html)描述的是另一条包含鉴权与追踪细节的未命中路径，不是上述提示词的生成结果。不要把它额外的设定当成自己系统的事实。
+这是演示输入，不是对你应用行为的断言。现有的[缓存未命中示例](https://OWNER.github.io/archi-made-easy/gallery/artifacts/cache-miss.sequence.html)描述的是另一条包含鉴权与追踪细节的未命中路径，不是上述提示词的生成结果。不要把它额外的设定当成自己系统的事实。
 
 检查成品时，重点看：
 
@@ -116,7 +116,7 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 说明要看的仓库和具体行为。比起“把整个项目都画出来”，范围明确的问题更容易验证。
 
-> 阅读这个仓库，用 Archify 解释［某个请求或任务］的运行路径。只画代码支持的组件和关系，区分运行时组件与构建、开发工具。在支持的范围内附上仓库证据，说明检查的版本；未知的部署信息标为未知，不要猜测。不影响主路径理解的实现细节放进补充卡片。
+> 阅读这个仓库，用 Archi-Made-Easy 解释［某个请求或任务］的运行路径。只画代码支持的组件和关系，区分运行时组件与构建、开发工具。在支持的范围内附上仓库证据，说明检查的版本；未知的部署信息标为未知，不要猜测。不影响主路径理解的实现细节放进补充卡片。
 
 接受成品前，逐项确认：
 
@@ -129,7 +129,7 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 如果成品附有已验证的源码链接，应点开检查。源码链接说明证据来自哪里，不会自动证明生产环境的运行行为；必要时仍需日志、链路追踪、配置及人工确认。
 
-可参考现有的 [MCO 运行时架构示例](https://archify.si/cases/mco-runtime.architecture.html)及其[结构化源文件](https://github.com/tt-a1i/archify/blob/main/docs/cases/mco-runtime.architecture.json)。它解释的是所标明的提交版本，不代表仓库之后永远保持相同结构。
+可参考现有的 [MCO 运行时架构示例](https://OWNER.github.io/archi-made-easy/cases/mco-runtime.architecture.html)及其[结构化源文件](https://github.com/OWNER/archi-made-easy/blob/main/docs/cases/mco-runtime.architecture.json)。它解释的是所标明的提交版本，不代表仓库之后永远保持相同结构。
 
 [对照 MCO 源码：谁解码输出，谁写入文件 →](cases/mco-runtime.html)
 
@@ -143,13 +143,13 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 读者需要交互时，分享 HTML；文档或幻灯片需要静态画面时，再导出图片。文档列出了 PNG、JPEG、WebP、SVG 和 WebM 等导出格式，但具体可用性取决于格式、浏览器及本地工具。先查看实际成品的导出菜单，再承诺交付格式。导出图片不会保留 HTML 中的交互控件。
 
-分享仓库生成的图之前，检查标签、卡片、内嵌源文件和链接是否包含不宜外传的信息。单文件便于携带，并不表示适合公开。你使用的 Coding Agent 如何处理数据，也不能仅凭 Archify 的输出格式推断。
+分享仓库生成的图之前，检查标签、卡片、内嵌源文件和链接是否包含不宜外传的信息。单文件便于携带，并不表示适合公开。你使用的 Coding Agent 如何处理数据，也不能仅凭 Archi-Made-Easy 的输出格式推断。
 
 <span id="questions" class="section-anchor" aria-hidden="true"></span>
 
 ## 常见问题
 
-### Archify 是 AI 图片生成器吗？
+### Archi-Made-Easy 是 AI 图片生成器吗？
 
 它通过 Agent 编写 JSON、再渲染的方式生成结构化图表。更适合解释组成、关系、步骤和状态，而不是通用插画生成。
 
@@ -169,9 +169,9 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 不需要。足够清楚的文字描述即可作为起点。只有当图需要解释真实代码、并希望检查源码证据时，仓库才成为重要输入。
 
-### 免费吗？这里说的是哪个 Archify？
+### 免费吗？这里说的是哪个 Archi-Made-Easy？
 
-这里指 [tt-a1i/archify 开源项目](https://github.com/tt-a1i/archify)，官方网站是 [archify.si](https://archify.si)。项目代码采用 MIT 许可证。你使用的 Agent 或其他服务可能另有费用与条款；名称相似的收费服务不自动构成官方关联。
+这里指 [OWNER/archi-made-easy 开源项目](https://github.com/OWNER/archi-made-easy)，官方网站是 [OWNER.github.io/archi-made-easy](https://OWNER.github.io/archi-made-easy)。项目代码采用 MIT 许可证。你使用的 Agent 或其他服务可能另有费用与条款；名称相似的收费服务不自动构成官方关联。
 
 ### 接下来做什么？
 

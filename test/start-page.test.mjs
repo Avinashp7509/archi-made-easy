@@ -6,10 +6,10 @@ import os from 'node:os';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
-import { SCENARIO_RECIPES, startPromptsFor } from '../archify/recipes/scenarios.mjs';
+import { SCENARIO_RECIPES, startPromptsFor } from '../archi-made-easy/recipes/scenarios.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
 
 class FakeElement {
@@ -82,14 +82,14 @@ function executeStartPage(html) {
     location: { href: 'https://example.test/start.html', search: '', pathname: '/start.html' },
     isSecureContext: true,
     dispatchEvent() {},
-    ArchifySiteLanguage: {
+    ArchiMadeEasySiteLanguage: {
       read() { return 'en'; },
       write(value) { return value; },
     },
   };
   const context = {
     window,
-    ArchifySiteLanguage: window.ArchifySiteLanguage,
+    ArchiMadeEasySiteLanguage: window.ArchiMadeEasySiteLanguage,
     document,
     navigator: { languages: ['en'], language: 'en', clipboard: { async writeText(value) { copied.push(value); } } },
     history: { replaceState(_state, _title, url) { replacedUrl = url; } },
@@ -111,7 +111,7 @@ function executeStartPage(html) {
 }
 
 test('start page: checked-in HTML is reproducible from canonical scenario recipes', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-start-page-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-start-page-'));
   const generated = path.join(tmp, 'start.html');
   try {
     execFileSync(process.execPath, [path.join(repoRoot, 'scripts/build-start.mjs'), generated]);
@@ -158,15 +158,15 @@ test('start page: every gallery case type resolves to a start entry', () => {
 test('start page: offers six bounded bilingual starts without ingesting source content', () => {
   const html = fs.readFileSync(path.join(repoRoot, 'docs/start.html'), 'utf8');
   assert.doesNotMatch(html, /\[\[[A-Z0-9_]+\]\]/);
-  assert.match(html, /npx -y skills add tt-a1i\/archify --skill archify --agent codex --global --copy --yes/);
-  assert.match(html, /npx -y skills add tt-a1i\/archify --skill archify --agent codex --copy --yes/);
+  assert.match(html, /npx -y skills add OWNER\/archi-made-easy --skill archi-made-easy --agent codex --global --copy --yes/);
+  assert.match(html, /npx -y skills add OWNER\/archi-made-easy --skill archi-made-easy --agent codex --copy --yes/);
   for (const agent of ['cursor', 'codex', 'claude-code', 'opencode', 'github-copilot']) {
     assert.match(html, new RegExp(`role="tab" data-agent="${agent}"`));
   }
   assert.match(html, /data-en="Describe it\."/);
-  assert.match(html, /data-en="Archify maps it\."/);
+  assert.match(html, /data-en="Archi-Made-Easy maps it\."/);
   assert.match(html, /data-zh="直接说，"/);
-  assert.match(html, /data-zh="Archify 就能画。"/);
+  assert.match(html, /data-zh="Archi-Made-Easy 就能画。"/);
   assert.match(html, /id="copy-starter"/);
   assert.match(html, /data-en="Copy install \+ prompt"/);
   assert.match(html, /data-zh="复制安装命令 \+ 提示词"/);
@@ -195,8 +195,8 @@ test('start page: offers six bounded bilingual starts without ingesting source c
   assert.match(scriptMatch[1], /--agent ' \+ agent \+ ' --global --copy --yes/);
   assert.match(scriptMatch[1], /--agent ' \+ agent \+ ' --copy --yes/);
   assert.match(scriptMatch[1], /function starterText\(\)/);
-  assert.match(scriptMatch[1], /archify:start-funnel/);
-  assert.match(scriptMatch[1], /archify\.start\.events\.v1/);
+  assert.match(scriptMatch[1], /archi-made-easy:start-funnel/);
+  assert.match(scriptMatch[1], /archi-made-easy\.start\.events\.v1/);
   assert.doesNotMatch(scriptMatch[1], /fetch\(|sendBeacon\(|XMLHttpRequest/);
   assert.match(scriptMatch[1], /textContent/);
   assert.match(scriptMatch[1], /replaceChildren/);
@@ -252,7 +252,7 @@ test('start page: input mode drives rendered prompt, copy, keyboard, and URL wit
   assert.match(page.copied.at(-1), /Then start any new chat and tell Codex:/);
   assert.ok(page.copied.at(-1).endsWith(descriptionPrompt));
 
-  const [viewEvent, promptEvent, starterEvent] = page.window.ArchifyStartMetrics.snapshot();
+  const [viewEvent, promptEvent, starterEvent] = page.window.ArchiMadeEasyStartMetrics.snapshot();
   for (const event of [viewEvent, promptEvent, starterEvent]) {
     assert.deepEqual(Object.keys(event), ['schemaVersion', 'step', 'source', 'type', 'agent', 'language']);
     assert.equal('input' in event, false);
@@ -268,7 +268,7 @@ test('generated artifacts omit the promotional footer and shortcut manual', () =
     dataflow: 'product-analytics.dataflow.json',
     lifecycle: 'agent-run.lifecycle.json',
   };
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-start-artifacts-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-start-artifacts-'));
   try {
     for (const [type, input] of Object.entries(examples)) {
       const out = path.join(tmp, `${type}.html`);
@@ -279,7 +279,7 @@ test('generated artifacts omit the promotional footer and shortcut manual', () =
       ]);
       const html = fs.readFileSync(out, 'utf8');
       assert.doesNotMatch(html, /<p class="footer">/, `${type}: footer element`);
-      assert.doesNotMatch(html, /Built with Archify/, `${type}: product signature`);
+      assert.doesNotMatch(html, /Built with Archi-Made-Easy/, `${type}: product signature`);
       assert.doesNotMatch(html, /Create yours/, `${type}: promotional CTA`);
       assert.doesNotMatch(html, /Hover to trace/, `${type}: shortcut manual`);
       assert.doesNotMatch(html, /source=artifact/, `${type}: removed artifact CTA URL`);
@@ -295,10 +295,10 @@ test('generated artifacts omit the promotional footer and shortcut manual', () =
 
 test('viewer gives wide screens a larger canvas without forcing a subtitle row', () => {
   const template = fs.readFileSync(path.join(skillRoot, 'assets', 'template.html'), 'utf8');
-  assert.match(template, /max-width: var\(--archify-reader-width, 1440px\)/);
-  assert.match(template, /Archify\.readerLayout = \(function \(\)/);
+  assert.match(template, /max-width: var\(--archi-made-easy-reader-width, 1440px\)/);
+  assert.match(template, /ArchiMadeEasy\.readerLayout = \(function \(\)/);
 
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-title-hierarchy-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-title-hierarchy-'));
   try {
     const input = JSON.parse(fs.readFileSync(
       path.join(skillRoot, 'examples', 'web-app.architecture.json'),

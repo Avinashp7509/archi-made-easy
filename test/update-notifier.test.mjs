@@ -12,15 +12,15 @@ import {
   checkForUpdate,
   isMainModule,
   setUpdatePreference,
-} from '../archify/scripts/check-update.mjs';
-import { DEFAULT_MANIFEST_URL, compareSemver, parseSemver } from '../archify/scripts/update-contract.mjs';
+} from '../archi-made-easy/scripts/check-update.mjs';
+import { DEFAULT_MANIFEST_URL, compareSemver, parseSemver } from '../archi-made-easy/scripts/update-contract.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(here, '..', 'archify');
+const skillRoot = path.resolve(here, '..', 'archi-made-easy');
 const checkerPath = path.join(skillRoot, 'scripts', 'check-update.mjs');
 const contractPath = path.join(skillRoot, 'scripts', 'update-contract.mjs');
-const expectedRepository = 'https://github.com/tt-a1i/archify';
-const expectedManifestUrl = 'https://tt-a1i.github.io/archify/skill-updates/archify/stable.json';
+const expectedRepository = 'https://github.com/OWNER/archi-made-easy';
+const expectedManifestUrl = 'https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json';
 const baseTime = Date.parse('2026-08-28T08:00:00Z');
 const childCheckTimeoutMs = 2_000;
 const parentCheckTimeoutMs = 5_000;
@@ -47,7 +47,7 @@ function metadataWithOverrides(metadata, overrides) {
 function expiredCachedState() {
   return {
     schemaVersion: 2,
-    skillId: 'archify',
+    skillId: 'archi-made-easy',
     installedVersion: '2.15.0',
     check: {
       nextCheckAt: '2020-01-01T00:00:00.000Z',
@@ -73,7 +73,7 @@ function committedStateFiles(testFixture) {
 function localRelease(version = '2.15.0') {
   return {
     schemaVersion: 1,
-    skillId: 'archify',
+    skillId: 'archi-made-easy',
     channel: version.includes('-') ? 'development' : 'stable',
     version,
     source: { repository: expectedRepository },
@@ -84,7 +84,7 @@ function localRelease(version = '2.15.0') {
 function remoteRelease(overrides = {}) {
   return {
     schemaVersion: 1,
-    skillId: 'archify',
+    skillId: 'archi-made-easy',
     channel: 'stable',
     version: '2.16.0',
     publishedAt: '2026-08-28T07:00:00Z',
@@ -97,7 +97,7 @@ function remoteRelease(overrides = {}) {
       sha256: 'b'.repeat(64),
     },
     summary: 'Improve large-repository scanning and diagram layout.',
-    releaseNotes: 'https://github.com/tt-a1i/archify/releases/tag/v2.16.0',
+    releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.16.0',
     severity: 'normal',
     ...overrides,
   };
@@ -110,11 +110,11 @@ function remoteReleaseForVersion(version, digest = 'b'.repeat(64)) {
     version,
     source: { ...release.source, ref: `v${version}` },
     artifact: { sha256: digest },
-    releaseNotes: `https://github.com/tt-a1i/archify/releases/tag/v${version}`,
+    releaseNotes: `https://github.com/OWNER/archi-made-easy/releases/tag/v${version}`,
   };
 }
 
-function response(body, { status = 200, etag = '"archify-2.16.0"' } = {}) {
+function response(body, { status = 200, etag = '"archi-made-easy-2.16.0"' } = {}) {
   return new Response(typeof body === 'string' ? body : JSON.stringify(body), {
     status,
     headers: {
@@ -126,7 +126,7 @@ function response(body, { status = 200, etag = '"archify-2.16.0"' } = {}) {
 
 function fixture(version = '2.15.0') {
   const root = fs.realpathSync(fs.mkdtempSync(
-    path.join(os.tmpdir(), 'archify-update-notifier-'),
+    path.join(os.tmpdir(), 'archi-made-easy-update-notifier-'),
   ));
   const releasePath = path.join(root, 'skill-release.json');
   const cacheDirectory = path.join(root, 'cache');
@@ -148,10 +148,10 @@ function caseVariant(target) {
 function windowsShortPath(target) {
   const result = spawnSync(
     process.env.ComSpec || 'cmd.exe',
-    ['/d', '/s', '/c', '"for %I in ("%ARCHIFY_SHORT_PATH_TARGET%") do @echo %~sI"'],
+    ['/d', '/s', '/c', '"for %I in ("%ARCHI_MADE_EASY_SHORT_PATH_TARGET%") do @echo %~sI"'],
     {
       encoding: 'utf8',
-      env: { ...process.env, ARCHIFY_SHORT_PATH_TARGET: target },
+      env: { ...process.env, ARCHI_MADE_EASY_SHORT_PATH_TARGET: target },
       windowsHide: true,
       windowsVerbatimArguments: true,
     },
@@ -369,7 +369,7 @@ function options(testFixture, fetchImpl, overrides = {}) {
 function cachedUpdateState() {
   return {
     schemaVersion: 2,
-    skillId: 'archify',
+    skillId: 'archi-made-easy',
     installedVersion: '2.15.0',
     check: {
       nextCheckAt: new Date(baseTime + (24 * 60 * 60 * 1_000)).toISOString(),
@@ -380,7 +380,7 @@ function cachedUpdateState() {
       version: '2.16.0',
       targetDigest: `sha256:${'b'.repeat(64)}`,
       severity: 'normal',
-      releaseNotes: 'https://github.com/tt-a1i/archify/releases/tag/v2.16.0',
+      releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.16.0',
       checkedAt: new Date(baseTime).toISOString(),
     },
   };
@@ -499,7 +499,7 @@ test('development installs never treat the older stable release as an update', a
         treeSha: 'c'.repeat(40),
       },
       artifact: { sha256: 'd'.repeat(64) },
-      releaseNotes: 'https://github.com/tt-a1i/archify/releases/tag/v2.15.0',
+      releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.15.0',
     })),
   ));
 
@@ -560,7 +560,7 @@ test('a newer immutable candidate is repeated from cache on every check', async 
   assert.equal(first.status, 'update_available');
   assert.equal(first.installedVersion, '2.15.0');
   assert.equal(first.latestVersion, '2.16.0');
-  assert.equal(first.eventKey, `archify@sha256:${'b'.repeat(64)}`);
+  assert.equal(first.eventKey, `archi-made-easy@sha256:${'b'.repeat(64)}`);
   assert.equal(first.targetDigest, `sha256:${'b'.repeat(64)}`);
   assert.equal(first.source, 'network');
   assert.equal(first.noticeRequired, true);
@@ -665,7 +665,7 @@ test('failure backoff saturates safely instead of overflowing the cache counter'
   t.after(() => fs.rmSync(testFixture.root, { recursive: true, force: true }));
   writeJson(statePath(testFixture), {
     schemaVersion: 2,
-    skillId: 'archify',
+    skillId: 'archi-made-easy',
     installedVersion: '2.15.0',
     check: {
       nextCheckAt: new Date(baseTime - 1_000).toISOString(),
@@ -2701,14 +2701,14 @@ test('an identity mismatch is rejected silently and never cached as a candidate'
 });
 
 test('release notes must byte-match the exact trusted GitHub URL', async () => {
-  const base = 'https://github.com/tt-a1i/archify/releases/tag/v2.16.0';
+  const base = 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.16.0';
   for (const releaseNotes of [
-    'https://github.com:443/tt-a1i/archify/releases/tag/v2.16.0',
-    'https://github.com:444/tt-a1i/archify/releases/tag/v2.16.0',
+    'https://github.com:443/OWNER/archi-made-easy/releases/tag/v2.16.0',
+    'https://github.com:444/OWNER/archi-made-easy/releases/tag/v2.16.0',
     `${base}?`,
     `${base}#`,
     `${base}?source=manifest`,
-    'https://GITHUB.COM/tt-a1i/archify/releases/tag/v2.16.0',
+    'https://GITHUB.COM/OWNER/archi-made-easy/releases/tag/v2.16.0',
   ]) {
     const testFixture = fixture();
     try {
@@ -2774,7 +2774,7 @@ test('an invalid local identity fails before any network disclosure', async (t) 
   t.after(() => fs.rmSync(testFixture.root, { recursive: true, force: true }));
   writeJson(testFixture.releasePath, {
     ...localRelease(),
-    source: { repository: 'https://example.com/untrusted/archify' },
+    source: { repository: 'https://example.com/untrusted/archi-made-easy' },
   });
   let requests = 0;
 
@@ -2963,7 +2963,7 @@ test('disabled CLI returns one silent JSON line and never needs the network', ()
   const result = spawnSync(process.execPath, [checkerPath], {
     cwd: skillRoot,
     encoding: 'utf8',
-    env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+    env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
   });
 
   assert.equal(result.status, 0, result.stderr);
@@ -2972,17 +2972,17 @@ test('disabled CLI returns one silent JSON line and never needs the network', ()
 });
 
 test('legacy CLI acknowledgement is a harmless one-line no-op', async (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-update-cli-ack-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-update-cli-ack-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const home = path.join(root, 'home');
   const xdg = path.join(root, 'xdg-cache');
   const localData = path.join(root, 'local-data');
   for (const directory of [home, xdg, localData]) fs.mkdirSync(directory, { recursive: true });
   const cacheDirectory = process.platform === 'win32'
-    ? path.join(localData, 'archify-skill')
+    ? path.join(localData, 'archi-made-easy-skill')
     : process.platform === 'darwin'
-      ? path.join(home, 'Library', 'Caches', 'archify-skill')
-      : path.join(xdg, 'archify-skill');
+      ? path.join(home, 'Library', 'Caches', 'archi-made-easy-skill')
+      : path.join(xdg, 'archi-made-easy-skill');
   const releasePath = path.join(skillRoot, 'skill-release.json');
   const installedRelease = JSON.parse(fs.readFileSync(releasePath, 'utf8'));
   const [major, minor, patch] = parseSemver(installedRelease.version).core;
@@ -3016,7 +3016,7 @@ test('legacy CLI acknowledgement is a harmless one-line no-op', async (t) => {
 });
 
 test('CLI entry detection survives a realpath or symlink alias', (t) => {
-  const aliasRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-update-cli-alias-'));
+  const aliasRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-update-cli-alias-'));
   t.after(() => fs.rmSync(aliasRoot, { recursive: true, force: true }));
   const aliasPath = path.join(aliasRoot, 'check-update-alias.mjs');
   try {
@@ -3032,7 +3032,7 @@ test('CLI entry detection survives a realpath or symlink alias', (t) => {
   const result = spawnSync(process.execPath, [aliasPath], {
     cwd: aliasRoot,
     encoding: 'utf8',
-    env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+    env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
   });
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(JSON.parse(result.stdout), { status: 'silent', reason: 'disabled' });
@@ -3054,7 +3054,7 @@ test('notifier source has no process execution or remote-origin override surface
     .map((match) => match[1])
     .sort();
   assert.deepEqual(environmentReads, [
-    'ARCHIFY_UPDATE_CHECK_DISABLED',
+    'ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED',
     'LOCALAPPDATA',
     'XDG_CACHE_HOME',
   ]);

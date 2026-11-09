@@ -6,17 +6,17 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { properSegmentIntersection, rectsOverlap } from '../archify/renderers/shared/geometry.mjs';
+import { properSegmentIntersection, rectsOverlap } from '../archi-made-easy/renderers/shared/geometry.mjs';
 import { routeHugs } from './helpers/route-hugs.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const renderer = path.join(skillRoot, 'renderers', 'class', 'render-class.mjs');
-const cli = path.join(skillRoot, 'bin', 'archify.mjs');
+const cli = path.join(skillRoot, 'bin', 'archi-made-easy.mjs');
 const fixtures = path.join(__dirname, 'fixtures', 'class-first-draft');
 
 function render(diagram) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-class-first-draft-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-class-first-draft-'));
   const input = path.join(directory, 'candidate.json');
   const output = path.join(directory, 'candidate.html');
   fs.writeFileSync(input, JSON.stringify(diagram));

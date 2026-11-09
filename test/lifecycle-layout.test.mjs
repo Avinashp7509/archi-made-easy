@@ -9,12 +9,12 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { nodeLabelLayout } from '../archify/renderers/shared/text-fit.mjs';
-import { SOURCE_BADGE_FOOTPRINT } from '../archify/renderers/shared/utils.mjs';
+import { nodeLabelLayout } from '../archi-made-easy/renderers/shared/text-fit.mjs';
+import { SOURCE_BADGE_FOOTPRINT } from '../archi-made-easy/renderers/shared/utils.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-lifecycle-'));
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-lifecycle-'));
 process.on('exit', () => fs.rmSync(tmp, { recursive: true, force: true }));
 
 let counter = 0;
@@ -429,7 +429,7 @@ test('dense automatic exit notes pass public readability validation without losi
   const fixture = path.join(__dirname, 'fixtures/lifecycle-dense-exit-notes.json');
   const bytes = fs.readFileSync(fixture, 'utf8');
   const doc = JSON.parse(bytes);
-  const validated = spawnSync(process.execPath, [path.join(skillRoot, 'bin/archify.mjs'), 'validate', 'lifecycle', fixture,
+  const validated = spawnSync(process.execPath, [path.join(skillRoot, 'bin/archi-made-easy.mjs'), 'validate', 'lifecycle', fixture,
     '--quality', 'showcase', '--json'], { encoding: 'utf8' });
   assert.equal(validated.status, 0, validated.stdout + validated.stderr);
   const receipt = JSON.parse(validated.stdout);
@@ -468,7 +468,7 @@ test('long transition notes are identified in width and placement diagnostics wi
   const input = path.join(tmp, 'long-note-diagnostics.json');
   const source = JSON.stringify(doc);
   fs.writeFileSync(input, source);
-  const cli = path.join(skillRoot, 'bin/archify.mjs');
+  const cli = path.join(skillRoot, 'bin/archi-made-easy.mjs');
   const result = spawnSync(process.execPath, [cli, 'validate', 'lifecycle', input, '--json'], { encoding: 'utf8' });
   assert.notEqual(result.status, 0, 'the diagnostic change does not make this layout valid');
   const receipt = JSON.parse(result.stdout);
@@ -493,7 +493,7 @@ test('long transition notes are identified in width and placement diagnostics wi
 });
 
 test('an inherently too-wide lifecycle reports its budget and bounded spacing advice', () => {
-  const cli = fileURLToPath(new URL('../archify/bin/archify.mjs', import.meta.url));
+  const cli = fileURLToPath(new URL('../archi-made-easy/bin/archi-made-easy.mjs', import.meta.url));
   const fixture = fileURLToPath(new URL('./fixtures/lifecycle-crowded-wide.json', import.meta.url));
   const result = spawnSync(process.execPath, [cli, 'validate', 'lifecycle', fixture, '--json'], { encoding: 'utf8' });
   assert.notEqual(result.status, 0);

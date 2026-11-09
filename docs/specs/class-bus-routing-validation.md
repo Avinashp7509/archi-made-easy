@@ -4,7 +4,7 @@
 
 修复接口继承、接口实现或普通关系共享同一个目标端口、覆盖对方线型／端点符号的问题。目标是让合法的自动关系保留正确的 UML 语义，并保留原有同类公共主干的阅读价值。
 
-本轮按用户确认直接推进局部修复和 PR。范围以 [Issue #791](https://github.com/tt-a1i/archify/issues/791) 的复现为起点；不新增 schema、配置、关系种类，也不改共享 Router 接口。
+本轮按用户确认直接推进局部修复和 PR。范围以 [Issue #791](https://github.com/OWNER/archi-made-easy/issues/791) 的复现为起点；不新增 schema、配置、关系种类，也不改共享 Router 接口。
 
 ## 实现约束
 

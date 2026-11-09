@@ -1,5 +1,5 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "diagram_type": "lifecycle",
   "meta": {
     "title": "Where Each Job Application Stands",
@@ -7,19 +7,13 @@
     "quality_profile": "showcase",
     "output": "job-search.lifecycle.html"
   },
-  "lanes": [
-    {
-      "id": "main",
-      "label": "Application path"
-    },
-    {
-      "id": "waiting",
-      "label": "Waiting on them"
-    },
-    {
-      "id": "terminal",
-      "label": "Outcomes"
-    }
+  "mainPath": [
+    "saved",
+    "applied",
+    "screen",
+    "interviews",
+    "deciding",
+    "offer"
   ],
   "states": [
     {
@@ -27,8 +21,6 @@
       "type": "start",
       "label": "Saved",
       "sublabel": "role bookmarked",
-      "lane": "main",
-      "col": 0,
       "step": "01",
       "icon": "flag"
     },
@@ -36,9 +28,7 @@
       "id": "applied",
       "type": "active",
       "label": "Applied",
-      "sublabel": "r\u00e9sum\u00e9 sent",
-      "lane": "main",
-      "col": 1,
+      "sublabel": "résumé sent",
       "step": "02",
       "icon": "briefcase"
     },
@@ -47,8 +37,6 @@
       "type": "decision",
       "label": "Screen Call",
       "sublabel": "30 min recruiter",
-      "lane": "main",
-      "col": 2,
       "step": "03",
       "icon": "person"
     },
@@ -57,8 +45,6 @@
       "type": "active",
       "label": "Interviews",
       "sublabel": "3 rounds",
-      "lane": "main",
-      "col": 3,
       "step": "04",
       "icon": "calendar"
     },
@@ -67,8 +53,6 @@
       "type": "success",
       "label": "Offer",
       "sublabel": "negotiate terms",
-      "lane": "main",
-      "col": 4,
       "step": "05"
     },
     {
@@ -76,8 +60,6 @@
       "type": "waiting",
       "label": "No Reply",
       "sublabel": "2 weeks quiet",
-      "lane": "waiting",
-      "col": 1,
       "icon": "clock"
     },
     {
@@ -85,25 +67,19 @@
       "type": "waiting",
       "label": "Deciding",
       "sublabel": "after final round",
-      "lane": "waiting",
-      "col": 3,
       "icon": "clock"
     },
     {
       "id": "rejected",
       "type": "failure",
       "label": "Rejected",
-      "sublabel": "keep the notes",
-      "lane": "terminal",
-      "col": 2
+      "sublabel": "keep the notes"
     },
     {
       "id": "accepted",
       "type": "success",
       "label": "Accepted",
-      "sublabel": "start date set",
-      "lane": "terminal",
-      "col": 4
+      "sublabel": "start date set"
     }
   ],
   "transitions": [

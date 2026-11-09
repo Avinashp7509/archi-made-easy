@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import { labelPoint, segmentRectClearanceWithin } from '../archify/renderers/shared/geometry.mjs';
+import { labelPoint, segmentRectClearanceWithin } from '../archi-made-easy/renderers/shared/geometry.mjs';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -8,16 +8,16 @@ import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
-const cli = fileURLToPath(new URL('../archify/bin/archify.mjs', import.meta.url));
+const cli = fileURLToPath(new URL('../archi-made-easy/bin/archi-made-easy.mjs', import.meta.url));
 function inspect(t, diagram, { quality, envQuality } = {}) {
-  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-dataflow-auto-'));
+  const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-dataflow-auto-'));
   t.after(() => fs.rmSync(cwd, { recursive: true, force: true }));
   const input = path.join(cwd, 'source.json');
   const source = JSON.stringify(diagram);
   fs.writeFileSync(input, source);
   const env = { ...process.env };
-  delete env.ARCHIFY_QUALITY_PROFILE;
-  if (envQuality !== undefined) env.ARCHIFY_QUALITY_PROFILE = envQuality;
+  delete env.ARCHI_MADE_EASY_QUALITY_PROFILE;
+  if (envQuality !== undefined) env.ARCHI_MADE_EASY_QUALITY_PROFILE = envQuality;
   const qualityArgs = quality ? ['--quality', quality] : [];
   const result = spawnSync(process.execPath, [cli, 'validate', 'dataflow', input, '--json', ...qualityArgs], { encoding: 'utf8', env });
   assert.equal(fs.readFileSync(input, 'utf8'), source, 'automatic layout must not rewrite authored input');

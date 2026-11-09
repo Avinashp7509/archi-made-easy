@@ -1,6 +1,6 @@
-# Archify website
+# Archi-Made-Easy website
 
-The public website is an independent Astro + React + TypeScript project in this repository. It builds static files for GitHub Pages at `/archify/`; it does not add dependencies to the distributed Skill.
+The public website is an independent Astro + React + TypeScript project in this repository. It builds static files for GitHub Pages at `/archi-made-easy/`; it does not add dependencies to the distributed Skill.
 
 ## Development
 
@@ -10,7 +10,7 @@ Use Node.js 22.12 or newer (CI uses Node 22).
 cd website
 npm ci
 npm run dev
-# Open the printed local URL with /archify/ appended.
+# Open the printed local URL with /archi-made-easy/ appended.
 npm run check
 npm run build
 npm test
@@ -35,11 +35,11 @@ TypeScript stays on the supported 6.x line because the Astro checker currently r
 
 `npm test` compares the built DOM, original CSS, text, scripts and accessibility attributes with the migration baseline and verifies byte-identical preservation of every existing non-page public file. Generated recipe JSON is compared semantically.
 
-The existing real Chrome integration suite can run against the built site, including its `/archify` deployment prefix:
+The existing real Chrome integration suite can run against the built site, including its `/archi-made-easy` deployment prefix:
 
 ```sh
-ARCHIFY_SITE_ROOT="$PWD/dist" ARCHIFY_SITE_INTEGRATION=1 \
-ARCHIFY_CHROME="/path/to/chrome" \
+ARCHI_MADE_EASY_SITE_ROOT="$PWD/dist" ARCHI_MADE_EASY_SITE_INTEGRATION=1 \
+ARCHI_MADE_EASY_CHROME="/path/to/chrome" \
 npm run test:browser
 ```
 
@@ -47,14 +47,14 @@ CI builds/tests the website when website inputs change and on every main push. I
 
 ## Cloudflare Pages migration
 
-The same source can build a second static site for `https://archify.si/`:
+The same source can build a second static site for `https://OWNER.github.io/archi-made-easy/`:
 
 ```sh
-ARCHIFY_SITE_TARGET=cloudflare npm run build
-ARCHIFY_SITE_TARGET=cloudflare node --test test/deployment-target.test.mjs
+ARCHI_MADE_EASY_SITE_TARGET=cloudflare npm run build
+ARCHI_MADE_EASY_SITE_TARGET=cloudflare node --test test/deployment-target.test.mjs
 node scripts/check-cloudflare-output.mjs
-ARCHIFY_SITE_ROOT="$PWD/dist-cloudflare" ARCHIFY_SITE_BASE='' \
-ARCHIFY_SITE_INTEGRATION=1 ARCHIFY_CHROME="/path/to/chrome" npm run test:browser
+ARCHI_MADE_EASY_SITE_ROOT="$PWD/dist-cloudflare" ARCHI_MADE_EASY_SITE_BASE='' \
+ARCHI_MADE_EASY_SITE_INTEGRATION=1 ARCHI_MADE_EASY_CHROME="/path/to/chrome" npm run test:browser
 ```
 
 This writes `dist-cloudflare/`; the default build still writes `dist/` for GitHub Pages. Cloudflare uses root asset paths, formal-domain sharing/canonical URLs, and a top-level `404.html` so unknown URLs do not silently return the homepage. Keep file-format pages: changing to directory-format pages would change the base used by relative proof and asset links. Pages redirects `.html` routes to extensionless routes; verify the actual Pages preview, especially `/gallery`, `/gallery.html`, `/gallery/`, standalone diagrams, query strings and fragments.
@@ -67,11 +67,11 @@ Cut over in this order:
 
 1. Review the migration on `dev`, then promote only the reviewed migration to stable `main`; do not deploy the unrelated development feature batch as part of a hosting change. Record the stable source SHA and tested artifact.
 2. Deploy and check the Pages preview: all five pages, mobile navigation, language/theme state, proof iframes and links, images, installation/download destinations and real missing-route 404s. Static hosting uses the free plan; no Functions, server, or paid China Network is required.
-3. Add `archify.si` as a free Cloudflare zone. Inventory existing DNS records (including MX/TXT), registrar DNSSEC and DS records before changing nameservers; preserve records used by other services. Bind the root domain inside the Pages project, not only by adding DNS records.
-4. Change only `archify.si`'s nameservers at Dynadot to the two assigned by Cloudflare. Keep registration and renewal at Dynadot. Verify authoritative DNS, active zone/domain status and HTTPS certificate issuance before changing public links.
-5. Configure `www.archify.si` to redirect permanently to the root domain, preserving paths and query strings. Check both HTTP and HTTPS and avoid redirect loops. Keep the Pages preview available until formal-domain acceptance is complete.
+3. Add `OWNER.github.io/archi-made-easy` as a free Cloudflare zone. Inventory existing DNS records (including MX/TXT), registrar DNSSEC and DS records before changing nameservers; preserve records used by other services. Bind the root domain inside the Pages project, not only by adding DNS records.
+4. Change only `OWNER.github.io/archi-made-easy`'s nameservers at Dynadot to the two assigned by Cloudflare. Keep registration and renewal at Dynadot. Verify authoritative DNS, active zone/domain status and HTTPS certificate issuance before changing public links.
+5. Configure `www.OWNER.github.io/archi-made-easy` to redirect permanently to the root domain, preserving paths and query strings. Check both HTTP and HTTPS and avoid redirect loops. Keep the Pages preview available until formal-domain acceptance is complete.
 6. Test the formal domain through actual mainland networks without a proxy. Record operator, location, time and observed page/resource behavior; tests through a local proxy or an overseas runner do not establish mainland availability. The current site also uses Google Fonts and links to GitHub, so validate the full user journey.
-7. Only after acceptance, update README and repository website metadata. Social profile edits are a separate account action. Keep GitHub Pages and the old `skill-updates/archify/stable.json` endpoint available: existing installed Skills still request that URL. Do not change the Skill updater or install/update live Skills as part of this migration.
+7. Only after acceptance, update README and repository website metadata. Social profile edits are a separate account action. Keep GitHub Pages and the old `skill-updates/archi-made-easy/stable.json` endpoint available: existing installed Skills still request that URL. Do not change the Skill updater or install/update live Skills as part of this migration.
 
 For rollback, disable the Cloudflare deployment variable and roll back to the last verified Pages deployment; keep the old GitHub site available. Record DNS before any cutover so changes can be reversed deliberately. Removing a project is not a rollback: first detach custom domains and their DNS records to avoid dangling destinations.
 
@@ -81,7 +81,7 @@ The migration visual receipt is in `test/evidence/visual-parity.json`. Full-page
 
 The ten main language pages contain their translated body text, metadata and recipe references before JavaScript runs. Language links navigate to real URLs; URL language takes precedence over stored preferences. Existing `?lang=` entry links migrate to the matching route and preserve other parameters and fragments. Guide drafts survive a language switch once in session storage, expire after 30 seconds, and are never placed in the URL or sent over the network.
 
-`src/data/site-urls.mjs` defines the preferred `https://archify.si` URLs for both hosts. Each language has its own canonical and reciprocal `en`/`zh-Hans`/`x-default` links. GitHub Pages retains its `/archify` resource paths while pointing search engines to the official domain. Release identity and recipes come from this checkout: stable and development builds must not advertise each other's capabilities.
+`src/data/site-urls.mjs` defines the preferred `https://OWNER.github.io/archi-made-easy` URLs for both hosts. Each language has its own canonical and reciprocal `en`/`zh-Hans`/`x-default` links. GitHub Pages retains its `/archi-made-easy` resource paths while pointing search engines to the official domain. Release identity and recipes come from this checkout: stable and development builds must not advertise each other's capabilities.
 
 The build produces `robots.txt` and `sitemap.xml` from the ten pages and the curated gallery inventory. It checks each advertised artifact's original manifest hashes before adding an explicitly marked metadata block in the deployed HTML head; exported source files, SVG, scripts and updater bytes retain their existing contracts. Source JSON remains accessible and receives `X-Robots-Tag: noindex` on Cloudflare. GitHub Pages cannot set that response header. Robots rules allow crawling these evidence URLs so their indexing headers can be read.
 
@@ -89,26 +89,26 @@ After publication, verify the actual Cloudflare response, including any managed 
 ## Lightweight Skill distribution
 
 The website build generates `/.well-known/agent-skills/index.json` and a
-content-addressed ZIP beside it. Both GitHub Pages (under `/archify`) and
+content-addressed ZIP beside it. Both GitHub Pages (under `/archi-made-easy`) and
 Cloudflare use relative archive URLs. The package comes from the same
 tracked-only `stage-clean-skill.mjs` selection used by the canonical ZIP and DSH;
 it contains `SKILL.md` at the archive root, as required by discovery schema 0.2.0.
-The original `archify.zip` format and GitHub installation source are unchanged.
+The original `archi-made-easy.zip` format and GitHub installation source are unchanged.
 
 After deploying and verifying the endpoint, the lightweight source is:
 
 ```sh
-npx -y skills@latest add https://archify.si --list --full-depth
-npx -y skills@latest add https://archify.si --skill archify --agent codex --copy
+npx -y skills@latest add https://OWNER.github.io/archi-made-easy --list --full-depth
+npx -y skills@latest add https://OWNER.github.io/archi-made-easy --skill archi-made-easy --agent codex --copy
 ```
 
 The second command selects a project installation; global installation requires
 an explicit `--global`. Skills CLI 1.7.4 is the validation baseline. It downloads
 the Skill archive instead of cloning the development repository, verifies its
 SHA-256 digest, and records the website source in its lock file. A project can
-apply subsequent updates with `npx -y skills@latest update archify --project`.
+apply subsequent updates with `npx -y skills@latest update archi-made-easy --project`.
 An update replaces the installed Skill directory. Move any unmanaged files out
-of `.agents/skills/archify` before updating; this is not a read-only check.
+of `.agents/skills/archi-made-easy` before updating; this is not a read-only check.
 Existing GitHub-source installations keep their original update source; a new
 website endpoint does not silently migrate them. Bare ZIP URLs are not a
 substitute for the discovery source because their update tracking differs.

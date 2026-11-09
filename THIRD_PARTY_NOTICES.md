@@ -1,11 +1,11 @@
 # Third-party notices
 
-Archify includes optional vector data for third-party brand marks. These marks
+Archi-Made-Easy includes optional vector data for third-party brand marks. These marks
 are provided only to identify technologies and services in user-authored
 diagrams. Their inclusion does not imply sponsorship, endorsement, partnership,
-or affiliation with Archify.
+or affiliation with Archi-Made-Easy.
 
-Archify's license and historical MIT grants are described in LICENSE, NOTICE,
+Archi-Made-Easy's license and historical MIT grants are described in LICENSE, NOTICE,
 and LICENSE-MIT. The software license does not
 replace the copyright licenses, trademark policies, or brand guidelines that
 apply to third-party marks. Users are responsible for confirming that their
@@ -24,11 +24,11 @@ CC0 for the collection does not mean that every underlying icon is CC0. License
 and brand-guideline metadata may be incomplete or change over time. The absence
 of an individual license entry is not a grant of permission.
 
-Archify embeds the selected icons as vector-path data and may render them in a
+Archi-Made-Easy embeds the selected icons as vector-path data and may render them in a
 user-selected color. The following individual licenses were recorded in the
 pinned Simple Icons 16.28.0 metadata:
 
-| Mark | Recorded source | Recorded license | Archify treatment |
+| Mark | Recorded source | Recorded license | Archi-Made-Easy treatment |
 |---|---|---|---|
 | Angular | [Angular press kit](https://angular.dev/press-kit) | [`CC-BY-4.0`](https://creativecommons.org/licenses/by/4.0/) | Embedded as vector-path data; color may be changed by the authored diagram. |
 | Apache Airflow | [Apache logos](https://apache.org/logos) | [`Apache-2.0`](https://www.apache.org/licenses/LICENSE-2.0) | Embedded as vector-path data; Apache trademarks remain subject to the [ASF trademark policy](https://www.apache.org/foundation/marks/). |
@@ -51,7 +51,7 @@ rights. Its inclusion does not state or imply endorsement by OpenAI.
 
 ## JetBrains Mono
 
-Delivered Archify viewer artifacts embed the JetBrains Mono variable font
+Delivered Archi-Made-Easy viewer artifacts embed the JetBrains Mono variable font
 subsets served by Google Fonts. For characters covered by these subsets, font
 selection does not depend on a network request or a locally installed copy.
 Uncovered characters (including CJK) still use the system fallback stack;
@@ -74,5 +74,5 @@ SVG when a page is built; delivered pages contain no Pele code.
 
 Brand names, logos, and trademarks remain the property of their respective
 owners. This notice records provenance and known terms; it does not grant rights
-that Archify does not hold, and it does not state that every packaged mark has
+that Archi-Made-Easy does not hold, and it does not state that every packaged mark has
 been cleared for every commercial, promotional, or redistributive use.

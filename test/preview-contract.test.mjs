@@ -5,7 +5,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(here, '..', 'archify');
+const skillRoot = path.resolve(here, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
 const skill = fs.readFileSync(path.join(skillRoot, 'SKILL.md'), 'utf8');
 const delivery = fs.readFileSync(path.join(skillRoot, 'references', 'delivery-contract.md'), 'utf8');
@@ -15,7 +15,7 @@ const chinese = fs.readFileSync(path.join(repoRoot, 'README_ZH.md'), 'utf8');
 const japanese = fs.readFileSync(path.join(repoRoot, 'README_JA.md'), 'utf8');
 
 test('preview contract: the skill keeps live preview explicit, desktop-only, and last-good', () => {
-  assert.match(delivery, /archify\.mjs preview <type> <input>\.json <output>\.html/);
+  assert.match(delivery, /archi-made-easy\.mjs preview <type> <input>\.json <output>\.html/);
   assert.match(delivery, /active desktop authoring loop/i);
   assert.match(delivery, /previous verified revision on screen and on disk/i);
   assert.match(delivery, /never start it by default/i);
@@ -26,11 +26,11 @@ test('preview contract: the skill keeps live preview explicit, desktop-only, and
 test('preview contract: all README languages document the same optional command without changing the hero', () => {
   assert.equal(readme, english);
   for (const text of [readme, chinese, japanese]) {
-    assert.match(text, /bin\/archify\.mjs preview workflow/);
+    assert.match(text, /bin\/archi-made-easy\.mjs preview workflow/);
     assert.match(text, /--no-open/);
     assert.match(text, /127\.0\.0\.1/);
     assert.match(text, /Ctrl-C/);
-    assert.match(text, /docs\/assets\/archify-readme-hero\.png/);
+    assert.match(text, /docs\/assets\/archi-made-easy-readme-hero\.png/);
   }
 });
 

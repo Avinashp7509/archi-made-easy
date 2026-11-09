@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { ChromeVisualBrowser, findChrome } from '../../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome } from '../../archi-made-easy/bin/visual-check.mjs';
 
 const experiment = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(experiment, '../..');
@@ -33,7 +33,7 @@ const stress = {
 const input = path.join(output, 'stress.json');
 const rendered = path.join(output, 'stress-source.html');
 fs.writeFileSync(input, JSON.stringify(stress));
-execFileSync(process.execPath, [path.join(root, 'archify/bin/archify.mjs'), 'render', 'architecture', input, rendered]);
+execFileSync(process.execPath, [path.join(root, 'archi-made-easy/bin/archi-made-easy.mjs'), 'render', 'architecture', input, rendered]);
 fixtures.set('stress', fs.readFileSync(rendered, 'utf8'));
 const browser = new ChromeVisualBrowser(findChrome());
 const observations = [];
@@ -60,7 +60,7 @@ try {
           const loaded = browser.cdp.waitFor('Page.loadEventFired', session);
           await send('Page.navigate', { url: url.href }); await loaded;
           const measured = await send('Runtime.evaluate', { awaitPromise: true, returnByValue: true, expression: `(async () => {
-            await document.fonts.ready; await Archify.layoutStability.whenStable();
+            await document.fonts.ready; await ArchiMadeEasy.layoutStability.whenStable();
             const panel = document.getElementById('node-outline');
             const items = [...panel.querySelectorAll('[data-outline-node]')];
             const svg = document.querySelector('.diagram-container > svg');
@@ -84,7 +84,7 @@ try {
             assert.deepEqual(value.clipped, [], `${label}: clipped index text`);
           }
           const interaction = await send('Runtime.evaluate', { awaitPromise: true, returnByValue: true, expression: `(async () => {
-              Archify.focus.clear(); Archify.routeProbe.clear();
+              ArchiMadeEasy.focus.clear(); ArchiMadeEasy.routeProbe.clear();
               const button=document.querySelector('[data-outline-node]');
               button.focus(); await new Promise(r=>requestAnimationFrame(r));
               const focused=document.activeElement===button;
@@ -104,7 +104,7 @@ try {
             // Restore the same unselected state before taking the comparison.
             const resetLoaded = browser.cdp.waitFor('Page.loadEventFired', session);
             await send('Page.navigate', { url: url.href }); await resetLoaded;
-            await send('Runtime.evaluate', { awaitPromise: true, expression: 'document.fonts.ready.then(()=>Archify.layoutStability.whenStable())' });
+            await send('Runtime.evaluate', { awaitPromise: true, expression: 'document.fonts.ready.then(()=>ArchiMadeEasy.layoutStability.whenStable())' });
           const shot = await send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
           fs.writeFileSync(path.join(output, `${label}.png`), Buffer.from(shot.data, 'base64'));
           delete value.svg;

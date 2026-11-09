@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "skillId": "archi-made-easy",
+  "channel": "development",
+  "version": "0.1.0-dev.0",
+  "source": {
+    "repository": "https://github.com/OWNER/archi-made-easy"
+  },
+  "updateManifestUrl": null
+}

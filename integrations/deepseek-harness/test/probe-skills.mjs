@@ -3,10 +3,10 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
-export const name = 'archify-dsh-skill-probe';
+export const name = 'archi-made-easy-dsh-skill-probe';
 export const inject = ['skills'];
 
-export async function probeSkills(skills, cwd, expectedNames = ['archify'], {
+export async function probeSkills(skills, cwd, expectedNames = ['archi-made-easy'], {
   timeoutMs = 30_000,
   pollMs = 100,
   sleep = delay,
@@ -45,10 +45,10 @@ export async function probeSkills(skills, cwd, expectedNames = ['archify'], {
 }
 
 export async function apply(ctx) {
-  const out = process.env.ARCHIFY_DSH_PROBE_OUT;
-  if (!out) throw new Error('ARCHIFY_DSH_PROBE_OUT is required for the test-only skill probe');
-  const expectedNames = JSON.parse(process.env.ARCHIFY_DSH_PROBE_SKILLS || '["archify"]');
-  const result = await probeSkills(ctx.skills, process.env.ARCHIFY_DSH_PROBE_CWD || process.cwd(), expectedNames);
+  const out = process.env.ARCHI_MADE_EASY_DSH_PROBE_OUT;
+  if (!out) throw new Error('ARCHI_MADE_EASY_DSH_PROBE_OUT is required for the test-only skill probe');
+  const expectedNames = JSON.parse(process.env.ARCHI_MADE_EASY_DSH_PROBE_SKILLS || '["archi-made-easy"]');
+  const result = await probeSkills(ctx.skills, process.env.ARCHI_MADE_EASY_DSH_PROBE_CWD || process.cwd(), expectedNames);
   fs.mkdirSync(path.dirname(out), { recursive: true });
   fs.writeFileSync(out, `${JSON.stringify(result, null, 2)}\n`);
   const exit = ctx.cmdlineArgs?.exit || ctx.appExit;

@@ -7,19 +7,19 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(here, '..', 'archify');
+const skillRoot = path.resolve(here, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
 const benchmark = path.join(repoRoot, 'benchmarks/repair-rounds/benchmark.mjs');
 const manifest = path.join(repoRoot, 'benchmarks/repair-rounds/manifest.json');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-repair-rounds-'));
-const chromeAvailable = Boolean(process.env.ARCHIFY_CHROME)
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-repair-rounds-'));
+const chromeAvailable = Boolean(process.env.ARCHI_MADE_EASY_CHROME)
   || fs.existsSync('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome');
 
 function run(args) {
   return spawnSync(process.execPath, [benchmark, ...args], {
     cwd: repoRoot,
     encoding: 'utf8',
-    env: { ...process.env, ARCHIFY_UPDATE_CHECK_DISABLED: '1' },
+    env: { ...process.env, ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED: '1' },
   });
 }
 

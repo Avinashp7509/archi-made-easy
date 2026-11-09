@@ -4,7 +4,7 @@
        appearance while a small bottom stage rail becomes part of the reader
        budget whenever its zero-reserve position would enter the stage.
        ============================================================ */
-    Archify.viewerChromeLayout = (function () {
+    ArchiMadeEasy.viewerChromeLayout = (function () {
       var html = document.documentElement;
       var container = document.querySelector('.diagram-container');
       var svg = container && container.querySelector(':scope > svg');
@@ -99,16 +99,16 @@
         reserve = next;
         if (reserve) {
           if (options.remember !== false) restorableReserve = reserve;
-          container.style.setProperty('--archify-nav-reserve', reserve + 'px');
+          container.style.setProperty('--archi-made-easy-nav-reserve', reserve + 'px');
           container.setAttribute('data-nav-stage-rail', 'true');
           html.setAttribute('data-nav-stage-rail', 'true');
         } else {
-          container.style.removeProperty('--archify-nav-reserve');
+          container.style.removeProperty('--archi-made-easy-nav-reserve');
           container.removeAttribute('data-nav-stage-rail');
           html.removeAttribute('data-nav-stage-rail');
         }
-        if (Archify.readerLayout && typeof Archify.readerLayout.schedule === 'function') {
-          Archify.readerLayout.schedule();
+        if (ArchiMadeEasy.readerLayout && typeof ArchiMadeEasy.readerLayout.schedule === 'function') {
+          ArchiMadeEasy.readerLayout.schedule();
         }
         if (options.quiet !== true) {
           if (settleFrame) cancelAnimationFrame(settleFrame);
@@ -162,8 +162,8 @@
         }
         if (next === lift) return;
         lift = next;
-        if (lift) container.style.setProperty('--archify-dock-lift', lift + 'px');
-        else container.style.removeProperty('--archify-dock-lift');
+        if (lift) container.style.setProperty('--archi-made-easy-dock-lift', lift + 'px');
+        else container.style.removeProperty('--archi-made-easy-dock-lift');
       }
       function scheduleLift() {
         if (!liftFrame) liftFrame = requestAnimationFrame(updateLift);
@@ -260,8 +260,8 @@
         baselineStageGap = null;
         restorableReserve = 0;
         writeReserve(0, { quiet: true });
-        var readerReady = Archify.readerLayout && typeof Archify.readerLayout.whenStable === 'function'
-          ? Archify.readerLayout.whenStable().catch(function () {})
+        var readerReady = ArchiMadeEasy.readerLayout && typeof ArchiMadeEasy.readerLayout.whenStable === 'function'
+          ? ArchiMadeEasy.readerLayout.whenStable().catch(function () {})
           : Promise.resolve();
         probePromise = readerReady.then(function () {
           probingBaseline = false;
@@ -298,14 +298,14 @@
       }
       function layoutPending() { return Boolean(frame || settleFrame || liftFrame || probingBaseline); }
       function whenStable() {
-        return Archify.waitForStableLayout({
+        return ArchiMadeEasy.waitForStableLayout({
           schedule: schedule,
           pending: layoutPending,
           snapshot: stableSnapshot,
           timeoutMessage: 'Viewer chrome layout did not reach stable dimensions.'
         });
       }
-      archifyLayoutOwners.viewerChrome = { schedule: schedule, pending: layoutPending, snapshot: stableSnapshot };
+      archiMadeEasyLayoutOwners.viewerChrome = { schedule: schedule, pending: layoutPending, snapshot: stableSnapshot };
 
       window.addEventListener('resize', reprobe, { passive: true });
       window.addEventListener('scroll', scheduleLift, { passive: true });

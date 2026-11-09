@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compileWorkflow } from '../archify/renderers/workflow/workflow-compiler.mjs';
-import { rectsOverlap, segmentRectClearance } from '../archify/renderers/shared/geometry.mjs';
+import { compileWorkflow } from '../archi-made-easy/renderers/workflow/workflow-compiler.mjs';
+import { rectsOverlap, segmentRectClearance } from '../archi-made-easy/renderers/shared/geometry.mjs';
 
 function fixture(kind, offset) {
   return {

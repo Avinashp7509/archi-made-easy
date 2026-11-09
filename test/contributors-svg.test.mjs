@@ -61,8 +61,8 @@ test('the wall is a 1000px grid of eight circular inline avatars', () => {
   assert.match(svg, /<svg[^>]*\swidth="1000"/);
   assert.deepEqual(rowCounts(svg), [8, 1]);
   assert.equal([...svg.matchAll(/<image\b[^>]*width="72"[^>]*height="72"/g)].length, 9);
-  assert.equal([...svg.matchAll(/<clipPath id="archify-contributor-\d+"><circle[^>]*r="36"/g)].length, 9);
-  assert.equal([...svg.matchAll(/clip-path="url\(#archify-contributor-\d+\)"/g)].length, 9);
+  assert.equal([...svg.matchAll(/<clipPath id="archi-made-easy-contributor-\d+"><circle[^>]*r="36"/g)].length, 9);
+  assert.equal([...svg.matchAll(/clip-path="url\(#archi-made-easy-contributor-\d+\)"/g)].length, 9);
   assert.equal([...svg.matchAll(/data:image\/png;base64,/g)].length, 9);
   assert.match(svg, /prefers-color-scheme:\s*dark/);
   assert.match(svg, /\.name \{ fill: #24292f;/);
@@ -90,11 +90,11 @@ test('contributor fetching keeps humans, follows GitHub pagination, and refuses 
       { login: 'ada', type: 'User', contributions: 4, avatar_url: 'https://avatars.githubusercontent.com/u/3' },
       { login: 'linus', type: 'User', contributions: 2, avatar_url: 'https://avatars.githubusercontent.com/u/5' },
     ], {
-      link: '<https://api.github.com/repos/tt-a1i/archify/contributors?per_page=100&page=2>; rel="next"',
+      link: '<https://api.github.com/repos/OWNER/archi-made-easy/contributors?per_page=100&page=2>; rel="next"',
     });
   };
 
-  const people = await fetchContributors({ repo: 'tt-a1i/archify', fetchImpl });
+  const people = await fetchContributors({ repo: 'OWNER/archi-made-easy', fetchImpl });
   assert.deepEqual(people.map((person) => person.login), ['ada', 'grace', 'linus']);
   assert.equal(calls.length, 2);
 
@@ -102,12 +102,12 @@ test('contributor fetching keeps humans, follows GitHub pagination, and refuses 
     link: '<https://evil.example/contributors>; rel="next"',
   });
   await assert.rejects(
-    () => fetchContributors({ repo: 'tt-a1i/archify', fetchImpl: hostile }),
+    () => fetchContributors({ repo: 'OWNER/archi-made-easy', fetchImpl: hostile }),
     /api\.github\.com/,
   );
   await assert.rejects(
     () => fetchContributors({
-      repo: 'tt-a1i/archify',
+      repo: 'OWNER/archi-made-easy',
       fetchImpl: async () => jsonResponse([{ login: 'dependabot[bot]', type: 'Bot', contributions: 1 }]),
     }),
     /No human contributors/,
@@ -117,7 +117,7 @@ test('contributor fetching keeps humans, follows GitHub pagination, and refuses 
 test('avatar bytes are inlined only from GitHub image responses', async () => {
   assert.equal(avatarMediaType(png, 'application/octet-stream'), 'image/png');
   const svg = await buildContributorsSvg({
-    repo: 'tt-a1i/archify',
+    repo: 'OWNER/archi-made-easy',
     fetchImpl: async (url) => {
       if (String(url).includes('/contributors')) {
         return jsonResponse([
@@ -183,7 +183,7 @@ function git(cwd, args) {
 }
 
 test('contributors publishing fast-forwards a data branch and refuses main or dev', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-contributors-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-contributors-'));
   const remote = path.join(fixture, 'remote.git');
   const firstCheckout = path.join(fixture, 'first');
   const secondCheckout = path.join(fixture, 'second');

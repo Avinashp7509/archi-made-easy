@@ -6,16 +6,16 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { collectAmbiguousCorridors, properSegmentIntersection } from '../archify/renderers/shared/geometry.mjs';
+import { collectAmbiguousCorridors, properSegmentIntersection } from '../archi-made-easy/renderers/shared/geometry.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const renderer = path.join(skillRoot, 'renderers', 'dataflow', 'render-dataflow.mjs');
-const cli = path.join(skillRoot, 'bin', 'archify.mjs');
+const cli = path.join(skillRoot, 'bin', 'archi-made-easy.mjs');
 const fixture = path.join(__dirname, 'fixtures', 'dataflow-first-draft', 'ml-features.dataflow.json');
 
 function render(diagram) {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-dataflow-first-draft-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-dataflow-first-draft-'));
   const input = path.join(directory, 'candidate.json');
   const output = path.join(directory, 'candidate.html');
   fs.writeFileSync(input, JSON.stringify(diagram));

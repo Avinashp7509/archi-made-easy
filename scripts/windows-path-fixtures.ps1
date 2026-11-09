@@ -5,10 +5,10 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$shareName = "archify-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT-node$NodeVersion"
+$shareName = "archi-made-easy-$env:GITHUB_RUN_ID-$env:GITHUB_RUN_ATTEMPT-node$NodeVersion"
 $fixtureRoot = Join-Path $env:RUNNER_TEMP $shareName
 
-function Remove-ArchifyWindowsPathFixtures {
+function Remove-ArchiMadeEasyWindowsPathFixtures {
   Get-SmbShare -Name $shareName -ErrorAction SilentlyContinue |
     Remove-SmbShare -Force -Confirm:$false -ErrorAction SilentlyContinue
   if (Test-Path -LiteralPath $fixtureRoot) {
@@ -17,7 +17,7 @@ function Remove-ArchifyWindowsPathFixtures {
 }
 
 if ($Cleanup) {
-  Remove-ArchifyWindowsPathFixtures
+  Remove-ArchiMadeEasyWindowsPathFixtures
   exit 0
 }
 
@@ -25,7 +25,7 @@ $shareRoot = Join-Path $fixtureRoot 'share'
 $caseRoot = Join-Path $fixtureRoot 'case-sensitive'
 $eightDotThreeRoot = Join-Path $fixtureRoot 'controlled-eight-dot-three-root'
 $eightDotThreeShortRoot = Join-Path $fixtureRoot 'ARCH8D~1'
-Remove-ArchifyWindowsPathFixtures
+Remove-ArchiMadeEasyWindowsPathFixtures
 New-Item -ItemType Directory -Path $shareRoot, $caseRoot, $eightDotThreeRoot | Out-Null
 
 & fsutil.exe file setshortname $eightDotThreeRoot 'ARCH8D~1'
@@ -45,8 +45,8 @@ if (-not [IO.Directory]::Exists($eightDotThreeShortRoot) -or
 if ($LASTEXITCODE -ne 0) {
   throw "Could not enable per-directory case sensitivity at $caseRoot"
 }
-$upperProbe = Join-Path $caseRoot 'ArchifyCaseProbe.txt'
-$lowerProbe = Join-Path $caseRoot 'archifycaseprobe.txt'
+$upperProbe = Join-Path $caseRoot 'ArchiMadeEasyCaseProbe.txt'
+$lowerProbe = Join-Path $caseRoot 'archi-made-easycaseprobe.txt'
 [IO.File]::WriteAllText($upperProbe, 'upper')
 [IO.File]::WriteAllText($lowerProbe, 'lower')
 if ([IO.File]::ReadAllText($upperProbe) -ne 'upper' -or
@@ -71,8 +71,8 @@ if ([IO.File]::ReadAllText($uncProbe) -ne 'ordinary' -or
 [IO.File]::Delete($uncProbe)
 [IO.File]::Delete($extendedProbe)
 
-Add-Content -LiteralPath $env:GITHUB_ENV -Value "ARCHIFY_WINDOWS_CASE_SENSITIVE_ROOT=$caseRoot"
-Add-Content -LiteralPath $env:GITHUB_ENV -Value "ARCHIFY_WINDOWS_UNC_ROOT=$uncRoot"
-Add-Content -LiteralPath $env:GITHUB_ENV -Value "ARCHIFY_WINDOWS_EXTENDED_UNC_ROOT=$extendedUncRoot"
-Add-Content -LiteralPath $env:GITHUB_ENV -Value "ARCHIFY_WINDOWS_8DOT3_ROOT=$eightDotThreeRoot"
-Add-Content -LiteralPath $env:GITHUB_ENV -Value "ARCHIFY_WINDOWS_8DOT3_SHORT_ROOT=$eightDotThreeShortRoot"
+Add-Content -LiteralPath $env:GITHUB_ENV -Value "ARCHI_MADE_EASY_WINDOWS_CASE_SENSITIVE_ROOT=$caseRoot"
+Add-Content -LiteralPath $env:GITHUB_ENV -Value "ARCHI_MADE_EASY_WINDOWS_UNC_ROOT=$uncRoot"
+Add-Content -LiteralPath $env:GITHUB_ENV -Value "ARCHI_MADE_EASY_WINDOWS_EXTENDED_UNC_ROOT=$extendedUncRoot"
+Add-Content -LiteralPath $env:GITHUB_ENV -Value "ARCHI_MADE_EASY_WINDOWS_8DOT3_ROOT=$eightDotThreeRoot"
+Add-Content -LiteralPath $env:GITHUB_ENV -Value "ARCHI_MADE_EASY_WINDOWS_8DOT3_SHORT_ROOT=$eightDotThreeShortRoot"

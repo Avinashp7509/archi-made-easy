@@ -14,9 +14,9 @@ import {
   removeOwnedRegularFile,
   verifyAtomicOutput,
   verifyRegularFileBinding,
-} from '../archify/renderers/shared/atomic-output.mjs';
-import { validateNativeOutputPath } from '../archify/renderers/shared/output-path.mjs';
-import { validatePortablePathSet } from '../archify/renderers/shared/portable-path.mjs';
+} from '../archi-made-easy/renderers/shared/atomic-output.mjs';
+import { validateNativeOutputPath } from '../archi-made-easy/renderers/shared/output-path.mjs';
+import { validatePortablePathSet } from '../archi-made-easy/renderers/shared/portable-path.mjs';
 
 function usage() {
   console.error([
@@ -63,7 +63,7 @@ function validateArchiveOutputPath(rawOutput) {
       validateNativeOutputPath(windowsComparable, { platform: 'win32', kind: 'file' });
     }
   } catch (error) {
-    const reason = error?.archifyDiagnostics?.[0]?.evidence?.reason;
+    const reason = error?.archiMadeEasyDiagnostics?.[0]?.evidence?.reason;
     console.error(
       `archive output is not a valid native filesystem path${reason ? ` (${reason})` : ''}: ${JSON.stringify(rawOutput)}`,
     );
@@ -267,11 +267,11 @@ const outputNamespace = createHash('sha256')
   .slice(0, 16);
 const temporary = path.join(
   path.dirname(outputCapture.commitPath),
-  `.archify-zip-${outputNamespace}-${randomBytes(16).toString('hex')}.tmp`,
+  `.archi-made-easy-zip-${outputNamespace}-${randomBytes(16).toString('hex')}.tmp`,
 );
 const previousOutput = path.join(
   path.dirname(outputCapture.commitPath),
-  `.archify-zip-backup-${outputNamespace}-${randomBytes(16).toString('hex')}.tmp`,
+  `.archi-made-easy-zip-backup-${outputNamespace}-${randomBytes(16).toString('hex')}.tmp`,
 );
 let descriptor;
 let candidateIdentity;

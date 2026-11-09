@@ -7,8 +7,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(here, '..', 'archify');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-share-card-'));
+const skillRoot = path.resolve(here, '..', 'archi-made-easy');
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-share-card-'));
 
 const CASES = {
   architecture: 'web-app.architecture.json',
@@ -45,7 +45,7 @@ test('all five renderers remove ordinary share cards while retaining other expor
 });
 
 test('README architecture examples do not retain ordinary share-card entries', () => {
-  for (const file of ['archify-repo.html', 'archify-repo-grid.html', 'maka-architecture.html']) {
+  for (const file of ['project-repo.html', 'project-repo-grid.html', 'maka-architecture.html']) {
     const html = fs.readFileSync(path.join(skillRoot, '..', 'examples', file), 'utf8');
     assert.equal(/data-format="share-card"|data-action="copy-share-card"/.test(html), false,
       `${file}: regenerate this README example to remove the old share-card entries`);
@@ -64,7 +64,7 @@ test('Share Card uses contain-only canonical geometry with fixed safe areas', ()
   assert.match(html, /img\.onload = function \(\) \{\s*try \{/);
   assert.match(html, /function renderShareCard\(options\)[\s\S]*?serializeSvg\(sourceScale, \{ routeSnapshot: routeSnapshot, reachSnapshot: reachSnapshot, figure: true \}\)/);
   assert.match(html, /fitCanvasText\(ctx, title, [^)]+\)/);
-  assert.doesNotMatch(svgBlock(html), /share-card|Share Card|ARCHIFY ·/);
+  assert.doesNotMatch(svgBlock(html), /share-card|Share Card|ARCHI-MADE-EASY ·/);
 });
 
 test('ordinary Copy PNG keeps its existing full-diagram raster path', () => {

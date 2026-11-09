@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const skillRoot = path.resolve(__dirname, '..', 'archify');
+const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
 const docsRoot = path.join(repoRoot, 'docs');
 const landing = fs.readFileSync(path.join(docsRoot, 'index.html'), 'utf8');
@@ -27,10 +27,10 @@ const proofs = [
 ];
 
 test('landing metadata describes the full technical-diagram product and trusted hero promise', () => {
-  assert.match(landing, /<title>Archify — Technical Diagrams from Plain English<\/title>/);
-  assert.match(landing, /<meta property="og:title" content="Archify — Technical Diagrams from Plain English">/);
+  assert.match(landing, /<title>Archi-Made-Easy — Technical Diagrams from Plain English<\/title>/);
+  assert.match(landing, /<meta property="og:title" content="Archi-Made-Easy — Technical Diagrams from Plain English">/);
   assert.match(landing, /An agent skill for Cursor, Claude Code, Codex CLI, OpenCode, and GitHub Copilot/);
-  assert.equal((landing.match(/npx -y skills add tt-a1i\/archify --skill archify --agent cursor --global --copy --yes/g) || []).length, 2);
+  assert.equal((landing.match(/npx -y skills add OWNER\/archi-made-easy --skill archi-made-easy --agent cursor --global --copy --yes/g) || []).length, 2);
   assert.match(landing, /From plain English<br>to architecture <em>you can trust\.<\/em>/);
 });
 

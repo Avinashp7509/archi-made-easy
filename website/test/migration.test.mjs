@@ -61,9 +61,9 @@ for (const page of pages) {
       const base = elements(next, 'base');
       assert.equal(base.length, 1);
       assert.equal(attr(base[0], 'href'), './');
-      const baseUri = new URL(attr(base[0], 'href'), 'https://tt-a1i.github.io/archify/index.html');
-      assert.equal(new URL(attr(frame, 'src'), baseUri).href, 'https://tt-a1i.github.io/archify/gallery/artifacts/agent-tool-call.workflow.html?embed=1&theme=dark#focus=planner&reach=downstream');
-      assert.equal(new URL(attr(open, 'href'), baseUri).href, 'https://tt-a1i.github.io/archify/gallery/artifacts/agent-tool-call.workflow.html?present=1#focus=planner&reach=downstream');
+      const baseUri = new URL(attr(base[0], 'href'), 'https://OWNER.github.io/archi-made-easy/index.html');
+      assert.equal(new URL(attr(frame, 'src'), baseUri).href, 'https://OWNER.github.io/archi-made-easy/gallery/artifacts/agent-tool-call.workflow.html?embed=1&theme=dark#focus=planner&reach=downstream');
+      assert.equal(new URL(attr(open, 'href'), baseUri).href, 'https://OWNER.github.io/archi-made-easy/gallery/artifacts/agent-tool-call.workflow.html?present=1#focus=planner&reach=downstream');
       const proofScript = elements(next, 'script').find(script => (script.childNodes || []).some(child => (child.value || '').includes("hash: '#lens=backend~database'")));
       assert.ok(proofScript, 'homepage proof configuration must remain present');
       const scriptText = proofScript.childNodes.map(child => child.value || '').join('');
@@ -81,7 +81,7 @@ for (const page of pages) {
       const nextIds = new Set(ids(elements(next, 'body')[0]));
       for (const id of ids(elements(old, 'body')[0])) assert.ok(nextIds.has(id), `${page}: #${id} must remain`);
     }
-    assert.ok(!read(dist, page).includes('[[ARCHIFY_VERSION]]'));
+    assert.ok(!read(dist, page).includes('[[ARCHI_MADE_EASY_VERSION]]'));
   });
 }
 
@@ -89,8 +89,8 @@ test('homepage version labels and translations match the release identity baseli
   const baseline = parse(read(docs, 'index.html'));
   const generated = parse(read(dist, 'index.html'));
   // The redesigned eyebrow separates the version chip from its channel label.
-  const version = JSON.parse(read(path.resolve(root, '../archify'), 'package.json')).version;
-  const { channel } = JSON.parse(read(path.resolve(root, '../archify'), 'skill-release.json'));
+  const version = JSON.parse(read(path.resolve(root, '../archi-made-easy'), 'package.json')).version;
+  const { channel } = JSON.parse(read(path.resolve(root, '../archi-made-easy'), 'skill-release.json'));
   const englishBadge = `${channel === 'development' ? 'Development' : 'Stable'} Agent Skill · see what's new`;
   const chineseBadge = `${channel === 'development' ? '开发版' : '稳定版'} Agent 技能 · 查看更新`;
   const spans = elements(generated, 'span');
@@ -145,7 +145,7 @@ test('all existing non-page public URLs retain exact bytes outside the declared 
     const data = JSON.parse(structured.childNodes.map(node => node.value || '').join(''));
     assert.equal(data['@type'], 'CreativeWork');
     assert.equal(data['@context'], 'https://schema.org');
-    assert.equal(data.isBasedOn, `https://archify.si/${proof.entry.input}`);
+    assert.equal(data.isBasedOn, `https://OWNER.github.io/archi-made-easy/${proof.entry.input}`);
     return Buffer.from(stripPublishedArtifactMetadata(html), 'utf8');
   }
   function visit(dir, rel = '') {
@@ -160,8 +160,8 @@ test('all existing non-page public URLs retain exact bytes outside the declared 
 
 test('every generated Astro asset referenced by a page exists under the Pages base', () => {
   for (const page of [...pages, 'community.html', 'zh.html', ...['gallery', 'guide', 'start', 'community'].map(page => `zh/${page}.html`)]) {
-    for (const match of read(dist, page).matchAll(/(?:href|src)="(\/archify\/[^"?#]+)"/g)) {
-      const relative = match[1].slice('/archify/'.length) || 'index.html';
+    for (const match of read(dist, page).matchAll(/(?:href|src)="(\/archi-made-easy\/[^"?#]+)"/g)) {
+      const relative = match[1].slice('/archi-made-easy/'.length) || 'index.html';
       assert.ok(fs.statSync(path.join(dist, relative)).isFile(), match[1]);
     }
   }

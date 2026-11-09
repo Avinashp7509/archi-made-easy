@@ -12,7 +12,7 @@ Template only: replace placeholders, retain failures and use **unknown/not run**
 ## Frozen plan
 
 - Suite revision, source-project pins and clean checkout status: <projects.json copy/hash; one status record per project>
-- Base Archify commit + package/tree hash:
+- Base Archi-Made-Easy commit + package/tree hash:
 - Candidate commit + package/tree hash:
 - Cases/types and any narrower scope or substitutions, with rationale:
 - Agent/client, model, reasoning, tools, runtime, browser/OS:

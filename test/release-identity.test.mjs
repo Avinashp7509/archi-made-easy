@@ -25,18 +25,18 @@ function runCheck(root) {
 function stableUpdateManifest(version) {
   return JSON.stringify({
     schemaVersion: 1,
-    skillId: 'archify',
+    skillId: 'archi-made-easy',
     channel: 'stable',
     version,
     publishedAt: '2026-07-29T00:00:00Z',
     source: {
-      repository: 'https://github.com/tt-a1i/archify',
+      repository: 'https://github.com/OWNER/archi-made-easy',
       ref: `v${version}`,
       treeSha: 'a'.repeat(40),
     },
     artifact: { sha256: 'b'.repeat(64) },
     summary: 'Published stable release.',
-    releaseNotes: `https://github.com/tt-a1i/archify/releases/tag/v${version}`,
+    releaseNotes: `https://github.com/OWNER/archi-made-easy/releases/tag/v${version}`,
     severity: 'normal',
   });
 }
@@ -62,19 +62,19 @@ function writeValidDevelopmentFixture(root, overrides = {}) {
     '',
   ].join('\n');
   const files = {
-    'archify/package.json': JSON.stringify({ version }),
-    'archify/package-lock.json': JSON.stringify({ version, packages: { '': { version } } }),
-    'archify/skill-release.json': JSON.stringify({
+    'archi-made-easy/package.json': JSON.stringify({ version }),
+    'archi-made-easy/package-lock.json': JSON.stringify({ version, packages: { '': { version } } }),
+    'archi-made-easy/skill-release.json': JSON.stringify({
       schemaVersion: 1,
-      skillId: 'archify',
+      skillId: 'archi-made-easy',
       channel: 'development',
       version,
-      source: { repository: 'https://github.com/tt-a1i/archify' },
-      updateManifestUrl: 'https://tt-a1i.github.io/archify/skill-updates/archify/stable.json',
+      source: { repository: 'https://github.com/OWNER/archi-made-easy' },
+      updateManifestUrl: 'https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
     }),
-    'docs/skill-updates/archify/stable.json': stableUpdateManifest('2.12.0'),
-    'archify/SKILL.md': '---\nmetadata:\n  version: "2.13"\n---\n',
-    'archify/assets/template.html': '<meta name="generator" content="archify 2.13.0-dev.0">',
+    'docs/skill-updates/archi-made-easy/stable.json': stableUpdateManifest('2.12.0'),
+    'archi-made-easy/SKILL.md': '---\nmetadata:\n  version: "2.13"\n---\n',
+    'archi-made-easy/assets/template.html': '<meta name="generator" content="archi-made-easy 2.13.0-dev.0">',
     'CHANGELOG.md': [
       '# Changelog',
       '',
@@ -92,9 +92,9 @@ function writeValidDevelopmentFixture(root, overrides = {}) {
     'README_EN.md': english,
     'README_ZH.md': chinese,
     'README_JA.md': japanese,
-    'scripts/start-template.html': 'development · 开发版 · [[ARCHIFY_VERSION]]',
-    'scripts/guide-template.html': 'development · 开发版 · [[ARCHIFY_VERSION]]',
-    'scripts/gallery-template.html': 'development · 开发版 · [[ARCHIFY_VERSION]]',
+    'scripts/start-template.html': 'development · 开发版 · [[ARCHI_MADE_EASY_VERSION]]',
+    'scripts/guide-template.html': 'development · 开发版 · [[ARCHI_MADE_EASY_VERSION]]',
+    'scripts/gallery-template.html': 'development · 开发版 · [[ARCHI_MADE_EASY_VERSION]]',
     'docs/index.html': `<span>development · v${version} · 开发版 · 9/9 checks</span>`,
     'docs/start.html': `<span>development · v${version} · 开发版</span>`,
     'ROADMAP.md': `The current development line is \`v${version}\`; it contains the work under Changelog Unreleased and is not a stable release.`,
@@ -125,19 +125,19 @@ function writeValidStableFixture(root, overrides = {}) {
     '',
   ].join('\n');
   const files = {
-    'archify/package.json': JSON.stringify({ version }),
-    'archify/package-lock.json': JSON.stringify({ version, packages: { '': { version } } }),
-    'archify/skill-release.json': JSON.stringify({
+    'archi-made-easy/package.json': JSON.stringify({ version }),
+    'archi-made-easy/package-lock.json': JSON.stringify({ version, packages: { '': { version } } }),
+    'archi-made-easy/skill-release.json': JSON.stringify({
       schemaVersion: 1,
-      skillId: 'archify',
+      skillId: 'archi-made-easy',
       channel: 'stable',
       version,
-      source: { repository: 'https://github.com/tt-a1i/archify' },
-      updateManifestUrl: 'https://tt-a1i.github.io/archify/skill-updates/archify/stable.json',
+      source: { repository: 'https://github.com/OWNER/archi-made-easy' },
+      updateManifestUrl: 'https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
     }),
-    'docs/skill-updates/archify/stable.json': stableUpdateManifest(version),
-    'archify/SKILL.md': '---\nmetadata:\n  version: "2.13"\n---\n',
-    'archify/assets/template.html': '<meta name="generator" content="archify 2.13.0">',
+    'docs/skill-updates/archi-made-easy/stable.json': stableUpdateManifest(version),
+    'archi-made-easy/SKILL.md': '---\nmetadata:\n  version: "2.13"\n---\n',
+    'archi-made-easy/assets/template.html': '<meta name="generator" content="archi-made-easy 2.13.0">',
     'CHANGELOG.md': [
       '# Changelog',
       '',
@@ -151,9 +151,9 @@ function writeValidStableFixture(root, overrides = {}) {
     'README_EN.md': english,
     'README_ZH.md': chinese,
     'README_JA.md': japanese,
-    'scripts/start-template.html': 'stable · 稳定版 · [[ARCHIFY_VERSION]]',
-    'scripts/guide-template.html': 'stable · 稳定版 · [[ARCHIFY_VERSION]]',
-    'scripts/gallery-template.html': 'stable · 稳定版 · [[ARCHIFY_VERSION]]',
+    'scripts/start-template.html': 'stable · 稳定版 · [[ARCHI_MADE_EASY_VERSION]]',
+    'scripts/guide-template.html': 'stable · 稳定版 · [[ARCHI_MADE_EASY_VERSION]]',
+    'scripts/gallery-template.html': 'stable · 稳定版 · [[ARCHI_MADE_EASY_VERSION]]',
     'docs/index.html': `<span>stable · v${version} · 稳定版 · 9/9 checks</span>`,
     'docs/start.html': `<span>stable · v${version} · 稳定版</span>`,
     'ROADMAP.md': `The current stable version is \`v${version}\`.`,
@@ -164,7 +164,7 @@ function writeValidStableFixture(root, overrides = {}) {
 }
 
 test('an empty Unreleased section accepts a coherent stable release identity', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidStableFixture(fixture);
 
@@ -177,7 +177,7 @@ test('an empty Unreleased section accepts a coherent stable release identity', (
 });
 
 test('stable release preparation allows only the immediate prior public manifest', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     const changelog = [
       '# Changelog',
@@ -193,13 +193,13 @@ test('stable release preparation allows only the immediate prior public manifest
     ].join('\n');
     writeValidStableFixture(fixture, {
       'CHANGELOG.md': changelog,
-      'docs/skill-updates/archify/stable.json': stableUpdateManifest('2.12.0'),
+      'docs/skill-updates/archi-made-easy/stable.json': stableUpdateManifest('2.12.0'),
     });
 
     const prior = runCheck(fixture);
     assert.equal(prior.status, 0, prior.stderr);
 
-    writeFile(fixture, 'docs/skill-updates/archify/stable.json', stableUpdateManifest('2.11.0'));
+    writeFile(fixture, 'docs/skill-updates/archi-made-easy/stable.json', stableUpdateManifest('2.11.0'));
     const stale = runCheck(fixture);
     assert.notEqual(stale.status, 0);
     assert.match(stale.stderr, /immediate prior v2\.12\.0/);
@@ -209,32 +209,32 @@ test('stable release preparation allows only the immediate prior public manifest
 });
 
 test('the embedded update identity must match the package release exactly', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidDevelopmentFixture(fixture, {
-      'archify/skill-release.json': JSON.stringify({
+      'archi-made-easy/skill-release.json': JSON.stringify({
         schemaVersion: 1,
-        skillId: 'archify',
+        skillId: 'archi-made-easy',
         channel: 'stable',
         version: '2.12.0',
-        source: { repository: 'https://example.com/untrusted/archify' },
+        source: { repository: 'https://example.com/untrusted/archi-made-easy' },
         updateManifestUrl: 'https://example.com/latest.json',
       }),
     });
 
     const result = runCheck(fixture);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /archify\/skill-release\.json must identify archify 2\.13\.0-dev\.0 as development/);
+    assert.match(result.stderr, /archi-made-easy\/skill-release\.json must identify archi-made-easy 2\.13\.0-dev\.0 as development/);
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });
   }
 });
 
 test('the published update manifest must track the newest stable changelog release', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidDevelopmentFixture(fixture, {
-      'docs/skill-updates/archify/stable.json': stableUpdateManifest('2.11.0'),
+      'docs/skill-updates/archi-made-easy/stable.json': stableUpdateManifest('2.11.0'),
     });
 
     const result = runCheck(fixture);
@@ -246,12 +246,12 @@ test('the published update manifest must track the newest stable changelog relea
 });
 
 test('the published update manifest must use a canonical UTC timestamp', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     const manifest = JSON.parse(stableUpdateManifest('2.12.0'));
     manifest.publishedAt = '2026-07-29T08:00:00+08:00';
     writeValidDevelopmentFixture(fixture, {
-      'docs/skill-updates/archify/stable.json': JSON.stringify(manifest),
+      'docs/skill-updates/archi-made-easy/stable.json': JSON.stringify(manifest),
     });
 
     const result = runCheck(fixture);
@@ -264,10 +264,10 @@ test('the published update manifest must use a canonical UTC timestamp', () => {
 
 test('package identities reject leading-zero core and prerelease identifiers', () => {
   for (const version of ['02.13.0', '2.13.0-dev.01']) {
-    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
     try {
       writeValidDevelopmentFixture(fixture, {
-        'archify/package.json': JSON.stringify({ version }),
+        'archi-made-easy/package.json': JSON.stringify({ version }),
       });
       const result = runCheck(fixture);
       assert.notEqual(result.status, 0);
@@ -279,7 +279,7 @@ test('package identities reject leading-zero core and prerelease identifiers', (
 });
 
 test('the newest stable release is selected by SemVer rather than changelog order', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidDevelopmentFixture(fixture, {
       'CHANGELOG.md': [
@@ -307,9 +307,9 @@ test('the newest stable release is selected by SemVer rather than changelog orde
 });
 
 test('real Unreleased changes cannot reuse a stable published package identity', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
-    writeFile(fixture, 'archify/package.json', JSON.stringify({ version: '2.12.0' }));
+    writeFile(fixture, 'archi-made-easy/package.json', JSON.stringify({ version: '2.12.0' }));
     writeFile(fixture, 'CHANGELOG.md', [
       '# Changelog',
       '',
@@ -331,14 +331,14 @@ test('real Unreleased changes cannot reuse a stable published package identity',
 });
 
 test('package, lockfile, Skill metadata, escaped Shields badge, and public docs share one development identity', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
-    writeFile(fixture, 'archify/package.json', JSON.stringify({ version: '2.13.0-dev.0' }));
-    writeFile(fixture, 'archify/package-lock.json', JSON.stringify({
+    writeFile(fixture, 'archi-made-easy/package.json', JSON.stringify({ version: '2.13.0-dev.0' }));
+    writeFile(fixture, 'archi-made-easy/package-lock.json', JSON.stringify({
       version: '2.12.0',
       packages: { '': { version: '2.12.0' } },
     }));
-    writeFile(fixture, 'archify/SKILL.md', '---\nmetadata:\n  version: "2.12"\n---\n');
+    writeFile(fixture, 'archi-made-easy/SKILL.md', '---\nmetadata:\n  version: "2.12"\n---\n');
     writeFile(fixture, 'CHANGELOG.md', [
       '# Changelog',
       '',
@@ -353,14 +353,14 @@ test('package, lockfile, Skill metadata, escaped Shields badge, and public docs 
     const staleEnglish = [
       '![Version](https://img.shields.io/badge/version-2.13.0-blue)',
       '',
-      'Archify 2.12 includes unreleased capabilities.',
+      'Archi-Made-Easy 2.12 includes unreleased capabilities.',
     ].join('\n');
     writeFile(fixture, 'README.md', staleEnglish);
     writeFile(fixture, 'README_EN.md', staleEnglish);
-    writeFile(fixture, 'README_ZH.md', '![Version](https://img.shields.io/badge/version-2.13.0-blue)\n\nArchify 2.12 包含未发布能力。\n');
-    writeFile(fixture, 'README_JA.md', '![Version](https://img.shields.io/badge/version-2.13.0-blue)\n\nArchify 2.12 は未リリース機能を含みます。\n');
+    writeFile(fixture, 'README_ZH.md', '![Version](https://img.shields.io/badge/version-2.13.0-blue)\n\nArchi-Made-Easy 2.12 包含未发布能力。\n');
+    writeFile(fixture, 'README_JA.md', '![Version](https://img.shields.io/badge/version-2.13.0-blue)\n\nArchi-Made-Easy 2.12 は未リリース機能を含みます。\n');
     writeFile(fixture, 'docs/index.html', '<span>Agent Skill · v2.12.0</span>');
-    writeFile(fixture, 'docs/start.html', '<span>Archify v2.12.0</span>');
+    writeFile(fixture, 'docs/start.html', '<span>Archi-Made-Easy v2.12.0</span>');
 
     const result = runCheck(fixture);
     assert.notEqual(result.status, 0);
@@ -376,7 +376,7 @@ test('package, lockfile, Skill metadata, escaped Shields badge, and public docs 
 });
 
 test('landing proof receipt matches the current nine-check artifact contract', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidDevelopmentFixture(fixture, {
       'docs/index.html': '<span>development · v2.13.0-dev.0 · 开发版 · 8/8 checks</span>',
@@ -391,7 +391,7 @@ test('landing proof receipt matches the current nine-check artifact contract', (
 });
 
 test('landing rejects every stale N/N contract count even when 9/9 is also present', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidDevelopmentFixture(fixture, {
       'docs/index.html': [
@@ -409,13 +409,13 @@ test('landing rejects every stale N/N contract count even when 9/9 is also prese
 });
 
 test('Raven is not a generated agent-switcher target', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidDevelopmentFixture(fixture, {
       'docs/start.html': [
         '<span>development · v2.13.0-dev.0 · 开发版</span>',
         '<button data-agent="raven">Raven</button>',
-        '<pre>npx skills add tt-a1i/archify --agent raven</pre>',
+        '<pre>npx skills add OWNER/archi-made-easy --agent raven</pre>',
       ].join('\n'),
     });
 
@@ -428,7 +428,7 @@ test('Raven is not a generated agent-switcher target', () => {
 });
 
 test('the Japanese README must carry its own development marker, not the English one', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidDevelopmentFixture(fixture, {
       'README_JA.md': [
@@ -448,22 +448,22 @@ test('the Japanese README must carry its own development marker, not the English
 });
 
 test('renderer template generator carries the complete package prerelease identity', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidDevelopmentFixture(fixture, {
-      'archify/assets/template.html': '<meta name="generator" content="archify 2.12.0">',
+      'archi-made-easy/assets/template.html': '<meta name="generator" content="archi-made-easy 2.12.0">',
     });
 
     const result = runCheck(fixture);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /archify\/assets\/template\.html generator must be archify 2\.13\.0-dev\.0/);
+    assert.match(result.stderr, /archi-made-easy\/assets\/template\.html generator must be archi-made-easy 2\.13\.0-dev\.0/);
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });
   }
 });
 
 test('roadmap current identity follows the package release state', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidDevelopmentFixture(fixture, {
       'ROADMAP.md': 'The current development line is `v2.12.0`; it is not a stable release.',
@@ -478,7 +478,7 @@ test('roadmap current identity follows the package release state', () => {
 });
 
 test('generated public-page templates keep a development marker and version placeholder', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidDevelopmentFixture(fixture, {
       'scripts/gallery-template.html': 'Proof Lab / 2.12.0',
@@ -486,35 +486,35 @@ test('generated public-page templates keep a development marker and version plac
 
     const result = runCheck(fixture);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /scripts\/gallery-template\.html must use \[\[ARCHIFY_VERSION\]\] with development and 开发版 labels/);
+    assert.match(result.stderr, /scripts\/gallery-template\.html must use \[\[ARCHI_MADE_EASY_VERSION\]\] with development and 开发版 labels/);
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });
   }
 });
 
 test('stable public-page templates reject development labels on version-bearing fallbacks', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   try {
     writeValidStableFixture(fixture, {
       'scripts/guide-template.html': [
-        '<span data-i18n="versionLabel">Scenario guide / development / v[[ARCHIFY_VERSION]]</span>',
-        "versionLabel:'Scenario guide / stable / v[[ARCHIFY_VERSION]]'",
-        "versionLabel:'场景指南 / 稳定版 / v[[ARCHIFY_VERSION]]'",
+        '<span data-i18n="versionLabel">Scenario guide / development / v[[ARCHI_MADE_EASY_VERSION]]</span>',
+        "versionLabel:'Scenario guide / stable / v[[ARCHI_MADE_EASY_VERSION]]'",
+        "versionLabel:'场景指南 / 稳定版 / v[[ARCHI_MADE_EASY_VERSION]]'",
       ].join('\n'),
     });
 
     const result = runCheck(fixture);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /scripts\/guide-template\.html must not label \[\[ARCHIFY_VERSION\]\] as development or 开发版/);
+    assert.match(result.stderr, /scripts\/guide-template\.html must not label \[\[ARCHI_MADE_EASY_VERSION\]\] as development or 开发版/);
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });
   }
 });
 
 test('public-page identity ignores compact SVG coordinates without hiding real version literals', () => {
-  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-release-identity-'));
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
   const templatePath = 'scripts/start-template.html';
-  const identity = 'development · 开发版 · [[ARCHIFY_VERSION]]';
+  const identity = 'development · 开发版 · [[ARCHI_MADE_EASY_VERSION]]';
   const coordinates = 'M8 1.6l1.9 3.9 4.3.6-3.1 3 .7 4.3L8 11.4z';
   try {
     for (const pathElement of [
@@ -545,7 +545,7 @@ test('public-page identity ignores compact SVG coordinates without hiding real v
       writeFile(fixture, templatePath, `${identity}${content}`);
       const stale = runCheck(fixture);
       assert.notEqual(stale.status, 0, content);
-      assert.match(stale.stderr, /scripts\/start-template\.html must use \[\[ARCHIFY_VERSION\]\]/);
+      assert.match(stale.stderr, /scripts\/start-template\.html must use \[\[ARCHI_MADE_EASY_VERSION\]\]/);
     }
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
-import { sameEntry } from '../archify/renderers/shared/path-semantics.mjs';
+import { sameEntry } from '../archi-made-easy/renderers/shared/path-semantics.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const mode = /^(architecture|workflow|sequence|dataflow|lifecycle|erd|class|tree|timeline|waterfall)-/;

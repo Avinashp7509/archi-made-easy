@@ -13,7 +13,7 @@ export interface CommunityPackage {
   summary: { en: string; zh: string };
   author: { name: string; url?: string };
   repository: string;
-  archify: string;
+  archi-made-easy: string;
   schemaVersions: number[];
   homepage?: string;
   tags?: string[];

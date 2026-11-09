@@ -5,10 +5,10 @@ import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { ChromeVisualBrowser, findChrome } from '../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome } from '../archi-made-easy/bin/visual-check.mjs';
 
-const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archify');
-const chrome = process.env.ARCHIFY_CHROME ? findChrome() : null;
+const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archi-made-easy');
+const chrome = process.env.ARCHI_MADE_EASY_CHROME ? findChrome() : null;
 const cases = {
   architecture: 'web-app.architecture.json', workflow: 'agent-tool-call.workflow.json',
   sequence: 'cache-miss-request.sequence.json', dataflow: 'product-analytics.dataflow.json',
@@ -16,9 +16,9 @@ const cases = {
 };
 
 test('Camera accessible names retain the visible readout after native actions', {
-  skip: chrome ? false : 'Set ARCHIFY_CHROME to run real-browser camera checks.',
+  skip: chrome ? false : 'Set ARCHI_MADE_EASY_CHROME to run real-browser camera checks.',
 }, async (t) => {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-camera-name-'));
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-camera-name-'));
   t.after(() => fs.rmSync(scratch, { recursive: true, force: true }));
   const browser = new ChromeVisualBrowser(chrome);
   t.after(() => browser.close());
@@ -38,7 +38,7 @@ test('Camera accessible names retain the visible readout after native actions', 
       const result = await send('Runtime.evaluate', {
         expression: `(async () => {
           ${action ? `document.querySelector('[data-view="${action}"]').click();` : ''}
-          ${action ? 'await Archify.layoutStability.whenStable();' : ''}
+          ${action ? 'await ArchiMadeEasy.layoutStability.whenStable();' : ''}
           const button = document.querySelector('[data-view="reset"]');
           return {
             visible: button.innerText.replace(/\\s+/g, ' ').trim(),
@@ -60,7 +60,7 @@ test('Camera accessible names retain the visible readout after native actions', 
       const input = path.join(scratch, `${mode}-${locale}.json`);
       const artifact = path.join(scratch, `${mode}-${locale}.html`);
       fs.writeFileSync(input, JSON.stringify(candidate));
-      execFileSync(process.execPath, [path.join(skillRoot, 'bin/archify.mjs'), 'render', mode, input, artifact]);
+      execFileSync(process.execPath, [path.join(skillRoot, 'bin/archi-made-easy.mjs'), 'render', mode, input, artifact]);
       await assertAccessibleReadout(artifact, `${mode}/${locale}`);
     }
   }
@@ -78,11 +78,11 @@ test('Camera accessible names retain the visible readout after native actions', 
 });
 
 test('Camera preserves transactions, rendered state and real caller handoffs', {
-  skip: chrome ? false : 'Set ARCHIFY_CHROME to run real-browser camera checks.',
+  skip: chrome ? false : 'Set ARCHI_MADE_EASY_CHROME to run real-browser camera checks.',
 }, async (t) => {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-camera-'));
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-camera-'));
   t.after(() => fs.rmSync(scratch, { recursive: true, force: true }));
-  const evidence = process.env.ARCHIFY_CAMERA_EVIDENCE;
+  const evidence = process.env.ARCHI_MADE_EASY_CAMERA_EVIDENCE;
   if (evidence) fs.mkdirSync(evidence, { recursive: true });
   const records = [];
   t.after(() => {
@@ -154,11 +154,11 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
         const svg = container.querySelector(':scope > svg');
         const rect = svg.getBoundingClientRect();
         const box = container.getBoundingClientRect(), nav = container.querySelector('.diagram-nav').getBoundingClientRect();
-        const current = JSON.stringify([Archify.view.state(), getComputedStyle(svg).transform,
+        const current = JSON.stringify([ArchiMadeEasy.view.state(), getComputedStyle(svg).transform,
           svg.style.clipPath, container.scrollLeft, container.getAttribute('data-camera-transaction'),
-          container.style.getPropertyValue('--archify-nav-reserve'), rect.x, rect.y, rect.width, rect.height,
+          container.style.getPropertyValue('--archi-made-easy-nav-reserve'), rect.x, rect.y, rect.width, rect.height,
           scrollY, document.documentElement.scrollHeight, box.top, box.bottom, nav.top, nav.bottom,
-          container.style.getPropertyValue('--archify-dock-lift')]);
+          container.style.getPropertyValue('--archi-made-easy-dock-lift')]);
         equal = current === previous ? equal + 1 : 0;
         previous = current;
         return equal >= 8 && !container.hasAttribute('data-camera-transaction');
@@ -178,10 +178,10 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
   const snapshotExpression = `(() => {
       const c = document.querySelector('.diagram-container'), svg = c.querySelector(':scope > svg');
       const rect = e => { const r = e.getBoundingClientRect(); return [r.x,r.y,r.width,r.height]; };
-      return { state: Archify.view.state(), viewport: Archify.view.logicalViewport(),
+      return { state: ArchiMadeEasy.view.state(), viewport: ArchiMadeEasy.view.logicalViewport(),
         transform: getComputedStyle(svg).transform, clip: svg.style.clipPath,
         stage: rect(svg), nav: rect(c.querySelector('.diagram-nav')), scrollLeft: c.scrollLeft,
-        reserve: c.style.getPropertyValue('--archify-nav-reserve'),
+        reserve: c.style.getPropertyValue('--archi-made-easy-nav-reserve'),
         transaction: c.getAttribute('data-camera-transaction'),
         mode: c.getAttribute('data-camera-mode'), detail: c.getAttribute('data-detail-level'),
         viewBox: svg.getAttribute('viewBox'), errors: cameraErrors,
@@ -206,12 +206,12 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
       const initial = await snapshot(`${mode}-initial`);
       assert.deepEqual(initial.state, { scale: 1, x: 0, y: 0, mode: 'overview' });
       const limits = await run(`(() => {
-        const copy = Archify.view.state(); copy.scale = 99;
-        const independent = Archify.view.state().scale === 1;
-        for (let i = 0; i < 12; i++) Archify.view.zoomIn();
-        const max = Archify.view.state().scale;
-        for (let i = 0; i < 12; i++) Archify.view.zoomOut();
-        return { independent, max, min: Archify.view.state().scale };
+        const copy = ArchiMadeEasy.view.state(); copy.scale = 99;
+        const independent = ArchiMadeEasy.view.state().scale === 1;
+        for (let i = 0; i < 12; i++) ArchiMadeEasy.view.zoomIn();
+        const max = ArchiMadeEasy.view.state().scale;
+        for (let i = 0; i < 12; i++) ArchiMadeEasy.view.zoomOut();
+        return { independent, max, min: ArchiMadeEasy.view.state().scale };
       })()`);
       assert.deepEqual(limits, { independent: true, max: 3, min: 0.25 });
       await stable();
@@ -227,13 +227,13 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
       await stable();
       const inspect = `(() => {
         const c = document.querySelector('.diagram-container'), s = c.querySelector(':scope > svg');
-        const state = Archify.view.state();
+        const state = ArchiMadeEasy.view.state();
         return { state, width: s.clientWidth, height: s.clientHeight, visibleWidth: Math.min(s.clientWidth, c.clientWidth), scrollLeft: c.scrollLeft,
           percent: c.querySelector('[data-view-percent]').textContent,
           out: c.querySelector('[data-view="out"]').disabled,
           incoming: c.querySelector('[data-view="in"]').disabled,
           pannable: c.classList.contains('is-pannable'), clip: s.style.clipPath, flowHeight: c.style.height,
-          viewport: Archify.view.logicalViewport(), viewBox: s.getAttribute('viewBox') };
+          viewport: ArchiMadeEasy.view.logicalViewport(), viewBox: s.getAttribute('viewBox') };
       })()`;
       let value = await run(inspect);
       assert.equal(value.state.scale, 0.75);
@@ -247,7 +247,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
       assert.equal(value.viewport.scale, 0.75);
       await snapshot(`underscale-${width}-75`);
       await screenshot(`underscale-${width}-75`);
-      await run(`for (let i = 0; i < 8; i++) Archify.view.zoomOut()`);
+      await run(`for (let i = 0; i < 8; i++) ArchiMadeEasy.view.zoomOut()`);
       await stable();
       value = await run(inspect);
       assert.equal(value.state.scale, 0.25);
@@ -269,16 +269,16 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
       assert.deepEqual(value.state, { scale: 1, x: 0, y: 0, mode: 'overview' });
       assert.equal(value.percent, '100%');
       assert.equal(value.out, false);
-      await run(`Archify.view.zoomOut(); Archify.finder.select('api')`);
+      await run(`ArchiMadeEasy.view.zoomOut(); ArchiMadeEasy.finder.select('api')`);
       await stable();
-      assert.equal(await run(`Archify.focus.active()`), 'api');
+      assert.equal(await run(`ArchiMadeEasy.focus.active()`), 'api');
       assert.ok((await run(inspect)).state.scale >= 1);
       await snapshot(`underscale-${width}-finder`);
     }
     await load();
     await run(`document.getElementById('btn-present').click()`);
     await stable();
-    await run(`Archify.view.zoomOut()`);
+    await run(`ArchiMadeEasy.view.zoomOut()`);
     await stable();
     assert.equal(await run(`document.documentElement.getAttribute('data-present')`), 'true');
     assert.equal((await snapshot('underscale-present-75')).state.scale, 0.75);
@@ -292,14 +292,14 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
       return { height: s.clientHeight, pageHeight: document.documentElement.scrollHeight,
         viewBox: s.getAttribute('viewBox'), markup: s.innerHTML };
     })()`);
-    await run(`Archify.view.zoomOut(); Archify.view.zoomOut(); Archify.view.zoomOut()`);
+    await run(`ArchiMadeEasy.view.zoomOut(); ArchiMadeEasy.view.zoomOut(); ArchiMadeEasy.view.zoomOut()`);
     await stable();
     const value = await run(`(() => {
       const s = document.querySelector('.diagram-container > svg');
       const rows = [...s.querySelectorAll('[data-edge-from]')];
       const first = rows[0].getBoundingClientRect(), last = rows[rows.length - 1].getBoundingClientRect();
       const c = s.parentNode, box = c.getBoundingClientRect(), svgBox = s.getBoundingClientRect(), style = getComputedStyle(c);
-      return { height: s.clientHeight, state: Archify.view.state(), first: first.y, last: last.y,
+      return { height: s.clientHeight, state: ArchiMadeEasy.view.state(), first: first.y, last: last.y,
         scrollHeight: document.documentElement.scrollHeight, windowHeight: innerHeight,
         blankTail: box.bottom - svgBox.bottom, bottomChrome: parseFloat(style.paddingBottom) + parseFloat(style.borderBottomWidth),
         viewBox: s.getAttribute('viewBox'), markup: s.innerHTML };
@@ -338,7 +338,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
     await stable();
     await viewport(1440, 900);
     await stable();
-    assert.equal(await run('Archify.view.state().scale'), 0.25);
+    assert.equal(await run('ArchiMadeEasy.view.state().scale'), 0.25);
     const resized = await run(`(() => { const s = document.querySelector('.diagram-container > svg');
       return { base: s.clientHeight, paint: s.getBoundingClientRect().height }; })()`);
     assert.ok(Math.abs(resized.paint - resized.base * 0.25) < 1, 'resize must not shrink the base twice');
@@ -354,7 +354,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
       await stable();
       assert.notEqual(await run(`document.querySelector('.diagram-container').style.height`), '', 'ordinary long overview restores compact flow');
     }
-    await run('Archify.view.reset()');
+    await run('ArchiMadeEasy.view.reset()');
     await stable();
     assert.equal(await run(`document.querySelector('.diagram-container').style.height`), '');
     assert.equal(await run(`document.querySelector('.diagram-container > svg').clientHeight`), initial.height);
@@ -369,7 +369,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
         : `document.querySelector('.diagram-container > svg').clientHeight * ${position}`;
       await run(`window.scrollTo(0, ${scrollTarget})`);
       await stable();
-      const initialReserve = await run(`document.querySelector('.diagram-container').style.getPropertyValue('--archify-nav-reserve')`);
+      const initialReserve = await run(`document.querySelector('.diagram-container').style.getPropertyValue('--archi-made-easy-nav-reserve')`);
       for (const scale of [0.75, 0.5, 0.25, 0.5, 0.75, 1]) {
         await run(`(() => {
           window.cameraDockTrace = []; window.cameraDockTracing = true;
@@ -377,30 +377,30 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
             if (!cameraDockTracing) return;
             const c = document.querySelector('.diagram-container'), s = c.querySelector(':scope > svg');
             const nav = c.querySelector('.diagram-nav'), n = nav.getBoundingClientRect(), b = c.getBoundingClientRect();
-            cameraDockTrace.push({ time: performance.now(), scale: Archify.view.state().scale,
+            cameraDockTrace.push({ time: performance.now(), scale: ArchiMadeEasy.view.state().scale,
               paintedScale: s.getBoundingClientRect().height / s.clientHeight, scrollY,
               pageHeight: document.documentElement.scrollHeight, containerTop: b.top, containerBottom: b.bottom,
-              navTop: n.top, navBottom: n.bottom, lift: c.style.getPropertyValue('--archify-dock-lift'),
+              navTop: n.top, navBottom: n.bottom, lift: c.style.getPropertyValue('--archi-made-easy-dock-lift'),
               height: c.style.height });
             requestAnimationFrame(frame);
           }
           requestAnimationFrame(frame);
         })()`);
-        const currentScale = await run('Archify.view.state().scale');
-        await run(`Archify.view.${scale < currentScale ? 'zoomOut' : 'zoomIn'}()`);
+        const currentScale = await run('ArchiMadeEasy.view.state().scale');
+        await run(`ArchiMadeEasy.view.${scale < currentScale ? 'zoomOut' : 'zoomIn'}()`);
         await stable();
         const value = await run(`(() => {
           const s = document.querySelector('.diagram-container > svg'), c = s.parentElement;
           cameraDockTracing = false;
           const r = s.getBoundingClientRect(), nav = c.querySelector('.diagram-nav').getBoundingClientRect(), b = c.getBoundingClientRect();
-          return { state: Archify.view.state(), top: r.top, bottom: r.bottom,
+          return { state: ArchiMadeEasy.view.state(), top: r.top, bottom: r.bottom,
             scrollY, navTop: nav.top, navBottom: nav.bottom, navHeight: nav.height, windowHeight: innerHeight,
             windowWidth: innerWidth, documentWidth: document.documentElement.clientWidth,
             pageHeight: document.documentElement.scrollHeight, containerTop: b.top, containerBottom: b.bottom,
             containerHeight: b.height, baseSvgHeight: s.clientHeight,
             ratio: s.viewBox.baseVal.width / s.viewBox.baseVal.height,
-            lift: c.style.getPropertyValue('--archify-dock-lift'), flowHeight: c.style.height,
-            reserve: c.style.getPropertyValue('--archify-nav-reserve'),
+            lift: c.style.getPropertyValue('--archi-made-easy-dock-lift'), flowHeight: c.style.height,
+            reserve: c.style.getPropertyValue('--archi-made-easy-nav-reserve'),
             trajectory: cameraDockTrace };
         })()`);
         records.push({ label: `dock-trajectory-${position}-${scale}`, ...value });
@@ -423,12 +423,12 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
         await run(`document.querySelector('.diagram-container').scrollTo({ left: 240, behavior: 'instant' })`);
         await stable();
       }
-      await run(`Archify.view.zoomOut(); Archify.view.zoomOut(); Archify.view.zoomOut()`);
+      await run(`ArchiMadeEasy.view.zoomOut(); ArchiMadeEasy.view.zoomOut(); ArchiMadeEasy.view.zoomOut()`);
       await stable();
       const value = await run(`(() => {
         const c = document.querySelector('.diagram-container'), s = c.querySelector(':scope > svg');
         const box = c.getBoundingClientRect(), r = s.getBoundingClientRect();
-        return { scale: Archify.view.state().scale, wide: c.hasAttribute('data-wide-diagram'),
+        return { scale: ArchiMadeEasy.view.state().scale, wide: c.hasAttribute('data-wide-diagram'),
           svgWidth: s.clientWidth, clientWidth: c.clientWidth, scrollLeft: c.scrollLeft,
           left: r.left, right: r.right, containerLeft: box.left + c.clientLeft,
           containerRight: box.left + c.clientLeft + c.clientWidth };
@@ -445,7 +445,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
 
   await t.test('pointer cancellation ends dragging and controls do not begin a pan', async () => {
     await load();
-    await run('Archify.view.zoomIn()');
+    await run('ArchiMadeEasy.view.zoomIn()');
     await stable();
     const result = await run(`(() => {
       const c = document.querySelector('.diagram-container'), svg = c.querySelector(':scope > svg');
@@ -453,19 +453,19 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
         ['data-node-id','data-edge-id','transform','d','x','y','width','height'].map(a => n.getAttribute(a)));
       const beforeGeometry = JSON.stringify(geometry());
       const pointer = (type, x, y) => new PointerEvent(type, { bubbles: true, pointerId: 31, button: 0, clientX: x, clientY: y });
-      const before = Archify.view.state();
+      const before = ArchiMadeEasy.view.state();
       c.querySelector('.diagram-nav').dispatchEvent(pointer('pointerdown', 500, 400));
       c.dispatchEvent(pointer('pointermove', 450, 350));
-      const controlExcluded = JSON.stringify(before) === JSON.stringify(Archify.view.state());
+      const controlExcluded = JSON.stringify(before) === JSON.stringify(ArchiMadeEasy.view.state());
       c.dispatchEvent(pointer('pointerdown', 500, 400));
       c.dispatchEvent(pointer('pointermove', 450, 350));
       const dragged = c.classList.contains('is-panning');
       c.dispatchEvent(pointer('pointercancel', 450, 350));
       const cancelled = !c.classList.contains('is-panning');
-      const ended = Archify.view.state();
+      const ended = ArchiMadeEasy.view.state();
       c.dispatchEvent(pointer('pointermove', 100, 100));
       return { step: before.scale, controlExcluded, dragged, cancelled,
-        unchanged: JSON.stringify(ended) === JSON.stringify(Archify.view.state()),
+        unchanged: JSON.stringify(ended) === JSON.stringify(ArchiMadeEasy.view.state()),
         geometryUnchanged: beforeGeometry === JSON.stringify(geometry()) };
     })()`);
     assert.deepEqual(result, { step: 1.25, controlExcluded: true, dragged: true, cancelled: true, unchanged: true, geometryUnchanged: true });
@@ -476,7 +476,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
   await t.test('target selection, failure branches and instant options preserve their side effects', async () => {
     await load();
     const value = await run(`(async () => {
-      const v = Archify.view, node = document.querySelector('[data-node-id="api"]');
+      const v = ArchiMadeEasy.view, node = document.querySelector('[data-node-id="api"]');
       const original = node.getBBox;
       const empty = v.reveal([], { instant: true });
       const unknown = v.reveal(['missing'], { instant: true });
@@ -501,12 +501,12 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
       // Start and observe in one page evaluation: CDP round trips may outlast
       // the animation, so the middle snapshot must be captured in its frame.
       const animation = await run(`(async () => {
-        const camera = Archify.view.reveal(['api'], { duration: 520 });
+        const camera = ArchiMadeEasy.view.reveal(['api'], { duration: 520 });
         const samples = [];
         let middle = null;
         function sampleCamera() {
           const svg = document.querySelector('.diagram-container > svg');
-          const state = Archify.view.state();
+          const state = ArchiMadeEasy.view.state();
           samples.push({ state, transform: getComputedStyle(svg).transform, clip: svg.style.clipPath, settled: camera.settled });
           if (!middle && !camera.settled && state.scale > 1.15) middle = ${snapshotExpression};
           if (!camera.settled) requestAnimationFrame(sampleCamera);
@@ -526,7 +526,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
       await screenshot(`animation-final-${theme}`);
     }
     const results = await run(`(async () => {
-      const v = Archify.view, results = [];
+      const v = ArchiMadeEasy.view, results = [];
       for (const action of ['replace', 'cancel', 'commit', 'manual', 'reset']) {
         v.reset({ automatic: true });
         const first = v.reveal(['api'], { duration: 520 });
@@ -564,7 +564,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
     for (const width of [719, 720, 721]) {
       await load('architecture', { width });
       const result = await run(`(async () => {
-        const receipt = Archify.view.reveal(['db'], { instant: true });
+        const receipt = ArchiMadeEasy.view.reveal(['db'], { instant: true });
         return { outcome: (await receipt.finished).state, scrollTarget: 'scrollLeft' in receipt.target };
       })()`, true);
       assert.equal(result.scrollTarget, width <= 720);
@@ -573,7 +573,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
     }
     await load('architecture', { width: 720 });
     const value = await run(`(async () => {
-      const c = document.querySelector('.diagram-container'), v = Archify.view;
+      const c = document.querySelector('.diagram-container'), v = ArchiMadeEasy.view;
       const empty = v.reveal([]);
       const emptyMode = v.state().mode;
       c.removeAttribute('data-wide-diagram');
@@ -606,7 +606,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
 
   await t.test('reduced motion and call-time hidden state keep immediate completion semantics', async () => {
     await load('architecture', { theme: 'light', reduced: true });
-    assert.equal(await run(`Archify.view.reveal(['api']).finished.then(r => r.state)`, true), 'reduced-motion');
+    assert.equal(await run(`ArchiMadeEasy.view.reveal(['api']).finished.then(r => r.state)`, true), 'reduced-motion');
     await stable();
     await snapshot('reduced-motion');
     await load();
@@ -614,7 +614,7 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
     // claim to emulate background-tab frame throttling or visibility events.
     const hidden = await run(`(async () => {
       Object.defineProperty(document, 'hidden', { configurable: true, value: true });
-      try { return (await Archify.view.reveal(['api']).finished).state; }
+      try { return (await ArchiMadeEasy.view.reveal(['api']).finished).state; }
       finally { delete document.hidden; }
     })()`, true);
     assert.equal(hidden, 'hidden');
@@ -625,13 +625,13 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
   await t.test('actual Route, Finder and Radar callers retain camera ownership', async () => {
     await load('trace');
     const route = await run(`(() => {
-      Archify.motionGovernor.resume();
-      Archify.routeProbe.begin({ source: 'users' });
-      Archify.routeProbe.choose('db');
-      const played = Archify.routeProbe.playJourney();
-      const before = Archify.routeProbe.result();
-      Archify.view.zoomIn();
-      const after = Archify.routeProbe.result();
+      ArchiMadeEasy.motionGovernor.resume();
+      ArchiMadeEasy.routeProbe.begin({ source: 'users' });
+      ArchiMadeEasy.routeProbe.choose('db');
+      const played = ArchiMadeEasy.routeProbe.playJourney();
+      const before = ArchiMadeEasy.routeProbe.result();
+      ArchiMadeEasy.view.zoomIn();
+      const after = ArchiMadeEasy.routeProbe.result();
       return { played, before, after };
     })()`);
     assert.equal(route.played, true); assert.equal(route.before.playing, true); assert.equal(route.after.playing, false);
@@ -640,33 +640,33 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
     await stable();
     await snapshot('route-takeover');
     await load('architecture', { height: 600 });
-    await run(`Archify.finder.select('api')`);
+    await run(`ArchiMadeEasy.finder.select('api')`);
     await stable();
-    assert.equal(await run(`Archify.focus.active()`), 'api');
+    assert.equal(await run(`ArchiMadeEasy.focus.active()`), 'api');
     await snapshot('finder-low-height');
-    await run(`window.scrollTo(0, 160); Archify.radar.open(); Archify.radar.focus('db')`);
+    await run(`window.scrollTo(0, 160); ArchiMadeEasy.radar.open(); ArchiMadeEasy.radar.focus('db')`);
     await stable();
-    assert.equal(await run(`Archify.focus.active()`), 'db');
+    assert.equal(await run(`ArchiMadeEasy.focus.active()`), 'db');
     await snapshot('radar-focus');
     await viewport(1280, 720);
     await stable();
     await snapshot('automatic-resize');
     await run(`location.hash = 'focus=api'`);
-    await run(`cameraWait(() => Archify.focus.active() === 'api')`, true);
+    await run(`cameraWait(() => ArchiMadeEasy.focus.active() === 'api')`, true);
     await stable();
     await snapshot('automatic-hashchange');
   });
 
   await t.test('export removes camera transforms without mutating the live camera', async () => {
     for (const [mode, diagram, setup] of [
-      ['semantic', 'architecture', `Archify.view.reveal(['api'], { instant: true })`],
-      ['75-percent', 'architecture', `Archify.view.zoomOut()`],
-      ['long-25-percent', 'longSequence', `Archify.view.zoomOut(); Archify.view.zoomOut(); Archify.view.zoomOut()`],
+      ['semantic', 'architecture', `ArchiMadeEasy.view.reveal(['api'], { instant: true })`],
+      ['75-percent', 'architecture', `ArchiMadeEasy.view.zoomOut()`],
+      ['long-25-percent', 'longSequence', `ArchiMadeEasy.view.zoomOut(); ArchiMadeEasy.view.zoomOut(); ArchiMadeEasy.view.zoomOut()`],
     ]) {
       await load(diagram, { reduced: true });
       await run(setup);
       await stable();
-      const live = await run(`(() => ({ scale: Archify.view.state().scale,
+      const live = await run(`(() => ({ scale: ArchiMadeEasy.view.state().scale,
         clip: document.querySelector('.diagram-container > svg').style.clipPath }))()`);
       if (mode === 'semantic') {
         assert.ok(live.scale > 1, 'semantic export exercises zoomed camera clipping');
@@ -677,15 +677,15 @@ test('Camera preserves transactions, rendered state and real caller handoffs', {
       }
       const exported = await run(`(async () => {
         const svg = document.querySelector('.diagram-container > svg'), before = svg.outerHTML;
-        const state = JSON.stringify(Archify.view.state()), original = URL.createObjectURL;
+        const state = JSON.stringify(ArchiMadeEasy.view.state()), original = URL.createObjectURL;
         let blob;
         URL.createObjectURL = value => { if (value.type.startsWith('image/svg+xml')) blob = value; return original.call(URL, value); };
         let after;
-        try { const pending = Archify.exportMenu.run('svg'); after = svg.outerHTML; await pending; }
+        try { const pending = ArchiMadeEasy.exportMenu.run('svg'); after = svg.outerHTML; await pending; }
         finally { URL.createObjectURL = original; }
         const text = await blob.text();
         const root = new DOMParser().parseFromString(text, 'image/svg+xml').documentElement;
-        return { text, unchanged: before === after && state === JSON.stringify(Archify.view.state()),
+        return { text, unchanged: before === after && state === JSON.stringify(ArchiMadeEasy.view.state()),
           clean: !root.hasAttribute('data-view-scale') && !root.style.transform && !root.style.clipPath,
           geometry: root.getAttribute('viewBox') === svg.getAttribute('viewBox'),
           ids: [...root.querySelectorAll('[data-node-id]')].map(n => n.getAttribute('data-node-id')).join() === [...svg.querySelectorAll('[data-node-id]')].map(n => n.getAttribute('data-node-id')).join() };

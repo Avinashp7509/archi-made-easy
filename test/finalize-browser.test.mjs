@@ -6,13 +6,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archify');
-const cli = path.join(skillRoot, 'bin/archify.mjs');
+const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archi-made-easy');
+const cli = path.join(skillRoot, 'bin/archi-made-easy.mjs');
 
 test('finalize proves all four gates in real Chrome with bounded mixed-case sidecars and repeat delivery', {
-  skip: !process.env.ARCHIFY_CHROME,
+  skip: !process.env.ARCHI_MADE_EASY_CHROME,
 }, t => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-finalize-browser-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-finalize-browser-'));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const output = path.join(dir, `${'long-'.repeat(46)}.HTML`);
   const captureSentinel = path.join(dir, 'unrelated.visual-check.light.png');

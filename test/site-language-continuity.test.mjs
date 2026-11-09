@@ -8,17 +8,17 @@ import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
-import { ChromeVisualBrowser, findChrome } from '../archify/bin/visual-check.mjs';
+import { ChromeVisualBrowser, findChrome } from '../archi-made-easy/bin/visual-check.mjs';
 import { DIAGRAM_TYPES, DIAGRAM_TYPE_LABELS } from '../scripts/site-copy.mjs';
-import { SCENARIO_RECIPES } from '../archify/recipes/scenarios.mjs';
+import { SCENARIO_RECIPES } from '../archi-made-easy/recipes/scenarios.mjs';
 import { CASES } from '../website/src/data/gallery-presentation.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '..');
 const runtimePath = path.join(repoRoot, 'docs/assets/site-language.js');
 const navigationPath = path.join(repoRoot, 'docs/assets/site-navigation.css');
-const integrationEnabled = process.env.ARCHIFY_SITE_INTEGRATION === '1';
-const chromePath = integrationEnabled && process.env.ARCHIFY_CHROME ? findChrome() : null;
+const integrationEnabled = process.env.ARCHI_MADE_EASY_SITE_INTEGRATION === '1';
+const chromePath = integrationEnabled && process.env.ARCHI_MADE_EASY_CHROME ? findChrome() : null;
 
 function loadRuntime({
   url = 'https://example.test/',
@@ -58,7 +58,7 @@ function loadRuntime({
     localStorage,
   };
   vm.runInNewContext(fs.readFileSync(source, 'utf8'), { window, URL, URLSearchParams });
-  return { language: window.ArchifySiteLanguage, values, url: () => new URL(currentUrl) };
+  return { language: window.ArchiMadeEasySiteLanguage, values, url: () => new URL(currentUrl) };
 }
 
 async function evaluate(browser, sessionId, expression) {
@@ -122,7 +122,7 @@ function startStaticServer(root, basePath = '') {
     try { relative = decodeURIComponent(requestUrl.pathname.slice(basePath.length)).replace(/^\/+/, '') || 'index.html'; }
     catch (_) { response.writeHead(400).end('Bad request'); return; }
     // Only the ten published pages have extensionless aliases; unknown routes stay 404.
-    if (process.env.ARCHIFY_SITE_ROOT && /^(?:zh|(?:zh\/)?(?:guide|start|gallery|community))$/.test(relative)) relative += '.html';
+    if (process.env.ARCHI_MADE_EASY_SITE_ROOT && /^(?:zh|(?:zh\/)?(?:guide|start|gallery|community))$/.test(relative)) relative += '.html';
     const requestedPath = path.resolve(root, relative);
     if (!requestedPath.startsWith(`${path.resolve(root)}${path.sep}`)) {
       response.writeHead(403).end('Forbidden');
@@ -146,62 +146,62 @@ function startStaticServer(root, basePath = '') {
 }
 
 test('site language runtime normalizes one entry parameter into one durable preference', () => {
-  const canonical = loadRuntime({ values: new Map([['archify-lang', 'zh']]) });
+  const canonical = loadRuntime({ values: new Map([['archi-made-easy-lang', 'zh']]) });
   assert.equal(canonical.language.read(), 'zh');
 
-  for (const legacyKey of ['archify-gallery-language', 'archify-guide-language']) {
+  for (const legacyKey of ['archi-made-easy-gallery-language', 'archi-made-easy-guide-language']) {
     const legacy = loadRuntime({ values: new Map([[legacyKey, 'zh']]) });
     assert.equal(legacy.language.read(), 'zh', `${legacyKey} must remain readable during migration`);
-    assert.equal(legacy.values.get('archify-lang'), 'zh', `${legacyKey} must migrate to the canonical key`);
+    assert.equal(legacy.values.get('archi-made-easy-lang'), 'zh', `${legacyKey} must migrate to the canonical key`);
   }
 
   const canonicalWins = loadRuntime({
     values: new Map([
-      ['archify-lang', 'en'],
-      ['archify-gallery-language', 'zh'],
-      ['archify-guide-language', 'zh'],
+      ['archi-made-easy-lang', 'en'],
+      ['archi-made-easy-gallery-language', 'zh'],
+      ['archi-made-easy-guide-language', 'zh'],
     ]),
   });
   assert.equal(canonicalWins.language.read(), 'en');
 
   const secondLegacyFallback = loadRuntime({
     values: new Map([
-      ['archify-gallery-language', 'fr'],
-      ['archify-guide-language', 'zh'],
+      ['archi-made-easy-gallery-language', 'fr'],
+      ['archi-made-easy-guide-language', 'zh'],
     ]),
   });
   assert.equal(secondLegacyFallback.language.read(), 'zh');
-  assert.equal(secondLegacyFallback.values.get('archify-lang'), 'zh');
+  assert.equal(secondLegacyFallback.values.get('archi-made-easy-lang'), 'zh');
 
   const conflictingLegacy = loadRuntime({
     values: new Map([
-      ['archify-gallery-language', 'zh'],
-      ['archify-guide-language', 'en'],
+      ['archi-made-easy-gallery-language', 'zh'],
+      ['archi-made-easy-guide-language', 'en'],
     ]),
   });
   assert.equal(conflictingLegacy.language.read(), 'zh');
-  assert.equal(conflictingLegacy.values.get('archify-lang'), 'zh');
-  conflictingLegacy.values.set('archify-gallery-language', 'en');
+  assert.equal(conflictingLegacy.values.get('archi-made-easy-lang'), 'zh');
+  conflictingLegacy.values.set('archi-made-easy-gallery-language', 'en');
   const migrated = loadRuntime({ values: conflictingLegacy.values });
   assert.equal(migrated.language.read(), 'zh', 'the canonical migration must win on later page loads');
 
   const explicit = loadRuntime({
     url: 'https://example.test/guide.html?lang=en&type=workflow#chooser',
-    values: new Map([['archify-lang', 'zh']]),
+    values: new Map([['archi-made-easy-lang', 'zh']]),
   });
   assert.equal(explicit.language.read(), 'en');
-  assert.equal(explicit.values.get('archify-lang'), 'en');
+  assert.equal(explicit.values.get('archi-made-easy-lang'), 'en');
   assert.equal(explicit.url().searchParams.has('lang'), false);
   assert.equal(explicit.url().searchParams.get('type'), 'workflow');
   assert.equal(explicit.url().hash, '#chooser');
 
   const historyBlocked = loadRuntime({
     url: 'https://example.test/guide.html?lang=zh&type=workflow#chooser',
-    values: new Map([['archify-lang', 'en']]),
+    values: new Map([['archi-made-easy-lang', 'en']]),
     historyError: true,
   });
   assert.equal(historyBlocked.language.read(), 'zh');
-  assert.equal(historyBlocked.values.get('archify-lang'), 'zh');
+  assert.equal(historyBlocked.values.get('archi-made-easy-lang'), 'zh');
   assert.equal(historyBlocked.url().searchParams.get('lang'), 'zh');
 
   assert.equal(explicit.language.write('zh'), 'zh');
@@ -210,7 +210,7 @@ test('site language runtime normalizes one entry parameter into one durable pref
 
   const unsupported = loadRuntime({
     url: 'https://example.test/?lang=fr',
-    values: new Map([['archify-lang', 'zh']]),
+    values: new Map([['archi-made-easy-lang', 'zh']]),
   });
   assert.equal(unsupported.language.read(), 'zh');
   assert.equal(unsupported.url().searchParams.has('lang'), false);
@@ -223,15 +223,15 @@ test('site language runtime normalizes one entry parameter into one durable pref
   assert.equal(blocked.language.write('zh'), 'zh');
 
   const source = fs.readFileSync(runtimePath, 'utf8');
-  assert.match(source, /archify-gallery-language/);
-  assert.match(source, /archify-guide-language/);
+  assert.match(source, /archi-made-easy-gallery-language/);
+  assert.match(source, /archi-made-easy-guide-language/);
   assert.doesNotMatch(source, /navigator\.language|detectBrowserLanguage|select\s*:/);
 });
 
 test('custom site builders emit every shared site asset and preserve entry, navigation, selection, and refresh state', {
   skip: integrationEnabled ? false : 'Run through the serialized site integration gate.',
 }, () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archify-site-language-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-site-language-'));
   try {
     const builds = [
       { script: 'build-start.mjs', args: [path.join(tmp, 'start-site/start.html')], root: 'start-site' },
@@ -258,7 +258,7 @@ test('custom site builders emit every shared site asset and preserve entry, navi
       source: emittedRuntime,
     });
     assert.equal(landing.language.read(), 'zh');
-    assert.equal(values.get('archify-lang'), 'zh');
+    assert.equal(values.get('archi-made-easy-lang'), 'zh');
     assert.equal(landing.url().searchParams.has('lang'), false);
     assert.equal(landing.url().searchParams.get('utm_source'), 'readme');
     assert.equal(landing.url().hash, '#proof');
@@ -274,7 +274,7 @@ test('custom site builders emit every shared site asset and preserve entry, navi
       source: emittedRuntime,
     });
     assert.equal(explicitEnglish.language.read(), 'en');
-    assert.equal(values.get('archify-lang'), 'en');
+    assert.equal(values.get('archi-made-easy-lang'), 'en');
     assert.equal(explicitEnglish.url().searchParams.has('lang'), false);
 
     explicitEnglish.language.write('zh');
@@ -311,8 +311,8 @@ test('all site pages consume one language runtime and one navigation contract', 
     assert.match(html, /<script src="assets\/site-language\.js"><\/script>/, `${relative}: shared runtime missing`);
     assert.match(html, /<link rel="stylesheet" href="assets\/site-navigation\.css">/, `${relative}: shared navigation missing`);
     assert.match(html, /<nav class="site-nav" aria-label="Primary navigation">/, `${relative}: canonical navigation root missing`);
-    assert.match(html, /ArchifySiteLanguage\.read\(/, `${relative}: shared language read missing`);
-    assert.match(html, /ArchifySiteLanguage\.write\(/, `${relative}: shared language write missing`);
+    assert.match(html, /ArchiMadeEasySiteLanguage\.read\(/, `${relative}: shared language read missing`);
+    assert.match(html, /ArchiMadeEasySiteLanguage\.write\(/, `${relative}: shared language write missing`);
     assert.match(html, /href="guide\.html"/, `${relative}: Guide navigation missing`);
     assert.match(html, /href="gallery\.html"/, `${relative}: Proof Lab navigation missing`);
     assert.match(html, /href="start\.html"/, `${relative}: Start navigation missing`);
@@ -323,7 +323,7 @@ test('all site pages consume one language runtime and one navigation contract', 
     assert.doesNotMatch(html, /\.nav-right\s*\{/, `${relative}: inline navigation actions bypass the shared contract`);
     assert.doesNotMatch(
       html,
-      /localStorage\.setItem\(['"]archify-(?:lang|gallery-language|guide-language)['"]/,
+      /localStorage\.setItem\(['"]archi-made-easy-(?:lang|gallery-language|guide-language)['"]/,
       `${relative}: page bypasses the shared language writer`,
     );
   }
@@ -407,13 +407,13 @@ test('scenario guide type filters use consistent Chinese diagram names', () => {
 });
 
 test('real Chrome preserves language through entry, navigation, selection, refresh, and consistent navigation chrome', {
-  skip: chromePath ? false : 'Set ARCHIFY_CHROME to run the real site regression.',
+  skip: chromePath ? false : 'Set ARCHI_MADE_EASY_CHROME to run the real site regression.',
   timeout: 120000,
 }, async () => {
-  const builtSite = !!process.env.ARCHIFY_SITE_ROOT;
+  const builtSite = !!process.env.ARCHI_MADE_EASY_SITE_ROOT;
   const chineseLang = builtSite ? 'zh-Hans' : 'zh-CN';
-  const docsRoot = process.env.ARCHIFY_SITE_ROOT ? path.resolve(process.env.ARCHIFY_SITE_ROOT) : path.join(repoRoot, 'docs');
-  const basePath = process.env.ARCHIFY_SITE_ROOT ? (process.env.ARCHIFY_SITE_BASE ?? '/archify') : '';
+  const docsRoot = process.env.ARCHI_MADE_EASY_SITE_ROOT ? path.resolve(process.env.ARCHI_MADE_EASY_SITE_ROOT) : path.join(repoRoot, 'docs');
+  const basePath = process.env.ARCHI_MADE_EASY_SITE_ROOT ? (process.env.ARCHI_MADE_EASY_SITE_BASE ?? '/archi-made-easy') : '';
   const server = startStaticServer(docsRoot, basePath);
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
   const address = server.address();
@@ -458,7 +458,7 @@ test('real Chrome preserves language through entry, navigation, selection, refre
       raw: pageHref(target, language), resolved: new URL(pageHref(target, language), rootUrl).href,
     })), `${page} ${language}: exact resolved navigation routes`);
     assert.equal(receipt.logo, new URL(pageHref('index.html', language) + (page === 'index.html' ? '#' : ''), rootUrl).href, `${page}: localized home link`);
-    assert.equal(receipt.icon, new URL('assets/archify-mark.svg', rootUrl).href, `${page}: favicon uses resource base`);
+    assert.equal(receipt.icon, new URL('assets/archi-made-easy-mark.svg', rootUrl).href, `${page}: favicon uses resource base`);
     assert.ok(receipt.assets.length > 0, `${page}: brand resource exists`);
     for (const asset of receipt.assets) {
       assert.ok(asset.url.startsWith(new URL('assets/', rootUrl).href), `${page}: resource URL belongs to root assets`);
@@ -510,7 +510,7 @@ test('real Chrome preserves language through entry, navigation, selection, refre
           const receipt = await evaluate(browser, sessionId, `(function () {
             return {
               language: document.documentElement.lang,
-              runtimeAbsent: typeof window.ArchifySiteLanguage === 'undefined',
+              runtimeAbsent: typeof window.ArchiMadeEasySiteLanguage === 'undefined',
               enhancedNodes: document.querySelectorAll('.fade-up.visible, .showcase-card.visible, .package-card.visible').length,
               groups: ${JSON.stringify(selectors)}.map(function (selector) {
                 return { selector, nodes: [...document.querySelectorAll(selector)].map(function (node) {
@@ -548,21 +548,21 @@ test('real Chrome preserves language through entry, navigation, selection, refre
     await navigate(browser, sessionId, `${baseUrl}/index.html`);
     await evaluate(browser, sessionId, 'localStorage.clear()');
 
-    await evaluate(browser, sessionId, "localStorage.setItem('archify-guide-language', 'zh')");
+    await evaluate(browser, sessionId, "localStorage.setItem('archi-made-easy-guide-language', 'zh')");
     await navigate(browser, sessionId, `${baseUrl}/index.html`);
     if (builtSite) {
       assert.equal(await evaluate(browser, sessionId, 'document.documentElement.lang'), 'en', 'English URL wins over legacy storage');
-      await evaluate(browser, sessionId, "localStorage.setItem('archify-lang', 'zh')");
+      await evaluate(browser, sessionId, "localStorage.setItem('archi-made-easy-lang', 'zh')");
       await navigate(browser, sessionId, pageUrl('index.html'));
       assert.equal(await evaluate(browser, sessionId, 'document.documentElement.lang'), 'en', 'English URL wins over canonical storage');
       await evaluate(browser, sessionId, 'localStorage.clear()');
       await navigate(browser, sessionId, pageUrl('index.html', 'zh'));
       assert.equal(await evaluate(browser, sessionId, 'document.documentElement.lang'), chineseLang, 'Bare Chinese URL is Chinese without storage');
-      assert.equal(await evaluate(browser, sessionId, 'document.querySelector("link[rel=canonical]").href'), 'https://archify.si/zh');
+      assert.equal(await evaluate(browser, sessionId, 'document.querySelector("link[rel=canonical]").href'), 'https://OWNER.github.io/archi-made-easy/zh');
     } else {
       assert.deepEqual(await evaluate(browser, sessionId, `({
         language: document.documentElement.lang,
-        stored: localStorage.getItem('archify-lang')
+        stored: localStorage.getItem('archi-made-easy-lang')
       })`), { language: chineseLang, stored: 'zh' });
     }
 
@@ -571,7 +571,7 @@ test('real Chrome preserves language through entry, navigation, selection, refre
 
     let state = await evaluate(browser, sessionId, `({
       language: document.documentElement.lang,
-      stored: localStorage.getItem('archify-lang'),
+      stored: localStorage.getItem('archi-made-easy-lang'),
       langQuery: new URL(location.href).searchParams.get('lang'),
       campaign: new URL(location.href).searchParams.get('utm_source'),
       hash: location.hash
@@ -640,7 +640,7 @@ test('real Chrome preserves language through entry, navigation, selection, refre
     await navigate(browser, sessionId, `${baseUrl}/guide.html?lang=zh#recipes`, builtSite ? pageUrl('guide.html', 'zh', '#recipes') : undefined);
     state = await evaluate(browser, sessionId, `({
       language: document.documentElement.lang,
-      stored: localStorage.getItem('archify-lang'),
+      stored: localStorage.getItem('archi-made-easy-lang'),
       langQuery: new URL(location.href).searchParams.get('lang'),
       hash: location.hash
     })`);
@@ -698,7 +698,7 @@ test('real Chrome preserves language through entry, navigation, selection, refre
           selectedCardExists: !!document.querySelector('#cards .card[data-recipe="${selectedRecipe.id}"]'),
           resultVisible: document.getElementById('result').classList.contains('visible'),
           title: document.querySelector('#result h3').textContent,
-          pendingState: sessionStorage.getItem('archify-guide-language-state.v1')
+          pendingState: sessionStorage.getItem('archi-made-easy-guide-language-state.v1')
         })`), {
           language: language === 'zh' ? chineseLang : 'en', scenario: question, filter: 'workflow',
           visibleCount: workflowRecipes.length, onlyWorkflow: true, selectedCardExists: true, resultVisible: true,
@@ -716,12 +716,12 @@ test('real Chrome preserves language through entry, navigation, selection, refre
     if (builtSite) {
       await navigate(browser, sessionId, pageUrl('start.html', 'zh', '?lang=en&utm_source=legacy#install'), pageUrl('start.html', 'en', '?utm_source=legacy&type=architecture&agent=codex&source=direct&input=description#install'));
       assert.equal(await evaluate(browser, sessionId, 'document.documentElement.lang'), 'en');
-      assert.equal(await evaluate(browser, sessionId, 'localStorage.getItem("archify-lang")'), 'en');
+      assert.equal(await evaluate(browser, sessionId, 'localStorage.getItem("archi-made-easy-lang")'), 'en');
     }
 
     const pages = ['index.html', 'gallery.html', 'guide.html', 'start.html'];
     if (fs.existsSync(path.join(docsRoot, 'community.html'))) pages.push('community.html');
-    if (process.env.ARCHIFY_SITE_ROOT) assert.ok(pages.includes('community.html'), 'built site must include the catalog');
+    if (process.env.ARCHI_MADE_EASY_SITE_ROOT) assert.ok(pages.includes('community.html'), 'built site must include the catalog');
     const desktopReceipts = [];
     for (const page of pages) {
       await navigate(browser, sessionId, builtSite ? pageUrl(page, 'zh') : `${baseUrl}/${page}`);

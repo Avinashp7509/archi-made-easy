@@ -3,10 +3,10 @@
       var cards = Array.prototype.slice.call(document.querySelectorAll('.package-card'));
       var filterButtons = Array.prototype.slice.call(document.querySelectorAll('[data-filter]'));
       var empty = document.getElementById('empty-state');
-      var language = ArchifySiteLanguage.read();
+      var language = ArchiMadeEasySiteLanguage.read();
 
       function applyLanguage(next) {
-        language = ArchifySiteLanguage.write(next);
+        language = ArchiMadeEasySiteLanguage.write(next);
         document.documentElement.lang = language === 'zh' ? 'zh-Hans' : 'en';
         document.querySelectorAll('[data-en][data-zh]').forEach(function (node) {
           var text = node.getAttribute(language === 'zh' ? 'data-zh' : 'data-en');
