@@ -6137,6 +6137,13 @@ async function commandDoctor(args) {
     failureLabel: validatorsExist ? 'invalid' : 'missing',
   });
 
+  const workbenchRuntime = ['workbench/defaults.mjs', 'workbench/model.mjs', 'workbench/validate.mjs'];
+  checks.push({
+    label: 'Architecture workbench model runtime',
+    ok: workbenchRuntime.every((file) => fs.existsSync(path.join(skillRoot, file))),
+    missing: workbenchRuntime.filter((file) => !fs.existsSync(path.join(skillRoot, file))).length,
+  });
+
   const examples = {
     architecture: 'web-app.architecture.json',
     workflow: 'agent-tool-call.workflow.json',

@@ -176,6 +176,119 @@
           }
         }
       }
+    },
+    "operationalRole": {
+      "description": "What a component does at run time. Omitted roles are inferred from the component type and label and marked assumed.",
+      "enum": ["ingress", "gateway", "stateless-compute", "stateful-db", "cache", "message-broker", "stream", "object-store", "identity", "external-saas", "ai-model", "cdn", "load-balancer"]
+    },
+    "nodeOperational": {
+      "description": "Optional operational contract of a component. Every field is optional; values not given are assumed by the model and labelled as assumptions.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "role": { "$ref": "#/$defs/operationalRole" },
+        "c4_level": { "enum": ["context", "container", "component", "code"] },
+        "drilldown_diagram_id": { "$ref": "#/$defs/id" },
+        "sla_percent": { "description": "Availability of one deployment unit, in percent.", "type": "number", "minimum": 0, "maximum": 100 },
+        "redundancy": { "enum": ["single-instance", "multi-az", "active-active-multi-region", "active-passive-dr"] },
+        "capacity": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "max_rps": { "description": "Sustainable requests per second of one instance.", "type": "number", "exclusiveMinimum": 0 },
+            "baseline_rps": { "description": "Offered load at normal traffic (meaningful on entry components).", "type": "number", "minimum": 0 },
+            "cpu_cores": { "type": "number", "exclusiveMinimum": 0 },
+            "memory_gb": { "type": "number", "exclusiveMinimum": 0 },
+            "autoscale_min": { "type": "integer", "minimum": 1 },
+            "autoscale_max": { "type": "integer", "minimum": 1 },
+            "scaling_lag_sec": { "type": "number", "minimum": 0 }
+          }
+        },
+        "latency": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "p50_ms": { "type": "number", "minimum": 0 },
+            "p95_ms": { "type": "number", "minimum": 0 },
+            "p99_ms": { "type": "number", "minimum": 0 }
+          }
+        },
+        "dr": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "rpo_sec": { "type": "number", "minimum": 0 },
+            "rto_sec": { "type": "number", "minimum": 0 },
+            "backup_strategy": { "type": "string", "minLength": 1 }
+          }
+        },
+        "finops": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "cloud_provider": { "type": "string", "minLength": 1 },
+            "instance_tier": { "type": "string", "minLength": 1 },
+            "monthly_base_cost_usd": { "type": "number", "minimum": 0 },
+            "cost_per_million_requests_usd": { "type": "number", "minimum": 0 },
+            "storage_gb": { "type": "number", "minimum": 0 },
+            "storage_cost_per_gb_usd": { "type": "number", "minimum": 0 }
+          }
+        },
+        "security": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "trust_zone": { "type": "string", "minLength": 1 },
+            "auth_method": { "enum": ["none", "api-key", "basic", "jwt", "oauth2-oidc", "saml", "iam", "mtls"] },
+            "encryption_at_rest": { "type": "boolean" },
+            "encryption_in_transit": { "type": "boolean" },
+            "compliance_tags": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "public_exposed": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "edgeOperational": {
+      "description": "Optional operational contract of a relationship. Every field is optional.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "call_semantics": { "enum": ["sync-blocking", "async-queue", "async-pubsub", "event-stream", "replication-sync", "replication-async", "failover-route", "heartbeat"] },
+        "protocol": { "enum": ["HTTPS/REST", "gRPC", "GraphQL", "Kafka", "AMQP", "WebSockets", "TCP", "SQL", "CDC"] },
+        "resilience": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "timeout_ms": { "type": "number", "exclusiveMinimum": 0 },
+            "retries": { "type": "integer", "minimum": 0, "maximum": 10 },
+            "backoff_strategy": { "enum": ["none", "fixed", "linear", "exponential"] },
+            "jitter": { "type": "boolean" },
+            "circuit_breaker_enabled": { "type": "boolean" },
+            "circuit_breaker_threshold_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+            "fallback_edge_id": { "$ref": "#/$defs/id" },
+            "dlq_node_id": { "$ref": "#/$defs/id" },
+            "idempotent": { "type": "boolean" }
+          }
+        },
+        "traffic": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "request_multiplier": { "description": "Calls on this relationship per request handled by the source.", "type": "number", "minimum": 0 },
+            "payload_kb": { "type": "number", "minimum": 0 },
+            "read_write_ratio": { "description": "Fraction of calls that are reads (0 to 1).", "type": "number", "minimum": 0, "maximum": 1 },
+            "egress_cost_per_gb_usd": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "boundaryOperational": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scope": { "enum": ["region", "availability-zone", "trust-zone"] },
+        "trust_zone": { "type": "string", "minLength": 1 }
+      }
     }
   }
 }

@@ -7,6 +7,7 @@ import { validateSchema } from './validator.mjs';
 import { verifyRepositoryEvidence } from './repository-evidence.mjs';
 import { installRendererDiagnosticBoundary, throwDiagnosticError, throwDiagnosticProblems, recordDiagnostic } from './diagnostics.mjs';
 import { validateEngineeringProfile } from './engineering-profiles.mjs';
+import { validateWorkbenchData } from '../../workbench/validate.mjs';
 import {
   resolveOutputPath,
   validateAuthoredOutputPath,
@@ -83,6 +84,7 @@ export function loadDiagram({ rendererDir, diagramType, defaultExample, argv = p
   applyLocaleTranslations(diagramType, diagram);
   validateCrossCollectionContracts(diagramType, diagram);
   validateEngineeringProfile(diagramType, diagram);
+  validateWorkbenchData(diagramType, diagram, throwDiagnosticError);
   const sourceEvidence = verifyRepositoryEvidence(diagramType, diagram, process.env.ARCHI_MADE_EASY_REPO_ROOT);
   const template = fs.readFileSync(path.join(skillRoot, 'assets/template.html'), 'utf8').replace('</head>', `${softwareNoticesHtml}\n</head>`);
   const outputRequest = {

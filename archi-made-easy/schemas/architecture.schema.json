@@ -98,7 +98,8 @@
             "items": false,
             "minItems": 2,
             "maxItems": 2
-          }
+          },
+          "operational": { "$ref": "common.schema.json#/$defs/nodeOperational" }
         }
       }
     },
@@ -109,6 +110,7 @@
         "additionalProperties": false,
         "required": ["kind", "label", "wraps"],
         "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id" },
           "kind": { "enum": ["region", "security-group"] },
           "label": { "type": "string", "minLength": 1 },
           "wraps": {
@@ -116,7 +118,8 @@
             "minItems": 1,
             "items": { "$ref": "common.schema.json#/$defs/id" }
           },
-          "pad": { "type": "number", "minimum": 0 }
+          "pad": { "type": "number", "minimum": 0 },
+          "operational": { "$ref": "common.schema.json#/$defs/boundaryOperational" }
         }
       }
     },
@@ -143,10 +146,149 @@
           "labelDx": { "type": "number" },
           "labelDy": { "type": "number" },
           "labelSegment": { "type": "integer", "minimum": 0 },
-          "width": { "$ref": "common.schema.json#/$defs/relationshipWidth" }
+          "width": { "$ref": "common.schema.json#/$defs/relationshipWidth" },
+          "operational": { "$ref": "common.schema.json#/$defs/edgeOperational" }
         }
       }
     },
-    "cards": { "$ref": "common.schema.json#/$defs/cards" }
+    "cards": { "$ref": "common.schema.json#/$defs/cards" },
+    "workbench": {
+      "description": "Optional architecture-workbench data: requirements, decisions, traces, alternatives and drill-down diagrams.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "entrypoints": {
+          "description": "Components where user traffic enters. Inferred when omitted.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "common.schema.json#/$defs/id" }
+        },
+        "requirements": {
+          "description": "Non-functional targets, for example from a requirements document. Review compares the design against them.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "availability_target_percent": { "type": "number", "minimum": 0, "maximum": 100 },
+            "p99_latency_ms": { "type": "number", "exclusiveMinimum": 0 },
+            "peak_rps": { "type": "number", "exclusiveMinimum": 0 },
+            "rpo_sec": { "type": "number", "minimum": 0 },
+            "rto_sec": { "type": "number", "minimum": 0 },
+            "monthly_budget_usd": { "type": "number", "minimum": 0 },
+            "users": { "type": "number", "minimum": 0 },
+            "regions": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "data_residency": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "compliance": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+          }
+        },
+        "adrs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "title", "status", "decision"],
+            "properties": {
+              "id": { "$ref": "common.schema.json#/$defs/id" },
+              "title": { "type": "string", "minLength": 1 },
+              "status": { "enum": ["proposed", "accepted", "superseded"] },
+              "context": { "type": "string" },
+              "decision": { "type": "string", "minLength": 1 },
+              "alternatives": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["option"],
+                  "properties": {
+                    "option": { "type": "string", "minLength": 1 },
+                    "pros": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+                    "cons": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+                  }
+                }
+              },
+              "consequences": { "type": "string" }
+            }
+          }
+        },
+        "traces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "title", "kind", "steps"],
+            "properties": {
+              "id": { "$ref": "common.schema.json#/$defs/id" },
+              "title": { "type": "string", "minLength": 1 },
+              "kind": { "enum": ["happy", "failover"] },
+              "steps": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["edge"],
+                  "properties": {
+                    "edge": { "$ref": "common.schema.json#/$defs/id" },
+                    "note": { "type": "string", "minLength": 1 }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "alternatives": {
+          "description": "Named change sets compared side by side with the authored design.",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "title"],
+            "properties": {
+              "id": { "$ref": "common.schema.json#/$defs/id" },
+              "title": { "type": "string", "minLength": 1 },
+              "description": { "type": "string" },
+              "component_overrides": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "operational"],
+                  "properties": {
+                    "id": { "$ref": "common.schema.json#/$defs/id" },
+                    "operational": { "$ref": "common.schema.json#/$defs/nodeOperational" }
+                  }
+                }
+              },
+              "connection_overrides": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["id", "operational"],
+                  "properties": {
+                    "id": { "$ref": "common.schema.json#/$defs/id" },
+                    "operational": { "$ref": "common.schema.json#/$defs/edgeOperational" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "drilldowns": {
+          "description": "Child architecture diagrams opened from components that name them in operational.drilldown_diagram_id.",
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "spec"],
+            "properties": {
+              "id": { "$ref": "common.schema.json#/$defs/id" },
+              "title": { "type": "string", "minLength": 1 },
+              "spec": { "$ref": "#" }
+            }
+          }
+        }
+      }
+    }
   }
 }

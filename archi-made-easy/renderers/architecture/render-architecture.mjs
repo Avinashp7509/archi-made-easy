@@ -95,6 +95,25 @@ function measureComponent(c) {
   return { ...c, x, y, width: w, height: h, cx: x + w / 2, cy: y + h / 2 };
 }
 
+// Free placement needs a position for every component. Routing and canvas fitting run
+// below at module level, so report missing positions now with an actionable diagnostic
+// instead of failing later with an unrelated error.
+if (!grid) {
+  const unplaced = asArray(arch.components).filter((c) => !Array.isArray(c.pos) || c.pos.length !== 2).map((c) => c.id);
+  if (unplaced.length) {
+    const messageFor = (id) => `Component "${id}" must include pos [x, y] when layout.mode is omitted (free placement).`;
+    throwDiagnosticProblems('Architecture layout validation failed', unplaced.map(messageFor), {
+      subject: { diagramType: 'architecture' },
+      diagnostics: unplaced.map((id) => ({
+        code: 'architecture/missing-component-position', severity: 'error',
+        message: messageFor(id),
+        subject: { diagramType: 'architecture', nodeId: id },
+        evidence: { layoutMode: arch.layout?.mode ?? null },
+        supportedFixes: [`add pos [x, y] to component "${id}"`, 'or set layout.mode to "grid" and give every component row and col'],
+      })),
+    });
+  }
+}
 const components = new Map(asArray(arch.components).map((c) => [c.id, measureComponent(c)]));
 const enforcesBoundaryTitleComposition = Boolean(arch.meta?.quality_profile);
 const componentSteps = new Map();
