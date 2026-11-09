@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "migration-landing-zone",
+  "status": "implemented",
+  "title": "Cloud migration landing zone",
+  "summary": "A hub-and-spoke foundation for moving workloads to the cloud: shared connectivity, identity, security and logging in a hub, with production and non-production workloads isolated in spokes.",
+  "when_to_use": [
+    "Starting a cloud migration or modernisation programme",
+    "Several workloads need consistent guardrails from day one"
+  ],
+  "layout": { "mode": "grid", "origin": [40, 110], "cols": 5, "cellW": 130, "cellH": 60, "gapX": 80, "gapY": 80 },
+  "components": [
+    { "id": "onprem", "slot": "external_api", "label": "On-premises", "sublabel": "Systems to migrate", "row": 1, "col": 0 },
+    { "id": "link", "slot": "hybrid_link", "sublabel": "Private connectivity", "row": 1, "col": 1 },
+    { "id": "identity", "slot": "identity", "sublabel": "Central identity", "row": 0, "col": 2, "operational": { "security": { "auth_method": "oauth2-oidc" } } },
+    { "id": "hub", "slot": "firewall", "label": "Hub firewall", "sublabel": "Shared network hub", "row": 1, "col": 2, "operational": { "redundancy": "multi-az" } },
+    { "id": "logs", "slot": "monitoring", "sublabel": "Central logs, policy", "row": 2, "col": 2 },
+    { "id": "nonprod", "slot": "compute_container", "label": "Non-prod spoke", "sublabel": "Dev, test", "row": 0, "col": 3 },
+    { "id": "prod", "slot": "compute_container", "label": "Prod spoke", "sublabel": "Migrated workloads", "row": 1, "col": 3, "operational": { "redundancy": "multi-az" } },
+    { "id": "shared", "slot": "secrets", "label": "Shared services", "sublabel": "Secrets, DNS, images", "row": 2, "col": 3 },
+    { "id": "prod_db", "slot": "relational_db", "sublabel": "Migrated data", "row": 1, "col": 4, "operational": { "redundancy": "multi-az", "security": { "encryption_at_rest": true } } }
+  ],
+  "boundaries": [
+    { "id": "hub-zone", "kind": "security-group", "label": "Hub", "wraps": ["identity", "hub", "logs"], "operational": { "scope": "trust-zone", "trust_zone": "hub" } },
+    { "id": "spokes", "kind": "region", "label": "Workload spokes ({region_term})", "wraps": ["nonprod", "prod", "shared", "prod_db"], "operational": { "scope": "region" } }
+  ],
+  "connections": [
+    { "id": "onprem-link", "from": "onprem", "to": "link", "operational": { "call_semantics": "sync-blocking" } },
+    { "id": "link-hub", "from": "link", "to": "hub", "operational": { "call_semantics": "sync-blocking" } },
+    { "id": "hub-identity", "from": "hub", "to": "identity", "label": "authenticate", "variant": "security", "operational": { "call_semantics": "sync-blocking" } },
+    { "id": "hub-logs", "from": "hub", "to": "logs", "label": "flow logs", "variant": "dashed", "operational": { "call_semantics": "async-pubsub", "resilience": { "idempotent": true } } },
+    { "id": "hub-prod", "from": "hub", "to": "prod", "label": "inspected", "variant": "emphasis", "operational": { "call_semantics": "sync-blocking" } },
+    { "id": "prod-db", "from": "prod", "to": "prod_db", "label": "SQL", "operational": { "call_semantics": "sync-blocking", "protocol": "SQL" } },
+    { "id": "prod-shared", "from": "prod", "to": "shared", "label": "secrets", "variant": "security", "operational": { "call_semantics": "sync-blocking", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "nonprod-prod", "from": "nonprod", "to": "prod", "label": "promote", "variant": "dashed", "operational": { "call_semantics": "async-queue", "resilience": { "idempotent": true } } }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Hub", "items": ["{hub} inspects traffic between on-premises and every spoke", "{identity} and {logs} are shared by all workloads"] },
+    { "dot": "emerald", "title": "Spokes", "items": ["Production and non-production are isolated from each other", "Releases are promoted from {nonprod} to {prod}"] },
+    { "dot": "amber", "title": "Migration", "items": ["Move workloads in waves; keep {link} until the last dependency is gone"] }
+  ],
+  "assumptions": [
+    "One region; add a second hub and spokes for disaster recovery",
+    "Network ranges, policies and cost are not set: add real numbers before relying on analysis"
+  ],
+  "adrs": [
+    {
+      "id": "adr-hub-spoke",
+      "title": "Hub-and-spoke network",
+      "status": "proposed",
+      "context": "Many workloads need the same connectivity, inspection and logging.",
+      "decision": "Centralise shared network and security services in a hub and connect isolated workload spokes to it.",
+      "alternatives": [
+        { "option": "One flat network", "pros": ["Simple to start"], "cons": ["No isolation between workloads", "Hard to apply consistent controls"] }
+      ],
+      "consequences": "The hub is shared infrastructure and needs its own ownership and change control."
+    }
+  ]
+}

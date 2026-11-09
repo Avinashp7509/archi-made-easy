@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "multi-region-active-active",
+  "status": "implemented",
+  "title": "Multi-region active-active application",
+  "summary": "Two regions serve traffic at the same time behind global routing, with a multi-region database. Losing a region removes capacity, not the service.",
+  "when_to_use": [
+    "Global user base or very high availability targets",
+    "A regional outage must not cause downtime"
+  ],
+  "layout": { "mode": "grid", "origin": [40, 110], "cols": 5, "cellW": 130, "cellH": 60, "gapX": 80, "gapY": 80 },
+  "components": [
+    { "id": "users", "slot": "users", "sublabel": "Worldwide", "row": 1, "col": 0, "operational": { "security": { "public_exposed": true } } },
+    { "id": "global", "slot": "global_lb", "sublabel": "Latency routing, health", "row": 1, "col": 1, "operational": { "redundancy": "active-active-multi-region", "security": { "public_exposed": true } } },
+    { "id": "lb_a", "slot": "load_balancer", "sublabel": "Region A ingress", "row": 0, "col": 2, "operational": { "redundancy": "multi-az" } },
+    { "id": "app_a", "slot": "compute_container", "sublabel": "Region A services", "row": 0, "col": 3, "operational": { "redundancy": "multi-az", "capacity": { "autoscale_min": 2, "autoscale_max": 12 } } },
+    { "id": "db_a", "slot": "nosql_db", "sublabel": "Region A replica", "row": 0, "col": 4, "operational": { "redundancy": "active-active-multi-region", "security": { "encryption_at_rest": true } } },
+    { "id": "lb_b", "slot": "load_balancer", "sublabel": "Region B ingress", "row": 2, "col": 2, "operational": { "redundancy": "multi-az" } },
+    { "id": "app_b", "slot": "compute_container", "sublabel": "Region B services", "row": 2, "col": 3, "operational": { "redundancy": "multi-az", "capacity": { "autoscale_min": 2, "autoscale_max": 12 } } },
+    { "id": "db_b", "slot": "nosql_db", "sublabel": "Region B replica", "row": 2, "col": 4, "operational": { "redundancy": "active-active-multi-region", "security": { "encryption_at_rest": true } } }
+  ],
+  "boundaries": [
+    { "id": "region-a", "kind": "region", "label": "{region_term} A", "wraps": ["lb_a", "app_a", "db_a"], "operational": { "scope": "region" } },
+    { "id": "region-b", "kind": "region", "label": "{region_term} B", "wraps": ["lb_b", "app_b", "db_b"], "operational": { "scope": "region" } }
+  ],
+  "connections": [
+    { "id": "users-global", "from": "users", "to": "global", "label": "HTTPS", "variant": "emphasis", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "global-a", "from": "global", "to": "lb_a", "label": "route", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST", "resilience": { "fallback_edge_id": "global-b" } } },
+    { "id": "global-b", "from": "global", "to": "lb_b", "label": "route", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST", "resilience": { "fallback_edge_id": "global-a" } } },
+    { "id": "lb-app-a", "from": "lb_a", "to": "app_a", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "app-db-a", "from": "app_a", "to": "db_a", "label": "read/write", "operational": { "call_semantics": "sync-blocking" } },
+    { "id": "lb-app-b", "from": "lb_b", "to": "app_b", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "app-db-b", "from": "app_b", "to": "db_b", "label": "read/write", "operational": { "call_semantics": "sync-blocking" } },
+    { "id": "replication", "from": "db_a", "to": "db_b", "label": "replicate", "variant": "dashed", "operational": { "call_semantics": "replication-async" } }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Routing", "items": ["{global} sends each user to the nearest healthy region", "A failed region is taken out of rotation by health checks"] },
+    { "dot": "emerald", "title": "Data", "items": ["{db_a} replicates across regions asynchronously", "Writes in both regions need a conflict-resolution rule"] },
+    { "dot": "amber", "title": "Capacity", "items": ["Each region must be able to carry the full load alone"] }
+  ],
+  "assumptions": [
+    "Two regions; each sized to carry all traffic during a regional outage",
+    "Asynchronous replication: a regional failure can lose the most recent writes",
+    "Traffic, latency and cost figures are not set: add real numbers before relying on analysis"
+  ],
+  "adrs": [
+    {
+      "id": "adr-active-active",
+      "title": "Active-active instead of active-passive",
+      "status": "proposed",
+      "context": "The service must stay available through a regional outage without a manual failover.",
+      "decision": "Serve from two regions at once and replicate data between them.",
+      "alternatives": [
+        { "option": "Active-passive with a warm standby", "pros": ["Simpler data model", "Lower cost"], "cons": ["Failover takes minutes and must be rehearsed"] }
+      ],
+      "consequences": "The application must tolerate replication lag and concurrent writes."
+    }
+  ]
+}

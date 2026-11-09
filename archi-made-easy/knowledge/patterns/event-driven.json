@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "id": "event-driven",
+  "status": "implemented",
+  "title": "Event-driven processing",
+  "summary": "Producers publish events to a stream; independent consumers process, archive and react to them. Failures are isolated by dead-letter handling and idempotent consumers.",
+  "when_to_use": [
+    "Workloads with bursts that must be absorbed, not dropped",
+    "Several teams or systems reacting to the same business events"
+  ],
+  "layout": { "mode": "grid", "origin": [40, 110], "cols": 6, "cellW": 130, "cellH": 60, "gapX": 80, "gapY": 80 },
+  "components": [
+    { "id": "clients", "slot": "users", "label": "Producers", "sublabel": "Apps, devices", "row": 1, "col": 0, "operational": { "security": { "public_exposed": true } } },
+    { "id": "api", "slot": "api_gateway", "sublabel": "Auth, throttling", "row": 1, "col": 1, "operational": { "redundancy": "multi-az", "security": { "auth_method": "oauth2-oidc", "public_exposed": true } } },
+    { "id": "ingest", "slot": "functions", "sublabel": "Validate, publish", "row": 1, "col": 2, "operational": { "redundancy": "multi-az" } },
+    { "id": "stream", "slot": "event_stream", "sublabel": "Ordered, retained", "row": 1, "col": 3, "operational": { "redundancy": "multi-az" } },
+    { "id": "archive", "slot": "object_store", "sublabel": "Event archive", "row": 0, "col": 3 },
+    { "id": "dlq", "slot": "queue", "sublabel": "Dead letters", "row": 2, "col": 3, "operational": { "redundancy": "multi-az" } },
+    { "id": "processor", "slot": "compute_container", "sublabel": "Idempotent consumer", "row": 1, "col": 4, "operational": { "redundancy": "multi-az", "capacity": { "autoscale_min": 2, "autoscale_max": 20 } } },
+    { "id": "store", "slot": "nosql_db", "sublabel": "Read model", "row": 0, "col": 4, "operational": { "redundancy": "multi-az", "security": { "encryption_at_rest": true } } },
+    { "id": "partner", "slot": "external_api", "sublabel": "Webhook", "row": 1, "col": 5 }
+  ],
+  "boundaries": [
+    { "id": "region", "kind": "region", "label": "{region_term} (zone-redundant)", "wraps": ["api", "ingest", "stream", "archive", "dlq", "processor", "store"], "operational": { "scope": "region" } }
+  ],
+  "connections": [
+    { "id": "clients-api", "from": "clients", "to": "api", "label": "HTTPS", "variant": "emphasis", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "api-ingest", "from": "api", "to": "ingest", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "ingest-stream", "from": "ingest", "to": "stream", "label": "publish", "operational": { "call_semantics": "event-stream", "resilience": { "idempotent": true } } },
+    { "id": "stream-archive", "from": "stream", "to": "archive", "label": "archive", "variant": "dashed", "operational": { "call_semantics": "event-stream", "resilience": { "idempotent": true } } },
+    { "id": "stream-dlq", "from": "stream", "to": "dlq", "label": "poison", "variant": "dashed", "operational": { "call_semantics": "async-queue", "resilience": { "idempotent": true } } },
+    { "id": "stream-processor", "from": "stream", "to": "processor", "label": "consume", "operational": { "call_semantics": "event-stream", "resilience": { "idempotent": true, "dlq_node_id": "dlq" } } },
+    { "id": "processor-store", "from": "processor", "to": "store", "label": "upsert", "operational": { "call_semantics": "sync-blocking" } },
+    { "id": "processor-partner", "from": "processor", "to": "partner", "label": "notify", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST", "resilience": { "circuit_breaker_enabled": true, "idempotent": true } } }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Flow", "items": ["{ingest} validates each request and publishes an event", "{stream} decouples producers from consumers"] },
+    { "dot": "emerald", "title": "Resilience", "items": ["Consumers are idempotent, so redelivery is safe", "Events that keep failing go to {dlq} for inspection", "{archive} keeps a replayable history"] },
+    { "dot": "rose", "title": "Boundaries", "items": ["Calls to {partner} sit behind a circuit breaker"] }
+  ],
+  "assumptions": [
+    "At-least-once delivery: every consumer must be idempotent",
+    "Traffic, latency and cost figures are not set: add real numbers before relying on analysis"
+  ],
+  "adrs": [
+    {
+      "id": "adr-stream-over-queue",
+      "title": "A retained stream instead of point-to-point queues",
+      "status": "proposed",
+      "context": "Several consumers need the same events, and history must be replayable.",
+      "decision": "Publish to a retained, partitioned stream and let each consumer track its own position.",
+      "alternatives": [
+        { "option": "One queue per consumer", "pros": ["Simple per-consumer retry"], "cons": ["No replay", "Producers must know every consumer"] }
+      ],
+      "consequences": "Ordering holds only within a partition; consumers must handle duplicates."
+    }
+  ]
+}

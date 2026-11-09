@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "id": "data-platform",
+  "status": "implemented",
+  "title": "Analytics data platform",
+  "summary": "Batch and streaming sources land in a raw zone, are transformed into curated data, and are served to analytics and machine-learning consumers with catalogued lineage.",
+  "when_to_use": [
+    "Reporting, analytics and ML features from several source systems",
+    "You need replayable raw data and governed curated data"
+  ],
+  "layout": { "mode": "grid", "origin": [40, 110], "cols": 6, "cellW": 130, "cellH": 60, "gapX": 80, "gapY": 80 },
+  "components": [
+    { "id": "events", "slot": "external_api", "label": "Event sources", "sublabel": "Apps, devices", "row": 0, "col": 0 },
+    { "id": "systems", "slot": "external_api", "label": "Source systems", "sublabel": "Databases, SaaS", "row": 1, "col": 0 },
+    { "id": "stream", "slot": "event_stream", "sublabel": "Streaming ingest", "row": 0, "col": 1, "operational": { "redundancy": "multi-az" } },
+    { "id": "ingest", "slot": "etl", "sublabel": "Batch + stream ingest", "row": 1, "col": 1 },
+    { "id": "raw", "slot": "object_store", "sublabel": "Raw zone", "row": 1, "col": 2, "operational": { "security": { "encryption_at_rest": true } } },
+    { "id": "transform", "slot": "etl", "label": "Transform jobs", "sublabel": "Clean, model, test", "row": 1, "col": 3 },
+    { "id": "catalog", "slot": "monitoring", "label": "Data catalog", "sublabel": "Lineage, quality", "row": 2, "col": 3 },
+    { "id": "warehouse", "slot": "data_warehouse", "sublabel": "Curated, served", "row": 1, "col": 4, "operational": { "security": { "encryption_at_rest": true } } },
+    { "id": "ml", "slot": "compute_container", "label": "ML workloads", "sublabel": "Features, training", "row": 0, "col": 4 },
+    { "id": "bi", "slot": "users", "label": "Analysts", "sublabel": "Dashboards, SQL", "row": 1, "col": 5 }
+  ],
+  "boundaries": [
+    { "id": "platform", "kind": "region", "label": "Data platform ({region_term})", "wraps": ["stream", "ingest", "raw", "transform", "catalog", "warehouse", "ml"], "operational": { "scope": "region" } }
+  ],
+  "connections": [
+    { "id": "events-stream", "from": "events", "to": "stream", "label": "events", "operational": { "call_semantics": "event-stream", "resilience": { "idempotent": true } } },
+    { "id": "systems-ingest", "from": "systems", "to": "ingest", "label": "extract", "operational": { "call_semantics": "sync-blocking", "protocol": "CDC" } },
+    { "id": "stream-ingest", "from": "stream", "to": "ingest", "label": "consume", "operational": { "call_semantics": "event-stream", "resilience": { "idempotent": true } } },
+    { "id": "ingest-raw", "from": "ingest", "to": "raw", "label": "land", "variant": "emphasis", "operational": { "call_semantics": "sync-blocking" } },
+    { "id": "raw-transform", "from": "raw", "to": "transform", "label": "read", "variant": "emphasis", "operational": { "call_semantics": "sync-blocking" } },
+    { "id": "transform-catalog", "from": "transform", "to": "catalog", "label": "lineage", "variant": "dashed", "operational": { "call_semantics": "async-pubsub", "resilience": { "idempotent": true } } },
+    { "id": "transform-warehouse", "from": "transform", "to": "warehouse", "label": "load", "variant": "emphasis", "operational": { "call_semantics": "sync-blocking", "protocol": "SQL" } },
+    { "id": "ml-warehouse", "from": "ml", "to": "warehouse", "label": "features", "operational": { "call_semantics": "sync-blocking", "protocol": "SQL" } },
+    { "id": "bi-warehouse", "from": "bi", "to": "warehouse", "label": "query", "operational": { "call_semantics": "sync-blocking", "protocol": "SQL" } }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Ingest", "items": ["{ingest} lands batch and streaming data unchanged in {raw}", "Raw data can be replayed after a bug fix"] },
+    { "dot": "emerald", "title": "Curate", "items": ["{transform} builds tested, modelled tables in {warehouse}", "{catalog} records lineage and data-quality results"] },
+    { "dot": "violet", "title": "Serve", "items": ["Analysts and {ml} read curated data only"] }
+  ],
+  "assumptions": [
+    "Data volumes, freshness targets and cost are not set: add real numbers before relying on analysis",
+    "Access control and data classification follow your own policy"
+  ],
+  "adrs": [
+    {
+      "id": "adr-raw-zone",
+      "title": "Keep an immutable raw zone",
+      "status": "proposed",
+      "context": "Transformation logic changes and bugs are found after data has been processed.",
+      "decision": "Land source data unchanged and derive every curated table from it.",
+      "alternatives": [
+        { "option": "Transform on ingest only", "pros": ["Less storage"], "cons": ["No reprocessing after a logic fix"] }
+      ],
+      "consequences": "Storage grows with history and needs a retention policy."
+    }
+  ]
+}

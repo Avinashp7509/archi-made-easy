@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "id": "microservices",
+  "status": "implemented",
+  "title": "Microservices with an API gateway",
+  "summary": "Independently deployed services behind one gateway, each owning its data, with events for cross-service workflows instead of chained synchronous calls.",
+  "when_to_use": [
+    "Several teams shipping independently",
+    "Domains with different scaling or availability needs"
+  ],
+  "layout": { "mode": "grid", "origin": [40, 110], "cols": 4, "cellW": 130, "cellH": 60, "gapX": 80, "gapY": 80 },
+  "components": [
+    { "id": "users", "slot": "users", "sublabel": "Web / mobile", "row": 1, "col": 0, "operational": { "security": { "public_exposed": true } } },
+    { "id": "identity", "slot": "identity", "sublabel": "Token issuer", "row": 0, "col": 1, "operational": { "security": { "auth_method": "oauth2-oidc" } } },
+    { "id": "gateway", "slot": "api_gateway", "sublabel": "Routing, auth, limits", "row": 1, "col": 1, "operational": { "redundancy": "multi-az", "security": { "public_exposed": true, "auth_method": "jwt" } } },
+    { "id": "orders", "slot": "compute_container", "label": "Orders service", "sublabel": "Owns order data", "row": 0, "col": 2, "operational": { "redundancy": "multi-az", "capacity": { "autoscale_min": 2, "autoscale_max": 10 } } },
+    { "id": "bus", "slot": "event_stream", "sublabel": "Domain events", "row": 1, "col": 2, "operational": { "redundancy": "multi-az" } },
+    { "id": "payments", "slot": "compute_container", "label": "Payments service", "sublabel": "Owns payment data", "row": 2, "col": 2, "operational": { "redundancy": "multi-az", "capacity": { "autoscale_min": 2, "autoscale_max": 10 } } },
+    { "id": "orders_db", "slot": "relational_db", "sublabel": "Orders data", "row": 0, "col": 3, "operational": { "redundancy": "multi-az", "security": { "encryption_at_rest": true } } },
+    { "id": "notifier", "slot": "functions", "sublabel": "Notifications", "row": 1, "col": 3, "operational": { "redundancy": "multi-az" } },
+    { "id": "payments_db", "slot": "relational_db", "sublabel": "Payments data", "row": 2, "col": 3, "operational": { "redundancy": "multi-az", "security": { "encryption_at_rest": true } } }
+  ],
+  "boundaries": [
+    { "id": "region", "kind": "region", "label": "{region_term} (zone-redundant)", "wraps": ["identity", "gateway", "orders", "bus", "payments", "orders_db", "notifier", "payments_db"], "operational": { "scope": "region" } }
+  ],
+  "connections": [
+    { "id": "users-gateway", "from": "users", "to": "gateway", "label": "HTTPS", "variant": "emphasis", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "gateway-identity", "from": "gateway", "to": "identity", "label": "validate", "variant": "security", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "gateway-orders", "from": "gateway", "to": "orders", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "gateway-payments", "from": "gateway", "to": "payments", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "orders-db", "from": "orders", "to": "orders_db", "label": "SQL", "operational": { "call_semantics": "sync-blocking", "protocol": "SQL" } },
+    { "id": "payments-db", "from": "payments", "to": "payments_db", "label": "SQL", "operational": { "call_semantics": "sync-blocking", "protocol": "SQL" } },
+    { "id": "orders-bus", "from": "orders", "to": "bus", "label": "publish", "variant": "dashed", "operational": { "call_semantics": "event-stream", "resilience": { "idempotent": true } } },
+    { "id": "bus-payments", "from": "bus", "to": "payments", "label": "consume", "variant": "dashed", "operational": { "call_semantics": "event-stream", "resilience": { "idempotent": true } } },
+    { "id": "bus-notifier", "from": "bus", "to": "notifier", "label": "consume", "variant": "dashed", "operational": { "call_semantics": "event-stream", "resilience": { "idempotent": true } } }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Edge", "items": ["{gateway} is the single entry point: routing, authentication, rate limits"] },
+    { "dot": "emerald", "title": "Services", "items": ["Each service owns its database; no shared tables", "Cross-service workflows use events on {bus}, not call chains"] },
+    { "dot": "rose", "title": "Resilience", "items": ["Gateway calls sit behind circuit breakers", "Event consumers are idempotent"] }
+  ],
+  "assumptions": [
+    "Two services are shown as examples; add yours with the same shape",
+    "Traffic, latency and cost figures are not set: add real numbers before relying on analysis"
+  ],
+  "adrs": [
+    {
+      "id": "adr-database-per-service",
+      "title": "One database per service",
+      "status": "proposed",
+      "context": "Services must be deployable and scalable on their own.",
+      "decision": "Each service owns its schema; other services use its API or its events.",
+      "alternatives": [
+        { "option": "Shared database", "pros": ["Simple joins and transactions"], "cons": ["Couples releases", "One schema change can break several services"] }
+      ],
+      "consequences": "Cross-service consistency is eventual and needs sagas or compensating actions."
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "ai-agent-platform",
+  "status": "implemented",
+  "title": "AI agent platform",
+  "summary": "An orchestrator runs agents that retrieve context, call tools and reach language models through a router with a semantic cache, a fallback provider and token telemetry.",
+  "when_to_use": [
+    "Assistants, copilots and multi-agent systems built on hosted models",
+    "You need provider fallback, cost visibility and guardrails"
+  ],
+  "layout": { "mode": "grid", "origin": [40, 110], "cols": 5, "cellW": 130, "cellH": 60, "gapX": 80, "gapY": 80 },
+  "components": [
+    { "id": "users", "slot": "users", "sublabel": "Chat, apps, APIs", "row": 1, "col": 0, "operational": { "security": { "public_exposed": true } } },
+    { "id": "identity", "slot": "identity", "sublabel": "Users, service identities", "row": 0, "col": 1, "operational": { "security": { "auth_method": "oauth2-oidc" } } },
+    { "id": "gateway", "slot": "api_gateway", "sublabel": "Auth, quotas", "row": 1, "col": 1, "operational": { "redundancy": "multi-az", "security": { "public_exposed": true, "auth_method": "jwt" } } },
+    { "id": "retrieval", "slot": "vector_db", "sublabel": "Grounding data", "row": 0, "col": 2, "operational": { "redundancy": "multi-az" } },
+    { "id": "orchestrator", "slot": "compute_container", "label": "Orchestrator", "sublabel": "Agents, guardrails", "row": 1, "col": 2, "operational": { "redundancy": "multi-az", "capacity": { "autoscale_min": 2, "autoscale_max": 20 } } },
+    { "id": "tools", "slot": "functions", "label": "Tool servers", "sublabel": "Actions, lookups", "row": 2, "col": 2, "operational": { "redundancy": "multi-az" } },
+    { "id": "semcache", "slot": "cache", "sublabel": "Semantic cache", "row": 0, "col": 3, "operational": { "redundancy": "multi-az" } },
+    { "id": "router", "slot": "functions", "label": "Model router", "sublabel": "Routing, fallback", "row": 1, "col": 3, "operational": { "redundancy": "multi-az" } },
+    { "id": "telemetry", "slot": "monitoring", "sublabel": "Tokens, cost, traces", "row": 2, "col": 3 },
+    { "id": "model", "slot": "llm", "sublabel": "Primary model", "row": 1, "col": 4 },
+    { "id": "fallback", "slot": "llm", "label": "Fallback model", "sublabel": "Second provider", "row": 2, "col": 4 }
+  ],
+  "boundaries": [
+    { "id": "platform", "kind": "security-group", "label": "Platform trust zone", "wraps": ["identity", "gateway", "retrieval", "orchestrator", "tools", "semcache", "router", "telemetry"], "operational": { "scope": "trust-zone" } }
+  ],
+  "connections": [
+    { "id": "users-gateway", "from": "users", "to": "gateway", "label": "HTTPS", "variant": "emphasis", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "gateway-identity", "from": "gateway", "to": "identity", "label": "validate", "variant": "security", "operational": { "call_semantics": "sync-blocking", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "gateway-orchestrator", "from": "gateway", "to": "orchestrator", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "orchestrator-retrieval", "from": "orchestrator", "to": "retrieval", "label": "retrieve", "operational": { "call_semantics": "sync-blocking", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "orchestrator-tools", "from": "orchestrator", "to": "tools", "label": "call tools", "operational": { "call_semantics": "sync-blocking", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "orchestrator-router", "from": "orchestrator", "to": "router", "label": "prompt", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "router-cache", "from": "router", "to": "semcache", "label": "lookup", "operational": { "call_semantics": "sync-blocking", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "router-telemetry", "from": "router", "to": "telemetry", "label": "usage", "variant": "dashed", "operational": { "call_semantics": "async-pubsub", "resilience": { "idempotent": true } } },
+    { "id": "router-model", "from": "router", "to": "model", "label": "inference", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST", "resilience": { "circuit_breaker_enabled": true, "fallback_edge_id": "router-fallback" } } },
+    { "id": "router-fallback", "from": "router", "to": "fallback", "label": "failover", "variant": "dashed", "operational": { "call_semantics": "failover-route", "protocol": "HTTPS/REST" } }
+  ],
+  "cards": [
+    { "dot": "violet", "title": "Models", "items": ["{router} picks a model per request and fails over to {fallback}", "{semcache} answers repeated questions without a model call"] },
+    { "dot": "emerald", "title": "Agents", "items": ["{orchestrator} applies guardrails before and after each model call", "Grounding comes from {retrieval}; actions go through {tools}"] },
+    { "dot": "amber", "title": "Cost", "items": ["{telemetry} records tokens and cost per request"] }
+  ],
+  "assumptions": [
+    "Models are hosted services outside the platform trust zone",
+    "Token prices, rate limits and latency are not set: add real numbers before relying on analysis"
+  ],
+  "adrs": [
+    {
+      "id": "adr-model-router",
+      "title": "Route all model calls through one router",
+      "status": "proposed",
+      "context": "Model providers have outages, rate limits and changing prices.",
+      "decision": "Agents call a router, never a provider directly. The router owns caching, fallback and usage accounting.",
+      "alternatives": [
+        { "option": "Agents call providers directly", "pros": ["Less to operate"], "cons": ["No single place for fallback, limits or cost tracking"] }
+      ],
+      "consequences": "The router is on the critical path and must be highly available."
+    }
+  ]
+}

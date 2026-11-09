@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "id": "zero-trust",
+  "status": "implemented",
+  "title": "Zero-trust application access",
+  "summary": "No network location is trusted. Every request is authenticated and authorised at a policy enforcement point, services authenticate to each other, secrets come from a vault, and every decision is logged.",
+  "when_to_use": [
+    "Regulated workloads such as banking, health and government",
+    "Replacing network-perimeter trust with identity-based access"
+  ],
+  "layout": { "mode": "grid", "origin": [40, 110], "cols": 5, "cellW": 130, "cellH": 60, "gapX": 80, "gapY": 80 },
+  "components": [
+    { "id": "users", "slot": "users", "label": "Users + devices", "sublabel": "Verified identity", "row": 1, "col": 0, "operational": { "security": { "public_exposed": true } } },
+    { "id": "identity", "slot": "identity", "sublabel": "MFA, device posture", "row": 0, "col": 1, "operational": { "redundancy": "multi-az", "security": { "auth_method": "oauth2-oidc" } } },
+    { "id": "pep", "slot": "waf", "label": "Access proxy", "sublabel": "Policy enforcement", "row": 1, "col": 1, "operational": { "redundancy": "multi-az", "security": { "public_exposed": true, "auth_method": "oauth2-oidc", "encryption_in_transit": true } } },
+    { "id": "audit", "slot": "monitoring", "label": "Security logs", "sublabel": "Audit, detection", "row": 2, "col": 1 },
+    { "id": "secrets", "slot": "secrets", "sublabel": "Keys, certificates", "row": 0, "col": 2, "operational": { "redundancy": "multi-az", "security": { "auth_method": "iam", "encryption_at_rest": true } } },
+    { "id": "app", "slot": "compute_container", "label": "Application", "sublabel": "Workload identity", "row": 1, "col": 2, "operational": { "redundancy": "multi-az", "security": { "auth_method": "mtls", "encryption_in_transit": true } } },
+    { "id": "service", "slot": "compute_container", "label": "Internal service", "sublabel": "mTLS only", "row": 2, "col": 2, "operational": { "redundancy": "multi-az", "security": { "auth_method": "mtls", "encryption_in_transit": true } } },
+    { "id": "db", "slot": "relational_db", "sublabel": "Private endpoint", "row": 1, "col": 3, "operational": { "redundancy": "multi-az", "security": { "auth_method": "iam", "encryption_at_rest": true, "encryption_in_transit": true, "public_exposed": false } } }
+  ],
+  "boundaries": [
+    { "id": "app-zone", "kind": "security-group", "label": "Application zone", "wraps": ["app", "service"], "operational": { "scope": "trust-zone", "trust_zone": "application" } },
+    { "id": "data-zone", "kind": "security-group", "label": "Data zone", "wraps": ["db"], "operational": { "scope": "trust-zone", "trust_zone": "data" } }
+  ],
+  "connections": [
+    { "id": "users-pep", "from": "users", "to": "pep", "label": "HTTPS", "variant": "emphasis", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "pep-identity", "from": "pep", "to": "identity", "label": "authorise", "variant": "security", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "pep-audit", "from": "pep", "to": "audit", "label": "decisions", "variant": "dashed", "operational": { "call_semantics": "async-pubsub", "resilience": { "idempotent": true } } },
+    { "id": "pep-app", "from": "pep", "to": "app", "label": "mTLS", "variant": "security", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "app-secrets", "from": "app", "to": "secrets", "label": "fetch", "variant": "security", "operational": { "call_semantics": "sync-blocking", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "app-service", "from": "app", "to": "service", "label": "mTLS", "variant": "security", "operational": { "call_semantics": "sync-blocking", "protocol": "gRPC", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "app-db", "from": "app", "to": "db", "label": "SQL + TLS", "variant": "security", "operational": { "call_semantics": "sync-blocking", "protocol": "SQL" } }
+  ],
+  "cards": [
+    { "dot": "rose", "title": "Verify explicitly", "items": ["{pep} checks identity, device and policy on every request", "{identity} enforces multi-factor sign-in"] },
+    { "dot": "violet", "title": "Least privilege", "items": ["Services use workload identities and mutual TLS", "{db} has no public endpoint and accepts only the application identity", "Secrets live in {secrets}, never in code or config"] },
+    { "dot": "amber", "title": "Assume breach", "items": ["Every access decision is logged to {audit}", "Zones limit how far a compromised component can reach"] }
+  ],
+  "assumptions": [
+    "Policies, roles and compliance scope are yours to define; none are implied here",
+    "Traffic, latency and cost figures are not set: add real numbers before relying on analysis"
+  ],
+  "adrs": [
+    {
+      "id": "adr-identity-perimeter",
+      "title": "Identity is the perimeter",
+      "status": "proposed",
+      "context": "Network location does not prove that a request is legitimate.",
+      "decision": "Authenticate and authorise every request at a policy enforcement point, and every service-to-service call with workload identity.",
+      "alternatives": [
+        { "option": "Trusted internal network behind a VPN", "pros": ["Familiar", "Less to configure"], "cons": ["One compromised host can reach everything"] }
+      ],
+      "consequences": "Identity and policy services become critical dependencies and must be highly available."
+    }
+  ]
+}

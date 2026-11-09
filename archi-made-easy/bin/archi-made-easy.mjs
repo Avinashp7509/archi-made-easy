@@ -2203,6 +2203,7 @@ const COMMAND_USAGE = {
   'browser-check': '<output.html> [--json|--summary] [--require-provenance] [--out-dir <dir>]',
   'visual-check': '<output.html> [--json|--summary] [--require-provenance] [--out-dir <dir>]',
   guide: '[scenario or question] [--json] [--lang en|zh]',
+  scaffold: ['--list [--json]', '<pattern> [--provider azure|aws|gcp|onprem] [--title text] [--output name.html] [--out candidate.json] [--force] [--json]'],
   brands: ['[name, alias, domain, or category] [--json]', 'capture <url> [--json]'],
   examples: '',
   doctor: '',
@@ -6137,9 +6138,9 @@ async function commandDoctor(args) {
     failureLabel: validatorsExist ? 'invalid' : 'missing',
   });
 
-  const workbenchRuntime = ['workbench/defaults.mjs', 'workbench/model.mjs', 'workbench/validate.mjs'];
+  const workbenchRuntime = ['workbench/defaults.mjs', 'workbench/model.mjs', 'workbench/validate.mjs', 'workbench/scaffold.mjs', 'bin/workbench.mjs', 'knowledge/slots.json', 'knowledge/providers/azure.json', 'knowledge/providers/aws.json', 'knowledge/providers/gcp.json', 'knowledge/providers/onprem.json', 'knowledge/patterns/web-ha.json'];
   checks.push({
-    label: 'Architecture workbench model runtime',
+    label: 'Architecture workbench runtime and knowledge packs',
     ok: workbenchRuntime.every((file) => fs.existsSync(path.join(skillRoot, file))),
     missing: workbenchRuntime.filter((file) => !fs.existsSync(path.join(skillRoot, file))).length,
   });
@@ -7271,6 +7272,12 @@ try {
     case 'guide':
       await commandGuide(args);
       break;
+    case 'scaffold': {
+      // Loaded on demand: the main CLI must keep working when copied on its own.
+      const { commandScaffold } = await import('./workbench.mjs');
+      process.exitCode = commandScaffold(args);
+      break;
+    }
     case 'brands':
       await commandBrands(args);
       break;

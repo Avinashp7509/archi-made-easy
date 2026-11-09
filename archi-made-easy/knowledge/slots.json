@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "description": "Provider-neutral building blocks. A pattern places slots; a provider pack names the service that fills each slot. 'type' is the architecture component type used for drawing; 'role' is the operational role.",
+  "slots": {
+    "users": { "type": "external", "role": "ingress", "generic": "Users" },
+    "cdn": { "type": "cloud", "role": "cdn", "generic": "CDN" },
+    "waf": { "type": "security", "role": "gateway", "generic": "WAF" },
+    "dns": { "type": "cloud", "role": "ingress", "generic": "DNS" },
+    "global_lb": { "type": "cloud", "role": "load-balancer", "generic": "Global LB" },
+    "load_balancer": { "type": "cloud", "role": "load-balancer", "generic": "Load balancer" },
+    "api_gateway": { "type": "backend", "role": "gateway", "generic": "API gateway" },
+    "compute_web": { "type": "backend", "role": "stateless-compute", "generic": "App servers" },
+    "compute_container": { "type": "backend", "role": "stateless-compute", "generic": "Kubernetes" },
+    "functions": { "type": "backend", "role": "stateless-compute", "generic": "Functions" },
+    "relational_db": { "type": "database", "role": "stateful-db", "generic": "SQL database" },
+    "nosql_db": { "type": "database", "role": "stateful-db", "generic": "NoSQL store" },
+    "cache": { "type": "database", "role": "cache", "generic": "Cache" },
+    "object_store": { "type": "database", "role": "object-store", "generic": "Object storage" },
+    "queue": { "type": "messagebus", "role": "message-broker", "generic": "Queue" },
+    "event_stream": { "type": "messagebus", "role": "stream", "generic": "Event stream" },
+    "identity": { "type": "security", "role": "identity", "generic": "Identity provider" },
+    "secrets": { "type": "security", "role": "identity", "generic": "Secrets vault" },
+    "monitoring": { "type": "cloud", "role": "stateless-compute", "generic": "Monitoring" },
+    "data_warehouse": { "type": "database", "role": "stateful-db", "generic": "Data warehouse" },
+    "etl": { "type": "backend", "role": "stateless-compute", "generic": "ETL jobs" },
+    "vector_db": { "type": "database", "role": "stateful-db", "generic": "Vector store" },
+    "llm": { "type": "external", "role": "ai-model", "generic": "LLM service" },
+    "firewall": { "type": "security", "role": "gateway", "generic": "Firewall" },
+    "hybrid_link": { "type": "cloud", "role": "gateway", "generic": "Private link" },
+    "external_api": { "type": "external", "role": "external-saas", "generic": "Partner API" }
+  }
+}

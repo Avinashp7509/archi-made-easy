@@ -49,7 +49,9 @@ For an everyday or personal subject, ask for missing personal facts (dates, amou
 
 ### Create an architecture from a description
 
-- Start from the user's goal and the main user journey. Add the components that journey needs, then the supporting tiers (identity, data, messaging, observability) the stated qualities require: "highly available" implies redundancy across zones; "secure" implies identity, a gateway and trust boundaries.
+- Start from a reference pattern when one is close: read [Operational model and scaffolds](operational-model.md), run `scaffold <pattern> --provider <provider> --out candidate.json`, then adapt the candidate. "Highly available e-commerce on Azure" is `web-ha` on `azure`; "secure banking application" is `zero-trust`; "multi-region for 10 million users" is `multi-region-active-active`.
+- Record the facts the user gave (targets, load, budget, compliance) in `workbench.requirements` and the components' `operational` fields, as that reference describes. Leave out anything they did not state.
+- When no pattern fits, author directly: start from the user's goal and the main user journey. Add the components that journey needs, then the supporting tiers (identity, data, messaging, observability) the stated qualities require: "highly available" implies redundancy across zones; "secure" implies identity, a gateway and trust boundaries.
 - Use the provider's real service names when a provider is named (for example Azure Front Door, AWS Application Load Balancer, Google Cloud Run), with `brand` marks only when available (`references/brand-marks.md`).
 - Show trust and network boundaries with `boundaries` (`region`, `security-group`).
 - Keep to what the request needs. No component count is a target.

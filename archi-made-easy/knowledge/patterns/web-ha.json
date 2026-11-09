@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "id": "web-ha",
+  "status": "implemented",
+  "title": "Highly available web application",
+  "summary": "A web application that stays up through the loss of one zone: stateless application tier behind a load balancer, a replicated database, a cache, and asynchronous work moved off the request path.",
+  "when_to_use": [
+    "Customer-facing web or mobile back end that must survive a zone failure",
+    "E-commerce, booking, portals and SaaS products in one region"
+  ],
+  "layout": { "mode": "grid", "origin": [40, 110], "cols": 5, "cellW": 130, "cellH": 60, "gapX": 80, "gapY": 80 },
+  "components": [
+    { "id": "users", "slot": "users", "sublabel": "Browser / mobile", "row": 1, "col": 0, "operational": { "security": { "public_exposed": true } } },
+    { "id": "identity", "slot": "identity", "sublabel": "Sign-in, tokens", "row": 0, "col": 0, "operational": { "security": { "auth_method": "oauth2-oidc" } } },
+    { "id": "cdn", "slot": "cdn", "sublabel": "Edge cache + WAF", "row": 1, "col": 1, "operational": { "security": { "public_exposed": true, "encryption_in_transit": true } } },
+    { "id": "static", "slot": "object_store", "sublabel": "Static assets", "row": 2, "col": 1 },
+    { "id": "lb", "slot": "load_balancer", "sublabel": "HTTPS, health checks", "row": 1, "col": 2, "operational": { "redundancy": "multi-az" } },
+    { "id": "app", "slot": "compute_web", "sublabel": "Stateless, autoscaled", "row": 1, "col": 3, "operational": { "redundancy": "multi-az", "capacity": { "autoscale_min": 2, "autoscale_max": 10 } } },
+    { "id": "cache", "slot": "cache", "sublabel": "Sessions, hot reads", "row": 0, "col": 3, "operational": { "redundancy": "multi-az" } },
+    { "id": "db", "slot": "relational_db", "sublabel": "Primary", "row": 1, "col": 4, "operational": { "redundancy": "multi-az", "dr": { "backup_strategy": "Automated backups with point-in-time restore" }, "security": { "encryption_at_rest": true } } },
+    { "id": "queue", "slot": "queue", "sublabel": "Background jobs", "row": 2, "col": 3, "operational": { "redundancy": "multi-az" } },
+    { "id": "worker", "slot": "functions", "sublabel": "Async workers", "row": 2, "col": 4, "operational": { "redundancy": "multi-az" } }
+  ],
+  "boundaries": [
+    { "id": "region", "kind": "region", "label": "{region_term} (zone-redundant)", "wraps": ["lb", "app", "cache", "db", "queue", "worker"], "operational": { "scope": "region" } }
+  ],
+  "connections": [
+    { "id": "users-cdn", "from": "users", "to": "cdn", "label": "HTTPS", "variant": "emphasis", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "users-identity", "from": "users", "to": "identity", "label": "sign in", "variant": "security", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "cdn-static", "from": "cdn", "to": "static", "label": "static", "variant": "dashed", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "cdn-lb", "from": "cdn", "to": "lb", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "lb-app", "from": "lb", "to": "app", "operational": { "call_semantics": "sync-blocking", "protocol": "HTTPS/REST" } },
+    { "id": "app-cache", "from": "app", "to": "cache", "label": "read-through", "operational": { "call_semantics": "sync-blocking", "protocol": "TCP", "resilience": { "circuit_breaker_enabled": true } } },
+    { "id": "app-db", "from": "app", "to": "db", "label": "SQL", "operational": { "call_semantics": "sync-blocking", "protocol": "SQL" } },
+    { "id": "app-queue", "from": "app", "to": "queue", "label": "enqueue", "variant": "dashed", "operational": { "call_semantics": "async-queue", "resilience": { "idempotent": true } } },
+    { "id": "queue-worker", "from": "queue", "to": "worker", "operational": { "call_semantics": "async-queue", "resilience": { "idempotent": true } } }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Edge", "items": ["{cdn} terminates TLS, caches static content and filters malicious traffic", "{static} serves static assets"] },
+    { "dot": "emerald", "title": "Availability", "items": ["Application tier is stateless and spread across zones", "{db} keeps a synchronous standby in another zone", "Slow work leaves the request path through {queue}"] },
+    { "dot": "rose", "title": "Security", "items": ["{identity} issues tokens; the application validates them", "Data encrypted in transit and at rest"] }
+  ],
+  "assumptions": [
+    "One region with at least two zones; no cross-region disaster recovery",
+    "Traffic, latency and cost figures are not set: add real numbers before relying on analysis"
+  ],
+  "adrs": [
+    {
+      "id": "adr-zones-before-regions",
+      "title": "Zone redundancy before multi-region",
+      "status": "proposed",
+      "context": "The application must survive common infrastructure failures without the cost and complexity of running in two regions.",
+      "decision": "Run every tier across availability zones in one region and restore from backups for a regional disaster.",
+      "alternatives": [
+        { "option": "Active-passive second region", "pros": ["Survives a regional outage"], "cons": ["Roughly doubles standing cost", "Failover must be rehearsed"] },
+        { "option": "Single zone", "pros": ["Cheapest"], "cons": ["A zone failure is a full outage"] }
+      ],
+      "consequences": "A full regional outage means downtime until restore completes."
+    }
+  ]
+}

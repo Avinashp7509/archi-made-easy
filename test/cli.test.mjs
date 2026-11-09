@@ -186,6 +186,7 @@ test('cli: help lists commands and diagram types', () => {
   assert.match(result.stdout, /archi-made-easy validate <type> <input\.json> .*\[--repo-root path\]/);
   assert.doesNotMatch(result.stdout, /architecture only/);
   assert.match(result.stdout, /archi-made-easy guide \[scenario or question\]/);
+  assert.match(result.stdout, /archi-made-easy scaffold <pattern> \[--provider azure\|aws\|gcp\|onprem\]/);
   assert.match(result.stdout, /archi-made-easy doctor/);
   assert.match(result.stdout, /archi-made-easy demo \[output-directory\]/);
   assert.match(result.stdout, /architecture, workflow, sequence, dataflow, lifecycle/);
@@ -197,7 +198,7 @@ test('cli: sole subcommand --help returns canonical usage without operations', (
   const global = run(['--help'], { cwd: scratch });
   assert.equal(global.status, 0, global.stderr);
   const commands = ['render', 'compare', 'deliver', 'finalize', 'preview', 'validate',
-    'migrate', 'inspect', 'check', 'browser-check', 'visual-check', 'guide', 'brands',
+    'migrate', 'inspect', 'check', 'browser-check', 'visual-check', 'guide', 'scaffold', 'brands',
     'examples', 'doctor', 'demo'];
   for (const command of commands) {
     const result = run([command, '--help'], { cwd: scratch });
