@@ -223,13 +223,12 @@ test('native copy links preserve a host page and opaque reader state without cha
       assert.deepEqual(restored.lens, ['component']);
     }
   }
-  const readme = fs.readFileSync(path.join(root, 'README.md'), 'utf8');
-  const links = new Set(Array.from(readme.matchAll(/\]\((examples\/[^)\s]+\.html)\)/g), match => match[1]));
+  // Every root architecture showcase with a rendered page (no longer selected through README links).
   const examples = fs.readdirSync(path.join(root, 'examples'))
     .filter(name => name.endsWith('.architecture.json'))
     .map(name => JSON.parse(fs.readFileSync(path.join(root, 'examples', name), 'utf8')).meta.output)
-    .filter(output => links.has(output));
-  assert.ok(examples.length, 'README links architecture examples with authoritative inputs');
+    .filter(output => fs.existsSync(path.join(root, output)));
+  assert.ok(examples.length, 'root architecture examples with authoritative inputs');
   for (const example of examples) {
     const artifact = path.join(root, example);
     await browser.inspect({ artifactPath: artifact, width: 1600, height: 1100,

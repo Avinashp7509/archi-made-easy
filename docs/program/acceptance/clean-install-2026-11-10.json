@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "kind": "clean-install-acceptance",
+  "date": "2026-11-09T22:16:28.962Z",
+  "platform": "win32 10.0.26200",
+  "node": "v24.18.0",
+  "ok": true,
+  "steps": [
+    {
+      "name": "unpack release archive",
+      "ok": true,
+      "archive": "archi-made-easy.zip",
+      "sha256": "382b215844ce8430954f9b8e377b2c14eb0db015b9e1820f8a16b00be15da441",
+      "entries": 206,
+      "note": "206 entries"
+    },
+    {
+      "name": "install with the bundled installer",
+      "ok": true,
+      "agents": [
+        "claude-code",
+        "codex",
+        "cursor"
+      ],
+      "targets": [
+        {
+          "label": "Claude Code (global)",
+          "status": "installed",
+          "doctor": true
+        },
+        {
+          "label": "OpenAI Codex (global)",
+          "status": "installed",
+          "doctor": true
+        },
+        {
+          "label": "Cursor (global)",
+          "status": "installed",
+          "doctor": true
+        }
+      ],
+      "note": "Claude Code (global); OpenAI Codex (global); Cursor (global)"
+    },
+    {
+      "name": "doctor from installed copy: Claude Code (global)",
+      "ok": true,
+      "ms": 88,
+      "note": "Archi-Made-Easy is ready."
+    },
+    {
+      "name": "doctor from installed copy: OpenAI Codex (global)",
+      "ok": true,
+      "ms": 92,
+      "note": "Archi-Made-Easy is ready."
+    },
+    {
+      "name": "doctor from installed copy: Cursor (global)",
+      "ok": true,
+      "ms": 82,
+      "note": "Archi-Made-Easy is ready."
+    },
+    {
+      "name": "finalize from installed copy (architecture, showcase)",
+      "ok": true,
+      "ms": 4014,
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "artifactBytes": 850943,
+      "note": "{\"validate\":\"pass\",\"deliver\":\"pass\",\"check\":\"pass\",\"browser-check\":\"pass\"}"
+    }
+  ]
+}

@@ -121,14 +121,14 @@ test('Reader Layout preserves final-artifact behavior across its ownership bound
     function variant(name, { ratio, undeclaredFit = false, beforeViewer = '' } = {}) {
       let html = fs.readFileSync(artifacts.architecture, 'utf8');
       if (ratio !== undefined) assert.match(html, /<svg\b[^>]*\bviewBox="[^"]+"/, 'Reader viewBox fixture anchor');
-      if (beforeViewer) assert.ok(html.includes('  <script>\n    var Archi-Made-Easy = {};'), 'Reader setup fixture anchor');
+      if (beforeViewer) assert.ok(html.includes('  <script>\n    var ArchiMadeEasy = {};'), 'Reader setup fixture anchor');
       if (ratio !== undefined) html = html.replace(/(<svg\b[^>]*\bviewBox=")[^"]+(")/, (_, start, end) => `${start}0 0 ${ratio * 1000} 1000${end}`);
       if (undeclaredFit) {
         // Ratio-only cases must not inherit the compiler's independent
         // intrinsic-height eligibility declaration from the source fixture.
         html = html.replace(/<svg\b[^>]*>/, root => root.replace(' data-reader-fit="intrinsic-height"', ''));
       }
-      if (beforeViewer) html = html.replace('  <script>\n    var Archi-Made-Easy = {};', () => `  <script>${beforeViewer}</script>\n  <script>\n    var Archi-Made-Easy = {};`);
+      if (beforeViewer) html = html.replace('  <script>\n    var ArchiMadeEasy = {};', () => `  <script>${beforeViewer}</script>\n  <script>\n    var ArchiMadeEasy = {};`);
       const file = path.join(scratch, `${name}.html`);
       fs.writeFileSync(file, html);
       return file;

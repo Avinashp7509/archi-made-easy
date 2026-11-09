@@ -26,8 +26,12 @@ function verifyIdentity(expected) {
 // This detects substitution between creation and cleanup (including junctions)
 // and between retries. Path-based Node APIs cannot eliminate a hostile mutation
 // racing the final check and rm; this is not a filesystem sandbox.
-export function createOwnedTempDirectory(prefix, { parent = os.tmpdir() } = {}) {
+// `cleanupRetries` bounds how many transient-lock retries cleanup makes (default 3).
+// Callers whose children can hold files briefly after exiting (Chrome helper processes
+// on Windows) may ask for a larger, still bounded, budget.
+export function createOwnedTempDirectory(prefix, { parent = os.tmpdir(), cleanupRetries = 3 } = {}) {
   if (!/^[a-zA-Z0-9-]+-$/.test(prefix)) throw new Error('Invalid temporary directory prefix');
+  if (!Number.isSafeInteger(cleanupRetries) || cleanupRetries < 0 || cleanupRetries > 20) throw new Error('Invalid cleanup retry budget');
   const canonicalParent = fs.realpathSync.native(path.resolve(parent));
   const ancestors = [];
   for (let current = canonicalParent; ; current = path.dirname(current)) {
@@ -67,7 +71,7 @@ export function createOwnedTempDirectory(prefix, { parent = os.tmpdir() } = {}) 
           remove();
           return;
         } catch (cause) {
-          if (retryable.has(cause.code) && attempt < 3) {
+          if (retryable.has(cause.code) && attempt < cleanupRetries) {
             await delay(100 * (attempt + 1));
             continue;
           }

@@ -174,7 +174,7 @@ test('one joint wait preserves real Reader/Chrome convergence at the CLI boundar
     const pristine = new Map([wide, intrinsic].map(file => [file, fs.readFileSync(file, 'utf8')]));
     function variant(name, base, { before = '', after = '' } = {}) {
       let html = pristine.get(base);
-      const anchor = '  <script>\n    var Archi-Made-Easy = {};';
+      const anchor = '  <script>\n    var ArchiMadeEasy = {};';
       assert.ok(html.includes(anchor), 'Viewer fixture anchor');
       if (before) html = html.replace(anchor, () => `  <script>${before}</script>\n${anchor}`);
       if (after) html = html.replace('</body>', () => `<script>${after}</script>\n</body>`);

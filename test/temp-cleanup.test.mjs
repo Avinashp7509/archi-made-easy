@@ -258,3 +258,19 @@ test('changing the public profile path cannot redirect Chrome cleanup', async t 
   assert.equal(fs.existsSync(original), false);
   assert.equal(fs.readFileSync(path.join(other, 'keep'), 'utf8'), 'keep');
 });
+
+test('a caller-chosen retry budget is honoured and bounded', async t => {
+  assert.throws(() => createOwnedTempDirectory('archi-made-easy-budget-', { cleanupRetries: 21 }), /Invalid cleanup retry budget/);
+  assert.throws(() => createOwnedTempDirectory('archi-made-easy-budget-', { cleanupRetries: -1 }), /Invalid cleanup retry budget/);
+  const owned = createOwnedTempDirectory('archi-made-easy-budget-', { cleanupRetries: 5 });
+  const realRemove = fs.rmSync;
+  let attempts = 0;
+  const mock = t.mock.method(fs, 'rmSync', (target, options) => {
+    if (target === owned.path && ++attempts < 6) throw Object.assign(new Error('locked'), { code: 'EPERM' });
+    return realRemove(target, options);
+  });
+  await owned.cleanup();
+  mock.mock.restore();
+  assert.equal(attempts, 6, 'five retries after the first attempt');
+  assert.equal(fs.existsSync(owned.path), false);
+});

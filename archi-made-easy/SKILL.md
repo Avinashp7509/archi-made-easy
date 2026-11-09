@@ -1,6 +1,6 @@
 ---
 name: archi-made-easy
-description: "Create validated architecture, workflow, sequence, data-flow, lifecycle/state, ERD, class, tree, timeline, and waterfall diagrams as explorable standalone HTML with dark/light themes, motion and image/SVG/WebM export. Accept requirements or Mermaid; inspect repository evidence for code-backed diagrams. Use when visualizing systems, API calls, pipelines, schemas, histories, timings, or everyday steps, parts, relationships and states. Also turn an answer into a one-page explainer, with the conclusion first, structured panels, native diagrams and charts, when the user asks for a page, an explainer or an answer to share (做成一页, 用页面讲), or proactively when the user's rules opt in with an [archi-made-easy explainer: ...] line. Not for dashboards."
+description: "Create validated architecture, workflow, sequence, data-flow, lifecycle/state, ERD, class, tree, timeline, and waterfall diagrams as explorable standalone HTML with dark/light themes, motion and image/SVG/WebM export. Accept requirements or Mermaid; inspect repository evidence for code-backed diagrams. Use when visualizing systems, API calls, pipelines, schemas, histories, timings, or everyday steps, parts, relationships and states, including plain-language architecture requests such as 'design a highly available e-commerce architecture on Azure' or 'turn my repository into an architecture diagram'. Also turn an answer into a one-page explainer, with the conclusion first, structured panels, native diagrams and charts, when the user asks for a page, an explainer or an answer to share (做成一页, 用页面讲), or proactively when the user's rules opt in with an [archi-made-easy explainer: ...] line. Not for dashboards."
 license: Apache-2.0
 metadata:
   version: "0.1"
@@ -14,6 +14,12 @@ Create checked standalone HTML as a native diagram or a one-page explainer that 
 Run commands from your working directory. Unless the user names another location, give each new artifact request its own folder `.archi-made-easy/<type>-<slug>-<YYYYMMDD-HHMMSS>/` there (local time, chosen once): keep the candidate and `<slug>.html` in it and reuse it for repairs. Native diagrams use `candidate.json` with `meta.output` relative to the working directory; explainers may use `candidate.archi-made-easy.md` and a portable output filename. A later request gets a new folder. Replace `bin/archi-made-easy.mjs` in every command with the installed package's absolute path, or its path relative to your working directory; CLI input and output paths resolve from that directory.
 
 For a native diagram of a real codebase, read [Repository authoring](references/repository-authoring.md) while tracing the requested behavior. A system description uses the native steps below; a frozen candidate uses the handoff path.
+
+## Plain-language requests
+
+Users describe what they want in their own words; never ask them for JSON, schemas, notation or CLI syntax. When a request is more than "draw X" (an architecture from a description, a repository or a document; an explanation; a comparison; a review or what-if question), read [Intents](references/intents.md) first. Ask only for facts that change the architecture materially, at most three questions with a default each; assume the rest and list every assumption in the artifact and the reply. Never present invented SLAs, prices or load figures as real. Review, simulation and cost analysis are not in this version: say so and offer what exists.
+
+For installation, update or agent-compatibility questions, read [Installation](references/installation.md).
 
 ## Choose the artifact
 

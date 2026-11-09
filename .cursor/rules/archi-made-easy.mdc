@@ -1,0 +1,12 @@
+---
+description: Use Archi-Made-Easy for plain-language architecture and diagram requests (design, draw, explain, repository-to-diagram, requirements-to-architecture).
+alwaysApply: false
+---
+
+For architecture and diagram requests, follow `archi-made-easy/SKILL.md`. It is the single source of truth.
+
+- Read `archi-made-easy/references/intents.md` for requests beyond "draw X".
+- The user speaks plain language. You author the JSON candidate and run `node archi-made-easy/bin/archi-made-easy.mjs finalize <type> <candidate.json> <output.html> --quality showcase --json`.
+- Ask at most three material questions, each with a default. List every assumption.
+- Never present invented numbers as real. Review, simulation and cost analysis are not in this version.
+- A non-zero exit from `finalize` is never success.

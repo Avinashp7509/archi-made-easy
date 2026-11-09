@@ -1581,9 +1581,13 @@ export class ChromeVisualBrowser {
     getuid = typeof process.getuid === 'function' ? () => process.getuid() : null,
     spawnImpl = spawn,
     startupTimeoutMs = CHROME_STARTUP_TIMEOUT_MS,
-    shutdownTimeoutMs = 1500,
+    // Windows reports Chrome's exit and releases its profile files more slowly than
+    // POSIX systems, especially under load; give it a larger but still bounded budget.
+    shutdownTimeoutMs = platform === 'win32' ? 5000 : 1500,
   } = {}) {
-    this.#profile = createOwnedTempDirectory('archi-made-easy-visual-check-profile-');
+    this.#profile = createOwnedTempDirectory('archi-made-easy-visual-check-profile-', {
+      cleanupRetries: platform === 'win32' ? 10 : 3,
+    });
     this.profileRoot = this.#profile.path;
     this.shutdownTimeoutMs = shutdownTimeoutMs;
     this.stderr = '';

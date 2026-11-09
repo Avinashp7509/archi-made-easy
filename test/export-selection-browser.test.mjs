@@ -140,12 +140,11 @@ test('Export menu preserves authored reach until genuine outside dismissal', {
   }
   await checkArtifact(file);
   const repoRoot = path.resolve(skillRoot, '..');
-  const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
-  const links = new Set(Array.from(readme.matchAll(/\]\((examples\/[^)\s]+\.html)\)/g), match => match[1]));
+  // Every root architecture showcase with a rendered page (no longer selected through README links).
   const examples = fs.readdirSync(path.join(repoRoot, 'examples'))
     .filter(name => name.endsWith('.architecture.json'))
     .map(name => JSON.parse(fs.readFileSync(path.join(repoRoot, 'examples', name), 'utf8')).meta.output)
-    .filter(output => links.has(output));
-  assert.ok(examples.length, 'README links architecture examples with authoritative inputs');
+    .filter(output => fs.existsSync(path.join(repoRoot, output)));
+  assert.ok(examples.length, 'root architecture examples with authoritative inputs');
   for (const example of examples) await checkArtifact(path.join(repoRoot, example));
 });
