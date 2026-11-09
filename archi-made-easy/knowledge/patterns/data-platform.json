@@ -10,8 +10,8 @@
   ],
   "layout": { "mode": "grid", "origin": [40, 110], "cols": 6, "cellW": 130, "cellH": 60, "gapX": 80, "gapY": 80 },
   "components": [
-    { "id": "events", "slot": "external_api", "label": "Event sources", "sublabel": "Apps, devices", "row": 0, "col": 0 },
-    { "id": "systems", "slot": "external_api", "label": "Source systems", "sublabel": "Databases, SaaS", "row": 1, "col": 0 },
+    { "id": "events", "slot": "external_api", "label": "Event sources", "sublabel": "Apps, devices", "row": 0, "col": 0, "operational": { "role": "ingress" } },
+    { "id": "systems", "slot": "external_api", "label": "Source systems", "sublabel": "Databases, SaaS", "row": 1, "col": 0, "operational": { "role": "ingress" } },
     { "id": "stream", "slot": "event_stream", "sublabel": "Streaming ingest", "row": 0, "col": 1, "operational": { "redundancy": "multi-az" } },
     { "id": "ingest", "slot": "etl", "sublabel": "Batch + stream ingest", "row": 1, "col": 1 },
     { "id": "raw", "slot": "object_store", "sublabel": "Raw zone", "row": 1, "col": 2, "operational": { "security": { "encryption_at_rest": true } } },

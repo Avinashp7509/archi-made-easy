@@ -68,7 +68,11 @@ export function buildModel(document) {
     || boundariesIn.some((b) => b.operational) || Object.keys(workbench).length > 0;
 
   const inbound = new Map(components.map((c) => [c.id, 0]));
-  for (const connection of connections) inbound.set(connection.to, (inbound.get(connection.to) || 0) + 1);
+  const outbound = new Map(components.map((c) => [c.id, 0]));
+  for (const connection of connections) {
+    inbound.set(connection.to, (inbound.get(connection.to) || 0) + 1);
+    outbound.set(connection.from, (outbound.get(connection.from) || 0) + 1);
+  }
 
   // Boundaries first, so nodes can record membership and inherited trust zones.
   const boundaries = boundariesIn.map((boundary, index) => {
@@ -91,8 +95,11 @@ export function buildModel(document) {
     const basis = {};
     const node = { id: component.id, label: component.label, type: component.type, sublabel: component.sublabel ?? null };
     if (has(op, 'role')) { node.role = op.role; basis.role = 'authored'; }
-    else { node.role = inferRole(component, { inbound: inbound.get(component.id) || 0 }); basis.role = 'assumed'; }
-    const defaults = ROLE_DEFAULTS[node.role];
+    else { node.role = inferRole(component, { inbound: inbound.get(component.id) || 0, outbound: outbound.get(component.id) || 0 }); basis.role = 'assumed'; }
+    // An external entry component stands for the people or systems that send traffic. It is an
+    // actor, not infrastructure: it has no availability, capacity or latency of its own.
+    node.actor = component.type === 'external' && node.role === 'ingress';
+    const defaults = node.actor ? { sla_percent: null, max_rps: null, p50_ms: null, p99_ms: null, redundancy: null } : ROLE_DEFAULTS[node.role];
     node.c4_level = op.c4_level ?? null;
     node.drilldown_diagram_id = op.drilldown_diagram_id ?? null;
     pick(node, basis, 'sla_percent', op, 'sla_percent', defaults.sla_percent);
@@ -102,15 +109,16 @@ export function buildModel(document) {
     pick(capacity, basis, 'capacity.max_rps', cap, 'max_rps', defaults.max_rps);
     pick(capacity, basis, 'capacity.baseline_rps', cap, 'baseline_rps', null);
     for (const key of ['cpu_cores', 'memory_gb', 'scaling_lag_sec']) pick(capacity, basis, `capacity.${key}`, cap, key, null);
-    pick(capacity, basis, 'capacity.autoscale_min', cap, 'autoscale_min', 1);
-    pick(capacity, basis, 'capacity.autoscale_max', cap, 'autoscale_max', has(cap, 'autoscale_min') ? cap.autoscale_min : 1);
+    pick(capacity, basis, 'capacity.autoscale_min', cap, 'autoscale_min', node.actor ? null : 1);
+    pick(capacity, basis, 'capacity.autoscale_max', cap, 'autoscale_max', has(cap, 'autoscale_min') ? cap.autoscale_min : node.actor ? null : 1);
     node.capacity = capacity;
 
     const latency = {}; const lat = op.latency || {};
     pick(latency, basis, 'latency.p50_ms', lat, 'p50_ms', defaults.p50_ms);
     pick(latency, basis, 'latency.p99_ms', lat, 'p99_ms', defaults.p99_ms);
     if (has(lat, 'p95_ms')) { latency.p95_ms = lat.p95_ms; basis['latency.p95_ms'] = 'authored'; }
-    else { latency.p95_ms = round(lognormalP95(latency.p50_ms, latency.p99_ms)); basis['latency.p95_ms'] = 'assumed'; }
+    else if (latency.p50_ms != null && latency.p99_ms != null) { latency.p95_ms = round(lognormalP95(latency.p50_ms, latency.p99_ms)); basis['latency.p95_ms'] = 'assumed'; }
+    else latency.p95_ms = null;
     node.latency = latency;
 
     const dr = {}; const drIn = op.dr || {};
@@ -218,10 +226,16 @@ export function buildModel(document) {
     }
   }
 
-  const entrypoints = (workbench.entrypoints?.length ? workbench.entrypoints.filter((id) => nodeById.has(id))
-    : nodes.filter((n) => n.role === 'ingress' || n.role === 'cdn').map((n) => n.id));
-  const fallbackEntrypoints = entrypoints.length ? entrypoints
-    : nodes.filter((n) => !edges.some((e) => e.to === n.id && !['replication-sync', 'replication-async', 'failover-route', 'heartbeat'].includes(e.call_semantics))).map((n) => n.id);
+  // Entry points: authored, else edge-facing components nothing calls, else any edge-facing
+  // component, else any component nothing calls.
+  const hasInboundTraffic = (id) => edges.some((e) => e.to === id && !['replication-sync', 'replication-async', 'failover-route', 'heartbeat'].includes(e.call_semantics));
+  const edgeFacing = nodes.filter((n) => n.role === 'ingress' || n.role === 'cdn');
+  const NON_TRAFFIC = ['replication-sync', 'replication-async', 'failover-route', 'heartbeat'];
+  const sendsTraffic = (id) => edges.some((e) => e.from === id && !NON_TRAFFIC.includes(e.call_semantics));
+  const inferredEntrypoints = [edgeFacing.filter((n) => !hasInboundTraffic(n.id)), edgeFacing, nodes.filter((n) => !hasInboundTraffic(n.id) && sendsTraffic(n.id))]
+    .find((candidates) => candidates.length > 0)?.map((n) => n.id) ?? [];
+  const authoredEntrypoints = workbench.entrypoints?.length ? workbench.entrypoints.filter((id) => nodeById.has(id)) : [];
+  const fallbackEntrypoints = authoredEntrypoints.length ? authoredEntrypoints : inferredEntrypoints;
 
   const model = {
     schemaVersion: MODEL_SCHEMA_VERSION,

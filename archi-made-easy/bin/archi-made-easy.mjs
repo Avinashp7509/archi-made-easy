@@ -2194,9 +2194,9 @@ const COMMAND_USAGE = {
   compare: 'architecture <base.json> <head.json> [output.html] [--receipt path] [--json] [--quality standard|showcase] [--repo-root path]',
   deliver: '<type> <input.json> [output.html] [--json] [--open] [--quality standard|showcase] [--repo-root path]',
   patch: 'explainer <artifact.html> <panel-id> <replacement-file> <output.html> [--json] [--quality standard|showcase] [--repo-root path]',
-  finalize: '<type> <input.json> <output.html> [--json] [--browser-check] [--receipt path] [--out-dir <dir>] [--quality standard|showcase] [--repo-root path] [--candidate-sha256 hex]',
+  finalize: '<type> <input.json> <output.html> [--json] [--browser-check] [--receipt path] [--out-dir <dir>] [--quality standard|showcase] [--repo-root path] [--candidate-sha256 hex] [--arb warn|strict|off]',
   preview: '<diagram-type (excludes explainer)> <input.json> [output.html] [--no-open] [--quality standard|showcase] [--repo-root path]',
-  validate: '<type> <input.json> [--json] [--layout-json] [--quality standard|showcase] [--repo-root path]',
+  validate: '<type> <input.json> [--json] [--layout-json] [--quality standard|showcase] [--repo-root path] [--arb warn|strict|off]',
   migrate: 'workflow <old.json> <new.json> --to-schema 2 [--output portable.html] [--json] [--repo-root path]',
   inspect: '<type> <input.json>',
   check: '<output.html> [--json] [--require-provenance]',
@@ -2204,6 +2204,8 @@ const COMMAND_USAGE = {
   'visual-check': '<output.html> [--json|--summary] [--require-provenance] [--out-dir <dir>]',
   guide: '[scenario or question] [--json] [--lang en|zh]',
   scaffold: ['--list [--json]', '<pattern> [--provider azure|aws|gcp|onprem] [--title text] [--output name.html] [--out candidate.json] [--force] [--json]'],
+  review: '<architecture.json> [--multiplier N] [--cache-hit N] [--strict] [--json]',
+  simulate: '<architecture.json> [--scenario a..f|all] [--multiplier N] [--cache-hit N] [--fault <target>=<state>] [--list-scenarios] [--fmea] [--cost] [--json]',
   brands: ['[name, alias, domain, or category] [--json]', 'capture <url> [--json]'],
   examples: '',
   doctor: '',
@@ -2412,6 +2414,49 @@ function extractExplainerWritingArgs(args) {
     code:'cli/unsupported-option',subject:{option:'--writing'},supportedFixes:['Remove --writing or use an explainer document.'],
   });
   return {rest,writingMode};
+}
+
+// --arb warn|strict|off: architecture review inside validate and finalize.
+// Unset means: review only documents that carry authored operational data.
+function extractArbArgs(args) {
+  const rest = [];
+  let arbMode;
+  for (let index = 0; index < args.length; index += 1) {
+    const argument = args[index];
+    if (argument === '--arb' || argument.startsWith('--arb=')) {
+      const value = argument === '--arb' ? args[++index] : argument.slice('--arb='.length);
+      if (arbMode !== undefined || !['warn', 'strict', 'off'].includes(value)) rejectCliArgument('--arb requires one of warn, strict or off.', {
+        code: 'cli/invalid-arguments', subject: { option: '--arb' }, supportedFixes: ['Use --arb warn, --arb strict or --arb off once.'],
+      });
+      arbMode = value;
+    } else rest.push(argument);
+  }
+  if (arbMode !== undefined && rest.find((argument) => !argument.startsWith('--')) !== 'architecture') rejectCliArgument('--arb is supported for architecture documents only.', {
+    code: 'cli/unsupported-option', subject: { option: '--arb' }, supportedFixes: ['Remove --arb or use an architecture document.'],
+  });
+  return { rest, arbMode };
+}
+
+// Review block for a receipt, or null when no review applies. Never throws: a review
+// problem must not turn a passing artifact check into a failure.
+async function architectureReviewBlock(type, inputPath, arbMode) {
+  if (type !== 'architecture' || arbMode === 'off') return null;
+  try {
+    const { reviewForReceipt } = await import('./workbench-analysis.mjs');
+    return reviewForReceipt(inputPath, { explicit: arbMode !== undefined });
+  } catch {
+    return null;
+  }
+}
+
+function criticalReviewDiagnostic(review) {
+  return {
+    code: 'review/critical-findings', severity: 'error',
+    message: `Architecture review found ${review.counts.critical} critical finding${review.counts.critical === 1 ? '' : 's'} (--arb strict).`,
+    subject: { findings: review.findings.filter((finding) => finding.severity === 'critical').map((finding) => finding.id) },
+    evidence: { score: review.score, counts: review.counts },
+    supportedFixes: ['resolve the critical findings listed under review.findings', 'or rerun with --arb warn'],
+  };
 }
 
 async function prepareExplainerInput(specification, inputPath, options = {}) {
@@ -5893,7 +5938,8 @@ async function commandFinalize(rawArgs) {
   const receiptArgs = extractFinalizeReceiptArgs(outDirArgs.rest);
   const candidateArgs = extractCandidateSha256Args(receiptArgs.rest);
   const writingArgs = extractExplainerWritingArgs(candidateArgs.rest);
-  candidateArgs.rest = writingArgs.rest;
+  const arbArgs = extractArbArgs(writingArgs.rest);
+  candidateArgs.rest = arbArgs.rest;
   const json = candidateArgs.rest.includes('--json');
   const knownOptions = new Set(['--json','--browser-check']);
   const unknown = candidateArgs.rest.filter((arg) => arg.startsWith('--') && !knownOptions.has(arg));
@@ -5982,10 +6028,21 @@ async function commandFinalize(rawArgs) {
     if (explainerTemporary) await explainerTemporary.cleanup();
   }
 
+  // The review is advisory evidence about the design; the four gates above are about the artifact.
+  const architectureReview = result.summary.status === 'pass' ? await architectureReviewBlock(type, path.resolve(input), arbArgs.arbMode) : null;
+  const reviewBlocks = Boolean(architectureReview) && arbArgs.arbMode === 'strict' && architectureReview.counts.critical > 0;
+  if (architectureReview) {
+    result = { ...result, exitCode: reviewBlocks ? 1 : result.exitCode, summary: {
+      ...result.summary,
+      review: architectureReview,
+      ...(reviewBlocks ? { ok: false, diagnostics: [...(result.summary.diagnostics || []), criticalReviewDiagnostic(architectureReview)] } : {}),
+    } };
+  }
   if (json) {
     console.log(JSON.stringify(result.summary));
   } else {
     console.log(`finalize ${result.summary.status}: ${result.summary.artifact.path}`);
+    if (architectureReview) console.log(`review score ${architectureReview.score}/100; details: archi-made-easy review ${input}`);
     console.log(`gates ${Object.entries(result.summary.gates).map(([stage, status]) => `${stage}:${status}`).join(' ')}`);
     console.log(`receipt ${result.summary.evidence.receipt}`);
     console.log(`perceptual visual review ${result.summary.visualReview}`);
@@ -6138,7 +6195,7 @@ async function commandDoctor(args) {
     failureLabel: validatorsExist ? 'invalid' : 'missing',
   });
 
-  const workbenchRuntime = ['workbench/defaults.mjs', 'workbench/model.mjs', 'workbench/validate.mjs', 'workbench/scaffold.mjs', 'bin/workbench.mjs', 'knowledge/slots.json', 'knowledge/providers/azure.json', 'knowledge/providers/aws.json', 'knowledge/providers/gcp.json', 'knowledge/providers/onprem.json', 'knowledge/patterns/web-ha.json'];
+  const workbenchRuntime = ['workbench/defaults.mjs', 'workbench/model.mjs', 'workbench/validate.mjs', 'workbench/scaffold.mjs', 'workbench/sim.mjs', 'workbench/scenarios.mjs', 'workbench/fmea.mjs', 'workbench/cost.mjs', 'workbench/review.mjs', 'bin/workbench.mjs', 'bin/workbench-analysis.mjs', 'knowledge/slots.json', 'knowledge/providers/azure.json', 'knowledge/providers/aws.json', 'knowledge/providers/gcp.json', 'knowledge/providers/onprem.json', 'knowledge/patterns/web-ha.json'];
   checks.push({
     label: 'Architecture workbench runtime and knowledge packs',
     ok: workbenchRuntime.every((file) => fs.existsSync(path.join(skillRoot, file))),
@@ -6974,7 +7031,8 @@ async function commandValidate(args, invocation = {}) {
   const qualityArgs = extractQualityArgs(args);
   const repoArgs = extractRepoRootArgs(qualityArgs.rest);
   const writingArgs = extractExplainerWritingArgs(repoArgs.rest);
-  repoArgs.rest = writingArgs.rest;
+  const arbArgs = extractArbArgs(writingArgs.rest);
+  repoArgs.rest = arbArgs.rest;
   args = repoArgs.rest;
   const quality = qualityArgs.quality;
   const repoRoot = repoArgs.repoRoot;
@@ -7142,6 +7200,9 @@ async function commandValidate(args, invocation = {}) {
       } else {
         const result = JSON.parse(check.stdout);
         const engineeringProfile = engineeringProfileFromArtifact(fs.readFileSync(out));
+        const architectureReview = await architectureReviewBlock(type, path.resolve(input), arbArgs.arbMode);
+        const reviewBlocks = Boolean(architectureReview) && arbArgs.arbMode === 'strict' && architectureReview.counts.critical > 0;
+        if (reviewBlocks) exitCode = 1;
         if (json) {
           const candidate = {
             path: path.resolve(input),
@@ -7175,12 +7236,24 @@ async function commandValidate(args, invocation = {}) {
             ...(engineeringProfile ? { engineeringProfile } : {}),
             ...(localeWarnings.length ? { diagnostics: localeWarnings } : {}),
           };
+          if (architectureReview) receipt.review = architectureReview;
+          if (reviewBlocks) {
+            receipt.ok = false;
+            receipt.diagnostics = [...(receipt.diagnostics || []), criticalReviewDiagnostic(architectureReview)];
+          }
           report = () => console.log(JSON.stringify(receipt, null, 2));
         } else {
           const engineering = engineeringProfile
             ? `; engineering ${engineeringProfile}: pass`
             : '';
-          report = () => console.log(`ok ${type} ${path.resolve(input)} (${result.checks.length} artifact checks; composition ${result.composition.profile}: ${result.composition.summary.errors} errors, ${result.composition.summary.warnings} warnings${engineering})`);
+          report = () => {
+            console.log(`ok ${type} ${path.resolve(input)} (${result.checks.length} artifact checks; composition ${result.composition.profile}: ${result.composition.summary.errors} errors, ${result.composition.summary.warnings} warnings${engineering})`);
+            if (architectureReview) {
+              const counts = Object.entries(architectureReview.counts).filter(([, n]) => n > 0).map(([severity, n]) => `${n} ${severity}`).join(', ') || 'no findings';
+              console.log(`review score ${architectureReview.score}/100 (${counts}); details: archi-made-easy review ${input}`);
+              if (reviewBlocks) console.error(criticalReviewDiagnostic(architectureReview).message);
+            }
+          };
         }
       }
     }
@@ -7276,6 +7349,16 @@ try {
       // Loaded on demand: the main CLI must keep working when copied on its own.
       const { commandScaffold } = await import('./workbench.mjs');
       process.exitCode = commandScaffold(args);
+      break;
+    }
+    case 'review': {
+      const { commandReview } = await import('./workbench-analysis.mjs');
+      process.exitCode = commandReview(args);
+      break;
+    }
+    case 'simulate': {
+      const { commandSimulate } = await import('./workbench-analysis.mjs');
+      process.exitCode = commandSimulate(args);
       break;
     }
     case 'brands':

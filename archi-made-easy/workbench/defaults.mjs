@@ -57,9 +57,9 @@ function keywordRole(text) {
 /**
  * Infer an operational role from the component's existing fields.
  * @param {object} component architecture component
- * @param {{ inbound: number }} context number of inbound relationships
+ * @param {{ inbound: number, outbound: number }} context number of inbound and outbound relationships
  */
-export function inferRole(component, { inbound = 0 } = {}) {
+export function inferRole(component, { inbound = 0, outbound = 0 } = {}) {
   const text = [component.label, component.sublabel, component.tag, component.icon, component.brand?.id ?? component.brand].filter(Boolean).join(' ');
   const keyword = keywordRole(text);
   switch (component.type) {
@@ -75,6 +75,8 @@ export function inferRole(component, { inbound = 0 } = {}) {
     case 'security':
       return keyword === 'gateway' ? 'gateway' : 'identity';
     case 'external':
+      // An external party that only sends requests (users, client systems) is where traffic enters.
+      if (inbound === 0 && outbound > 0) return 'ingress';
       return keyword === 'ai-model' ? 'ai-model' : 'external-saas';
     case 'cloud':
       return ['cdn', 'object-store', 'load-balancer', 'gateway'].includes(keyword) ? keyword : 'stateless-compute';

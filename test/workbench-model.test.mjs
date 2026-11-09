@@ -166,3 +166,45 @@ test('duplicate list values are reported (schemas avoid uniqueItems to stay depe
   const codes = buildModel(d).diagnostics.filter((x) => x.code === 'workbench/duplicate-value').map((x) => x.subject.reference).sort();
   assert.deepEqual(codes, ['GDPR', 'PCI-DSS', 'web']);
 });
+
+test('inferred entry points prefer edge-facing components that nothing calls', () => {
+  const d = doc();
+  d.components.push({ id: 'cdn', type: 'cloud', label: 'CDN' });
+  d.connections[0] = { id: 'c1', from: 'web', to: 'cdn' };
+  d.connections.push({ id: 'c0', from: 'cdn', to: 'gw' });
+  const { model } = buildModel(d);
+  assert.equal(model.nodes.find((n) => n.id === 'cdn').role, 'cdn');
+  assert.deepEqual(model.entrypoints, ['web'], 'the CDN receives traffic, so it is not an entry');
+  const authored = buildModel({ ...d, workbench: { entrypoints: ['cdn'] } }).model;
+  assert.deepEqual(authored.entrypoints, ['cdn']);
+  assert.equal(authored.entrypointsBasis, 'authored');
+});
+
+test('an external entry component is an actor with no availability, capacity or latency of its own', () => {
+  const d = doc();
+  d.components[0] = { id: 'web', type: 'external', label: 'Users' };
+  const { model } = buildModel(d);
+  const users = model.nodes.find((n) => n.id === 'web');
+  assert.equal(users.role, 'ingress');
+  assert.equal(users.actor, true);
+  assert.equal(users.sla_percent, null);
+  assert.equal(users.capacity.max_rps, null);
+  assert.equal(users.latency.p99_ms, null);
+  assert.equal(users.redundancy, null);
+  assert.equal(model.nodes.find((n) => n.id === 'gw').actor, false);
+});
+
+test('the capacity reference documents every role default', async () => {
+  const fsMod = await import('node:fs');
+  const text = fsMod.readFileSync(new URL('../archi-made-easy/references/capacity-latency-and-finops.md', import.meta.url), 'utf8');
+  for (const [role, d] of Object.entries(ROLE_DEFAULTS)) {
+    const row = text.split('\n').find((line) => line.startsWith('|') && line.split('|')[1].split(',').map((s) => s.trim()).includes(role));
+    assert.ok(row, `${role} is documented`);
+    const cells = row.split('|').map((c) => c.trim());
+    assert.equal(Number(cells[2]), d.sla_percent, `${role} SLA`);
+    assert.equal(Number(cells[3].replaceAll(',', '')), d.max_rps, `${role} max RPS`);
+    assert.equal(Number(cells[4]), d.p50_ms, `${role} P50`);
+    assert.equal(Number(cells[5].replaceAll(',', '')), d.p99_ms, `${role} P99`);
+    assert.equal(cells[6], d.redundancy, `${role} redundancy`);
+  }
+});

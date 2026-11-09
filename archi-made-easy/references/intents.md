@@ -7,6 +7,7 @@ Read this when the user describes what they want in their own words rather than 
 - [How to handle any request](#how-to-handle-any-request)
 - [Asking versus assuming](#asking-versus-assuming)
 - [Intent playbooks](#intent-playbooks)
+- [Review, what-if and cost](#review-what-if-and-cost)
 - [Not available yet](#not-available-yet)
 - [Reporting](#reporting)
 
@@ -27,7 +28,9 @@ Read this when the user describes what they want in their own words rather than 
 | Explain | "explain this architecture", "make it a one-pager" | `explainer`, following `references/explainer-authoring.md` |
 | Compare versions | "what changed between these two designs" | `compare architecture <base> <head>` (see `references/delivery-contract.md`) |
 | Export | "give me an SVG / PNG / share card" | The viewer's Export menu (see `references/viewer-runtime.md`) |
-| Review, what-if, optimise | "identify risks", "what if the database fails", "simulate 20x traffic", "lower the cost" | Not available yet. See [Not available yet](#not-available-yet). |
+| Review | "review this architecture", "identify risks", "is this sound?" | `review <architecture.json>` (see [Review, what-if and cost](#review-what-if-and-cost)) |
+| What-if | "what if the database fails", "simulate 20x traffic", "what is the blast radius" | `simulate <architecture.json>` with a scenario, a fault or a multiplier |
+| Optimise | "lower the cost", "make it more resilient" | `review` and `simulate --cost`, change the document, rerun to show the difference |
 
 ## Asking versus assuming
 
@@ -72,26 +75,33 @@ For an everyday or personal subject, ask for missing personal facts (dates, amou
 
 - Use an `explainer` page: the conclusion first, then panels, with native diagrams embedded where they carry the explanation.
 
+## Review, what-if and cost
+
+These questions are answered by running the model on an architecture document, never by estimating in your head.
+
+1. Get the document. Use the one already made in this conversation or supplied by the user. If there is only a description, create the architecture first (above), then analyse it.
+2. Run the command. Read the matching reference for options and for how to explain the result:
+   - review, risks, scorecard: `review <architecture.json>` and [Architecture review rules](arb-well-architected-rules.md);
+   - failures, blast radius, traffic spikes: `simulate <architecture.json> --scenario <a-f>`, `--fault <id>=<state>` or `--multiplier <n>`, and [Failure and what-if simulation](chaos-and-failure-simulation.md);
+   - capacity, latency, availability, cost: `simulate … --cost` and [Capacity, latency, availability and cost](capacity-latency-and-finops.md);
+   - failure modes table: `simulate … --fmea`.
+3. Answer from the output. Every result is an analytical model of the declared design. Say so, and say which inputs were assumed when they affect the conclusion.
+4. For "fix it" or "optimise it": change the document (add redundancy, a circuit breaker, a fallback, a cheaper tier), rerun, and report the before and after.
+
+Never present a modelled number as measured, guaranteed, or a provider commitment. If the user gives real figures, record them in the document and rerun.
+
 ## Not available yet
 
 These capabilities are planned and are not part of this version:
-- architecture review and scorecards;
-- failure and chaos simulation;
-- traffic and capacity modelling;
-- availability and latency analysis;
-- cost estimation;
-- workbench scenarios;
-- export to Mermaid, draw.io, Structurizr or design documents.
+- the interactive workbench inside the HTML (clicking components to inject faults, live sliders, scorecard tabs);
+- export to Mermaid, draw.io, Structurizr or design documents;
+- child diagrams opened by drilling into a component.
 
-When a user asks for one:
-
-1. Say plainly that this version does not include it yet.
-2. Offer the closest available help. Draw the architecture, making the relevant property visible (redundancy, single points of failure you can see in the structure, trust boundaries). Or write an `explainer` that reasons about the question qualitatively.
-3. Present such reasoning as your engineering judgement, never as a computed or measured result. Do not produce numbers that look like model output.
+When a user asks for one, say plainly that this version does not include it yet, and offer the closest available help: the command-line review and simulation above, or the existing HTML viewer.
 
 ## Reporting
 
 Follow the Output section of `SKILL.md`. For architecture requests, also include:
 - the assumptions you made;
 - the requirements you could not represent;
-- for analysis-style questions, a clear line between what the diagram shows and what is your judgement.
+- for analysis questions, that the result is a model of the declared design, and which inputs were assumed.
