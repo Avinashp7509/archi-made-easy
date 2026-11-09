@@ -26,8 +26,8 @@ Read this when the user describes what they want in their own words rather than 
 | From a document | "from my requirements document / RFC / notes" | The type that fits the document's subject; requirements become labels, boundaries and cards |
 | From Mermaid | pasted Mermaid code | The mapped type in `SKILL.md` Mermaid input |
 | Explain | "explain this architecture", "make it a one-pager" | `explainer`, following `references/explainer-authoring.md` |
-| Compare versions | "what changed between these two designs" | `compare architecture <base> <head>` (see `references/delivery-contract.md`) |
-| Export | "give me an SVG / PNG / share card" | The viewer's Export menu (see `references/viewer-runtime.md`) |
+| Compare | "what changed between these two designs", "compare these options", "before and after" | `review <after> --against <before>` for measures and findings; `review --alternatives` for options in one document; `compare architecture <base> <head>` for a visual diff. See [Exports, comparison and the workbench](workbench-ui-and-exporters.md). |
+| Export | "give me Mermaid / draw.io / Structurizr / a design document", "an SVG or PNG" | `export <format>` for text formats (see [Exports, comparison and the workbench](workbench-ui-and-exporters.md)); the viewer's Export menu for images |
 | Review | "review this architecture", "identify risks", "is this sound?" | `review <architecture.json>` (see [Review, what-if and cost](#review-what-if-and-cost)) |
 | What-if | "what if the database fails", "simulate 20x traffic", "what is the blast radius" | `simulate <architecture.json>` with a scenario, a fault or a multiplier |
 | Optimise | "lower the cost", "make it more resilient" | `review` and `simulate --cost`, change the document, rerun to show the difference |
@@ -94,7 +94,7 @@ Never present a modelled number as measured, guaranteed, or a provider commitmen
 
 These capabilities are planned and are not part of this version:
 - the interactive workbench inside the HTML (clicking components to inject faults, live sliders, scorecard tabs);
-- export to Mermaid, draw.io, Structurizr or design documents;
+- command-line SVG and PNG export (use the viewer's Export menu);
 - child diagrams opened by drilling into a component.
 
 When a user asks for one, say plainly that this version does not include it yet, and offer the closest available help: the command-line review and simulation above, or the existing HTML viewer.

@@ -12,6 +12,7 @@ import { buildScenarios, runScenario } from '../workbench/scenarios.mjs';
 import { buildFmea } from '../workbench/fmea.mjs';
 import { estimateCost } from '../workbench/cost.mjs';
 import { review } from '../workbench/review.mjs';
+import { compareDesigns, compareAlternatives } from '../workbench/compare.mjs';
 
 const MODEL_NOTE = 'Analytical model of the declared architecture, not a measurement.';
 
@@ -104,6 +105,34 @@ export function formatReview(result) {
   return lines.join('\n');
 }
 
+const shown = (value, unit) => (value == null ? 'not available' : `${value}${unit && unit !== '/100' ? ` ${unit}` : unit}`);
+
+function metricLines(metrics) {
+  return metrics.map((m) => {
+    const change = m.change == null ? '' : m.change === 0 ? '' : ` (${m.change > 0 ? '+' : ''}${m.change})`;
+    return `  ${m.label}: ${shown(m.before, m.unit)} → ${shown(m.after, m.unit)}${change} ${m.verdict}`;
+  });
+}
+
+export function formatComparison(comparison) {
+  const lines = [`Design comparison. ${MODEL_NOTE}`, `Before: ${comparison.base.title}`, `After:  ${comparison.head.title}`, ...metricLines(comparison.metrics)];
+  if (comparison.components.added.length) lines.push(`Components added: ${comparison.components.added.join(', ')}`);
+  if (comparison.components.removed.length) lines.push(`Components removed: ${comparison.components.removed.join(', ')}`);
+  lines.push(`Findings closed (${comparison.findings.closed.length}):`, ...comparison.findings.closed.map((f) => `  [${f.severity}] ${f.title} (${f.id})`));
+  lines.push(`Findings opened (${comparison.findings.opened.length}):`, ...comparison.findings.opened.map((f) => `  [${f.severity}] ${f.title} (${f.id})`));
+  lines.push(`Findings unchanged: ${comparison.findings.unchanged}`, comparison.note);
+  return lines.join('\n');
+}
+
+export function formatAlternatives(comparison) {
+  const lines = [`Alternatives compared with the authored design. ${MODEL_NOTE}`];
+  for (const alternative of comparison.alternatives) {
+    lines.push('', `${alternative.title} (${alternative.id})${alternative.description ? `: ${alternative.description}` : ''}`, ...metricLines(alternative.metrics),
+      `  Findings: ${alternative.findings.closed.length} closed, ${alternative.findings.opened.length} opened`);
+  }
+  return lines.join('\n');
+}
+
 function breachLine(analysis) {
   return `Reachable from ${analysis.start} without authentication: ${analysis.reachable_without_authentication.join(', ') || 'nothing'}; stopped at: ${analysis.stopped_by_authentication.join(', ') || 'nothing'}`;
 }
@@ -119,18 +148,20 @@ function failure(stdout, stderr, json, command, error) {
   return 2;
 }
 
-export const REVIEW_USAGE = '<architecture.json> [--multiplier N] [--cache-hit N] [--strict] [--json]';
+export const REVIEW_USAGE = '<architecture.json> [--against <earlier.json> | --alternatives] [--multiplier N] [--cache-hit N] [--strict] [--json]';
 export const SIMULATE_USAGE = '<architecture.json> [--scenario a..f|all] [--multiplier N] [--cache-hit N] [--fault <target>=<state>] [--list-scenarios] [--fmea] [--cost] [--json]';
 
 /** review: findings and score. Exit 1 with --strict when a critical finding exists. */
 export function commandReview(args, { stdout = process.stdout, stderr = process.stderr, cwd = process.cwd() } = {}) {
   const json = args.includes('--json');
   try {
-    let input = null; let multiplier = 1; let cacheHit = 0; let strict = false;
+    let input = null; let multiplier = 1; let cacheHit = 0; let strict = false; let against = null; let alternatives = false;
     for (let i = 0; i < args.length; i += 1) {
       const arg = args[i];
       if (arg === '--json') continue;
       else if (arg === '--strict') strict = true;
+      else if (arg === '--alternatives') alternatives = true;
+      else if (arg === '--against') { against = args[++i]; if (!against) throw new UsageError('--against needs the path of the earlier design.'); }
       else if (arg === '--multiplier') multiplier = numberOption('--multiplier', args[++i], { min: 0.1, max: 100 });
       else if (arg === '--cache-hit') cacheHit = numberOption('--cache-hit', args[++i], { min: 0, max: 0.99 });
       else if (arg.startsWith('--')) throw new UsageError(`Unknown review option ${arg}.`);
@@ -138,7 +169,20 @@ export function commandReview(args, { stdout = process.stdout, stderr = process.
       else throw new UsageError(`Unexpected argument "${arg}".`);
     }
     if (!input) throw new UsageError(`Usage: archi-made-easy review ${REVIEW_USAGE}`);
-    const { model, path: absolute } = loadArchitecture(input, cwd);
+    const { model, document, path: absolute } = loadArchitecture(input, cwd);
+    if (against && alternatives) throw new UsageError('Use either --against or --alternatives, not both.');
+    if (against) {
+      const base = loadArchitecture(against, cwd);
+      const comparison = compareDesigns(base.model, model);
+      emit(stdout, json, { schemaVersion: 1, ok: true, command: 'review', mode: 'against', base: base.path, head: absolute, ...comparison }, formatComparison(comparison));
+      return 0;
+    }
+    if (alternatives) {
+      const comparison = compareAlternatives(document);
+      if (comparison.alternatives.length === 0) throw new UsageError(`${input} has no workbench.alternatives to compare.`);
+      emit(stdout, json, { schemaVersion: 1, ok: true, command: 'review', mode: 'alternatives', input: absolute, ...comparison }, formatAlternatives(comparison));
+      return 0;
+    }
     const result = review(model, { multiplier, cacheHit });
     emit(stdout, json, { schemaVersion: 1, ok: true, command: 'review', input: absolute, ...result }, formatReview(result));
     return strict && result.counts.critical > 0 ? 1 : 0;

@@ -2204,8 +2204,9 @@ const COMMAND_USAGE = {
   'visual-check': '<output.html> [--json|--summary] [--require-provenance] [--out-dir <dir>]',
   guide: '[scenario or question] [--json] [--lang en|zh]',
   scaffold: ['--list [--json]', '<pattern> [--provider azure|aws|gcp|onprem] [--title text] [--output name.html] [--out candidate.json] [--force] [--json]'],
-  review: '<architecture.json> [--multiplier N] [--cache-hit N] [--strict] [--json]',
+  review: '<architecture.json> [--against <earlier.json> | --alternatives] [--multiplier N] [--cache-hit N] [--strict] [--json]',
   simulate: '<architecture.json> [--scenario a..f|all] [--multiplier N] [--cache-hit N] [--fault <target>=<state>] [--list-scenarios] [--fmea] [--cost] [--json]',
+  export: '<html|mermaid|drawio|structurizr|rfc> <architecture.json> <output> [--force] [--json]',
   brands: ['[name, alias, domain, or category] [--json]', 'capture <url> [--json]'],
   examples: '',
   doctor: '',
@@ -6195,7 +6196,7 @@ async function commandDoctor(args) {
     failureLabel: validatorsExist ? 'invalid' : 'missing',
   });
 
-  const workbenchRuntime = ['workbench/defaults.mjs', 'workbench/model.mjs', 'workbench/validate.mjs', 'workbench/scaffold.mjs', 'workbench/sim.mjs', 'workbench/scenarios.mjs', 'workbench/fmea.mjs', 'workbench/cost.mjs', 'workbench/review.mjs', 'bin/workbench.mjs', 'bin/workbench-analysis.mjs', 'knowledge/slots.json', 'knowledge/providers/azure.json', 'knowledge/providers/aws.json', 'knowledge/providers/gcp.json', 'knowledge/providers/onprem.json', 'knowledge/patterns/web-ha.json'];
+  const workbenchRuntime = ['workbench/defaults.mjs', 'workbench/model.mjs', 'workbench/validate.mjs', 'workbench/scaffold.mjs', 'workbench/sim.mjs', 'workbench/scenarios.mjs', 'workbench/fmea.mjs', 'workbench/cost.mjs', 'workbench/review.mjs', 'workbench/compare.mjs', 'workbench/exporters/shared.mjs', 'workbench/exporters/mermaid.mjs', 'workbench/exporters/drawio.mjs', 'workbench/exporters/structurizr.mjs', 'workbench/exporters/rfc.mjs', 'bin/workbench.mjs', 'bin/workbench-analysis.mjs', 'bin/workbench-export.mjs', 'knowledge/slots.json', 'knowledge/providers/azure.json', 'knowledge/providers/aws.json', 'knowledge/providers/gcp.json', 'knowledge/providers/onprem.json', 'knowledge/patterns/web-ha.json'];
   checks.push({
     label: 'Architecture workbench runtime and knowledge packs',
     ok: workbenchRuntime.every((file) => fs.existsSync(path.join(skillRoot, file))),
@@ -7359,6 +7360,11 @@ try {
     case 'simulate': {
       const { commandSimulate } = await import('./workbench-analysis.mjs');
       process.exitCode = commandSimulate(args);
+      break;
+    }
+    case 'export': {
+      const { commandExport } = await import('./workbench-export.mjs');
+      process.exitCode = commandExport(args);
       break;
     }
     case 'brands':

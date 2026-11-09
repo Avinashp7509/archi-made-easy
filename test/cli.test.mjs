@@ -198,7 +198,7 @@ test('cli: sole subcommand --help returns canonical usage without operations', (
   const global = run(['--help'], { cwd: scratch });
   assert.equal(global.status, 0, global.stderr);
   const commands = ['render', 'compare', 'deliver', 'finalize', 'preview', 'validate',
-    'migrate', 'inspect', 'check', 'browser-check', 'visual-check', 'guide', 'scaffold', 'review', 'simulate', 'brands',
+    'migrate', 'inspect', 'check', 'browser-check', 'visual-check', 'guide', 'scaffold', 'review', 'simulate', 'export', 'brands',
     'examples', 'doctor', 'demo'];
   for (const command of commands) {
     const result = run([command, '--help'], { cwd: scratch });

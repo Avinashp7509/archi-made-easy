@@ -1,0 +1,86 @@
+// Helpers shared by the text exporters. Pure and deterministic.
+
+// Words the target grammars treat as keywords. `link` was found by parsing exports with the
+// real Mermaid library: it is a keyword in sequence diagrams.
+const RESERVED = new Set([
+  // Mermaid flowchart and C4
+  'end', 'graph', 'subgraph', 'class', 'style', 'click', 'default', 'direction', 'linkstyle', 'classdef',
+  // Mermaid sequence diagrams
+  'link', 'links', 'note', 'participant', 'actor', 'loop', 'alt', 'else', 'opt', 'par', 'and', 'rect', 'activate', 'deactivate',
+  'title', 'box', 'autonumber', 'critical', 'option', 'break', 'create', 'destroy', 'over', 'properties', 'details',
+  // Structurizr DSL
+  'workspace', 'model', 'views', 'person', 'container', 'group', 'softwaresystem', 'component', 'element', 'styles', 'include', 'this',
+]);
+
+/** Identifier safe for Mermaid and Structurizr: letters, digits and underscores; never a reserved word. */
+export function safeId(id) {
+  const cleaned = String(id).replace(/[^A-Za-z0-9_]/g, '_');
+  return RESERVED.has(cleaned.toLowerCase()) || /^[0-9]/.test(cleaned) ? `n_${cleaned}` : cleaned;
+}
+
+/** Map every id to a unique safe identifier (stable: ids are processed in sorted order). */
+export function idMap(ids) {
+  const used = new Set();
+  const map = new Map();
+  for (const id of [...ids].sort()) {
+    let candidate = safeId(id);
+    for (let n = 2; used.has(candidate); n += 1) candidate = `${safeId(id)}_${n}`;
+    used.add(candidate);
+    map.set(id, candidate);
+  }
+  return map;
+}
+
+export const ASYNC = new Set(['async-queue', 'async-pubsub', 'event-stream']);
+export const PASSIVE = new Set(['replication-sync', 'replication-async', 'failover-route', 'heartbeat']);
+
+const VERB = {
+  'sync-blocking': 'calls', 'async-queue': 'enqueues to', 'async-pubsub': 'publishes to', 'event-stream': 'sends events to',
+  'replication-sync': 'replicates to', 'replication-async': 'replicates to', 'failover-route': 'fails over to', heartbeat: 'checks health of',
+};
+
+/** The connection's own label, or a plain verb for its call semantics. */
+export function edgeText(edge) {
+  return edge.label || VERB[edge.call_semantics] || 'uses';
+}
+
+/** "1 boundary", "2 boundaries", "3 components". */
+export function plural(count, word) {
+  if (count === 1) return `1 ${word}`;
+  return `${count} ${word.endsWith('y') ? `${word.slice(0, -1)}ies` : `${word}s`}`;
+}
+
+/**
+ * Arrange boundaries as a forest: a boundary is nested in the smallest boundary whose
+ * members strictly contain its own. Each component belongs to its smallest boundary.
+ */
+export function boundaryForest(model) {
+  const boundaries = [...model.boundaries].sort((a, b) => (a.members.length - b.members.length) || (a.id < b.id ? -1 : 1));
+  const contains = (outer, inner) => outer.members.length > inner.members.length && inner.members.every((id) => outer.members.includes(id));
+  const parent = new Map();
+  for (const boundary of boundaries) {
+    const host = boundaries.find((other) => other.id !== boundary.id && contains(other, boundary));
+    parent.set(boundary.id, host ? host.id : null);
+  }
+  const home = new Map();
+  for (const node of model.nodes) {
+    const owner = boundaries.find((boundary) => boundary.members.includes(node.id));
+    home.set(node.id, owner ? owner.id : null);
+  }
+  const children = (id) => boundaries.filter((boundary) => parent.get(boundary.id) === id).sort((a, b) => (a.id < b.id ? -1 : 1));
+  const members = (id) => model.nodes.filter((node) => home.get(node.id) === id).map((node) => node.id).sort();
+  return { roots: children(null), children, members, loose: members(null) };
+}
+
+export function xmlEscape(value) {
+  return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/** Markdown table cell: no pipes or line breaks. */
+export function cell(value) {
+  return value == null || value === '' ? '' : String(value).replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
+}
+
+export function mdTable(headers, rows) {
+  return [`| ${headers.join(' | ')} |`, `|${headers.map(() => '---').join('|')}|`, ...rows.map((row) => `| ${row.map(cell).join(' | ')} |`)].join('\n');
+}

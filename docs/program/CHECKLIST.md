@@ -67,18 +67,36 @@ Environment for local evidence: Windows 11, Node 24.18.0 (zlib 1.3.1-e00f703), n
 
 ## Phase 3. Creation and rendering
 
-- [ ] Schema extensions: operational, requirements, alternatives, workbench
-- [ ] Model and defaults; knowledge packs with sourced values; `scaffold`
-- [ ] Workbench data slot in rendering
+- [x] Schema extensions (commit `5a30c47`): optional `operational` on components, connections and boundaries; boundary `id`; root `workbench` with entrypoints, requirements, adrs, traces, alternatives and drilldowns.
+  - Additive only: all inherited examples validate unchanged.
+  - `uniqueItems` is not used, because it would add a runtime dependency to the generated validators; duplicates are checked in the model.
+- [x] Model and defaults (`workbench/model.mjs`, `defaults.mjs`, `validate.mjs`): every value carries a basis of authored or assumed. No load, price or recovery figure is invented. Cross-reference checks run in every command that loads a diagram, including nested drill-down documents.
+- [x] Inherited defect fixed: an architecture without positions crashed with a `TypeError`. It now reports `architecture/missing-component-position`.
+- [x] Knowledge packs and `scaffold` (commit `aff57f2`): 4 provider packs and 9 patterns.
+  - Packs carry service names only. A test rejects any SLA or price value in a pack.
+  - All 36 pattern and provider combinations validate at showcase quality (`test/workbench-scaffold.test.mjs`); three were run through the full `finalize` pipeline with the real-browser gate.
+- [ ] Not done: provider SLA figures with official sources. The packs deliberately ship without them; adding them needs each value fetched from the provider's page with a retrieval date.
+- [ ] Moved to Phase 5: the workbench data slot in rendered HTML. It changes the viewer template, so it ships together with the viewer work to regenerate the goldens once.
 
 ## Phase 4. Review and simulation
 
-- [ ] Engine modules and formula tests
-- [ ] Rule registry, fixtures and coverage document
-- [ ] `review`, `simulate`, `export`, `--arb`, compare deltas
+- [x] Engine (commit `66a6295`): `sim.mjs`, `scenarios.mjs`, `fmea.mjs`, `cost.mjs`.
+  - `test/workbench-sim.test.mjs` has 23 tests whose expected values are worked out by hand in comments (cascade, breaker, fallback, DR failover, zone blackout, cache, retries fixed point, queue lag, availability formulas, latency).
+  - `test/workbench-analysis.test.mjs` covers the six scenarios on all nine patterns, FMEA and cost.
+- [x] Review: `review.mjs` with 14 rules across six pillars.
+  - Each rule has a failing and a passing fixture; a test fails if a rule lacks either.
+  - The rules reference and the defaults table are pinned to the code by tests.
+- [x] Commands: `review`, `simulate` (scenario, fault, multiplier, cache hit, FMEA, cost), `--arb warn|strict|off` on `validate` and `finalize`.
+  - Inherited documents get no review block, so their receipts are unchanged (`test/workbench-cli.test.mjs`).
+- [x] Exporters and `export`: Mermaid (flowchart, C4, sequence), draw.io, Structurizr DSL, RFC document, HTML (`test/workbench-export.test.mjs`, 13 tests).
+- [x] Comparison: `review --against <before>` and `review --alternatives` (`workbench/compare.mjs`, `test/workbench-compare.test.mjs`).
+- [ ] Not done: command-line SVG and PNG export. Images come from the viewer's Export menu; the CLI says so.
+- [x] Mermaid output checked against the real Mermaid 11.4.1 parser: 29 of 29 diagrams parse and render, after fixing a reserved-word collision the first run found. Evidence: [acceptance/mermaid-parse-2026-11-10.md](acceptance/mermaid-parse-2026-11-10.md).
+- [ ] Not verified in an external tool: the draw.io and Structurizr outputs are checked structurally by tests, not yet opened in diagrams.net or Structurizr.
 
 ## Phase 5. Workbench
 
+- [ ] Workbench data slot in rendered HTML (moved from Phase 3)
 - [ ] Viewer modes, inspection, chaos, traffic, security, FinOps, C4, alternatives, handoff
 - [ ] Engine parity test; browser tests; browser gate with workbench open and closed
 
