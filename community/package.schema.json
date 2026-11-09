@@ -5,7 +5,7 @@
   "description": "Registry metadata for a standalone community package that builds on Archi-Made-Easy. One file per package under community/packages/. The package content lives in the author's own repository; this file only indexes it.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["name", "type", "summary", "author", "repository", "archi-made-easy", "schemaVersions"],
+  "required": ["name", "type", "summary", "author", "repository", "archiMadeEasy", "schemaVersions"],
   "properties": {
     "name": {
       "type": "string",
@@ -39,7 +39,7 @@
       "pattern": "^https://[^\\s\\\\/?#@]+(?:[/?#][^\\s\\\\]*)?$", "format": "uri",
       "description": "Public URL of the package source (git repository, npm page, or directory inside one)."
     },
-    "archi-made-easy": {
+    "archiMadeEasy": {
       "type": "string",
       "pattern": "^(\\^|~)\\d+\\.\\d+\\.\\d+$|^\\d+\\.\\d+\\.\\d+$|^>=\\d+\\.\\d+\\.\\d+ <\\d+\\.\\d+\\.\\d+$",
       "description": "Compatible Archi-Made-Easy version range, e.g. ^3.0.1 or >=3.0.0 <4.0.0."

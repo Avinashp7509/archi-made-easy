@@ -46,7 +46,7 @@ if ($LASTEXITCODE -ne 0) {
   throw "Could not enable per-directory case sensitivity at $caseRoot"
 }
 $upperProbe = Join-Path $caseRoot 'ArchiMadeEasyCaseProbe.txt'
-$lowerProbe = Join-Path $caseRoot 'archi-made-easycaseprobe.txt'
+$lowerProbe = Join-Path $caseRoot 'archimadeeasycaseprobe.txt'
 [IO.File]::WriteAllText($upperProbe, 'upper')
 [IO.File]::WriteAllText($lowerProbe, 'lower')
 if ([IO.File]::ReadAllText($upperProbe) -ne 'upper' -or

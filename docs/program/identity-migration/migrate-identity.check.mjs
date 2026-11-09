@@ -33,7 +33,7 @@ const textCases = [
   ['Ends with Archify.', 'Ends with Archi-Made-Easy.'],
   ['name: archify\n', 'name: archi-made-easy\n'],
   ['Copyright (c) 2026 tt-a1i (Archify)\nArchify is great', 'Copyright (c) 2026 tt-a1i (Archify)\nArchi-Made-Easy is great'],
-  ['See https://archify.si/gallery and archify.si', 'See https://OWNER.github.io/archi-made-easy/gallery and OWNER.github.io/archi-made-easy'],
+  ['See https://archify.si/gallery and archify.si', 'See https://archi-made-easy.example/gallery and archi-made-easy.example'],
   ['dsh add @tt-a1i/archify-dsh@1.1.0', 'dsh add @OWNER/archi-made-easy-dsh@1.1.0'],
   ['/SECURITY.md @tt-a1i\n', '/SECURITY.md @OWNER\n'],
   ['[tt-a1i/test-value](https://github.com/tt-a1i/test-value)', '[tt-a1i/test-value](https://github.com/tt-a1i/test-value)'],

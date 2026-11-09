@@ -32,13 +32,13 @@ export function checkCloudflareOutput(root) {
     const findBase = node => node.tagName === 'base'
       ? node.attrs?.find(attribute => attribute.name === 'href')?.value
       : (node.childNodes ?? []).map(findBase).find(Boolean);
-    const documentUrl = `https://OWNER.github.io/archi-made-easy/${page}`;
+    const documentUrl = `https://archi-made-easy.example/${page}`;
     const baseUrl = new URL(findBase(document) || documentUrl, documentUrl);
     const visit = node => {
       for (const { name, value } of node.attrs ?? []) {
         if (!['src', 'href'].includes(name) || !value || value.startsWith('#')) continue;
         const url = new URL(value, baseUrl);
-        if (url.origin !== 'https://OWNER.github.io/archi-made-easy') continue;
+        if (url.origin !== 'https://archi-made-easy.example') continue;
         const pathname = decodeURIComponent(url.pathname);
         assert.ok(!/^\/archi-made-easy(?:\/|$)/.test(pathname), `${page}: legacy base URL ${value}`);
         const relative = pathname.replace(/^\//, '') || 'index.html';
@@ -58,7 +58,7 @@ export function checkCloudflareOutput(root) {
   assert.equal(new Set(locations).size, locations.length, 'Duplicate sitemap URL');
   for (const location of locations) {
     const url = new URL(location);
-    assert.equal(url.origin, 'https://OWNER.github.io/archi-made-easy');
+    assert.equal(url.origin, 'https://archi-made-easy.example');
     assert.ok(!url.search && !url.hash && !/\.html$/.test(url.pathname), `Noncanonical sitemap URL: ${location}`);
     const relative = url.pathname.slice(1);
     const file = !relative || relative.endsWith('/') ? `${relative}index.html` : `${relative}.html`;
@@ -66,11 +66,19 @@ export function checkCloudflareOutput(root) {
     assert.ok(html.includes(`rel="canonical" href="${location}"`), `Missing matching canonical: ${location}`);
     assert.ok(!/<meta[^>]+(?:name="robots"[^>]+content="[^"]*noindex|content="[^"]*noindex[^>]+name="robots")/i.test(html), `Noindex sitemap page: ${location}`);
   }
-  assert.equal(fs.readFileSync(path.join(root, 'robots.txt'), 'utf8').includes('Sitemap: https://OWNER.github.io/archi-made-easy/sitemap.xml'), true);
+  assert.equal(fs.readFileSync(path.join(root, 'robots.txt'), 'utf8').includes('Sitemap: https://archi-made-easy.example/sitemap.xml'), true);
   assert.match(fs.readFileSync(path.join(root, '_headers'), 'utf8'), /\/\*\.json\n  X-Robots-Tag: noindex/);
-  const builtManifest = fs.readFileSync(path.join(root, 'skill-updates/archi-made-easy/stable.json'));
-  const canonicalManifest = fs.readFileSync(new URL('../../docs/skill-updates/archi-made-easy/stable.json', import.meta.url));
-  assert.ok(builtManifest.equals(canonicalManifest), 'The static site must retain the exact stable update manifest');
+  // Before the first published release there is no stable manifest, and the site must
+  // not advertise one; afterwards it must carry the canonical manifest byte for byte.
+  const builtManifestPath = path.join(root, 'skill-updates/archi-made-easy/stable.json');
+  const canonicalManifestUrl = new URL('../../docs/skill-updates/archi-made-easy/stable.json', import.meta.url);
+  if (fs.existsSync(canonicalManifestUrl)) {
+    const builtManifest = fs.readFileSync(builtManifestPath);
+    const canonicalManifest = fs.readFileSync(canonicalManifestUrl);
+    assert.ok(builtManifest.equals(canonicalManifest), 'The static site must retain the exact stable update manifest');
+  } else {
+    assert.ok(!fs.existsSync(builtManifestPath), 'The static site must not publish a stable update manifest before the first release');
+  }
   return pages.length;
 }
 

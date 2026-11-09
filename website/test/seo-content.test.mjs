@@ -18,7 +18,7 @@ const read = (page, lang) => parse(fs.readFileSync(path.join(root, lang === 'zh'
 const byClass = (node, name) => [...((attr(node, 'class') || '').split(/\s+/).includes(name) ? [node] : []), ...(node.childNodes || []).flatMap(child => byClass(child, name))];
 const byTag = (node, tag) => node.tagName === tag ? node : (node.childNodes || []).map(child => byTag(child, tag)).find(Boolean);
 function assertProofLink(page, link, lang, proof) {
-  const documentUrl = new URL(`${lang === 'zh' ? 'zh/' : ''}guide${cloudflare ? '' : '.html'}`, cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/');
+  const documentUrl = new URL(`${lang === 'zh' ? 'zh/' : ''}guide${cloudflare ? '' : '.html'}`, cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/');
   const base = new URL(attr(byTag(page, 'base'), 'href'), documentUrl);
   const expectedBase = cloudflare ? '/' : '/archi-made-easy/';
   assert.equal(base.pathname, expectedBase, 'proof links resolve against the deployment base');
@@ -67,7 +67,7 @@ for (const lang of ['en', 'zh']) {
     assert.equal(clean(text(find(page, 'recipe-question'))), clean(recipe[lang].question));
     assert.equal(clean(text(find(page, 'recipe-prompt'))), clean(startPromptsFor(recipe, lang).descriptionPrompt));
     for (const evidence of recipe[lang].include) assert.ok(clean(text(find(page, 'include-list'))).includes(clean(evidence)));
-    assert.match(text(find(page, 'install-command')), /npx -y skills@latest add https:\/\/archi-made-easy\.si --skill archi-made-easy --agent codex --global --copy --yes/);
+    assert.match(text(find(page, 'install-command')), /npx -y skills@latest add https:\/\/archi-made-easy\.example --skill archi-made-easy --agent codex --global --copy --yes/);
     assertProofLink(page, find(page, 'proof-link'), lang, recipe.proof);
   });
 }
@@ -112,7 +112,7 @@ for (const lang of ['en', 'zh']) {
     const identityText = clean(text(identity));
     assert.ok(identityText.includes(lang === 'zh' ? '开源画图技能' : 'open-source diagram skill'));
     assert.deepEqual(links(identity).map(link => [clean(text(link)), attr(link, 'href')]), [
-      ['OWNER.github.io/archi-made-easy', 'https://OWNER.github.io/archi-made-easy/'],
+      ['archi-made-easy.example', 'https://archi-made-easy.example/'],
       ['OWNER/archi-made-easy', 'https://github.com/OWNER/archi-made-easy'],
     ], 'visible product identity connects the official site and exact source repository');
     const facts = clean(text(find(page, 'about-archi-made-easy')));

@@ -85,9 +85,6 @@ jobs:
       - name: Generated outputs and representative goldens
         if: matrix.shard == 2
         run: npm run test:generated
-      - name: Verify community Hermes adapter
-        if: matrix.shard == 2
-        run: node --test integrations/hermes-agent/test/plugin-contract.test.mjs
       - name: Run a complete regression shard
         run: node scripts/run-tests.mjs --shard=${{ matrix.shard }}/2
 
@@ -325,10 +322,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          if [ ! -f docs/skill-updates/archi-made-easy/stable.json ]; then
+            echo "No stable release has been published yet; nothing to compare."
+            exit 0
+          fi
           manifest_version="$(node --input-type=module -e 'import fs from "node:fs"; import { validateStableUpdateManifest } from "./archi-made-easy/scripts/update-contract.mjs"; process.stdout.write(validateStableUpdateManifest(JSON.parse(fs.readFileSync("./docs/skill-updates/archi-made-easy/stable.json", "utf8"))).version);')"
-          # Independent adapter releases such as archi-made-easy-dsh-v1.1.0 are stable
-          # GitHub releases too, so releases/latest can name them instead of the
-          # Archi-Made-Easy Skill. Select the newest release whose tag is an Archi-Made-Easy
+          # Other GitHub releases (for example future integration adapters) can be
+          # stable too, so releases/latest may not name the Skill. Select the newest release whose tag is an Archi-Made-Easy
           # v<major>.<minor>.<patch> tag.
           latest_stable_tag="$(gh api "repos/${GITHUB_REPOSITORY}/releases?per_page=100" --jq '[.[] | select(.draft == false and .prerelease == false) | select(.tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))][0].tag_name')"
           if [[ "$latest_stable_tag" != "v${manifest_version}" ]]; then

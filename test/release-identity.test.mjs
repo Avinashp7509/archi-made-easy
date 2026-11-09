@@ -16,11 +16,22 @@ function writeFile(root, relativePath, content) {
   fs.writeFileSync(target, content);
 }
 
-function runCheck(root) {
-  return spawnSync(process.execPath, [checker, '--root', root], {
+// Fixtures model a published product, so they run with a configured owner.
+function runCheck(root, { assumeConfiguredOwner = true } = {}) {
+  return spawnSync(process.execPath, [checker, '--root', root, ...(assumeConfiguredOwner ? ['--assume-configured-owner'] : [])], {
     encoding: 'utf8',
   });
 }
+
+test('while the owner is the OWNER placeholder, a shipped manifest URL is rejected', () => {
+  const real = spawnSync(process.execPath, [checker], { encoding: 'utf8' });
+  assert.equal(real.status, 0, real.stderr);
+  const release = JSON.parse(fs.readFileSync(path.join(repoRoot, 'archi-made-easy', 'skill-release.json'), 'utf8'));
+  assert.equal(release.updateManifestUrl, null, 'the repository ships no update manifest before an owner exists');
+  // The fixture override only applies with --root; it never relaxes the real repository.
+  const ignored = spawnSync(process.execPath, [checker, '--assume-configured-owner'], { encoding: 'utf8' });
+  assert.equal(ignored.status, 0, ignored.stderr);
+});
 
 function stableUpdateManifest(version) {
   return JSON.stringify({

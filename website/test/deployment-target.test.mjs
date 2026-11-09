@@ -34,7 +34,7 @@ test('built deployment uses host-compatible generated assets and canonical metad
     const file = page === 'index' ? `${lang === 'zh' ? 'zh' : 'index'}.html` : `${lang === 'zh' ? 'zh/' : ''}${page}.html`;
     const dom = parse(fs.readFileSync(new URL(file, output), 'utf8'));
     const all = nodes(dom);
-    const canonicalUrl = `https://OWNER.github.io/archi-made-easy/${page === 'index' ? (lang === 'zh' ? 'zh' : '') : `${lang === 'zh' ? 'zh/' : ''}${page}`}`;
+    const canonicalUrl = `https://archi-made-easy.example/${page === 'index' ? (lang === 'zh' ? 'zh' : '') : `${lang === 'zh' ? 'zh/' : ''}${page}`}`;
     const bases = all.filter(node => node.tagName === 'base');
     assert.equal(bases.length, 1, file);
     assert.equal(attr(bases[0], 'href'), '../'.repeat(file.split('/').length - 1) || './', file);
@@ -43,7 +43,7 @@ test('built deployment uses host-compatible generated assets and canonical metad
     const nav = all.find(node => node.tagName === 'nav' && attr(node, 'class') === 'site-nav');
     const navLinks = nodes(nav).filter(node => node.tagName === 'a' && (attr(node, 'class') || '').split(/\s+/).includes('nav-link'));
     assert.deepEqual(navLinks.map(node => new URL(attr(node, 'href'), baseUri).href), [
-      ...['guide', 'gallery', 'start', 'community'].map(target => `${cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/'}${lang === 'zh' ? 'zh/' : ''}${target}${cloudflare ? '' : '.html'}`),
+      ...['guide', 'gallery', 'start', 'community'].map(target => `${cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/'}${lang === 'zh' ? 'zh/' : ''}${target}${cloudflare ? '' : '.html'}`),
       'https://github.com/OWNER/archi-made-easy',
     ], `${file}: routes resolved against the actual document base`);
     const canonical = all.filter(node => node.tagName === 'link' && attr(node, 'rel') === 'canonical');
@@ -51,9 +51,9 @@ test('built deployment uses host-compatible generated assets and canonical metad
     assert.equal(attr(canonical[0], 'href'), canonicalUrl, file);
     const alternates = all.filter(node => node.tagName === 'link' && attr(node, 'rel') === 'alternate');
     assert.deepEqual(alternates.map(node => [attr(node, 'hreflang'), attr(node, 'href')]), [
-      ['en', `https://OWNER.github.io/archi-made-easy/${page === 'index' ? '' : page}`],
-      ['zh-Hans', `https://OWNER.github.io/archi-made-easy/${page === 'index' ? 'zh' : `zh/${page}`}`],
-      ['x-default', `https://OWNER.github.io/archi-made-easy/${page === 'index' ? '' : page}`],
+      ['en', `https://archi-made-easy.example/${page === 'index' ? '' : page}`],
+      ['zh-Hans', `https://archi-made-easy.example/${page === 'index' ? 'zh' : `zh/${page}`}`],
+      ['x-default', `https://archi-made-easy.example/${page === 'index' ? '' : page}`],
     ], file);
     const generatedAssets = all.flatMap(node => ['src', 'href'].map(name => attr(node, name))).filter(value => value?.includes('/_astro/'));
     for (const asset of generatedAssets) {
@@ -64,7 +64,7 @@ test('built deployment uses host-compatible generated assets and canonical metad
     for (const property of ['og:url', 'og:image']) {
       const meta = all.filter(node => attr(node, 'property') === property);
       assert.equal(meta.length, 1, `${file}: ${property}`);
-      assert.equal(attr(meta[0], 'content'), property === 'og:url' ? canonicalUrl : 'https://OWNER.github.io/archi-made-easy/assets/archi-made-easy-social-preview.png');
+      assert.equal(attr(meta[0], 'content'), property === 'og:url' ? canonicalUrl : 'https://archi-made-easy.example/assets/archi-made-easy-social-preview.png');
     }
   }
 });

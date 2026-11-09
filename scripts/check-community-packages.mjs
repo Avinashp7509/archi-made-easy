@@ -13,7 +13,7 @@ const rootFlag = process.argv.indexOf('--root');
 const repoRoot = rootFlag === -1 ? scriptRoot : path.resolve(process.argv[rootFlag + 1] || '');
 
 export const PACKAGE_TYPES = Object.freeze(['skill', 'recipe', 'brand-marks', 'locale', 'wrapper']);
-export const REQUIRED_FIELDS = Object.freeze(['name', 'type', 'summary', 'author', 'repository', 'archi-made-easy', 'schemaVersions']);
+export const REQUIRED_FIELDS = Object.freeze(['name', 'type', 'summary', 'author', 'repository', 'archiMadeEasy', 'schemaVersions']);
 const ALLOWED_FIELDS = new Set([...REQUIRED_FIELDS, 'homepage', 'tags', 'evidence']);
 const NAME_PATTERN = /^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/;
 const HTTPS_PATTERN = /^https:\/\/[^\s\\/?#@]+(?:[/?#][^\s\\]*)?$/;
@@ -90,7 +90,7 @@ export function validatePackage(value) {
 
   if (!isHttpsUrl(value.repository)) fail('repository must be an https:// URL.');
   if (!isString(value.archiMadeEasy) || !ARCHI_MADE_EASY_RANGE_PATTERN.test(value.archiMadeEasy)) {
-    fail('archi-made-easy must be a version range like ^3.0.1 or >=3.0.0 <4.0.0.');
+    fail('archiMadeEasy must be a version range like ^3.0.1 or >=3.0.0 <4.0.0.');
   }
 
   if (!Array.isArray(value.schemaVersions) || value.schemaVersions.length === 0) {
@@ -136,7 +136,7 @@ export function validatePackage(value) {
 export function validatePackageEntries(packageFiles) {
   const failures = [];
   const entries = [];
-  if (packageFiles.length === 0) failures.push('community/packages/ contains no package metadata files.');
+  // An empty registry is valid: packages are listed only once they are actually published.
   const seen = new Set();
   for (const [file, value] of packageFiles) {
     for (const failure of validatePackage(value)) failures.push(`${file}: ${failure}`);

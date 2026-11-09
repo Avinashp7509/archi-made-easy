@@ -407,7 +407,7 @@ test('physical resolution returns a real ancestor and unresolved future segments
 test('sameLocation asks the containing filesystem about case-only future names', (t) => {
   const root = scratchDirectory(t);
   const authoredProbe = path.join(root, 'ArchiMadeEasyCaseProbe');
-  const lookupProbe = path.join(root, 'archi-made-easycaseprobe');
+  const lookupProbe = path.join(root, 'archimadeeasycaseprobe');
   fs.writeFileSync(authoredProbe, 'probe');
   const aliasesCase = fs.existsSync(lookupProbe)
     && fs.statSync(authoredProbe, { bigint: true }).ino === fs.statSync(lookupProbe, { bigint: true }).ino;
@@ -458,7 +458,7 @@ test('sameLocation probes an existing intermediate directory using its own seman
   const intermediate = path.join(root, 'existing-parent');
   fs.mkdirSync(intermediate);
   const authoredProbe = path.join(intermediate, 'ArchiMadeEasyCaseProbe');
-  const lookupProbe = path.join(intermediate, 'archi-made-easycaseprobe');
+  const lookupProbe = path.join(intermediate, 'archimadeeasycaseprobe');
   fs.writeFileSync(authoredProbe, 'probe');
   const aliasesCase = fs.existsSync(lookupProbe)
     && fs.statSync(authoredProbe, { bigint: true }).ino === fs.statSync(lookupProbe, { bigint: true }).ino;

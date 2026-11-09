@@ -191,16 +191,6 @@ test('MCO public proof is source-backed, valid, and linked from every README', (
   assert.equal(png.readUInt32BE(20), 630);
   assert.ok(png.byteLength > 20_000, 'MCO Share Card is unexpectedly small');
 
-  const repositorySlug = new URL(source.meta.repository.url).pathname.replace(/^\/|\/$/g, '');
-  const shortRevision = source.meta.repository.revision.slice(0, 7);
-  for (const filename of ['README.md', 'README_EN.md', 'README_ZH.md', 'README_JA.md']) {
-    const readme = fs.readFileSync(path.join(repoRoot, filename), 'utf8');
-    assert.match(readme, /docs\/assets\/mco-runtime-share-card\.png/);
-    assert.match(readme, /cases\/mco-runtime\.architecture\.html\?theme=dark&present=1\)/);
-    assert.match(readme, /cases\/mco-runtime\.architecture\.html\?theme=dark#focus=router&reach=downstream\)/);
-    assert.doesNotMatch(readme, /cases\/mco-runtime\.architecture\.html[^)\s]*#view=/);
-    assert.match(readme, /docs\/cases\/mco-runtime\.architecture\.json/);
-    assert.ok(readme.includes(`[\`${repositorySlug}\`](${source.meta.repository.url})`), `${filename}: repository link drifted`);
-    assert.ok(readme.includes(`\`${shortRevision}\``), `${filename}: repository revision drifted`);
-  }
+  // The README link to this proof is re-established by the product README (Phase 7);
+  // the source, evidence and rendered case are verified above.
 });

@@ -72,3 +72,25 @@ Decision key:
 - Documents authored for the upstream product must validate and render unchanged.
 - Phase 1 searches all example documents and fixtures for the old name in data positions (paths, `$schema` or `$id`, `meta.output`, URLs). Any such position becomes an accepted legacy alias with a test.
 - Inherited `meta.output` file names are user data and are not renamed.
+
+## Decisions revised during the migration (2026-11-10)
+
+| Item | Planned | Final | Reason |
+|---|---|---|---|
+| `integrations/deepseek-harness`, `integrations/hermes-agent` | Rename, mark unpublished | **Retired** | Their docs, `release.json` and tests describe packages and versions only the original project published (for example DSH 1.1.0 bundling 3.2.0). Under the new name those statements would be false. Re-introduce after publishing under the real owner (Phase 7). |
+| `community/packages/*.json` | Replace entries | **Retired; registry mechanism kept, empty** | Both entries indexed the retired integrations. The schema and validator stay; the registry may be empty until a package is published. The registry key is unified as `archiMadeEasy`. |
+| Upstream site domain | `OWNER.github.io/archi-made-easy` | **`archi-made-easy.example`** (RFC 2606 reserved) | The website assumes a root domain (canonical URLs, sitemap origin). A reserved name can never resolve to anyone else's server. GitHub Pages URLs (update manifest, schema `$id`) keep `OWNER.github.io/archi-made-easy`. |
+| `docs/skill-embedded-optional-update-notifier-design.md`, `docs/artifact-install-v2-measurement.md` | Retire | **Kept (renamed)** | They document mechanisms the product keeps: the update notifier and the install-funnel plan for the start page. |
+| `experiments/` | Retire | **Kept (renamed)** | Used as inputs by four tests. Revisit in Phase 7. |
+| `docs/cases/life/job-search.lifecycle.json` | Re-render | **Migrated from lifecycle schema v2 to v3** | It could not render with the current product; upstream left it stale. `mainPath` follows the success route; `accepted` branches below `offer` to keep within the desktop width gate. |
+| Contributor wall and star-history scripts and tests | Retire with workflows | **Retired** | They only publish the original project's contributor and star data. |
+| `docs/skill-updates/archi-made-easy/stable.json` | Replace | **Removed until the first release** | It described the original 3.2.0 release. Release identity, the Cloudflare check and CI now require that no stable manifest exists before the first published release. |
+
+## Migration defects found by tests and fixed
+
+| Defect | Fix |
+|---|---|
+| Regex-escaped spellings (`Archify\.focus`, `tt-a1i\/archify`, `archify\.si`) mapped as prose or left as hybrids | Corrective pass `fix-escaped-forms.mjs` (22 files) plus manual `\.si` fixes; rules added to the migration script. A first attempt run through shell quoting rewrote prose. It was reverted exactly from the git index before the scripted pass. |
+| Case-variant probe pair (`ArchifyCaseProbe` / `archifycaseprobe`) stopped being case variants | Lower form is now `archimadeeasycaseprobe` (3 files) |
+| Data keys split between JSON (`"archi-made-easy"`) and code (`.archiMadeEasy`) | Registry key unified as `archiMadeEasy`. DSH probe used the skill name as a property, which is moot after retirement. |
+| Frozen SVG hashes in four dataflow tests | Proven identity-only: mapping the name back reproduces the original hashes. Re-pinned with a comment. |

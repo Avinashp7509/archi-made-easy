@@ -27,7 +27,7 @@ const facts = [
 <section class="product-facts" id="about-archi-made-easy" aria-labelledby="product-facts-title">
   <div class="container">
     <div class="facts-heading"><span class="section-eyebrow" data-en="Product facts" data-zh="产品事实">Product facts</span><h2 id="product-facts-title" data-en="A map or a page you can inspect and keep." data-zh="能检查、能保留的图和答案。">A map or a page you can inspect and keep.</h2></div>
-    <p class="facts-identity"><span data-en="This Archi-Made-Easy is the open-source diagram skill at " data-zh="这里的 Archi-Made-Easy 指 ">This Archi-Made-Easy is the open-source diagram skill at </span><a href={canonicalUrl('index')}>OWNER.github.io/archi-made-easy</a><span data-en=", maintained in the " data-zh=" 上的开源画图技能，项目源码位于 ">, maintained in the </span><a href="https://github.com/OWNER/archi-made-easy">OWNER/archi-made-easy</a><span data-en=" repository." data-zh=" 仓库。"> repository.</span></p>
+    <p class="facts-identity"><span data-en="This Archi-Made-Easy is the open-source diagram skill at " data-zh="这里的 Archi-Made-Easy 指 ">This Archi-Made-Easy is the open-source diagram skill at </span><a href={canonicalUrl('index')}>archi-made-easy.example</a><span data-en=", maintained in the " data-zh=" 上的开源画图技能，项目源码位于 ">, maintained in the </span><a href="https://github.com/OWNER/archi-made-easy">OWNER/archi-made-easy</a><span data-en=" repository." data-zh=" 仓库。"> repository.</span></p>
     <div class="facts-grid">
       {facts.map(fact => <article><h3 data-en={fact.question[0]} data-zh={fact.question[1]}>{fact.question[0]}</h3><p data-en={fact.answer[0]} data-zh={fact.answer[1]}>{fact.answer[0]}</p></article>)}
     </div>

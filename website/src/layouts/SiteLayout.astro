@@ -13,7 +13,7 @@ interface Props { head: string; css: string; page: 'index' | 'guide' | 'start' |
 const { head, css, page, lang = 'en' } = Astro.props;
 const pageDepth = page.split('/').length - 1 + (lang === 'zh' && page !== 'index' ? 1 : 0);
 const rootBase = pageDepth ? '../'.repeat(pageDepth) : './';
-const cloudflare = Astro.site?.origin === 'https://OWNER.github.io/archi-made-easy';
+const cloudflare = Astro.site?.origin === 'https://archi-made-easy.example';
 const metadata = pageMetadata(page, lang, version);
 const copy = page === 'index' ? indexCopyFor(productChannel) : page === 'guide' ? guideCopyFor(guide, productChannel) : {};
 const body = localizeHtml(versioned(await Astro.slots.render('default')), { lang, page, cloudflare, copy: JSON.parse(versioned(JSON.stringify(copy))) });

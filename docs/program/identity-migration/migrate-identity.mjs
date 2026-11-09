@@ -80,14 +80,16 @@ export const GENERATED = [
 /** Specific tokens renamed before the generic rules (applied to paths and text). */
 export const SPECIFIC = [
   // Upstream's own web domain and npm scope must never be re-pointed at look-alike names we do not own.
-  ['https://archify.si', 'https://OWNER.github.io/archi-made-easy'],
-  ['archify.si', 'OWNER.github.io/archi-made-easy'],
+  // Its root-domain site maps to the RFC 2606 reserved name archi-made-easy.example until a real domain exists.
+  ['https://archify.si', 'https://archi-made-easy.example'],
+  ['archify.si', 'archi-made-easy.example'],
   ['@tt-a1i/archify-dsh', '@OWNER/archi-made-easy-dsh'],
   ['tt-a1i-archify-dsh', 'OWNER-archi-made-easy-dsh'],
   ['https://github.com/tt-a1i/archify', 'https://github.com/OWNER/archi-made-easy'],
   // Regex-escaped spellings inside test assertions (added after the first run; applied as a corrective pass).
   ['tt-a1i\\/archify', 'OWNER\\/archi-made-easy'],
   ['Archify\\.', 'ArchiMadeEasy\\.'],
+  ['archify\\.si', 'archi-made-easy\\.example'],
   ['tt-a1i.github.io/archify', 'OWNER.github.io/archi-made-easy'],
   ['tt-a1i/archify', 'OWNER/archi-made-easy'],
   ['archify-dev-activity', 'project-dev-activity'],

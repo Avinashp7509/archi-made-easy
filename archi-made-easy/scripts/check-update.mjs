@@ -11,7 +11,6 @@ import { fileURLToPath } from 'node:url';
 import {
   DEFAULT_MANIFEST_URL,
   SKILL_ID,
-  UPDATE_SOURCE_CONFIGURED,
   UpdateContractError,
   compareSemver,
   isStableCoreVersion,
@@ -1487,11 +1486,10 @@ export async function checkForUpdate({
   } catch {
     return silent('invalid-local-release');
   }
-  // No update source configured: no cache, no network. While the publishing owner is
-  // still the OWNER placeholder, the real network is never contacted (an injected
-  // fetch, as used by tests, is still allowed).
+  // No update source configured: no cache, no network. The shipped release keeps
+  // updateManifestUrl null until a publishing owner exists (enforced at release time
+  // by scripts/check-release-identity.mjs).
   if (localRelease.updateManifestUrl === null) return silent('not-configured');
-  if (!UPDATE_SOURCE_CONFIGURED && fetchImpl === globalThis.fetch) return silent('not-configured');
 
   const nowMs = Number(now());
   if (!Number.isFinite(nowMs)) return silent('invalid-clock');

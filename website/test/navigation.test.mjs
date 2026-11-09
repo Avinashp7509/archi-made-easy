@@ -10,7 +10,7 @@ const hasClass = (node, name) => (attr(node, 'class') || '').split(/\s+/).includ
 const pages = sitePages;
 const cloudflare = process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare';
 const output = new URL(cloudflare ? '../dist-cloudflare/' : '../dist/', import.meta.url);
-const origin = cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/';
+const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/';
 const extension = cloudflare ? '' : '.html';
 
 test('all built pages expose one shared top navigation and the correct current page', () => {

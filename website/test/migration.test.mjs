@@ -145,7 +145,7 @@ test('all existing non-page public URLs retain exact bytes outside the declared 
     const data = JSON.parse(structured.childNodes.map(node => node.value || '').join(''));
     assert.equal(data['@type'], 'CreativeWork');
     assert.equal(data['@context'], 'https://schema.org');
-    assert.equal(data.isBasedOn, `https://OWNER.github.io/archi-made-easy/${proof.entry.input}`);
+    assert.equal(data.isBasedOn, `https://archi-made-easy.example/${proof.entry.input}`);
     return Buffer.from(stripPublishedArtifactMetadata(html), 'utf8');
   }
   function visit(dir, rel = '') {

@@ -558,7 +558,7 @@ test('real Chrome preserves language through entry, navigation, selection, refre
       await evaluate(browser, sessionId, 'localStorage.clear()');
       await navigate(browser, sessionId, pageUrl('index.html', 'zh'));
       assert.equal(await evaluate(browser, sessionId, 'document.documentElement.lang'), chineseLang, 'Bare Chinese URL is Chinese without storage');
-      assert.equal(await evaluate(browser, sessionId, 'document.querySelector("link[rel=canonical]").href'), 'https://OWNER.github.io/archi-made-easy/zh');
+      assert.equal(await evaluate(browser, sessionId, 'document.querySelector("link[rel=canonical]").href'), 'https://archi-made-easy.example/zh');
     } else {
       assert.deepEqual(await evaluate(browser, sessionId, `({
         language: document.documentElement.lang,

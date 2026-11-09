@@ -476,7 +476,7 @@
     agentRevision++;
     agentTabs.forEach(t => { const on = t === tab; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; });
     $('agent-copy-status').textContent = '';
-    agentCommand.textContent = `npx -y skills@latest add https://OWNER.github.io/archi-made-easy --skill archi-made-easy --agent ${tab.dataset.agent} --global --copy --yes`;
+    agentCommand.textContent = `npx -y skills@latest add https://archi-made-easy.example --skill archi-made-easy --agent ${tab.dataset.agent} --global --copy --yes`;
     if (focus) tab.focus();
   }
   agentTabs.forEach((tab, i) => {

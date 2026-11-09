@@ -13,7 +13,7 @@ import {
   isMainModule,
   setUpdatePreference,
 } from '../archi-made-easy/scripts/check-update.mjs';
-import { DEFAULT_MANIFEST_URL, compareSemver, parseSemver } from '../archi-made-easy/scripts/update-contract.mjs';
+import { DEFAULT_MANIFEST_URL, UPDATE_SOURCE_CONFIGURED, compareSemver, parseSemver } from '../archi-made-easy/scripts/update-contract.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(here, '..', 'archi-made-easy');
@@ -469,8 +469,36 @@ function assertUnsafeCacheStateIsIgnored(testFixture) {
 test('production manifest URL is a fixed trusted GitHub Pages resource', () => {
   assert.equal(DEFAULT_MANIFEST_URL, expectedManifestUrl);
   const local = JSON.parse(fs.readFileSync(path.join(skillRoot, 'skill-release.json'), 'utf8'));
-  assert.equal(local.updateManifestUrl, expectedManifestUrl);
+  // Until a publishing owner replaces the placeholder, the shipped release names no
+  // manifest at all; afterwards it may name only the fixed trusted URL.
+  assert.equal(local.updateManifestUrl, UPDATE_SOURCE_CONFIGURED ? expectedManifestUrl : null);
   assert.equal(local.source.repository, expectedRepository);
+});
+
+test('a release without an update manifest stays silent and never fetches', async () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-unconfigured-'));
+  try {
+    const releasePath = path.join(root, 'skill-release.json');
+    fs.writeFileSync(releasePath, `${JSON.stringify({
+      schemaVersion: 1,
+      skillId: 'archi-made-easy',
+      channel: 'development',
+      version: '0.1.0-dev.0',
+      source: { repository: expectedRepository },
+      updateManifestUrl: null,
+    })}\n`);
+    let fetched = false;
+    const result = await checkForUpdate({
+      releasePath,
+      cacheDirectory: path.join(root, 'cache'),
+      fetchImpl: async () => { fetched = true; throw new Error('must not fetch'); },
+    });
+    assert.deepEqual(result, { status: 'silent', reason: 'not-configured' });
+    assert.equal(fetched, false);
+    assert.equal(fs.existsSync(path.join(root, 'cache')), false, 'no cache is created either');
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test('SemVer comparison handles stable, prerelease, and downgrade ordering', () => {
@@ -2983,8 +3011,11 @@ test('legacy CLI acknowledgement is a harmless one-line no-op', async (t) => {
     : process.platform === 'darwin'
       ? path.join(home, 'Library', 'Caches', 'archi-made-easy-skill')
       : path.join(xdg, 'archi-made-easy-skill');
-  const releasePath = path.join(skillRoot, 'skill-release.json');
-  const installedRelease = JSON.parse(fs.readFileSync(releasePath, 'utf8'));
+  // The shipped release names no manifest until a publishing owner exists; exercise the
+  // configured path with a copy that names the contract's fixed manifest URL.
+  const installedRelease = JSON.parse(fs.readFileSync(path.join(skillRoot, 'skill-release.json'), 'utf8'));
+  const releasePath = path.join(root, 'skill-release.json');
+  fs.writeFileSync(releasePath, `${JSON.stringify({ ...installedRelease, updateManifestUrl: DEFAULT_MANIFEST_URL })}\n`);
   const [major, minor, patch] = parseSemver(installedRelease.version).core;
   const candidateVersion = `${major}.${minor}.${BigInt(patch) + 1n}`;
   const offered = await checkForUpdate({

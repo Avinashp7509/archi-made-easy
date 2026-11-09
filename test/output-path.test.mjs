@@ -58,7 +58,7 @@ function directoryAliasesNames(directory, authoredName, lookupName) {
 
 test('future-path aliases follow the containing directory case and Unicode semantics', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-output-semantics-'));
-  const caseInsensitive = directoryAliasesNames(cwd, 'ArchiMadeEasyCaseProbe', 'archi-made-easycaseprobe');
+  const caseInsensitive = directoryAliasesNames(cwd, 'ArchiMadeEasyCaseProbe', 'archimadeeasycaseprobe');
   const normalizationInsensitive = directoryAliasesNames(
     cwd,
     'archi-made-easy-norm-\u00e9-probe',
@@ -77,7 +77,7 @@ test('future-path aliases follow the containing directory case and Unicode seman
 
 test('compare rejects case-only future targets before input work when the directory aliases case', () => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-output-compare-case-'));
-  const caseInsensitive = directoryAliasesNames(cwd, 'ArchiMadeEasyCaseProbe', 'archi-made-easycaseprobe');
+  const caseInsensitive = directoryAliasesNames(cwd, 'ArchiMadeEasyCaseProbe', 'archimadeeasycaseprobe');
   const output = path.join(cwd, 'Future.HTML');
   const receiptPath = path.join(cwd, 'future.html');
 

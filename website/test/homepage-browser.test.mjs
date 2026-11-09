@@ -102,7 +102,7 @@ test('real Chrome: homepage category and identity remain readable across languag
             assert.equal(receipt.nodes[0].href, `${lang === 'zh' ? 'zh/' : ''}agent-diagrams${mount ? '.html' : ''}`);
           } else {
             assert.deepEqual(receipt.nodes.slice(1).map(node => [node.text, node.href]), [
-              ['OWNER.github.io/archi-made-easy', 'https://OWNER.github.io/archi-made-easy/'], ['OWNER/archi-made-easy', 'https://github.com/OWNER/archi-made-easy'],
+              ['archi-made-easy.example', 'https://archi-made-easy.example/'], ['OWNER/archi-made-easy', 'https://github.com/OWNER/archi-made-easy'],
             ]);
           }
         }

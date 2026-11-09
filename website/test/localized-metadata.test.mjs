@@ -34,7 +34,7 @@ test('metadata points both hosts to real localized canonical pages and honest so
     assert.match(metadata.schema['@graph'][1].license, /\/LICENSE$/);
     assert.doesNotMatch(JSON.stringify(metadata.schema), /aggregateRating|ratingValue|downloadCount|interactionStatistic/);
   }
-  assert.equal(canonicalUrl('index', 'zh'), 'https://OWNER.github.io/archi-made-easy/zh');
+  assert.equal(canonicalUrl('index', 'zh'), 'https://archi-made-easy.example/zh');
   assert.equal(localPagePath('index', 'zh'), 'zh.html');
   assert.equal(localPagePath('start', 'zh', true), 'zh/start');
 });
@@ -61,7 +61,7 @@ function runtime({ href, base, lang = 'en', page = 'start', cloudflare = false, 
 test('URL locale wins stored preference and route switches preserve query and hash', () => {
   for (const setup of [
     { href: 'https://OWNER.github.io/archi-made-easy/start.html', base: 'https://OWNER.github.io/archi-made-easy/', expected: 'https://OWNER.github.io/archi-made-easy/zh/start.html' },
-    { href: 'https://OWNER.github.io/archi-made-easy/start', base: 'https://OWNER.github.io/archi-made-easy/', cloudflare: true, expected: 'https://OWNER.github.io/archi-made-easy/zh/start' },
+    { href: 'https://archi-made-easy.example/start', base: 'https://archi-made-easy.example/', cloudflare: true, expected: 'https://archi-made-easy.example/zh/start' },
     { href: 'file:///tmp/export/start.html', base: 'file:///tmp/export/', expected: 'file:///tmp/export/zh/start.html' },
   ]) {
     const suffix = '?agent=codex&type=workflow&input=repository&source=artifact&query=cache&lang=zh#install';
@@ -78,10 +78,10 @@ test('URL locale wins stored preference and route switches preserve query and ha
     assert.equal(next.hash, '#install');
     assert.equal(result.switcher.href, result.redirected);
   }
-  const chinese = runtime({ href: 'https://OWNER.github.io/archi-made-easy/zh/start?lang=zh#install', base: 'https://OWNER.github.io/archi-made-easy/', lang: 'zh', cloudflare: true, stored: 'en' });
+  const chinese = runtime({ href: 'https://archi-made-easy.example/zh/start?lang=zh#install', base: 'https://archi-made-easy.example/', lang: 'zh', cloudflare: true, stored: 'en' });
   assert.equal(chinese.api.read(), 'zh');
   assert.equal(chinese.redirected, undefined);
-  assert.equal(chinese.replaced, 'https://OWNER.github.io/archi-made-easy/zh/start#install');
+  assert.equal(chinese.replaced, 'https://archi-made-easy.example/zh/start#install');
 });
 
 const output = new URL(process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare' ? '../dist-cloudflare/' : '../dist/', import.meta.url);

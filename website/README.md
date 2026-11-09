@@ -47,7 +47,7 @@ CI builds/tests the website when website inputs change and on every main push. I
 
 ## Cloudflare Pages migration
 
-The same source can build a second static site for `https://OWNER.github.io/archi-made-easy/`:
+The same source can build a second static site for `https://archi-made-easy.example/`:
 
 ```sh
 ARCHI_MADE_EASY_SITE_TARGET=cloudflare npm run build
@@ -67,9 +67,9 @@ Cut over in this order:
 
 1. Review the migration on `dev`, then promote only the reviewed migration to stable `main`; do not deploy the unrelated development feature batch as part of a hosting change. Record the stable source SHA and tested artifact.
 2. Deploy and check the Pages preview: all five pages, mobile navigation, language/theme state, proof iframes and links, images, installation/download destinations and real missing-route 404s. Static hosting uses the free plan; no Functions, server, or paid China Network is required.
-3. Add `OWNER.github.io/archi-made-easy` as a free Cloudflare zone. Inventory existing DNS records (including MX/TXT), registrar DNSSEC and DS records before changing nameservers; preserve records used by other services. Bind the root domain inside the Pages project, not only by adding DNS records.
-4. Change only `OWNER.github.io/archi-made-easy`'s nameservers at Dynadot to the two assigned by Cloudflare. Keep registration and renewal at Dynadot. Verify authoritative DNS, active zone/domain status and HTTPS certificate issuance before changing public links.
-5. Configure `www.OWNER.github.io/archi-made-easy` to redirect permanently to the root domain, preserving paths and query strings. Check both HTTP and HTTPS and avoid redirect loops. Keep the Pages preview available until formal-domain acceptance is complete.
+3. Add `archi-made-easy.example` as a free Cloudflare zone. Inventory existing DNS records (including MX/TXT), registrar DNSSEC and DS records before changing nameservers; preserve records used by other services. Bind the root domain inside the Pages project, not only by adding DNS records.
+4. Change only `archi-made-easy.example`'s nameservers at Dynadot to the two assigned by Cloudflare. Keep registration and renewal at Dynadot. Verify authoritative DNS, active zone/domain status and HTTPS certificate issuance before changing public links.
+5. Configure `www.archi-made-easy.example` to redirect permanently to the root domain, preserving paths and query strings. Check both HTTP and HTTPS and avoid redirect loops. Keep the Pages preview available until formal-domain acceptance is complete.
 6. Test the formal domain through actual mainland networks without a proxy. Record operator, location, time and observed page/resource behavior; tests through a local proxy or an overseas runner do not establish mainland availability. The current site also uses Google Fonts and links to GitHub, so validate the full user journey.
 7. Only after acceptance, update README and repository website metadata. Social profile edits are a separate account action. Keep GitHub Pages and the old `skill-updates/archi-made-easy/stable.json` endpoint available: existing installed Skills still request that URL. Do not change the Skill updater or install/update live Skills as part of this migration.
 
@@ -81,7 +81,7 @@ The migration visual receipt is in `test/evidence/visual-parity.json`. Full-page
 
 The ten main language pages contain their translated body text, metadata and recipe references before JavaScript runs. Language links navigate to real URLs; URL language takes precedence over stored preferences. Existing `?lang=` entry links migrate to the matching route and preserve other parameters and fragments. Guide drafts survive a language switch once in session storage, expire after 30 seconds, and are never placed in the URL or sent over the network.
 
-`src/data/site-urls.mjs` defines the preferred `https://OWNER.github.io/archi-made-easy` URLs for both hosts. Each language has its own canonical and reciprocal `en`/`zh-Hans`/`x-default` links. GitHub Pages retains its `/archi-made-easy` resource paths while pointing search engines to the official domain. Release identity and recipes come from this checkout: stable and development builds must not advertise each other's capabilities.
+`src/data/site-urls.mjs` defines the preferred `https://archi-made-easy.example` URLs for both hosts. Each language has its own canonical and reciprocal `en`/`zh-Hans`/`x-default` links. GitHub Pages retains its `/archi-made-easy` resource paths while pointing search engines to the official domain. Release identity and recipes come from this checkout: stable and development builds must not advertise each other's capabilities.
 
 The build produces `robots.txt` and `sitemap.xml` from the ten pages and the curated gallery inventory. It checks each advertised artifact's original manifest hashes before adding an explicitly marked metadata block in the deployed HTML head; exported source files, SVG, scripts and updater bytes retain their existing contracts. Source JSON remains accessible and receives `X-Robots-Tag: noindex` on Cloudflare. GitHub Pages cannot set that response header. Robots rules allow crawling these evidence URLs so their indexing headers can be read.
 
@@ -98,8 +98,8 @@ The original `archi-made-easy.zip` format and GitHub installation source are unc
 After deploying and verifying the endpoint, the lightweight source is:
 
 ```sh
-npx -y skills@latest add https://OWNER.github.io/archi-made-easy --list --full-depth
-npx -y skills@latest add https://OWNER.github.io/archi-made-easy --skill archi-made-easy --agent codex --copy
+npx -y skills@latest add https://archi-made-easy.example --list --full-depth
+npx -y skills@latest add https://archi-made-easy.example --skill archi-made-easy --agent codex --copy
 ```
 
 The second command selects a project installation; global installation requires

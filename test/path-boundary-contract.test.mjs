@@ -13,8 +13,6 @@ const productionSourceRoots = [
   'archi-made-easy/recipes',
   'archi-made-easy/renderers',
   'archi-made-easy/scripts',
-  'integrations/deepseek-harness/lib',
-  'integrations/deepseek-harness/scripts',
   'scripts',
 ];
 

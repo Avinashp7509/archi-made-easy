@@ -46,12 +46,36 @@ export async function verifyPackagedUpdateChecker(skillRoot, cacheDirectory) {
     releaseNotes: `https://github.com/OWNER/archi-made-easy/releases/tag/v${candidateVersion}`,
     severity: 'normal',
   };
+  const fetchImpl = async () => new Response(JSON.stringify(candidate), {
+    status: 200,
+    headers: { 'content-type': 'application/json', etag: '"package-smoke"' },
+  });
+  // A release without an update manifest (the state before a publishing owner exists)
+  // must stay silent and never touch the network.
+  let releasePath = path.join(skillRoot, 'skill-release.json');
+  const packagedRelease = JSON.parse(fs.readFileSync(releasePath, 'utf8'));
+  if (packagedRelease.updateManifestUrl === null) {
+    let fetched = false;
+    const unconfigured = await checker.checkForUpdate({
+      releasePath,
+      cacheDirectory,
+      fetchImpl: async () => { fetched = true; return fetchImpl(); },
+      now: () => Date.parse('2026-08-28T00:00:00Z'),
+      random: () => 0.5,
+    });
+    if (unconfigured.status !== 'silent' || unconfigured.reason !== 'not-configured' || fetched) {
+      throw new Error(`packaged update checker contacted an unconfigured update source: ${JSON.stringify(unconfigured)}`);
+    }
+    // Exercise the configured path with a copy that names the contract's manifest URL.
+    const contract = await import(pathToFileURL(path.join(skillRoot, 'scripts', 'update-contract.mjs')).href);
+    releasePath = path.join(cacheDirectory, 'configured-skill-release.json');
+    fs.mkdirSync(cacheDirectory, { recursive: true });
+    fs.writeFileSync(releasePath, `${JSON.stringify({ ...packagedRelease, updateManifestUrl: contract.DEFAULT_MANIFEST_URL }, null, 2)}\n`);
+  }
   const notifierReceipt = await checker.checkForUpdate({
+    releasePath,
     cacheDirectory,
-    fetchImpl: async () => new Response(JSON.stringify(candidate), {
-      status: 200,
-      headers: { 'content-type': 'application/json', etag: '"package-smoke"' },
-    }),
+    fetchImpl,
     now: () => Date.parse('2026-08-28T00:00:00Z'),
     random: () => 0.5,
   });
@@ -59,7 +83,7 @@ export async function verifyPackagedUpdateChecker(skillRoot, cacheDirectory) {
     throw new Error(`packaged update checker did not return an update candidate: ${JSON.stringify(notifierReceipt)}`);
   }
   const notifierSnooze = await checker.setUpdatePreference({
-    releasePath: path.join(skillRoot, 'skill-release.json'),
+    releasePath,
     cacheDirectory,
     eventKey: notifierReceipt.eventKey,
     mode: 'snooze',

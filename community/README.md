@@ -6,7 +6,7 @@ Design rationale and non-goals are tracked in [issue #663](https://github.com/OW
 
 ## What a community package is
 
-A community package lives **outside** the Archi-Made-Easy core and depends on it — the way the [Hermes](../integrations/hermes-agent/) and [DeepSeek Harness](../integrations/deepseek-harness/) integrations already do: author versioned JSON IR, invoke the Archi-Made-Easy CLI, keep everything deterministic and fail-closed.
+A community package lives **outside** the Archi-Made-Easy core and depends on it: author versioned JSON IR, invoke the Archi-Made-Easy CLI, keep everything deterministic and fail-closed.
 
 Archi-Made-Easy has **no in-process plugin API, and none is planned for this registry**. Third-party code never executes inside the render pipeline, inside Archi-Made-Easy CI, or inside the delivery trust model.
 
@@ -60,7 +60,7 @@ Save the following as `community/packages/my-archi-made-easy-recipes.json`. Repl
     "url": "https://example.com/author"
   },
   "repository": "https://example.com/my-archi-made-easy-recipes",
-  "archi-made-easy": "3.0.1",
+  "archiMadeEasy": "3.0.1",
   "schemaVersions": [1],
   "tags": ["recipes", "web"],
   "evidence": [

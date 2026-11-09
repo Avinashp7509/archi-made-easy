@@ -1,4 +1,4 @@
-export const canonicalOrigin = 'https://OWNER.github.io/archi-made-easy';
+export const canonicalOrigin = 'https://archi-made-easy.example';
 export const sitePages = ['index', 'guide', 'start', 'gallery', 'community', 'agent-diagrams', 'cases/mco-runtime'];
 export function canonicalPath(page, lang = 'en') {
   return page === 'index' ? (lang === 'zh' ? '/zh' : '/') : `${lang === 'zh' ? '/zh/' : '/'}${page}`;

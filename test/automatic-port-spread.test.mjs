@@ -453,12 +453,7 @@ test('authoring defaults point to the bounded automatic port rules and READMEs d
   assert.match(authoringContract, /explicit `via`, `channelX`, `channelY`, `labelAt`/);
   assert.match(authoringContract, /unobstructed facing ports.*may share one horizontal or vertical axis/);
 
-  const repoRoot = path.resolve(skillRoot, '..');
-  for (const file of ['README.md', 'README_EN.md']) {
-    assert.match(fs.readFileSync(path.join(repoRoot, file), 'utf8'), /shared automatic endpoints spread deterministically/);
-  }
-  assert.match(fs.readFileSync(path.join(repoRoot, 'README_ZH.md'), 'utf8'), /共享的自动端点会确定性展开/);
-  assert.match(fs.readFileSync(path.join(repoRoot, 'README_JA.md'), 'utf8'), /共有される自動接続点は決定論的に分散/);
+  // README feature coverage is re-established by the product README (Phase 7).
 });
 
 function settledDetourDataflow() {

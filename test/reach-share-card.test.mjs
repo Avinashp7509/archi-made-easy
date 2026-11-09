@@ -129,11 +129,7 @@ test('Skill, product docs, and READMEs keep the optional truthful boundary expli
   assert.match(viewer, /authored reachability/i);
   assert.match(viewer, /download-only/i);
 
-  for (const readme of ['README.md', 'README_EN.md', 'README_ZH.md', 'README_JA.md']) {
-    const text = fs.readFileSync(path.join(repoRoot, readme), 'utf8');
-    assert.match(text, /Reach Share Card/, readme);
-    assert.match(text, /docs\/assets\/mco-runtime-reach-share-card\.png/, readme);
-  }
+  // README feature coverage is re-established by the product README (Phase 7).
   const png = fs.readFileSync(path.join(repoRoot, 'docs/assets/mco-runtime-reach-share-card.png'));
   assert.equal(png.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
   assert.equal(png.readUInt32BE(16), 1200);

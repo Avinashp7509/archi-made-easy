@@ -11,7 +11,7 @@ import css from '../styles/index.css?raw';
 import clipboardScript from '../scripts/clipboard.js?raw';
 import pageScript from '../scripts/index.js?raw';
 
-const installCommand = 'npx -y skills@latest add https://OWNER.github.io/archi-made-easy --skill archi-made-easy --agent claude-code --global --copy --yes';
+const installCommand = 'npx -y skills@latest add https://archi-made-easy.example --skill archi-made-easy --agent claude-code --global --copy --yes';
 const { lang = 'en' } = Astro.props;
 ---
 <SiteLayout page="index" lang={lang} head={versioned(head)} css={css}>

@@ -460,15 +460,16 @@ for (const [name, flow, expectedPoints, expectedHeight] of [
   });
 }
 
-// Frozen public SVG bytes from dev e23fc2c5, with only the legend row
+// Frozen public SVG bytes from dev e23fc2c5 (re-pinned after the product rename: the
+// SVG description names the product; bytes are otherwise identical), with only the legend row
 // re-measured at its rendered font size. The complete HTML/receipt byte
 // comparison is recorded in the PR evidence; SVG isolates renderer behavior
 // from unrelated future Viewer-template changes.
 for (const [name, mutate, expectedSha256] of [
-  ['standard-auto', diagram => { diagram.meta.quality_profile = 'standard'; }, '99637c1e91964415abeff668d89e7126ff12960d69d535a570f7a452b088f528'],
-  ['explicit-viewbox', diagram => { diagram.meta.viewBox = [1080, 720]; }, 'd738f4c38e336886aaf86bc769ea8b401e540da0f9566330b559408340968879'],
-  ['explicit-one-width', diagram => { diagram.nodes[0].width = 152; }, '0533eb9cfbd3a6a5bbd99c01342a3cf07429dc834fd2d446409eb35448a601ec'],
-  ['explicit-both', diagram => { diagram.meta.viewBox = [1080, 720]; diagram.nodes[0].width = 152; }, '0d2ee82e89eeb9e1c83e2002f72b004adfe876fb6d50dc91d465f8e778d3e8dd'],
+  ['standard-auto', diagram => { diagram.meta.quality_profile = 'standard'; }, 'b469a4332507f90a3ab0a27b1c3e5024d5441c1f530b20fd28ba5db617874716'],
+  ['explicit-viewbox', diagram => { diagram.meta.viewBox = [1080, 720]; }, '597ef1c78d84ea028b4c572152bd4b9c30c0f249a70b6c432a74cff6bcc3f111'],
+  ['explicit-one-width', diagram => { diagram.nodes[0].width = 152; }, '6ea9fda28b7e0fbf442be89d180582cea660a751d89d5d77d8f007b3447ae117'],
+  ['explicit-both', diagram => { diagram.meta.viewBox = [1080, 720]; diagram.nodes[0].width = 152; }, 'c9a74778c46ff61d0f8a838ae3f18240ec71524d33bd6c6e331b2805d39854e5'],
 ]) {
   test(`dev geometry compatibility outside default motion for ${name}`, t => {
     const diagram = smallFootprintDiagram({ id: 'f' });

@@ -9,6 +9,7 @@ import {
   compareSemver,
   isStableCoreVersion,
   parseSemver,
+  UPDATE_SOURCE_CONFIGURED,
   validateLocalRelease,
   validateStableUpdateManifest,
 } from '../archi-made-easy/scripts/update-contract.mjs';
@@ -16,6 +17,10 @@ import {
 const scriptRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const rootFlag = process.argv.indexOf('--root');
 const repoRoot = rootFlag === -1 ? scriptRoot : path.resolve(process.argv[rootFlag + 1] || '');
+// Fixture repositories model a published product whose owner is already configured.
+// Only valid together with --root; the real repository is always checked as it is.
+const assumeConfiguredOwner = rootFlag !== -1 && process.argv.includes('--assume-configured-owner');
+const ownerConfigured = UPDATE_SOURCE_CONFIGURED || assumeConfiguredOwner;
 const failures = [];
 
 function fail(message) {
@@ -44,6 +49,12 @@ function readJson(relativePath) {
 
 function checkSkillRelease(value, version, isDevelopment) {
   const expectedChannel = isDevelopment ? 'development' : 'stable';
+  // While the publishing owner is still the OWNER placeholder, the shipped release
+  // must not name an update manifest: that URL would belong to whoever owns the name.
+  if (!ownerConfigured && value?.updateManifestUrl !== null) {
+    fail('archi-made-easy/skill-release.json must set updateManifestUrl to null until the OWNER placeholder is replaced.');
+    return;
+  }
   try {
     const release = validateLocalRelease(value);
     if (release.version === version && release.channel === expectedChannel) return;

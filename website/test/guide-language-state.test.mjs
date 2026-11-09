@@ -11,7 +11,7 @@ const recipes = ['architecture', 'workflow'].map(type => ({
   en: { title: `${type} recipe`, question: 'Question', summary: 'Summary', useWhen: 'Use', avoidWhen: 'Avoid', include: ['Evidence'], prompt: 'Prompt' },
   zh: { title: `${type} 配方`, question: '问题', summary: '概要', useWhen: '适合', avoidWhen: '避免', include: ['证据'], prompt: '提示词' },
 }));
-function page({ language = 'en', href = 'https://OWNER.github.io/archi-made-easy/guide', target = 'https://OWNER.github.io/archi-made-easy/zh/guide', storage = new Map(), denyStorage = false }) {
+function page({ language = 'en', href = 'https://archi-made-easy.example/guide', target = 'https://archi-made-easy.example/zh/guide', storage = new Map(), denyStorage = false }) {
   const elements = new Map();
   function element(id) {
     if (!elements.has(id)) {
@@ -52,7 +52,7 @@ test('guide language navigation preserves a draft, filter and selected recipe on
   original.element('language').dispatch('click', click);
   assert.equal(JSON.parse(original.storage.get(key)).scenario, draft);
   assert.ok(!JSON.parse(original.storage.get(key)).to.includes(encodeURIComponent(draft)), 'draft never enters the navigation URL');
-  const translated = page({ language: 'zh', href: 'https://OWNER.github.io/archi-made-easy/zh/guide', target: 'https://OWNER.github.io/archi-made-easy/guide', storage: original.storage });
+  const translated = page({ language: 'zh', href: 'https://archi-made-easy.example/zh/guide', target: 'https://archi-made-easy.example/guide', storage: original.storage });
   assert.equal(translated.element('scenario').value, draft);
   assert.match(translated.element('filters').innerHTML, /class="filter active"[^>]*data-filter="workflow"/);
   assert.match(translated.element('result').innerHTML, /<h3[^>]*>workflow 配方<\/h3>/);
@@ -67,12 +67,12 @@ test('guide language navigation preserves a draft, filter and selected recipe on
 
 test('guide discards stale, malformed and unrelated navigation state; denied storage stays usable', () => {
   for (const state of [
-    { to: 'https://OWNER.github.io/archi-made-easy/zh/guide', at: Date.now() - 30001, scenario: 'stale' },
-    { to: 'https://OWNER.github.io/archi-made-easy/guide', at: Date.now(), scenario: 'unrelated' },
-    { to: 'https://OWNER.github.io/archi-made-easy/zh/guide', scenario: 'missing timestamp' },
+    { to: 'https://archi-made-easy.example/zh/guide', at: Date.now() - 30001, scenario: 'stale' },
+    { to: 'https://archi-made-easy.example/guide', at: Date.now(), scenario: 'unrelated' },
+    { to: 'https://archi-made-easy.example/zh/guide', scenario: 'missing timestamp' },
   ]) {
     const storage = new Map([[key, JSON.stringify(state)]]);
-    const next = page({ language: 'zh', href: 'https://OWNER.github.io/archi-made-easy/zh/guide', storage });
+    const next = page({ language: 'zh', href: 'https://archi-made-easy.example/zh/guide', storage });
     assert.equal(next.element('scenario').value, '');
     assert.equal(storage.has(key), false);
   }
@@ -86,11 +86,11 @@ test('guide discards stale, malformed and unrelated navigation state; denied sto
 });
 
 test('guide draft uses the live query and hash when the language anchor is stale', () => {
-  const current = page({ href: 'https://OWNER.github.io/archi-made-easy/guide?utm_source=late#recipe-workflow', target: 'https://OWNER.github.io/archi-made-easy/zh/guide' });
+  const current = page({ href: 'https://archi-made-easy.example/guide?utm_source=late#recipe-workflow', target: 'https://archi-made-easy.example/zh/guide' });
   current.element('scenario').value = 'Current draft';
   current.element('language').dispatch('click', click);
   const saved = JSON.parse(current.storage.get(key));
-  assert.equal(saved.to, 'https://OWNER.github.io/archi-made-easy/zh/guide?utm_source=late#recipe-workflow');
+  assert.equal(saved.to, 'https://archi-made-easy.example/zh/guide?utm_source=late#recipe-workflow');
   const translated = page({ language: 'zh', href: saved.to, storage: current.storage });
   assert.equal(translated.element('scenario').value, 'Current draft');
 });

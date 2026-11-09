@@ -73,7 +73,7 @@ test('tracked public staging ships authentic WOFF2 bytes, licenses and the CSS r
 if (process.env.ARCHI_MADE_EASY_FONT_BUILD_CHECK === '1') test('built font links resolve to deployed bytes for both languages and the selected host', () => {
   const cloudflare = process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare';
   const output = new URL(cloudflare ? '../dist-cloudflare/' : '../dist/', import.meta.url);
-  const root = cloudflare ? 'https://OWNER.github.io/archi-made-easy/' : 'https://OWNER.github.io/archi-made-easy/';
+  const root = cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/';
   for (const lang of ['en', 'zh']) for (const page of pages) {
     const file = page === 'index' ? `${lang === 'zh' ? 'zh' : 'index'}.html` : `${lang === 'zh' ? 'zh/' : ''}${page}.html`;
     const html = fs.readFileSync(new URL(file, output), 'utf8');

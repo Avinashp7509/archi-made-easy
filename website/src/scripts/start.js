@@ -111,8 +111,8 @@
         });
         var agentName = document.querySelector('[data-agent="' + agent + '"]').textContent;
         agentState.textContent = agentName + (language === 'zh' ? ' · 同一份 Skill' : ' · same Skill');
-        installCommand.textContent = 'npx -y skills@latest add https://OWNER.github.io/archi-made-easy --skill archi-made-easy --agent ' + agent + ' --global --copy --yes';
-        projectCommand.textContent = 'npx -y skills@latest add https://OWNER.github.io/archi-made-easy --skill archi-made-easy --agent ' + agent + ' --copy --yes';
+        installCommand.textContent = 'npx -y skills@latest add https://archi-made-easy.example --skill archi-made-easy --agent ' + agent + ' --global --copy --yes';
+        projectCommand.textContent = 'npx -y skills@latest add https://archi-made-easy.example --skill archi-made-easy --agent ' + agent + ' --copy --yes';
         title.textContent = copy.title;
         question.textContent = copy.question;
         prompt.textContent = currentPrompt();
