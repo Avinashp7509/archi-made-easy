@@ -1,0 +1,438 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Highly available web application on Amazon Web Services",
+    "output": "solution.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [
+      40,
+      110
+    ],
+    "cols": 5,
+    "cellW": 130,
+    "cellH": 60,
+    "gapX": 80,
+    "gapY": 80
+  },
+  "components": [
+    {
+      "id": "users",
+      "type": "external",
+      "label": "Users",
+      "sublabel": "Browser / mobile",
+      "row": 1,
+      "col": 0,
+      "operational": {
+        "role": "ingress",
+        "security": {
+          "public_exposed": true
+        },
+        "capacity": {
+          "baseline_rps": 400
+        }
+      }
+    },
+    {
+      "id": "identity",
+      "type": "security",
+      "label": "Cognito",
+      "sublabel": "Sign-in, tokens",
+      "row": 0,
+      "col": 0,
+      "operational": {
+        "role": "identity",
+        "security": {
+          "auth_method": "oauth2-oidc"
+        }
+      }
+    },
+    {
+      "id": "cdn",
+      "type": "cloud",
+      "label": "CloudFront",
+      "sublabel": "Edge cache + WAF",
+      "row": 1,
+      "col": 1,
+      "operational": {
+        "role": "cdn",
+        "security": {
+          "public_exposed": true
+        }
+      }
+    },
+    {
+      "id": "static",
+      "type": "database",
+      "label": "S3",
+      "sublabel": "Static assets",
+      "row": 2,
+      "col": 1,
+      "operational": {
+        "role": "object-store"
+      }
+    },
+    {
+      "id": "lb",
+      "type": "cloud",
+      "label": "ALB",
+      "sublabel": "HTTPS, health checks",
+      "row": 1,
+      "col": 2,
+      "operational": {
+        "role": "load-balancer",
+        "redundancy": "multi-az",
+        "sla_percent": 99.99,
+        "capacity": {
+          "max_rps": 20000
+        },
+        "finops": {
+          "monthly_base_cost_usd": 25
+        }
+      }
+    },
+    {
+      "id": "app",
+      "type": "backend",
+      "label": "ECS Fargate",
+      "sublabel": "Stateless, autoscaled",
+      "row": 1,
+      "col": 3,
+      "operational": {
+        "role": "stateless-compute",
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 300,
+          "autoscale_min": 2,
+          "autoscale_max": 6
+        },
+        "sla_percent": 99.95,
+        "latency": {
+          "p50_ms": 40,
+          "p99_ms": 220
+        },
+        "finops": {
+          "monthly_base_cost_usd": 140,
+          "cost_per_million_requests_usd": 0.4
+        },
+        "security": {
+          "auth_method": "jwt",
+          "trust_zone": "app"
+        }
+      }
+    },
+    {
+      "id": "cache",
+      "type": "database",
+      "label": "ElastiCache",
+      "sublabel": "Sessions, hot reads",
+      "row": 0,
+      "col": 3,
+      "operational": {
+        "role": "cache",
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 50000
+        },
+        "finops": {
+          "monthly_base_cost_usd": 90
+        }
+      }
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "Aurora",
+      "sublabel": "Primary",
+      "row": 1,
+      "col": 4,
+      "operational": {
+        "role": "stateful-db",
+        "redundancy": "single-instance",
+        "dr": {
+          "backup_strategy": "Automated backups with point-in-time restore"
+        },
+        "security": {
+          "encryption_at_rest": true,
+          "trust_zone": "data"
+        },
+        "sla_percent": 99.95,
+        "capacity": {
+          "max_rps": 1500
+        },
+        "latency": {
+          "p50_ms": 6,
+          "p99_ms": 45
+        },
+        "finops": {
+          "monthly_base_cost_usd": 410,
+          "storage_gb": 200,
+          "storage_cost_per_gb_usd": 0.115
+        }
+      }
+    },
+    {
+      "id": "queue",
+      "type": "messagebus",
+      "label": "SQS",
+      "sublabel": "Background jobs",
+      "row": 2,
+      "col": 3,
+      "operational": {
+        "role": "message-broker",
+        "redundancy": "multi-az"
+      }
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "Lambda",
+      "sublabel": "Async workers",
+      "row": 2,
+      "col": 4,
+      "operational": {
+        "role": "stateless-compute",
+        "redundancy": "multi-az"
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "region",
+      "kind": "region",
+      "label": "Region (zone-redundant)",
+      "wraps": [
+        "lb",
+        "app",
+        "cache",
+        "db",
+        "queue",
+        "worker"
+      ],
+      "operational": {
+        "scope": "region"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "users-cdn",
+      "from": "users",
+      "to": "cdn",
+      "label": "HTTPS",
+      "variant": "emphasis",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST"
+      }
+    },
+    {
+      "id": "users-identity",
+      "from": "users",
+      "to": "identity",
+      "label": "sign in",
+      "variant": "security",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST"
+      }
+    },
+    {
+      "id": "cdn-static",
+      "from": "cdn",
+      "to": "static",
+      "label": "static",
+      "variant": "dashed",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST"
+      }
+    },
+    {
+      "id": "cdn-lb",
+      "from": "cdn",
+      "to": "lb",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST"
+      }
+    },
+    {
+      "id": "lb-app",
+      "from": "lb",
+      "to": "app",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST"
+      }
+    },
+    {
+      "id": "app-cache",
+      "from": "app",
+      "to": "cache",
+      "label": "read-through",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "TCP",
+        "resilience": {
+          "circuit_breaker_enabled": true
+        }
+      }
+    },
+    {
+      "id": "app-db",
+      "from": "app",
+      "to": "db",
+      "label": "SQL",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "SQL",
+        "resilience": {
+          "timeout_ms": 800,
+          "retries": 2
+        },
+        "traffic": {
+          "read_write_ratio": 0.8
+        }
+      }
+    },
+    {
+      "id": "app-queue",
+      "from": "app",
+      "to": "queue",
+      "label": "enqueue",
+      "variant": "dashed",
+      "operational": {
+        "call_semantics": "async-queue",
+        "resilience": {
+          "idempotent": true
+        }
+      }
+    },
+    {
+      "id": "queue-worker",
+      "from": "queue",
+      "to": "worker",
+      "operational": {
+        "call_semantics": "async-queue",
+        "resilience": {
+          "idempotent": true
+        }
+      }
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Edge",
+      "items": [
+        "CloudFront terminates TLS, caches static content and filters malicious traffic",
+        "S3 serves static assets"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Availability",
+      "items": [
+        "Application tier is stateless and spread across zones",
+        "Aurora keeps a synchronous standby in another zone",
+        "Slow work leaves the request path through SQS"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Security",
+      "items": [
+        "Cognito issues tokens; the application validates them",
+        "Data encrypted in transit and at rest"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Assumptions",
+      "items": [
+        "One region with at least two zones; no cross-region disaster recovery",
+        "Traffic, latency and cost figures are not set: add real numbers before relying on analysis",
+        "Service choices follow the Amazon Web Services pack (version 0.1.0); confirm they fit your constraints"
+      ]
+    }
+  ],
+  "workbench": {
+    "adrs": [
+      {
+        "id": "adr-zones-before-regions",
+        "title": "Zone redundancy before multi-region",
+        "status": "proposed",
+        "context": "The application must survive common infrastructure failures without the cost and complexity of running in two regions.",
+        "decision": "Run every tier across availability zones in one region and restore from backups for a regional disaster.",
+        "alternatives": [
+          {
+            "option": "Active-passive second region",
+            "pros": [
+              "Survives a regional outage"
+            ],
+            "cons": [
+              "Roughly doubles standing cost",
+              "Failover must be rehearsed"
+            ]
+          },
+          {
+            "option": "Single zone",
+            "pros": [
+              "Cheapest"
+            ],
+            "cons": [
+              "A zone failure is a full outage"
+            ]
+          }
+        ],
+        "consequences": "A full regional outage means downtime until restore completes."
+      }
+    ],
+    "traces": [
+      {
+        "id": "page-view",
+        "title": "Page view",
+        "kind": "happy",
+        "steps": [
+          {
+            "edge": "users-cdn"
+          },
+          {
+            "edge": "cdn-lb",
+            "note": "cache miss"
+          },
+          {
+            "edge": "lb-app"
+          },
+          {
+            "edge": "app-db",
+            "note": "read"
+          }
+        ]
+      }
+    ],
+    "alternatives": [
+      {
+        "id": "standby-db",
+        "title": "Database with a standby",
+        "description": "Aurora with a standby in a second zone",
+        "component_overrides": [
+          {
+            "id": "db",
+            "operational": {
+              "redundancy": "active-passive-dr",
+              "dr": {
+                "rto_sec": 120,
+                "rpo_sec": 5
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

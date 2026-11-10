@@ -1,0 +1,12 @@
+{
+  "name": "parcelpoint-api",
+  "private": true,
+  "main": "src/server.js",
+  "dependencies": {
+    "amqplib": "^0.10.4",
+    "express": "^4.21.0",
+    "jose": "^5.9.0",
+    "pg": "^8.13.0",
+    "redis": "^4.7.0"
+  }
+}

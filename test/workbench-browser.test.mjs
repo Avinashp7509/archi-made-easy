@@ -20,7 +20,7 @@ import { toStructurizr } from '../archi-made-easy/workbench/exporters/structuriz
 import { toDrawio } from '../archi-made-easy/workbench/exporters/drawio.mjs';
 import { toRfc } from '../archi-made-easy/workbench/exporters/rfc.mjs';
 import { buildWorkbenchData } from '../archi-made-easy/workbench/embed.mjs';
-import { authoredWebHa } from '../scripts/visual-qa-fixtures.mjs';
+import { authoredWebHa, hostileDocument, HOSTILE } from '../scripts/visual-qa-fixtures.mjs';
 
 const skillRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'archi-made-easy');
 const chrome = process.env.ARCHI_MADE_EASY_CHROME ? findChrome() : null;
@@ -43,6 +43,8 @@ test('Architecture workbench in the browser', {
   };
   const authoredInput = path.join(scratch, 'authored.architecture.json');
   fs.writeFileSync(authoredInput, JSON.stringify(document));
+  const hostileInput = path.join(scratch, 'hostile.architecture.json');
+  fs.writeFileSync(hostileInput, JSON.stringify(hostileDocument()));
   const files = {
     authored: renderTo('architecture', authoredInput, 'authored.html'),
     inherited: renderTo('architecture', path.join(skillRoot, 'examples', 'web-app.architecture.json'), 'inherited.html'),
@@ -51,6 +53,8 @@ test('Architecture workbench in the browser', {
     flagship: renderTo('architecture', path.join(skillRoot, 'examples', 'global-fintech-payment-mesh.architecture.json'), 'flagship.html'),
     // Container level, with three child diagrams carried in the page.
     levels: renderTo('architecture', path.join(skillRoot, 'examples', 'cloud-native-ecommerce-c4.architecture.json'), 'levels.html'),
+    // Markup in every authored text field, and in a child diagram.
+    hostile: renderTo('architecture', hostileInput, 'hostile.html'),
   };
 
   const browser = new ChromeVisualBrowser(chrome);
@@ -505,6 +509,51 @@ test('Architecture workbench in the browser', {
     assert.ok(off.width > first.width && off.narrow === null && off.vitalsTop === null, 'frame off: the inherited reading width');
     await act(`w.on();`);
     assert.deepEqual(await page(stage), first, 'unchanged after turning the frame off and on');
+  });
+
+  await t.test('hostile authored text stays text: in every mode, in the level view and in the downloads', async () => {
+    // Every authored text field of this document holds markup that would run or load
+    // something if it were ever treated as HTML (scripts/visual-qa-fixtures.mjs).
+    const hostile = hostileDocument();
+    await load(files.hostile);
+    const elements = `({ scripts: document.scripts.length, images: document.images.length, frames: document.querySelectorAll('iframe').length, links: document.querySelectorAll('a[href^="javascript:"]').length, handlers: document.querySelectorAll('[onerror], [onload], [onclick]').length })`;
+    const before = await page(elements);
+    assert.deepEqual([before.images, before.frames, before.links, before.handlers], [0, 0, 0, 0]);
+    assert.equal(await page(`window.__pwned`), undefined);
+    assert.equal(await page(`document.querySelector('.header h1').textContent`), hostile.meta.title, 'the title shows the text as written');
+
+    const seen = {};
+    for (const mode of ['explore', 'review', 'simulate', 'security', 'performance', 'finops', 'optimize', 'decide', 'handoff']) {
+      await act(`w.setMode(${JSON.stringify(mode)}); if (${JSON.stringify(mode)} === 'explore') w.select('app');`);
+      if (mode === 'simulate') await act(`w.chooseScenario('a'); w.run({ instant: true });`);
+      if (mode === 'decide') await act(`w.setTrace('trace-1', 1);`);
+      seen[mode] = await page(`document.getElementById('workbench-body').textContent`);
+      assert.deepEqual(await page(elements), before, `${mode}: no element came out of authored text`);
+      assert.equal(await page(`window.__pwned`), undefined, mode);
+    }
+    // The text is shown, as text.
+    assert.ok(seen.explore.includes(HOSTILE.bold) && seen.explore.includes(HOSTILE.image), 'Explore shows the label and the trust zone as written');
+    assert.ok(seen.decide.includes(HOSTILE.svg) && seen.decide.includes(HOSTILE.script) && seen.decide.includes(HOSTILE.link), 'Decide shows the decision record as written');
+
+    // The downloads are what the command line writes for the same document.
+    const pageDocument = buildWorkbenchData(hostile).document;
+    const hostileModel = buildModel(pageDocument).model;
+    const downloads = await page(`(() => { const e = ArchiMadeEasy.workbenchEngine; const d = JSON.parse(document.getElementById('archi-made-easy-workbench-data').textContent).document; const m = w.model(); return { drawio: e.toDrawio(d, m), mermaid: e.toMermaidMarkdown(m), structurizr: e.toStructurizr(m), rfc: e.toRfc(d, m) }; })()`);
+    assert.equal(downloads.drawio, toDrawio(pageDocument, hostileModel));
+    assert.equal(downloads.mermaid, toMermaidMarkdown(hostileModel));
+    assert.equal(downloads.structurizr, toStructurizr(hostileModel));
+    assert.equal(downloads.rfc, toRfc(pageDocument, hostileModel));
+    assert.equal(/<(script|img|svg|iframe|b|i|s)\b/.test(downloads.drawio), false, 'no authored tag in the draw.io download');
+
+    // The child diagram opens as a page of its own and the parent is untouched.
+    await act(`w.openLevel('inside');`);
+    await evaluate(`new Promise((resolve, reject) => { const started = Date.now(); (function poll() { const level = ArchiMadeEasy.workbench.level(); if (level && level.ready) resolve(true); else if (Date.now() - started > 20000) reject(new Error('the level did not report ready')); else setTimeout(poll, 50); })(); })`, true);
+    const level = await page(`({ report: w.level().report, crumb: document.getElementById('workbench-level-title').textContent, frames: document.querySelectorAll('iframe').length, pwned: window.__pwned })`);
+    assert.deepEqual([level.report.nodes, level.report.workbench, level.frames, level.pwned], [3, true, 1, undefined]);
+    assert.equal(level.crumb, hostile.workbench.drilldowns[0].title, 'the path shows the title as written');
+    await act(`w.closeLevel();`);
+    assert.deepEqual(await page(elements), before);
+    assert.deepEqual(await evaluate('workbenchTestErrors'), []);
   });
 
   await t.test('levels: a component opens into its own diagram, a complete page in a sandboxed frame, and Back returns', async () => {

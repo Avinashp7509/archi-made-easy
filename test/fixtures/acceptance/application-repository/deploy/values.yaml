@@ -1,0 +1,17 @@
+# Production settings (Kubernetes, one cluster in one region).
+api:
+  replicas: 3
+  ingress:
+    host: api.parcelpoint.example
+    tls: true
+worker:
+  replicas: 1   # one consumer: bookings must not be sent twice
+notifier:
+  replicas: 1
+postgres:
+  managed: true   # the provider's managed PostgreSQL, single zone
+  backups: daily
+redis:
+  managed: true
+rabbitmq:
+  replicas: 1

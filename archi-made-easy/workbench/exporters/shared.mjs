@@ -76,9 +76,32 @@ export function xmlEscape(value) {
   return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-/** Markdown table cell: no pipes or line breaks. */
+/**
+ * Authored text as Markdown text. Whatever the author wrote, it comes out as text: it
+ * cannot become emphasis, a link, an image, a table cell boundary, a code span or raw
+ * HTML, and it stays on one line, so it cannot start a new block either.
+ */
+export function mdText(value) {
+  return String(value ?? '').replace(/\s*\r?\n\s*/g, ' ').replace(/[\\`*_[\]<>|]/g, '\\$&');
+}
+
+/** Markdown the exporter wrote itself (authored parts already escaped), for a table cell. */
+export function preformatted(markdown) {
+  return { markdown: String(markdown) };
+}
+
+/** Markdown table cell: authored text is escaped; preformatted Markdown passes through. */
 export function cell(value) {
-  return value == null || value === '' ? '' : String(value).replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
+  if (value == null || value === '') return '';
+  return typeof value === 'object' && typeof value.markdown === 'string' ? value.markdown : mdText(value);
+}
+
+/**
+ * Authored text for a draw.io label. Labels there are HTML inside an XML attribute, so the
+ * text is escaped once for HTML, to be shown as written, and once more for the attribute.
+ */
+export function xmlHtmlText(value) {
+  return xmlEscape(xmlEscape(value ?? ''));
 }
 
 export function mdTable(headers, rows) {

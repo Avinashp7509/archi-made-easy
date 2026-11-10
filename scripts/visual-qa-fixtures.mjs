@@ -59,3 +59,59 @@ export function longLabelWebHa() {
 export function denseMicroservices() {
   return scaffolded('microservices', 'azure');
 }
+
+/** Text an author (or a document taken from an untrusted repository) could try to smuggle in. */
+export const HOSTILE = Object.freeze({
+  script: '</script><script>window.__pwned=1</script>',
+  image: '"><img src=x onerror="window.__pwned=1">',
+  svg: '<svg onload="window.__pwned=1">',
+  frame: '<!-- --><iframe srcdoc="<script>parent.__pwned=1</script>">',
+  // Markdown that would be a link and a tracking image in an exported document.
+  link: '[click](javascript:window.__pwned=1) ![p](https://tracker.invalid/p.png) `code` *bold* a|b; %% x',
+  // Short enough for a component label and a sublabel.
+  bold: '<b>Q7</b>',
+  italic: '"><i>x7',
+});
+
+/**
+ * A small architecture with hostile text in every authored text field the workbench or the
+ * page shows: title, labels, cards, operational strings, requirements, decision records,
+ * traces, alternatives and a child diagram. With `benign`, the same document with harmless
+ * text in the same places, for comparison.
+ */
+export function hostileDocument({ benign = false, child = true } = {}) {
+  const h = benign ? Object.fromEntries(Object.keys(HOSTILE).map((key) => [key, `text ${key}`])) : HOSTILE;
+  const short = (key) => (benign ? 'Text' : HOSTILE[key]);
+  return {
+    schema_version: 1, diagram_type: 'architecture',
+    meta: { title: `Shop ${h.script}`, subtitle: h.image, output: 'hostile.html' },
+    layout: { mode: 'grid', origin: [40, 110], cols: 3, cellW: 130, cellH: 60, gapX: 80, gapY: 80 },
+    components: [
+      { id: 'users', type: 'external', label: 'Users', sublabel: short('italic'), row: 0, col: 0, operational: { role: 'ingress', capacity: { baseline_rps: 10 } } },
+      { id: 'app', type: 'backend', label: short('bold'), sublabel: short('italic'), row: 0, col: 1,
+        operational: { role: 'stateless-compute', sla_percent: 99.9, redundancy: 'multi-az', capacity: { max_rps: 100 }, latency: { p50_ms: 10, p99_ms: 50 },
+          security: { trust_zone: h.image, auth_method: 'jwt', compliance_tags: [h.svg] }, finops: { cloud_provider: h.image, instance_tier: h.svg, monthly_base_cost_usd: 10 },
+          ...(child ? { drilldown_diagram_id: 'inside' } : {}) } },
+      { id: 'db', type: 'database', label: 'Store', sublabel: short('bold'), row: 0, col: 2,
+        operational: { role: 'stateful-db', sla_percent: 99.9, redundancy: 'multi-az', capacity: { max_rps: 100 }, dr: { rpo_sec: 60, rto_sec: 600, backup_strategy: h.script }, security: { encryption_at_rest: true } } },
+    ],
+    boundaries: [{ id: 'zone', kind: 'security-group', label: benign ? 'Zone' : 'Zone <i>z7', wraps: ['app', 'db'] }],
+    connections: [
+      { id: 'users-app', from: 'users', to: 'app', label: benign ? 'calls' : '<s>c7</s>', operational: { resilience: { timeout_ms: 2000, retries: 0 } } },
+      { id: 'app-db', from: 'app', to: 'db', label: 'SQL', operational: { resilience: { timeout_ms: 500, retries: 0 } } },
+    ],
+    cards: [
+      { title: `Notes ${h.svg}`, dot: 'cyan', items: [h.script, h.image, h.frame] },
+      { title: 'Assumptions', dot: 'amber', items: [h.script, 'Every figure here is an illustrative test value'] },
+    ],
+    workbench: {
+      entrypoints: ['users'],
+      requirements: { availability_target_percent: 99, peak_rps: 20, compliance: [h.script], data_residency: [h.image] },
+      adrs: [{ id: 'adr-1', title: h.svg, status: 'accepted', context: h.script, decision: h.image, consequences: `${h.frame} ${h.link}`,
+        alternatives: [{ option: h.script, pros: [h.image], cons: [h.link] }] }],
+      traces: [{ id: 'trace-1', title: `${h.script}; participant x`, kind: 'happy', steps: [{ edge: 'users-app', note: `${h.image}; ${h.link}` }, { edge: 'app-db', note: h.svg }] }],
+      alternatives: [{ id: 'alt-1', title: h.image, description: h.svg, component_overrides: [{ id: 'app', operational: { capacity: { max_rps: 50 } } }] }],
+      ...(child ? { drilldowns: [{ id: 'inside', title: `Inside ${h.script}`, spec: hostileDocument({ benign, child: false }) }] } : {}),
+    },
+  };
+}

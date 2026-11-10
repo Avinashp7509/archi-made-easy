@@ -1,7 +1,7 @@
 // draw.io / diagrams.net export: an uncompressed mxfile that opens with the same placement
 // the document declares (grid cells or explicit positions).
 
-import { ASYNC, PASSIVE, boundaryForest, xmlEscape } from './shared.mjs';
+import { ASYNC, PASSIVE, boundaryForest, xmlEscape, xmlHtmlText } from './shared.mjs';
 
 const DEFAULT_GRID = { origin: [40, 80], gapX: 30, gapY: 40, cellW: 130, cellH: 64 };
 const DEFAULT_SIZE = [130, 60];
@@ -49,7 +49,7 @@ export function toDrawio(document, model) {
       const right = Math.max(...members.map((b) => b.x + b.width)) + pad;
       const bottom = Math.max(...members.map((b) => b.y + b.height)) + pad;
       const style = `rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=none;strokeColor=${boundary.kind === 'security-group' ? '#e11d48' : '#d97706'};verticalAlign=top;align=left;spacingLeft=8;fontStyle=1;`;
-      cells.push(`<mxCell id="b-${xmlEscape(boundary.id)}" value="${xmlEscape(boundary.label)}" style="${style}" vertex="1" parent="1"><mxGeometry x="${x}" y="${y}" width="${right - x}" height="${bottom - y}" as="geometry"/></mxCell>`);
+      cells.push(`<mxCell id="b-${xmlEscape(boundary.id)}" value="${xmlHtmlText(boundary.label)}" style="${style}" vertex="1" parent="1"><mxGeometry x="${x}" y="${y}" width="${right - x}" height="${bottom - y}" as="geometry"/></mxCell>`);
     }
     for (const child of forest.children(boundary.id)) emitBoundary(child, depth + 1);
   };
@@ -61,13 +61,15 @@ export function toDrawio(document, model) {
     if (!box) continue;
     const cylinder = ['stateful-db', 'object-store', 'cache'].includes(node.role);
     const base = cylinder ? 'shape=cylinder3;boundedLbl=1;size=8;' : node.actor ? 'shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;' : 'rounded=1;';
-    const value = node.sublabel ? `${xmlEscape(node.label)}&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;${xmlEscape(node.sublabel)}&lt;/font&gt;` : xmlEscape(node.label);
+    // Every label cell is an HTML label (html=1). The line break and the font tag are the
+    // exporter's own markup; authored text is escaped for HTML as well as for the attribute.
+    const value = node.sublabel ? `${xmlHtmlText(node.label)}&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;${xmlHtmlText(node.sublabel)}&lt;/font&gt;` : xmlHtmlText(node.label);
     cells.push(`<mxCell id="n-${xmlEscape(node.id)}" value="${value}" style="${base}whiteSpace=wrap;html=1;${STYLE[typeOf.get(node.id)] ?? STYLE.backend}" vertex="1" parent="1"><mxGeometry x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" as="geometry"/></mxCell>`);
   }
   for (const edge of [...model.edges].sort((a, b) => (a.id < b.id ? -1 : 1))) {
     if (!boxes.has(edge.from) || !boxes.has(edge.to)) continue;
     const dashed = ASYNC.has(edge.call_semantics) || PASSIVE.has(edge.call_semantics) ? 'dashed=1;' : '';
-    cells.push(`<mxCell id="e-${xmlEscape(edge.id)}" value="${xmlEscape(edge.label ?? '')}" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;${dashed}" edge="1" parent="1" source="n-${xmlEscape(edge.from)}" target="n-${xmlEscape(edge.to)}"><mxGeometry relative="1" as="geometry"/></mxCell>`);
+    cells.push(`<mxCell id="e-${xmlEscape(edge.id)}" value="${xmlHtmlText(edge.label ?? '')}" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;${dashed}" edge="1" parent="1" source="n-${xmlEscape(edge.from)}" target="n-${xmlEscape(edge.to)}"><mxGeometry relative="1" as="geometry"/></mxCell>`);
   }
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',

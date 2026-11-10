@@ -17297,24 +17297,55 @@ function xmlEscape(value) {
   return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-/** Markdown table cell: no pipes or line breaks. */
+/**
+ * Authored text as Markdown text. Whatever the author wrote, it comes out as text: it
+ * cannot become emphasis, a link, an image, a table cell boundary, a code span or raw
+ * HTML, and it stays on one line, so it cannot start a new block either.
+ */
+function mdText(value) {
+  return String(value ?? '').replace(/\s*\r?\n\s*/g, ' ').replace(/[\\`*_[\]<>|]/g, '\\$&');
+}
+
+/** Markdown the exporter wrote itself (authored parts already escaped), for a table cell. */
+function preformatted(markdown) {
+  return { markdown: String(markdown) };
+}
+
+/** Markdown table cell: authored text is escaped; preformatted Markdown passes through. */
 function cell(value) {
-  return value == null || value === '' ? '' : String(value).replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
+  if (value == null || value === '') return '';
+  return typeof value === 'object' && typeof value.markdown === 'string' ? value.markdown : mdText(value);
+}
+
+/**
+ * Authored text for a draw.io label. Labels there are HTML inside an XML attribute, so the
+ * text is escaped once for HTML, to be shown as written, and once more for the attribute.
+ */
+function xmlHtmlText(value) {
+  return xmlEscape(xmlEscape(value ?? ''));
 }
 
 function mdTable(headers, rows) {
   return [`| ${headers.join(' | ')} |`, `|${headers.map(() => '---').join('|')}|`, ...rows.map((row) => `| ${row.map(cell).join(' | ')} |`)].join('\n');
 }
-    return { safeId, idMap, ASYNC, PASSIVE, edgeText, plural, boundaryForest, xmlEscape, cell, mdTable };
+    return { safeId, idMap, ASYNC, PASSIVE, edgeText, plural, boundaryForest, xmlEscape, mdText, preformatted, cell, xmlHtmlText, mdTable };
   })();
   // ---- exporters/mermaid.mjs
   __modules["exporters/mermaid.mjs"] = (function () {
     'use strict';
 // Mermaid export: flowchart, C4 and sequence diagrams from an architecture model.
 
-var { ASYNC, PASSIVE, boundaryForest, edgeText, idMap } = __modules["exporters/shared.mjs"];
+var { ASYNC, PASSIVE, boundaryForest, edgeText, idMap, mdText } = __modules["exporters/shared.mjs"];
 
-const text = (value) => String(value ?? '').replace(/"/g, '#quot;').replace(/\r?\n/g, ' ');
+// Authored text inside a Mermaid diagram, written with Mermaid's entity codes so that it is
+// text in every position. In a quoted label it cannot close the string, start a tag or end
+// the code fence of the Markdown around it.
+const CODES = { '#': '#35;', '"': '#quot;', '<': '#lt;', '>': '#gt;', '`': '#96;', ';': '#59;', '%': '#37;' };
+const encode = (value, characters) => String(value ?? '').replace(/\s*\r?\n\s*/g, ' ').replace(characters, (character) => CODES[character]);
+const text = (value) => encode(value, /[#"<>`]/g);
+// Outside quotes (a title, a participant name, a message, a note) a semicolon would end the
+// statement and a percent sign could start a comment, so those are encoded as well.
+const bare = (value) => encode(value, /[#"<>`;%]/g);
 
 function shape(node, id) {
   const label = `"${text(node.label)}${node.sublabel ? `<br/>${text(node.sublabel)}` : ''}"`;
@@ -17354,7 +17385,7 @@ function toMermaidC4(model) {
   const forest = boundaryForest(model);
   const levels = new Set(model.nodes.map((n) => n.c4_level).filter(Boolean));
   const context = levels.size === 1 && levels.has('context');
-  const lines = [context ? 'C4Context' : 'C4Container', `  title ${text(model.title)}`];
+  const lines = [context ? 'C4Context' : 'C4Container', `  title ${bare(model.title)}`];
   const element = (node) => {
     const id = ids.get(node.id);
     const description = text(node.sublabel || '');
@@ -17406,15 +17437,15 @@ function toMermaidSequences(model) {
     const edges = trace.steps.map((step) => ({ step, edge: edgeById.get(step.edge) })).filter((item) => item.edge);
     const order = [];
     for (const { edge } of edges) for (const id of [edge.from, edge.to]) if (!order.includes(id)) order.push(id);
-    const lines = ['sequenceDiagram', `  title ${text(trace.title)}`];
+    const lines = ['sequenceDiagram', `  title ${bare(trace.title)}`];
     for (const id of order) {
       const node = nodeById.get(id);
-      lines.push(`  ${node.actor ? 'actor' : 'participant'} ${ids.get(id)} as ${text(node.label)}`);
+      lines.push(`  ${node.actor ? 'actor' : 'participant'} ${ids.get(id)} as ${bare(node.label)}`);
     }
     for (const { step, edge } of edges) {
       const arrow = ASYNC.has(edge.call_semantics) ? '-)' : '->>';
-      lines.push(`  ${ids.get(edge.from)}${arrow}${ids.get(edge.to)}: ${text(edgeText(edge))}`);
-      if (step.note) lines.push(`  Note over ${ids.get(edge.from)},${ids.get(edge.to)}: ${text(step.note)}`);
+      lines.push(`  ${ids.get(edge.from)}${arrow}${ids.get(edge.to)}: ${bare(edgeText(edge))}`);
+      if (step.note) lines.push(`  Note over ${ids.get(edge.from)},${ids.get(edge.to)}: ${bare(step.note)}`);
     }
     return { id: trace.id, title: trace.title, kind: trace.kind, text: lines.join('\n') };
   });
@@ -17425,10 +17456,10 @@ function toMermaidMarkdown(model) {
   const fence = (body) => `\`\`\`mermaid\n${body}\n\`\`\``;
   const sequences = toMermaidSequences(model);
   return [
-    `# ${model.title}`, '',
+    `# ${mdText(model.title)}`, '',
     '## Flowchart', '', fence(toMermaidFlowchart(model)), '',
     '## C4', '', fence(toMermaidC4(model)), '',
-    ...sequences.flatMap((sequence) => [`## Sequence: ${sequence.title}`, '', fence(sequence.text), '']),
+    ...sequences.flatMap((sequence) => [`## Sequence: ${mdText(sequence.title)}`, '', fence(sequence.text), '']),
   ].join('\n');
 }
     return { toMermaidFlowchart, toMermaidC4, toMermaidSequences, toMermaidMarkdown };
@@ -17439,7 +17470,7 @@ function toMermaidMarkdown(model) {
 // draw.io / diagrams.net export: an uncompressed mxfile that opens with the same placement
 // the document declares (grid cells or explicit positions).
 
-var { ASYNC, PASSIVE, boundaryForest, xmlEscape } = __modules["exporters/shared.mjs"];
+var { ASYNC, PASSIVE, boundaryForest, xmlEscape, xmlHtmlText } = __modules["exporters/shared.mjs"];
 
 const DEFAULT_GRID = { origin: [40, 80], gapX: 30, gapY: 40, cellW: 130, cellH: 64 };
 const DEFAULT_SIZE = [130, 60];
@@ -17487,7 +17518,7 @@ function toDrawio(document, model) {
       const right = Math.max(...members.map((b) => b.x + b.width)) + pad;
       const bottom = Math.max(...members.map((b) => b.y + b.height)) + pad;
       const style = `rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=none;strokeColor=${boundary.kind === 'security-group' ? '#e11d48' : '#d97706'};verticalAlign=top;align=left;spacingLeft=8;fontStyle=1;`;
-      cells.push(`<mxCell id="b-${xmlEscape(boundary.id)}" value="${xmlEscape(boundary.label)}" style="${style}" vertex="1" parent="1"><mxGeometry x="${x}" y="${y}" width="${right - x}" height="${bottom - y}" as="geometry"/></mxCell>`);
+      cells.push(`<mxCell id="b-${xmlEscape(boundary.id)}" value="${xmlHtmlText(boundary.label)}" style="${style}" vertex="1" parent="1"><mxGeometry x="${x}" y="${y}" width="${right - x}" height="${bottom - y}" as="geometry"/></mxCell>`);
     }
     for (const child of forest.children(boundary.id)) emitBoundary(child, depth + 1);
   };
@@ -17499,13 +17530,15 @@ function toDrawio(document, model) {
     if (!box) continue;
     const cylinder = ['stateful-db', 'object-store', 'cache'].includes(node.role);
     const base = cylinder ? 'shape=cylinder3;boundedLbl=1;size=8;' : node.actor ? 'shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;' : 'rounded=1;';
-    const value = node.sublabel ? `${xmlEscape(node.label)}&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;${xmlEscape(node.sublabel)}&lt;/font&gt;` : xmlEscape(node.label);
+    // Every label cell is an HTML label (html=1). The line break and the font tag are the
+    // exporter's own markup; authored text is escaped for HTML as well as for the attribute.
+    const value = node.sublabel ? `${xmlHtmlText(node.label)}&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;${xmlHtmlText(node.sublabel)}&lt;/font&gt;` : xmlHtmlText(node.label);
     cells.push(`<mxCell id="n-${xmlEscape(node.id)}" value="${value}" style="${base}whiteSpace=wrap;html=1;${STYLE[typeOf.get(node.id)] ?? STYLE.backend}" vertex="1" parent="1"><mxGeometry x="${box.x}" y="${box.y}" width="${box.width}" height="${box.height}" as="geometry"/></mxCell>`);
   }
   for (const edge of [...model.edges].sort((a, b) => (a.id < b.id ? -1 : 1))) {
     if (!boxes.has(edge.from) || !boxes.has(edge.to)) continue;
     const dashed = ASYNC.has(edge.call_semantics) || PASSIVE.has(edge.call_semantics) ? 'dashed=1;' : '';
-    cells.push(`<mxCell id="e-${xmlEscape(edge.id)}" value="${xmlEscape(edge.label ?? '')}" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;${dashed}" edge="1" parent="1" source="n-${xmlEscape(edge.from)}" target="n-${xmlEscape(edge.to)}"><mxGeometry relative="1" as="geometry"/></mxCell>`);
+    cells.push(`<mxCell id="e-${xmlEscape(edge.id)}" value="${xmlHtmlText(edge.label ?? '')}" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;${dashed}" edge="1" parent="1" source="n-${xmlEscape(edge.from)}" target="n-${xmlEscape(edge.to)}"><mxGeometry relative="1" as="geometry"/></mxCell>`);
   }
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
@@ -17600,9 +17633,10 @@ var { buildFmea } = __modules["fmea.mjs"];
 var { estimateCost } = __modules["cost.mjs"];
 var { buildScenarios, runScenario } = __modules["scenarios.mjs"];
 var { toMermaidFlowchart } = __modules["exporters/mermaid.mjs"];
-var { mdTable, plural } = __modules["exporters/shared.mjs"];
+var { mdTable, mdText, plural, preformatted } = __modules["exporters/shared.mjs"];
 
-const mark = (node, key, value) => (value == null ? 'not set' : `${value}${node.basis[key] === 'assumed' ? '*' : ''}`);
+// The asterisk is the exporter's own mark, so the cell is written as Markdown here.
+const mark = (node, key, value) => (value == null ? 'not set' : preformatted(`${mdText(value)}${node.basis[key] === 'assumed' ? '*' : ''}`));
 const seconds = (value) => (value == null ? 'not set' : `${value} s`);
 
 function toRfc(document, model) {
@@ -17616,12 +17650,12 @@ function toRfc(document, model) {
   const out = [];
   const push = (...lines) => out.push(...lines);
 
-  push(`# ${model.title}: architecture design`, '');
+  push(`# ${mdText(model.title)}: architecture design`, '');
   push('> Generated from an Archi-Made-Easy architecture document. Figures under "Modelled behaviour", "Review", "Failure modes" and "Scenarios" come from an analytical model of the declared design. They are not measurements. Values marked with an asterisk (*) were assumed from the component\'s role because the document does not state them.', '');
 
   push('## 1. Summary', '');
   push(`- ${plural(model.nodes.filter((n) => !n.actor).length, 'component')}, ${plural(model.edges.length, 'connection')}, ${plural(model.boundaries.length, 'boundary')}.`);
-  push(`- Entry points: ${model.entrypoints.map(name).join(', ') || 'none identified'}.`);
+  push(`- Entry points: ${model.entrypoints.map((id) => mdText(name(id))).join(', ') || 'none identified'}.`);
   push(`- Review score: ${findings.score}/100 with ${findings.findings.length} finding${findings.findings.length === 1 ? '' : 's'}.`);
   push(`- Inputs: ${result.basis.authored_inputs} authored, ${result.basis.assumed_inputs} assumed.`, '');
 
@@ -17640,7 +17674,7 @@ function toRfc(document, model) {
       ].filter(([, value]) => value != null && value !== '');
       if (rows.length) push(mdTable(['Requirement', 'Target'], rows), '');
     }
-    if (assumptions) push('Assumptions:', '', ...assumptions.items.map((item) => `- ${item}`), '');
+    if (assumptions) push('Assumptions:', '', ...assumptions.items.map((item) => `- ${mdText(item)}`), '');
   }
 
   push('## 3. Architecture', '', '```mermaid', toMermaidFlowchart(model), '```', '');
@@ -17648,13 +17682,13 @@ function toRfc(document, model) {
   push(mdTable(['Component', 'Role', 'Redundancy', 'Unit SLA %', 'Capacity (requests/s)', 'P99 (ms)', 'Trust zone'],
     model.nodes.filter((n) => !n.actor).map((n) => [
       n.label, mark(n, 'role', n.role), mark(n, 'redundancy', n.redundancy), mark(n, 'sla_percent', n.sla_percent),
-      n.capacity.max_rps == null ? 'not set' : `${n.capacity.max_rps * (n.capacity.autoscale_max ?? 1)}${n.basis['capacity.max_rps'] === 'assumed' ? '*' : ''}`,
+      n.capacity.max_rps == null ? 'not set' : preformatted(`${n.capacity.max_rps * (n.capacity.autoscale_max ?? 1)}${n.basis['capacity.max_rps'] === 'assumed' ? '*' : ''}`),
       mark(n, 'latency.p99_ms', n.latency.p99_ms), n.security.trust_zone ?? '',
     ])), '');
   push('### Connections', '');
   push(mdTable(['From', 'To', 'Purpose', 'Semantics', 'Protocol', 'Resilience'],
     [...model.edges].sort((a, b) => (a.id < b.id ? -1 : 1)).map((e) => [
-      name(e.from), name(e.to), e.label ?? '', `${e.call_semantics}${e.basis.call_semantics === 'assumed' ? '*' : ''}`, e.protocol ?? '',
+      name(e.from), name(e.to), e.label ?? '', preformatted(`${e.call_semantics}${e.basis.call_semantics === 'assumed' ? '*' : ''}`), e.protocol ?? '',
       [e.resilience.timeout_ms != null ? `timeout ${e.resilience.timeout_ms} ms` : null, e.resilience.retries ? `${e.resilience.retries} retries` : null,
         e.resilience.circuit_breaker_enabled ? 'circuit breaker' : null, e.resilience.fallback_edge_id ? `fallback ${e.resilience.fallback_edge_id}` : null,
         e.resilience.dlq_node_id ? `dead letters to ${name(e.resilience.dlq_node_id)}` : null, e.resilience.idempotent ? 'idempotent' : null].filter(Boolean).join(', '),
@@ -17670,7 +17704,7 @@ function toRfc(document, model) {
     ['Single points of failure', k.active_spofs.length ? k.active_spofs.map(name).join(', ') : 'none'],
     ['Estimated monthly cost', cost.monthly_total_usd == null ? 'not available (no cost data)' : `$${cost.monthly_total_usd} (${cost.coverage.priced_components} of ${cost.coverage.components} components priced)`],
   ]), '');
-  for (const warning of result.warnings) push(`- Note: ${warning}`);
+  for (const warning of result.warnings) push(`- Note: ${mdText(warning)}`);
   if (result.warnings.length) push('');
 
   push('## 5. Review', '');
@@ -17700,11 +17734,11 @@ function toRfc(document, model) {
   if (model.adrs.length) {
     push('## 8. Decisions', '');
     for (const adr of model.adrs) {
-      push(`### ${adr.title}`, '', `Status: ${adr.status}`, '');
-      if (adr.context) push(`**Context.** ${adr.context}`, '');
-      push(`**Decision.** ${adr.decision}`, '');
+      push(`### ${mdText(adr.title)}`, '', `Status: ${adr.status}`, '');
+      if (adr.context) push(`**Context.** ${mdText(adr.context)}`, '');
+      push(`**Decision.** ${mdText(adr.decision)}`, '');
       if (adr.alternatives?.length) push(mdTable(['Alternative', 'For', 'Against'], adr.alternatives.map((a) => [a.option, (a.pros || []).join('; '), (a.cons || []).join('; ')])), '');
-      if (adr.consequences) push(`**Consequences.** ${adr.consequences}`, '');
+      if (adr.consequences) push(`**Consequences.** ${mdText(adr.consequences)}`, '');
     }
   }
 

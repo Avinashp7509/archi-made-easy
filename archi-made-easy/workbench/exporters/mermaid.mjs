@@ -1,8 +1,16 @@
 // Mermaid export: flowchart, C4 and sequence diagrams from an architecture model.
 
-import { ASYNC, PASSIVE, boundaryForest, edgeText, idMap } from './shared.mjs';
+import { ASYNC, PASSIVE, boundaryForest, edgeText, idMap, mdText } from './shared.mjs';
 
-const text = (value) => String(value ?? '').replace(/"/g, '#quot;').replace(/\r?\n/g, ' ');
+// Authored text inside a Mermaid diagram, written with Mermaid's entity codes so that it is
+// text in every position. In a quoted label it cannot close the string, start a tag or end
+// the code fence of the Markdown around it.
+const CODES = { '#': '#35;', '"': '#quot;', '<': '#lt;', '>': '#gt;', '`': '#96;', ';': '#59;', '%': '#37;' };
+const encode = (value, characters) => String(value ?? '').replace(/\s*\r?\n\s*/g, ' ').replace(characters, (character) => CODES[character]);
+const text = (value) => encode(value, /[#"<>`]/g);
+// Outside quotes (a title, a participant name, a message, a note) a semicolon would end the
+// statement and a percent sign could start a comment, so those are encoded as well.
+const bare = (value) => encode(value, /[#"<>`;%]/g);
 
 function shape(node, id) {
   const label = `"${text(node.label)}${node.sublabel ? `<br/>${text(node.sublabel)}` : ''}"`;
@@ -42,7 +50,7 @@ export function toMermaidC4(model) {
   const forest = boundaryForest(model);
   const levels = new Set(model.nodes.map((n) => n.c4_level).filter(Boolean));
   const context = levels.size === 1 && levels.has('context');
-  const lines = [context ? 'C4Context' : 'C4Container', `  title ${text(model.title)}`];
+  const lines = [context ? 'C4Context' : 'C4Container', `  title ${bare(model.title)}`];
   const element = (node) => {
     const id = ids.get(node.id);
     const description = text(node.sublabel || '');
@@ -94,15 +102,15 @@ export function toMermaidSequences(model) {
     const edges = trace.steps.map((step) => ({ step, edge: edgeById.get(step.edge) })).filter((item) => item.edge);
     const order = [];
     for (const { edge } of edges) for (const id of [edge.from, edge.to]) if (!order.includes(id)) order.push(id);
-    const lines = ['sequenceDiagram', `  title ${text(trace.title)}`];
+    const lines = ['sequenceDiagram', `  title ${bare(trace.title)}`];
     for (const id of order) {
       const node = nodeById.get(id);
-      lines.push(`  ${node.actor ? 'actor' : 'participant'} ${ids.get(id)} as ${text(node.label)}`);
+      lines.push(`  ${node.actor ? 'actor' : 'participant'} ${ids.get(id)} as ${bare(node.label)}`);
     }
     for (const { step, edge } of edges) {
       const arrow = ASYNC.has(edge.call_semantics) ? '-)' : '->>';
-      lines.push(`  ${ids.get(edge.from)}${arrow}${ids.get(edge.to)}: ${text(edgeText(edge))}`);
-      if (step.note) lines.push(`  Note over ${ids.get(edge.from)},${ids.get(edge.to)}: ${text(step.note)}`);
+      lines.push(`  ${ids.get(edge.from)}${arrow}${ids.get(edge.to)}: ${bare(edgeText(edge))}`);
+      if (step.note) lines.push(`  Note over ${ids.get(edge.from)},${ids.get(edge.to)}: ${bare(step.note)}`);
     }
     return { id: trace.id, title: trace.title, kind: trace.kind, text: lines.join('\n') };
   });
@@ -113,9 +121,9 @@ export function toMermaidMarkdown(model) {
   const fence = (body) => `\`\`\`mermaid\n${body}\n\`\`\``;
   const sequences = toMermaidSequences(model);
   return [
-    `# ${model.title}`, '',
+    `# ${mdText(model.title)}`, '',
     '## Flowchart', '', fence(toMermaidFlowchart(model)), '',
     '## C4', '', fence(toMermaidC4(model)), '',
-    ...sequences.flatMap((sequence) => [`## Sequence: ${sequence.title}`, '', fence(sequence.text), '']),
+    ...sequences.flatMap((sequence) => [`## Sequence: ${mdText(sequence.title)}`, '', fence(sequence.text), '']),
   ].join('\n');
 }

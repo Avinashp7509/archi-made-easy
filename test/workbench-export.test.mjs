@@ -117,16 +117,26 @@ test('draw.io: valid structure, declared positions, one cell per component and c
   assert.equal(new Set(ids).size, ids.length, 'cell ids are unique');
 });
 
-test('draw.io escapes markup in labels and uses explicit positions when given', () => {
+test('draw.io shows markup in labels as text and uses explicit positions when given', () => {
   const document = { schema_version: 1, diagram_type: 'architecture', meta: { title: 'A & B <x>', output: 'x.html' },
-    components: [{ id: 'a', type: 'backend', label: 'A <b> & "c"', pos: [10, 20], size: [200, 80] }, { id: 'b', type: 'database', label: 'B', pos: [300, 20] }],
+    components: [{ id: 'a', type: 'backend', label: 'A <b> & "c"', sublabel: '<i>s</i>', pos: [10, 20], size: [200, 80] }, { id: 'b', type: 'database', label: 'B', pos: [300, 20] }],
+    boundaries: [{ id: 'z', kind: 'region', label: 'Zone <u>1</u>', wraps: ['a', 'b'] }],
     connections: [{ id: 'ab', from: 'a', to: 'b', label: 'x < y' }] };
   const xml = toDrawio(document, buildModel(document).model);
+  // The diagram name is a plain attribute: escaped once.
   assert.match(xml, /name="A &amp; B &lt;x&gt;"/);
-  assert.match(xml, /value="A &lt;b&gt; &amp; &quot;c&quot;"/);
-  assert.match(xml, /value="x &lt; y"/);
+  // Labels are HTML inside an attribute: escaped for HTML, then for the attribute. Escaped
+  // once, as they were, "<b>" reached draw.io as a tag.
+  assert.match(xml, /value="A &amp;lt;b&amp;gt; &amp;amp; &amp;quot;c&amp;quot;&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;&amp;lt;i&amp;gt;s&amp;lt;\/i&amp;gt;&lt;\/font&gt;"/);
+  assert.match(xml, /id="e-ab" value="x &amp;lt; y"/);
+  assert.match(xml, /id="b-z" value="Zone &amp;lt;u&amp;gt;1&amp;lt;\/u&amp;gt;"/);
   assert.match(xml, /id="n-a"[^>]*><mxGeometry x="10" y="20" width="200" height="80"/);
-  assert.doesNotMatch(xml, /<b>|x < y/);
+  // No authored tag is live in any label; the only markup in a label is the exporter's own line break and font.
+  assert.doesNotMatch(xml, /<b>|<i>|<u>|x < y/);
+  for (const [, value] of xml.matchAll(/ value="([^"]*)"/g)) {
+    const html = value.replaceAll('&lt;', '<').replaceAll('&gt;', '>').replaceAll('&quot;', '"').replaceAll('&amp;', '&');
+    assert.deepEqual((html.match(/<\/?[a-z][^>]*>/g) || []).filter((tag) => !['<br>', '<font style="font-size:10px">', '</font>'].includes(tag)), [], value);
+  }
 });
 
 test('Structurizr DSL: people, containers in groups, external systems, relationships, views', () => {

@@ -1,0 +1,445 @@
+{
+  "schemaVersion": 1,
+  "kind": "clean-install-acceptance",
+  "date": "2026-11-10T16:22:22.134Z",
+  "platform": "win32 10.0.26200",
+  "node": "v24.18.0",
+  "ok": true,
+  "steps": [
+    {
+      "name": "unpack release archive",
+      "ok": true,
+      "archive": "release-candidate.zip",
+      "sha256": "e5ef7ad2569c6bcb79ce43e1d491d8b0b7e7ecc210ce1ec5661275ee256d4d08",
+      "entries": 257,
+      "note": "257 entries"
+    },
+    {
+      "name": "install with the bundled installer",
+      "ok": true,
+      "agents": [
+        "claude-code",
+        "codex"
+      ],
+      "targets": [
+        {
+          "label": "Claude Code (global)",
+          "status": "installed",
+          "doctor": true
+        },
+        {
+          "label": "OpenAI Codex (global)",
+          "status": "installed",
+          "doctor": true
+        }
+      ],
+      "note": "Claude Code (global); OpenAI Codex (global)"
+    },
+    {
+      "name": "doctor from installed copy: Claude Code (global)",
+      "ok": true,
+      "ms": 149,
+      "note": "Archi-Made-Easy is ready."
+    },
+    {
+      "name": "doctor from installed copy: OpenAI Codex (global)",
+      "ok": true,
+      "ms": 201,
+      "note": "Archi-Made-Easy is ready."
+    },
+    {
+      "name": "finalize from installed copy (architecture, showcase)",
+      "ok": true,
+      "ms": 8605,
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "artifactBytes": 1132561,
+      "note": "{\"validate\":\"pass\",\"deliver\":\"pass\",\"check\":\"pass\",\"browser-check\":\"pass\"}"
+    },
+    {
+      "name": "scaffold zero-trust on azure",
+      "ok": true,
+      "ms": 161,
+      "note": "equals the bundled provider example"
+    },
+    {
+      "name": "scaffold event-driven on aws",
+      "ok": true,
+      "ms": 122,
+      "note": "equals the bundled provider example"
+    },
+    {
+      "name": "scaffold microservices on gcp",
+      "ok": true,
+      "ms": 168,
+      "note": "equals the bundled provider example"
+    },
+    {
+      "name": "scaffold hybrid on onprem",
+      "ok": true,
+      "ms": 188,
+      "note": "equals the bundled provider example"
+    },
+    {
+      "name": "showcase document: global-fintech-payment-mesh",
+      "ok": true,
+      "ms": 6801,
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "artifactBytes": 1149881,
+      "reviewScore": 98,
+      "findings": {
+        "critical": 0,
+        "high": 0,
+        "medium": 1,
+        "low": 0
+      },
+      "scenarios": "a:run b:run c:run d:run e:not applicable f:run",
+      "exports": {
+        "mermaid": true,
+        "drawio": true,
+        "structurizr": true,
+        "rfc": true,
+        "html": true
+      },
+      "note": "review 98/100, 5 exports"
+    },
+    {
+      "name": "showcase document: enterprise-agentic-ai-platform",
+      "ok": true,
+      "ms": 7589,
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "artifactBytes": 1144288,
+      "reviewScore": 92,
+      "findings": {
+        "critical": 0,
+        "high": 1,
+        "medium": 0,
+        "low": 0
+      },
+      "scenarios": "a:run b:not applicable c:run d:run e:run f:run",
+      "exports": {
+        "mermaid": true,
+        "drawio": true,
+        "structurizr": true,
+        "rfc": true,
+        "html": true
+      },
+      "note": "review 92/100, 5 exports"
+    },
+    {
+      "name": "showcase document: cloud-native-ecommerce-c4",
+      "ok": true,
+      "ms": 9764,
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "artifactBytes": 1370137,
+      "reviewScore": 100,
+      "findings": {
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0
+      },
+      "scenarios": "a:run b:run c:run d:not applicable e:not applicable f:run",
+      "exports": {
+        "mermaid": true,
+        "drawio": true,
+        "structurizr": true,
+        "rfc": true,
+        "html": true
+      },
+      "note": "review 100/100, 5 exports"
+    },
+    {
+      "name": "showcase document: azure-zero-trust",
+      "ok": true,
+      "ms": 7549,
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "artifactBytes": 1131641,
+      "reviewScore": 99,
+      "findings": {
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 1
+      },
+      "scenarios": "a:run b:not applicable c:run d:not applicable e:not applicable f:run",
+      "exports": {
+        "mermaid": true,
+        "drawio": true,
+        "structurizr": true,
+        "rfc": true,
+        "html": true
+      },
+      "note": "review 99/100, 5 exports"
+    },
+    {
+      "name": "showcase document: aws-event-driven",
+      "ok": true,
+      "ms": 6592,
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "artifactBytes": 1132377,
+      "reviewScore": 98,
+      "findings": {
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 2
+      },
+      "scenarios": "a:run b:run c:run d:run e:not applicable f:run",
+      "exports": {
+        "mermaid": true,
+        "drawio": true,
+        "structurizr": true,
+        "rfc": true,
+        "html": true
+      },
+      "note": "review 98/100, 5 exports"
+    },
+    {
+      "name": "showcase document: gcp-microservices",
+      "ok": true,
+      "ms": 7084,
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "artifactBytes": 1133862,
+      "reviewScore": 98,
+      "findings": {
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 2
+      },
+      "scenarios": "a:run b:run c:run d:not applicable e:not applicable f:run",
+      "exports": {
+        "mermaid": true,
+        "drawio": true,
+        "structurizr": true,
+        "rfc": true,
+        "html": true
+      },
+      "note": "review 98/100, 5 exports"
+    },
+    {
+      "name": "showcase document: onprem-hybrid",
+      "ok": true,
+      "ms": 7689,
+      "gates": {
+        "validate": "pass",
+        "deliver": "pass",
+        "check": "pass",
+        "browser-check": "pass"
+      },
+      "artifactBytes": 1133322,
+      "reviewScore": 82,
+      "findings": {
+        "critical": 0,
+        "high": 3,
+        "medium": 0,
+        "low": 2
+      },
+      "scenarios": "a:run b:run c:run d:not applicable e:not applicable f:run",
+      "exports": {
+        "mermaid": true,
+        "drawio": true,
+        "structurizr": true,
+        "rfc": true,
+        "html": true
+      },
+      "note": "review 82/100, 5 exports"
+    },
+    {
+      "name": "page offline, figures equal the command line: global-fintech-payment-mesh",
+      "ok": true,
+      "ribbonHealthy": [
+        "Answered99.999%",
+        "Path P99302 ms",
+        "Max load7,200/s",
+        "Single points0",
+        "Cost / month$54,951",
+        "Review98 / 100"
+      ],
+      "ribbonTenTimesLoad": [
+        "Answered now99.999%",
+        "Path P993,891 mshealthy: 302 ms",
+        "Max load7,200/s",
+        "Single points0",
+        "Cost / month$195,361healthy: $54,951",
+        "Review90 / 100"
+      ],
+      "levels": 0,
+      "remoteRequests": 0,
+      "note": "healthy and 10x load equal simulate --json; 0 child diagrams"
+    },
+    {
+      "name": "page offline, figures equal the command line: enterprise-agentic-ai-platform",
+      "ok": true,
+      "ribbonHealthy": [
+        "Answered99.999%",
+        "Path P995,156 ms",
+        "Max load18/s",
+        "Single points0",
+        "Cost / month$104,799",
+        "Review92 / 100"
+      ],
+      "ribbonTenTimesLoad": [
+        "Answered now99.999%",
+        "Path P9986,095 mshealthy: 5,156 ms",
+        "Max load18/s",
+        "Single points0",
+        "Cost / month$1,073,168healthy: $104,799",
+        "Review84 / 100"
+      ],
+      "levels": 0,
+      "remoteRequests": 0,
+      "note": "healthy and 10x load equal simulate --json; 0 child diagrams"
+    },
+    {
+      "name": "page offline, figures equal the command line: cloud-native-ecommerce-c4",
+      "ok": true,
+      "ribbonHealthy": [
+        "Answered99.999%",
+        "Path P99376 ms",
+        "Max load3,226/s",
+        "Single points0",
+        "Cost / month$15,878",
+        "Review100 / 100"
+      ],
+      "ribbonTenTimesLoad": [
+        "Answered now99.999%",
+        "Path P996,493 mshealthy: 376 ms",
+        "Max load3,226/s",
+        "Single points0",
+        "Cost / month$31,245healthy: $15,878",
+        "Review88 / 100"
+      ],
+      "levels": 3,
+      "remoteRequests": 0,
+      "note": "healthy and 10x load equal simulate --json; 3 child diagrams"
+    },
+    {
+      "name": "page offline, figures equal the command line: azure-zero-trust",
+      "ok": true,
+      "ribbonHealthy": [
+        "Answered99.999%",
+        "Path P99302 ms",
+        "Max load1,000/s",
+        "Single points0",
+        "Cost / monthno data",
+        "Review99 / 100"
+      ],
+      "ribbonTenTimesLoad": [
+        "Answered now99.999%",
+        "Path P99302 ms",
+        "Max load1,000/s",
+        "Single points0",
+        "Cost / monthno data",
+        "Review99 / 100"
+      ],
+      "levels": 0,
+      "remoteRequests": 0,
+      "note": "healthy and 10x load equal simulate --json; 0 child diagrams"
+    },
+    {
+      "name": "page offline, figures equal the command line: aws-event-driven",
+      "ok": true,
+      "ribbonHealthy": [
+        "Answered99.999%",
+        "Path P99211 ms",
+        "Max load500/s",
+        "Single points0",
+        "Cost / monthno data",
+        "Review98 / 100"
+      ],
+      "ribbonTenTimesLoad": [
+        "Answered now99.999%",
+        "Path P99211 ms",
+        "Max load500/s",
+        "Single points0",
+        "Cost / monthno data",
+        "Review98 / 100"
+      ],
+      "levels": 0,
+      "remoteRequests": 0,
+      "note": "healthy and 10x load equal simulate --json; 0 child diagrams"
+    },
+    {
+      "name": "page offline, figures equal the command line: gcp-microservices",
+      "ok": true,
+      "ribbonHealthy": [
+        "Answered99.999%",
+        "Path P99232 ms",
+        "Max load1,000/s",
+        "Single points0",
+        "Cost / monthno data",
+        "Review98 / 100"
+      ],
+      "ribbonTenTimesLoad": [
+        "Answered now99.999%",
+        "Path P99232 ms",
+        "Max load1,000/s",
+        "Single points0",
+        "Cost / monthno data",
+        "Review98 / 100"
+      ],
+      "levels": 0,
+      "remoteRequests": 0,
+      "note": "healthy and 10x load equal simulate --json; 0 child diagrams"
+    },
+    {
+      "name": "page offline, figures equal the command line: onprem-hybrid",
+      "ok": true,
+      "ribbonHealthy": [
+        "Answered99.8%",
+        "Path P99333 ms",
+        "Max load1,000/s",
+        "Single points3",
+        "Cost / monthno data",
+        "Review82 / 100"
+      ],
+      "ribbonTenTimesLoad": [
+        "Answered now99.8%",
+        "Path P99333 ms",
+        "Max load1,000/s",
+        "Single points3",
+        "Cost / monthno data",
+        "Review82 / 100"
+      ],
+      "levels": 0,
+      "remoteRequests": 0,
+      "note": "healthy and 10x load equal simulate --json; 0 child diagrams"
+    }
+  ]
+}
