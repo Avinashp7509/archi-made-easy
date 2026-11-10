@@ -6196,7 +6196,7 @@ async function commandDoctor(args) {
     failureLabel: validatorsExist ? 'invalid' : 'missing',
   });
 
-  const workbenchRuntime = ['workbench/defaults.mjs', 'workbench/model.mjs', 'workbench/validate.mjs', 'workbench/scaffold.mjs', 'workbench/sim.mjs', 'workbench/scenarios.mjs', 'workbench/fmea.mjs', 'workbench/cost.mjs', 'workbench/review.mjs', 'workbench/compare.mjs', 'workbench/exporters/shared.mjs', 'workbench/exporters/mermaid.mjs', 'workbench/exporters/drawio.mjs', 'workbench/exporters/structurizr.mjs', 'workbench/exporters/rfc.mjs', 'bin/workbench.mjs', 'bin/workbench-analysis.mjs', 'bin/workbench-export.mjs', 'knowledge/slots.json', 'knowledge/providers/azure.json', 'knowledge/providers/aws.json', 'knowledge/providers/gcp.json', 'knowledge/providers/onprem.json', 'knowledge/patterns/web-ha.json'];
+  const workbenchRuntime = ['workbench/defaults.mjs', 'workbench/model.mjs', 'workbench/validate.mjs', 'workbench/scaffold.mjs', 'workbench/sim.mjs', 'workbench/scenarios.mjs', 'workbench/fmea.mjs', 'workbench/cost.mjs', 'workbench/review.mjs', 'workbench/compare.mjs', 'workbench/remedy.mjs', 'workbench/embed.mjs', 'workbench/exporters/shared.mjs', 'workbench/exporters/mermaid.mjs', 'workbench/exporters/drawio.mjs', 'workbench/exporters/structurizr.mjs', 'workbench/exporters/rfc.mjs', 'bin/workbench.mjs', 'bin/workbench-analysis.mjs', 'bin/workbench-export.mjs', 'knowledge/slots.json', 'knowledge/providers/azure.json', 'knowledge/providers/aws.json', 'knowledge/providers/gcp.json', 'knowledge/providers/onprem.json', 'knowledge/patterns/web-ha.json'];
   checks.push({
     label: 'Architecture workbench runtime and knowledge packs',
     ok: workbenchRuntime.every((file) => fs.existsSync(path.join(skillRoot, file))),

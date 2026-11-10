@@ -13,6 +13,15 @@ Installation for other agents and projects: [archi-made-easy/references/installa
 
 Follow [CONTRIBUTING.md](CONTRIBUTING.md) for repository changes and [REVIEWING.md](REVIEWING.md) for reviews.
 
+## Viewer and workbench interface changes
+
+Any change to what a reader sees (the viewer shell, the workbench, diagram styling, examples) is held to the visual QA specification in [docs/program/PHASE5-UX-ADDENDUM.md](docs/program/PHASE5-UX-ADDENDUM.md):
+
+- the interface must stay an independent Archi-Made-Easy design, following [docs/visual-qa/DESIGN-SYSTEM.md](docs/visual-qa/DESIGN-SYSTEM.md), not a restyled copy of the upstream viewer;
+- run the repeatable browser checks in [docs/visual-qa/PLAYWRIGHT-TEST-MATRIX.md](docs/visual-qa/PLAYWRIGHT-TEST-MATRIX.md), inspect the result in a real browser, and record defects in [docs/visual-qa/DEFECT-REGISTER.md](docs/visual-qa/DEFECT-REGISTER.md);
+- screenshots under `docs/visual-qa/` are captured from the running application, never drawn;
+- a modelled figure is always labelled as modelled, and an assumed input as assumed.
+
 ## PR preparation
 
 Before requesting final review, follow the scoped [PR improvement check](CONTRIBUTING.md#pr-improvement-check) using the project Skills when applicable.

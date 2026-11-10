@@ -55,12 +55,22 @@ function keywordRole(text) {
 }
 
 /**
+ * A brand given by catalog name ("redis") is a role hint. A brand given as an image URL or
+ * a pinned image is not: it says nothing about the role, and its address must never be
+ * copied anywhere. The icon is presentation only and is not a hint either: changing an
+ * icon changes nothing else in the page.
+ */
+export function brandName(brand) {
+  return typeof brand === 'string' && !/^https?:\/\//i.test(brand) ? brand : null;
+}
+
+/**
  * Infer an operational role from the component's existing fields.
  * @param {object} component architecture component
  * @param {{ inbound: number, outbound: number }} context number of inbound and outbound relationships
  */
 export function inferRole(component, { inbound = 0, outbound = 0 } = {}) {
-  const text = [component.label, component.sublabel, component.tag, component.icon, component.brand?.id ?? component.brand].filter(Boolean).join(' ');
+  const text = [component.label, component.sublabel, component.tag, brandName(component.brand)].filter(Boolean).join(' ');
   const keyword = keywordRole(text);
   switch (component.type) {
     case 'frontend':

@@ -158,7 +158,10 @@
         if (eligible()) {
           var rest = restingNavRect();
           var box = container.getBoundingClientRect();
-          next = Math.round(Math.max(0, Math.min(rest.bottom - (window.innerHeight - 16), rest.top - box.top - 16)));
+          // An open workbench dock pinned to the viewport floor raises that floor.
+          var workbench = ArchiMadeEasy.workbench;
+          var floor = window.innerHeight - 16 - (workbench && workbench.viewportInset ? workbench.viewportInset() : 0);
+          next = Math.round(Math.max(0, Math.min(rest.bottom - floor, rest.top - box.top - 16)));
         }
         if (next === lift) return;
         lift = next;
@@ -343,6 +346,7 @@
         measure: measure,
         schedule: schedule,
         reprobe: reprobe,
+        scheduleLift: scheduleLift,
         whenStable: whenStable,
         stageRect: protectedStageRect,
         dockRect: function () { return nav ? restingNavRect() : null; },

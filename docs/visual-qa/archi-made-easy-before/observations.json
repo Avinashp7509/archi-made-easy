@@ -1,0 +1,21 @@
+{
+  "source": "Archi-Made-Easy before the redesign (git ref refs/backup/phase5-functional), rendered by this repository's renderer and read from the live page with Playwright on 2026-11-10. Document: web-ha with authored operational data (10 components, 9 connections), light theme.",
+  "method": "docs/visual-qa/tools/capture-baseline.playwright.js; rectangles are [left, top, width, height] in CSS pixels from getBoundingClientRect at scroll position 0.",
+  "identicalToUpstream": [
+    "every colour token read (--bg, --panel, --panel-border, --text, --text-muted, the seven component strokes, --arrow, --arrow-emphasis)",
+    "body, title and node-label font family, size and weight",
+    "header, container, diagram, SVG, legend, notes and index rectangles at all three recorded viewports",
+    "the navigation dock buttons and their order"
+  ],
+  "differences": [
+    "one more toolbar button (\"Architecture workbench\"), widening the toolbar from 364px to 469px",
+    "a workbench dock pinned to the viewport floor (167px tall at 1440 and 1920 wide, 271px at 390 wide)",
+    "the navigation dock is lifted above the workbench dock (top 676 instead of 747 at 1440 x 900)",
+    "page scroll height grows by the dock height (1463 instead of 1280 at 1440 x 900)"
+  ],
+  "viewports": {
+    "1920x1080": { "scroll": [1905, 1678], "rects": { "toolbar": [1400, 32, 469, 44], "diagram": [32, 92, 1841, 944], "svg": [150, 161, 1605, 807], "legend": [47, 960, 998, 61], "nav": [1504, 856, 352, 42], "workbench": [32, 901, 1841, 167] } },
+    "1440x900": { "scroll": [1425, 1463], "rects": { "toolbar": [924, 4, 469, 44], "diagram": [32, 58, 1361, 747], "svg": [47, 67, 1331, 669], "legend": [90, 676, 827, 51], "nav": [1024, 676, 352, 42], "workbench": [32, 721, 1361, 167] }, "note": "The dock (top 721) covers the legend (676 to 727) and the bottom of the diagram until the page is scrolled." },
+    "390x844": { "scroll": [375, 1645], "rects": { "toolbar": [16, 16, 343, 44], "diagram": [16, 146, 343, 454], "svg": [29, 159, 720, 362], "workbench": [16, 565, 343, 271] }, "note": "The dock covers the lower third of the screen, including the navigation dock (top 527, height 54)." }
+  }
+}

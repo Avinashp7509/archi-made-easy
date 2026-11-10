@@ -17,7 +17,33 @@ in the shell because it carries its license notice and embedded font data.
 unchanged by all ten renderers and the installed Skill. These maintainer
 sources live outside the packaged `archi-made-easy/` directory.
 
-From `archi-made-easy/`, run `npm run generate:viewer` after editing any source.
+`workbench.js` is the architecture workbench: the mode rail, the vitals bar, the inspector
+and the canvas overlays. It is inlined only in pages that carry workbench data, which the
+architecture renderer embeds; the renderer removes the whole workbench script block from
+every other page. `workbench-engine.js` is generated: it is the browser copy of the engine
+modules in `archi-made-easy/workbench/`, built by `npm run generate:workbench-engine`. Edit
+the modules, never the fragment; `test/workbench-engine-parity.test.mjs` holds the two
+copies equal. The design is `docs/visual-qa/DESIGN-SYSTEM.md`.
+
+Rules for the shell and the workbench, each enforced by a test or a gate:
+
+- **Workbench off means inherited geometry.** The last section of `viewer.css` ("ARCHI-MADE-EASY
+  SHELL") may repaint the header, toolbar and canvas, but must not change their boxes: the
+  reader layout, the canvas-tool placement and the browser gate are tuned to them, and the
+  inherited browser tests check them. The frame's regions are `position: fixed` and reserve
+  space through the page padding only while `html[data-workbench="on"]`.
+- No literal `<svg` (the artifact check counts that substring anywhere in the page) and no
+  bare `NaN` or `Infinity` (artifact validation rejects them). Icons are CSS masks.
+- Canvas overlay selectors start at `.diagram-container`, and theme-scoped rules at `html`,
+  never at `svg` or `[data-theme]`: the export copies rules that begin with those.
+- Overlays and every `data-wb-*` attribute are stripped by `export-cleanup.js`.
+- Every figure is labelled as modelled; a figure under a changed condition names the
+  condition and shows the healthy value.
+
+Check interface changes with `node scripts/visual-qa.mjs --quick` and in a real browser;
+see `docs/visual-qa/PLAYWRIGHT-TEST-MATRIX.md`.
+
+From `archi-made-easy/`, run `npm run generate:workbench-engine` after editing an engine module and `npm run generate:viewer` after editing any source.
 `npm run check:viewer` verifies freshness without writing; root
 `npm run test:generated` and `npm run test:full` include that check. Shared Viewer changes also require rebuilding the checked-in
 Checkout comparison from its tracked snapshots. From the repository root, run:

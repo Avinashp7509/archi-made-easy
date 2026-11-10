@@ -43,4 +43,7 @@ export const browserTestFiles = [
   'sequence-segment-contrast-browser.test.mjs',
   'bottom-node-index-browser.test.mjs',
   'explainer-browser.test.mjs',
+  // Appended last: an insertion earlier would flip the shard of every suite after it.
+  'workbench-browser.test.mjs',
+  'visual-qa-browser.test.mjs',
 ];

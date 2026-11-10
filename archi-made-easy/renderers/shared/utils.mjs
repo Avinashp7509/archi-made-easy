@@ -132,6 +132,8 @@ const CARDS_SLOT_RE = /    <!-- ARCHI_MADE_EASY:CARDS_SLOT_START -->[\s\S]*?    
 const SUBTITLE_SLOT_RE = /^([ \t]*)<p class="subtitle">\[Subtitle description\]<\/p>[ \t]*(\r?\n)?/m;
 const SOURCE_EVIDENCE_PLACEHOLDER = '    <!-- ARCHI_MADE_EASY:SOURCE_EVIDENCE_DATA -->';
 const I18N_PLACEHOLDER = '    <!-- ARCHI_MADE_EASY:I18N_DATA -->';
+const WORKBENCH_PLACEHOLDER = '    <!-- ARCHI_MADE_EASY:WORKBENCH_DATA -->';
+const WORKBENCH_BLOCK_RE = /\/\* ARCHI_MADE_EASY:WORKBENCH_BLOCK_START \*\/\n[\s\S]*?\/\* ARCHI_MADE_EASY:WORKBENCH_BLOCK_END \*\/\n/;
 
 function serializeScriptJson(value) {
   return JSON.stringify(value)
@@ -155,6 +157,7 @@ export function applyTemplate(template, {
   locale,
   visualPreset = 'classic',
   sourceEvidence = null,
+  workbenchData = null,
 }) {
   if (!SVG_SLOT_RE.test(template)) {
     throw new Error('applyTemplate: template missing ARCHI_MADE_EASY:SVG_SLOT sentinel');
@@ -186,6 +189,11 @@ export function applyTemplate(template, {
     : '';
   const i18nData = `    <script id="archi-made-easy-i18n-data" type="application/json">${i18nJson}</script>`;
   return localizeTemplate(template, resolvedLocale)
+    // The workbench scripts are for pages that carry workbench data. Those pages keep the
+    // template's scripts byte for byte, the two block comments included. Every other page
+    // is delivered without the block, which is about a sixth of the template. This runs
+    // before any authored content is inserted, so authored text can never be mistaken for it.
+    .replace(WORKBENCH_BLOCK_RE, (block) => (workbenchData ? block : ''))
     .replace(I18N_PLACEHOLDER, () => i18nData)
     .replace(TEMPLATE_PLACEHOLDERS[0], () => `<html lang="${esc(resolvedLocale)}" data-theme="dark" data-preset="${esc(visualPreset)}">`)
     .replace(TEMPLATE_PLACEHOLDERS[1], () => `<title>${esc(translateMessage(resolvedLocale, 'page.title', { title }))}</title>`)
@@ -197,6 +205,11 @@ export function applyTemplate(template, {
     .replace(CARDS_SLOT_RE, () => cards)
     .replace(SOURCE_EVIDENCE_PLACEHOLDER, () => sourceEvidence
       ? `    <script id="archi-made-easy-source-evidence-data" type="application/json">${sourceEvidenceJson}</script>`
+      : '')
+    // The workbench is an optional enhancement: a custom template without the slot simply
+    // renders without it, and a diagram without workbench data leaves no trace.
+    .replace(WORKBENCH_PLACEHOLDER, () => workbenchData
+      ? `    <script id="archi-made-easy-workbench-data" type="application/json">${serializeScriptJson(workbenchData)}</script>`
       : '');
 }
 

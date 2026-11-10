@@ -76,7 +76,7 @@ Environment for local evidence: Windows 11, Node 24.18.0 (zlib 1.3.1-e00f703), n
   - Packs carry service names only. A test rejects any SLA or price value in a pack.
   - All 36 pattern and provider combinations validate at showcase quality (`test/workbench-scaffold.test.mjs`); three were run through the full `finalize` pipeline with the real-browser gate.
 - [ ] Not done: provider SLA figures with official sources. The packs deliberately ship without them; adding them needs each value fetched from the provider's page with a retrieval date.
-- [ ] Moved to Phase 5: the workbench data slot in rendered HTML. It changes the viewer template, so it ships together with the viewer work to regenerate the goldens once.
+- [x] The workbench data slot in rendered HTML shipped with the viewer work in Phase 5.
 
 ## Phase 4. Review and simulation
 
@@ -96,13 +96,45 @@ Environment for local evidence: Windows 11, Node 24.18.0 (zlib 1.3.1-e00f703), n
 
 ## Phase 5. Workbench
 
-- [ ] Workbench data slot in rendered HTML (moved from Phase 3)
-- [ ] Viewer modes, inspection, chaos, traffic, security, FinOps, C4, alternatives, handoff
-- [ ] Engine parity test; browser tests; browser gate with workbench open and closed
+Phase 5 has two parts. Part 1 is the working workbench. Part 2 is the original interface and visual QA required by [PHASE5-UX-ADDENDUM.md](PHASE5-UX-ADDENDUM.md). The acceptance record is [docs/visual-qa/FINAL-VISUAL-ACCEPTANCE.md](../visual-qa/FINAL-VISUAL-ACCEPTANCE.md).
+
+### Part 1. Function
+
+- [x] Workbench data slot in rendered HTML (moved from Phase 3). `workbench/embed.mjs`; `test/workbench-embed.test.mjs` (8 tests).
+  - Only what the model reads is embedded. Icons and brand image addresses never are; the page and the command line build the same model.
+  - Pages that cannot use the workbench are delivered without its scripts (a sequence page is about 150 KB smaller than an architecture page).
+- [x] Browser copy of the engine, generated, with a parity test on all 36 pattern and provider combinations (`test/workbench-engine-parity.test.mjs`, 8 tests).
+- [x] Engine additions for the redesign: `consequence` and model-edit `fixes` on review findings; `workbench/remedy.mjs` (patches, previews, recovery options). `test/workbench-remedy.test.mjs` (8 tests).
+- [x] First interface (a bottom dock), kept as the functional baseline at git ref `refs/backup/phase5-functional`.
+  - Its regression baseline: full suite 3,543 tests with the 43 baseline failures and no new one; serial browser suite 294 of 304 (one failure from a missing dev dependency in the isolated checkout, one not reproduced later; see D-018).
+- [ ] Moved to Phase 6: opening child diagrams (C4 drill-down) from the page.
+
+### Part 2. Original interface and visual QA
+
+- [x] Upstream visual baseline: 29 screenshots and measured values in `docs/visual-qa/upstream-baseline/`, captured through Playwright MCP from an isolated, unmodified upstream checkout at `11b0d60`.
+- [x] Pre-redesign baseline: 45 screenshots and measured values in `docs/visual-qa/archi-made-easy-before/`. Finding: every colour token, font and layout rectangle was identical to upstream.
+- [x] [Visual differentiation audit](../visual-qa/VISUAL-DIFFERENTIATION-AUDIT.md): 15 elements, each with upstream, before, redesign, priority and acceptance.
+- [x] [Design system](../visual-qa/DESIGN-SYSTEM.md) defined and implemented: two-state frame, mark, palette, data typography, components, responsive behaviour.
+- [x] Workbench experiences: Explore, Review, Simulate, Security, Performance, FinOps, Optimize, plus Decide and Handoff.
+- [x] Simulation: set up, Run, propagation played outward, impact, before and after, recovery options with a preview and a diagram view of the recovered state.
+- [x] Findings are actionable: selecting one spotlights exactly the affected components and connections and shows problem, evidence, consequence and recommended change, with a modelled preview of the fix where the model can make it.
+- [x] Measured, modelled and assumed are distinct on the page. The reported 0% availability was investigated: an intended scenario result shown without context (D-001), now fixed in presentation.
+- [x] [Browser QA matrix](../visual-qa/PLAYWRIGHT-TEST-MATRIX.md) executed: workflows A to T except L (C4 drill-down, not implemented), six viewports, both themes. 384 states.
+- [x] Repeatable automated visual defect detection: `scripts/visual-qa.mjs` (`npm run qa:visual`), with a reduced run in the browser suite (`test/visual-qa-browser.test.mjs`).
+- [x] [Defect register](../visual-qa/DEFECT-REGISTER.md): 30 entries; no open critical or high defect. Open: one medium (inherited label size on phones and tablets) and three low.
+- [x] Screenshots of the final interface: 72 in `docs/visual-qa/archi-made-easy-after/`, written by the QA run.
+- [x] [Final visual acceptance](../visual-qa/FINAL-VISUAL-ACCEPTANCE.md): accepted with recorded limitations; objective results separate from the subjective assessment.
+- [x] Inherited gates unchanged and passing on the final tree:
+  - full suite: 3,554 tests, 3,312 pass; the 43 failures equal the Phase 0 baseline set, no new failure (run outside OneDrive on the identical tree);
+  - serial browser suite: 312 tests, 305 pass, 0 fail, 7 skipped;
+  - the inherited browser layout gate and reader layout are the inherited code, unmodified;
+  - one inherited test expectation changed (a palette value, D-024).
+
+Not done in Phase 5, recorded: workbench text is English only; no new typeface is bundled; provider service icons are not bundled; the three non-default presets and the print palette keep their inherited look.
 
 ## Phase 6. Showcase
 
-- [ ] Three flagships plus provider examples at showcase quality
+- [ ] Three flagships plus provider examples at showcase quality, each passing the Phase 5 visual QA matrix
 - [ ] Regression benchmarks
 
 ## Phase 7. Distribution readiness

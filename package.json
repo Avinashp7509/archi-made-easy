@@ -10,9 +10,10 @@
     "test:focus": "node scripts/run-tests.mjs --require-files",
     "test:compat": "npm run test:core",
     "test:browser": "node scripts/run-browser-tests.mjs",
+    "qa:visual": "node scripts/visual-qa.mjs",
     "test:webm": "node test/webm-artifact.smoke.mjs && node --test test/site-language-integration.mjs",
     "test:core": "node scripts/run-tests.mjs test/core-smoke.test.mjs",
-    "test:generated": "npm --prefix archi-made-easy run check:viewer && npm --prefix archi-made-easy run check:brand-marks && npm --prefix archi-made-easy run check:validators && npm --prefix archi-made-easy run check:release-identity && node test/golden.mjs",
+    "test:generated": "npm --prefix archi-made-easy run check:workbench-engine && npm --prefix archi-made-easy run check:viewer && npm --prefix archi-made-easy run check:brand-marks && npm --prefix archi-made-easy run check:validators && npm --prefix archi-made-easy run check:release-identity && node test/golden.mjs",
     "test:full": "npm run test:generated && node scripts/run-tests.mjs",
     "test:affected": "node scripts/run-affected-tests.mjs"
   },

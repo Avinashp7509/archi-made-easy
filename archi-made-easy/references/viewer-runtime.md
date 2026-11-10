@@ -13,6 +13,7 @@ Read this only when the user asks for a reader-facing capability. Ordinary gener
 - Semantic Radar mirrors the visible viewport and authored graph without becoming a second source of truth.
 - Direct Relationship Pin makes a unique compiled relationship operable while preserving the authored line and stable relationship identity. It must fail closed on conflicting source/target/label/ID metadata.
 - Route Probe resolves exactly two endpoints over authored directed relationships. It never infers a route from geometry.
+- Architecture Workbench (architecture diagrams only) is turned on from the toolbar and frames the diagram with a mode rail, a vitals bar and an inspector for reviewing the design and trying failures, load and changes on it. Its figures are an analytical model, never a measurement, and its marks never enter an export. With the workbench on, a selected component is described in the inspector and the Semantic Passport is not shown. See [Exports, comparison and the workbench](workbench-ui-and-exporters.md).
 
 ## Embedded reading addresses
 

@@ -23,7 +23,9 @@ const intentMarker = '/* ARCHI_MADE_EASY:INTENT_TRACE */';
 const lensMarker = '/* ARCHI_MADE_EASY:SEMANTIC_LENS */';
 const routeMarker = '/* ARCHI_MADE_EASY:ROUTE_PROBE */';
 const focusMarker = '/* ARCHI_MADE_EASY:FOCUS */';
-const fragments = { viewerCss: viewerCssMarker, export: exportMarker, reader: marker, cleanup: cleanupMarker, chrome: chromeMarker, camera: cameraMarker, radar: radarMarker, motion: motionMarker, finder: finderMarker, outline: outlineMarker, tree: treeMarker, intent: intentMarker, lens: lensMarker, route: routeMarker, focus: focusMarker };
+const engineMarker = '/* ARCHI_MADE_EASY:WORKBENCH_ENGINE */';
+const workbenchMarker = '/* ARCHI_MADE_EASY:WORKBENCH */';
+const fragments = { viewerCss: viewerCssMarker, export: exportMarker, reader: marker, cleanup: cleanupMarker, chrome: chromeMarker, camera: cameraMarker, radar: radarMarker, motion: motionMarker, finder: finderMarker, outline: outlineMarker, tree: treeMarker, intent: intentMarker, lens: lensMarker, route: routeMarker, focus: focusMarker, engine: engineMarker, workbench: workbenchMarker };
 
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-viewer-build-'));
@@ -54,6 +56,8 @@ function fixture(t) {
     lens: path.join(root, 'viewer/semantic-lens.js'),
     route: path.join(root, 'viewer/route-probe.js'),
     focus: path.join(root, 'viewer/focus.js'),
+    engine: path.join(root, 'viewer/workbench-engine.js'),
+    workbench: path.join(root, 'viewer/workbench.js'),
     run: (...args) => spawnSync(process.execPath, [path.join(root, 'scripts/generate-viewer.mjs'), ...args], {
       cwd: os.tmpdir(), encoding: 'utf8',
     }),
@@ -113,7 +117,7 @@ test('importing the generator with an unavailable entry path does not run or thr
 
 test('editing any authoritative source requires explicit regeneration', (t) => {
   const f = fixture(t);
-  for (const input of [f.shell, f.viewerCss, f.export, f.reader, f.cleanup, f.chrome, f.camera, f.radar, f.motion, f.finder, f.outline, f.tree, f.intent, f.lens, f.route, f.focus]) {
+  for (const input of [f.shell, f.viewerCss, f.export, f.reader, f.cleanup, f.chrome, f.camera, f.radar, f.motion, f.finder, f.outline, f.tree, f.intent, f.lens, f.route, f.focus, f.engine, f.workbench]) {
     const previous = fs.readFileSync(f.output);
     fs.appendFileSync(input, '\n/* source change */\n');
     const stale = f.run('--check');
@@ -178,7 +182,7 @@ test('assembly preserves literal replacement tokens, Unicode and source line end
   const f = fixture(t);
   const reader = '// $& $\' $` $$ 中文 \u{1f5fa}\r\n(function () {})();\r\n';
   const css = '/* === TOKENS === */\r\n:root { --x: 1; }\r\n';
-  fs.writeFileSync(f.shell, `<style>${viewerCssMarker}</style><script>\r\n${focusMarker}${routeMarker}${lensMarker}${intentMarker}${finderMarker}${outlineMarker}${treeMarker}${motionMarker}${radarMarker}${cameraMarker}${chromeMarker}${exportMarker}${marker}</script>\n`);
+  fs.writeFileSync(f.shell, `<style>${viewerCssMarker}</style><script>\r\n${focusMarker}${routeMarker}${lensMarker}${intentMarker}${finderMarker}${outlineMarker}${treeMarker}${motionMarker}${radarMarker}${cameraMarker}${chromeMarker}${exportMarker}${marker}${engineMarker}${workbenchMarker}</script>\n`);
   fs.writeFileSync(f.viewerCss, css);
   fs.writeFileSync(f.export, reader + cleanupMarker);
   fs.writeFileSync(f.cleanup, reader);
@@ -193,6 +197,8 @@ test('assembly preserves literal replacement tokens, Unicode and source line end
   fs.writeFileSync(f.lens, reader);
   fs.writeFileSync(f.route, reader);
   fs.writeFileSync(f.focus, reader);
+  fs.writeFileSync(f.engine, reader);
+  fs.writeFileSync(f.workbench, reader);
   fs.writeFileSync(f.reader, reader);
   const generated = f.run();
   assert.equal(generated.status, 0, generated.stderr);
@@ -205,7 +211,7 @@ test('assembly preserves literal replacement tokens, Unicode and source line end
   const indentedCss = css.split('\n').map((line) => line.length === 0 ? line : '    ' + line).join('\n');
   assert.equal(
     fs.readFileSync(f.output, 'utf8'),
-    `<style>${indentedCss}</style><script>\r\n${reader}${reader}${reader}${reader}${reader}${reader}${reader}${reader}${reader}${reader}${reader}${reader}${reader}${reader}</script>\n`,
+    `<style>${indentedCss}</style><script>\r\n${reader.repeat(16)}</script>\n`,
   );
   assert.equal(f.run('--check').status, 0);
 });

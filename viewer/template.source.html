@@ -233,6 +233,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       <span id="present-icon" class="toolbar-icon" aria-hidden="true"></span>
       <span id="present-label">{{i18n:viewer.present.present}}</span>
     </button>
+    <!-- Shown only on architecture pages, which carry workbench data. It turns the
+         workbench frame (mode rail, vitals, inspector) on and off. -->
+    <button id="btn-workbench" type="button" hidden
+            title="Turn the architecture workbench on or off"
+            aria-label="Architecture workbench"
+            aria-pressed="false">
+      <span class="ame-icon ame-icon--workbench" aria-hidden="true"></span>
+      <span id="workbench-label">Workbench</span>
+    </button>
     </div>
     <div class="export-wrap">
       <button id="btn-export" type="button"
@@ -285,6 +294,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     </div>
 
     <!-- ARCHI_MADE_EASY:SOURCE_EVIDENCE_DATA -->
+    <!-- ARCHI_MADE_EASY:WORKBENCH_DATA -->
     <!-- ARCHI_MADE_EASY:I18N_DATA -->
     <!-- Main Diagram -->
     <div class="diagram-container" data-detail-level="read"
@@ -1434,6 +1444,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         ArchiMadeEasy.presentation.exit();
       }
     });
+
+/* ARCHI_MADE_EASY:WORKBENCH_BLOCK_START */
+/* ARCHI_MADE_EASY:WORKBENCH_ENGINE */
+
+/* ARCHI_MADE_EASY:WORKBENCH */
+/* ARCHI_MADE_EASY:WORKBENCH_BLOCK_END */
   </script>
 </body>
 </html>

@@ -27,6 +27,9 @@ const fragments = [
   ['/* ARCHI_MADE_EASY:SEMANTIC_LENS */', 'semantic-lens.js'],
   ['/* ARCHI_MADE_EASY:ROUTE_PROBE */', 'route-probe.js'],
   ['/* ARCHI_MADE_EASY:EXPORT_CLEANUP */', 'export-cleanup.js'],
+  // workbench-engine.js is itself generated, by scripts/generate-workbench-engine.mjs.
+  ['/* ARCHI_MADE_EASY:WORKBENCH_ENGINE */', 'workbench-engine.js'],
+  ['/* ARCHI_MADE_EASY:WORKBENCH */', 'workbench.js'],
 ];
 const childMarker = '/* ARCHI_MADE_EASY:EXPORT_CLEANUP */';
 const childOwner = 'export.js';

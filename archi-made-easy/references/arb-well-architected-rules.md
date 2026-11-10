@@ -26,7 +26,10 @@ node bin/archi-made-easy.mjs review <architecture.json> --strict
 
 ## What a finding contains
 
-`id`, `rule`, `title`, `pillar`, `severity` (`critical`, `high`, `medium`, `low`), `affectedNodes`, `affectedEdges`, `evidence`, `remediation`, and `basis`.
+`id`, `rule`, `title`, `pillar`, `severity` (`critical`, `high`, `medium`, `low`), `affectedNodes`, `affectedEdges`, `evidence`, `consequence`, `remediation`, `fixes`, and `basis`.
+
+- `evidence` is what in this design triggered the rule. `consequence` is what it leads to if left as it is. `remediation` is the recommended change in words.
+- `fixes` is the part of the remediation that can be expressed as an edit to operational fields: a list of `{ target: "component" | "connection", id, operational, summary }`. It is empty when the change needs a figure only the user can give (a recovery objective, a budget) or a structural change. The page uses it to preview a change; to apply one, make the same edit in the document.
 
 `basis` is `authored` when the finding rests on values in the document. It is `assumed` when it rests on an inferred role or a default value; confirm an assumed finding with the user before treating it as fact.
 

@@ -4,6 +4,8 @@
 // appear only where attribution requires it:
 //   * the legal and attribution files (NOTICE, ATTRIBUTION.md, LICENSE files);
 //   * the program records in docs/program/, which describe the imported baseline;
+//   * the visual QA records in docs/visual-qa/, which compare this product with the
+//     upstream viewer and hold screenshots of it;
 //   * the NOTICE text that every rendered page embeds verbatim (and pages that
 //     nest other rendered pages embed it again, escaped).
 // Everything else (code, identifiers, docs, examples, generated files) must use
@@ -25,6 +27,7 @@ const ATTRIBUTION_FILES = [
   /^ATTRIBUTION\.md$/,
   /(^|\/)LICENSE(-MIT)?$/,
   /^docs\/program\//,
+  /^docs\/visual-qa\//, // compares this product with the upstream viewer, so it must name it
   /^test\/identity-guard\.test\.mjs$/, // this guard must name what it searches for
 ];
 const TEXT = /\.(?:js|mjs|cjs|ts|tsx|jsx|astro|json|md|mdc|html|css|ya?ml|txt|sh|ps1|py|toml|svg|xml|csv)$/i;

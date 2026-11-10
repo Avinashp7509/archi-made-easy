@@ -12,6 +12,8 @@
     "node": ">=18"
   },
   "scripts": {
+    "generate:workbench-engine": "node ../scripts/generate-workbench-engine.mjs",
+    "check:workbench-engine": "node ../scripts/generate-workbench-engine.mjs --check",
     "generate:viewer": "node ../scripts/generate-viewer.mjs",
     "check:viewer": "node ../scripts/generate-viewer.mjs --check",
     "generate:brand-marks": "node scripts/generate-brand-marks.mjs",

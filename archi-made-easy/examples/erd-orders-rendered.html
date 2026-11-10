@@ -168,92 +168,112 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   </style>
   <style>
     /* ==========================================================
-       THEME VARIABLES — switch by toggling [data-theme] on <html>
+       THEME VARIABLES — switch by toggling [data-theme] on <html>.
+       Archi-Made-Easy base palette: neutral graphite surfaces so
+       that colour always carries meaning (component category,
+       model state), and one accent. See docs/visual-qa/DESIGN-SYSTEM.md.
        ========================================================== */
     :root,
     [data-theme="dark"] {
-      --bg: #020617;
-      --grid: #1e293b;
-      --canvas-dot: rgba(148, 163, 184, 0.16);
-      --text: #ffffff;
-      --text-muted: #94a3b8;
-      --text-dim: #475569;
+      --bg: #0b0c0e;
+      --grid: #1d1f24;
+      --canvas-dot: rgba(160, 166, 177, 0.13);
+      --text: #f2f3f5;
+      --text-muted: #a0a6b1;
+      --text-dim: #5c626d;
       /* UI chrome and menu hints need more contrast than SVG .t-dim accents */
-      --text-faint: #7d8da1;
+      --text-faint: #8a909b;
 
-      --panel: rgba(15, 23, 42, 0.5);
-      --panel-border: #1e293b;
-      --lane-fill: rgba(15, 23, 42, 0.22);
-      --lane-stroke: #334155;
+      --panel: #131417;
+      --panel-border: #26282e;
+      --lane-fill: rgba(255, 255, 255, 0.022);
+      --lane-stroke: #3a3d45;
 
-      --arrow: #94a3b8;
-      --arrow-emphasis: #34d399;
+      --arrow: #8b919c;
+      --arrow-emphasis: #8da2ff;
 
       /* Opaque mask color used behind semi-transparent component fills
          so the arrows drawn underneath are properly hidden. */
-      --mask: #0f172a;
+      --mask: #131417;
 
-      --frontend-fill:    rgba(8, 51, 68, 0.4);
-      --frontend-stroke:  #22d3ee;
-      --backend-fill:     rgba(6, 78, 59, 0.4);
-      --backend-stroke:   #34d399;
-      --database-fill:    rgba(76, 29, 149, 0.4);
-      --database-stroke:  #a78bfa;
-      --cloud-fill:       rgba(120, 53, 15, 0.3);
-      --cloud-stroke:     #fbbf24;
-      --security-fill:    rgba(136, 19, 55, 0.4);
-      --security-stroke:  #fb7185;
-      --messagebus-fill:  rgba(251, 146, 60, 0.3);
-      --messagebus-stroke:#fb923c;
-      --external-fill:    rgba(30, 41, 59, 0.5);
-      --external-stroke:  #94a3b8;
+      --frontend-fill:    rgba(99, 191, 245, 0.14);
+      --frontend-stroke:  #63bff5;
+      --backend-fill:     rgba(95, 208, 160, 0.14);
+      --backend-stroke:   #5fd0a0;
+      --database-fill:    rgba(179, 155, 255, 0.15);
+      --database-stroke:  #b39bff;
+      --cloud-fill:       rgba(237, 180, 92, 0.13);
+      --cloud-stroke:     #edb45c;
+      --security-fill:    rgba(255, 143, 168, 0.14);
+      --security-stroke:  #ff8fa8;
+      --messagebus-fill:  rgba(255, 157, 102, 0.14);
+      --messagebus-stroke:#ff9d66;
+      --external-fill:    rgba(166, 173, 185, 0.12);
+      --external-stroke:  #a6adb9;
 
-      --toolbar-bg:       rgba(15, 23, 42, 0.8);
-      --toolbar-border:   #334155;
-      --toolbar-text:     #e2e8f0;
-      --toolbar-hover:    rgba(15, 23, 42, 0.95);
-      --toolbar-menu-bg:  #0f172a;
+      --toolbar-bg:       rgba(19, 20, 23, 0.92);
+      --toolbar-border:   #30333a;
+      --toolbar-text:     #e4e6ea;
+      --toolbar-hover:    #1b1d21;
+      --toolbar-menu-bg:  #17181c;
+
+      /* Interface accent and model states. */
+      --ame-chrome:       #101114;
+      --ame-raised:       #1a1c20;
+      --ame-accent:       #8da2ff;
+      --ame-accent-ink:   #0b0c0e;
+      --ame-critical:     #ff7a6b;
+      --ame-warning:      #f2b24a;
+      --ame-ok:           #4fd3a1;
     }
 
     [data-theme="light"] {
-      --bg: #f4f5f7;
-      --grid: #e9edf2;
-      --canvas-dot: #e2e7ec;
-      --text: #111827;
-      --text-muted: #5b6474;
-      --text-dim: #9aa3b2;
-      --text-faint: #6b7280;
+      --bg: #ecedef;
+      --grid: #e1e3e7;
+      --canvas-dot: #d9dce1;
+      --text: #15171a;
+      --text-muted: #555b66;
+      --text-dim: #9ea3ad;
+      --text-faint: #6a707b;
 
-      --panel: #ffffff;
-      --panel-border: #e5e7eb;
-      --lane-fill: rgba(248, 250, 252, 0.65);
-      --lane-stroke: #cbd5e1;
+      --panel: #fcfcfd;
+      --panel-border: #d5d7db;
+      --lane-fill: rgba(21, 23, 26, 0.025);
+      --lane-stroke: #c2c6cd;
 
-      --arrow: #64748b;
-      --arrow-emphasis: #059669;
+      --arrow: #5f6672;
+      --arrow-emphasis: #2f4fe0;
 
-      --mask: #ffffff;
+      --mask: #fcfcfd;
 
-      --frontend-fill: rgba(34, 211, 238, 0.15);
-      --frontend-stroke: #0891b2;
-      --backend-fill: rgba(52, 211, 153, 0.18);
-      --backend-stroke: #059669;
-      --database-fill: rgba(167, 139, 250, 0.2);
-      --database-stroke: #7c3aed;
-      --cloud-fill: rgba(251, 191, 36, 0.18);
-      --cloud-stroke: #d97706;
-      --security-fill: rgba(251, 113, 133, 0.15);
-      --security-stroke: #e11d48;
-      --messagebus-fill: rgba(251, 146, 60, 0.15);
-      --messagebus-stroke: #ea580c;
-      --external-fill: rgba(148, 163, 184, 0.18);
-      --external-stroke: #64748b;
+      --frontend-fill: rgba(10, 111, 179, 0.1);
+      --frontend-stroke: #0a6fb3;
+      --backend-fill: rgba(26, 127, 90, 0.1);
+      --backend-stroke: #1a7f5a;
+      --database-fill: rgba(109, 69, 207, 0.1);
+      --database-stroke: #6d45cf;
+      --cloud-fill: rgba(154, 98, 6, 0.1);
+      --cloud-stroke: #9a6206;
+      --security-fill: rgba(191, 45, 85, 0.09);
+      --security-stroke: #bf2d55;
+      --messagebus-fill: rgba(189, 79, 24, 0.1);
+      --messagebus-stroke: #bd4f18;
+      --external-fill: rgba(89, 97, 112, 0.1);
+      --external-stroke: #596170;
 
-      --toolbar-bg:       rgba(255, 255, 255, 0.92);
-      --toolbar-border:   #cbd5e1;
-      --toolbar-text:     #334155;
+      --toolbar-bg:       rgba(252, 252, 253, 0.94);
+      --toolbar-border:   #c9ccd2;
+      --toolbar-text:     #2b2f36;
       --toolbar-hover:    #ffffff;
       --toolbar-menu-bg:  #ffffff;
+
+      --ame-chrome:       #f7f7f8;
+      --ame-raised:       #f1f2f4;
+      --ame-accent:       #2f4fe0;
+      --ame-accent-ink:   #ffffff;
+      --ame-critical:     #c4281c;
+      --ame-warning:      #9a5b00;
+      --ame-ok:           #0b7a54;
     }
 
     /* ==========================================================
@@ -5082,6 +5102,574 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       .relationship-pulse-overlay { display: none !important; }
       svg [data-node-id], svg [data-edge-from], svg [data-detail], svg [data-detail-anchor], svg [data-legend-hit], svg { transition: none !important; }
     }
+
+    /* ==========================================================
+       ARCHI-MADE-EASY SHELL
+       Two states.
+
+       Workbench off: the page keeps the inherited geometry exactly
+       (same paddings, same header box, same toolbar position), so
+       every inherited layout guarantee holds. Only the paint is
+       new: a full-width title strip, the product mark, squared
+       controls, a flat canvas.
+
+       Workbench on (architecture pages): a frame around the canvas.
+       A mode rail on the left, a vitals bar along the bottom and an
+       inspector on the right are fixed to the window and reserve
+       their space through the page padding, which the reader layout
+       measures. The diagram is scaled to what is left and is never
+       covered. Design: docs/visual-qa/DESIGN-SYSTEM.md.
+       ========================================================== */
+    html {
+      --ame-rail: 0px;
+      --ame-vitals: 0px;
+      --ame-inspector: 0px;
+      --ame-tabbar: 0px;
+      --ame-gap: 0.875rem;
+      --ame-inspector-width: 22.5rem;
+      --ame-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', 'Liberation Mono', monospace;
+      --ame-sans: system-ui, 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Noto Sans', Arial, sans-serif;
+    }
+    @media (min-width: 1600px) { html { --ame-inspector-width: 25rem; } }
+    html[data-workbench="on"] { --ame-rail: 4.25rem; --ame-vitals: 3.25rem; }
+    html[data-workbench="on"][data-ame-inspector="open"] { --ame-inspector: var(--ame-inspector-width); }
+    html[data-present="true"],
+    html[data-embed="true"] { --ame-rail: 0px; --ame-vitals: 0px; --ame-inspector: 0px; --ame-tabbar: 0px; }
+
+    /* Workbench on: the frame reserves its space. Nothing here applies while it is off. */
+    html[data-workbench="on"]:not([data-present="true"]):not([data-embed="true"]) body {
+      padding-left: calc(var(--ame-rail) + var(--ame-gap)) !important;
+      padding-right: calc(var(--ame-inspector) + var(--ame-gap)) !important;
+      padding-bottom: calc(var(--ame-vitals) + var(--ame-tabbar) + var(--ame-gap)) !important;
+    }
+    @media (min-width: 721px) {
+      /* The toolbar is positioned from the window edge; keep it on the page column's right edge. */
+      html[data-workbench="on"]:not([data-present="true"]):not([data-embed="true"]) .toolbar {
+        right: calc(var(--ame-inspector) + var(--ame-gap) + max(0px, (100vw - var(--ame-rail) - var(--ame-inspector) - 2 * var(--ame-gap) - var(--archi-made-easy-reader-width, 1440px)) / 2));
+      }
+    }
+
+    /* ---- Title strip ----------------------------------------------------------------
+       The header keeps its inherited box. A border image paints a strip behind it that
+       runs to the window edges and the top; painting outside the box this way adds no
+       layout and no scrollable overflow. The line at its foot is part of the image. */
+    .header {
+      border-image: linear-gradient(to top, var(--panel-border) 1px, var(--ame-chrome) 1px) fill 0 // 100vmax 100vmax 0.5rem;
+    }
+    html[data-embed="true"] .header { border-image: none; }
+    /* Workbench on: the page column is narrower, so the title takes one line. */
+    html[data-workbench="on"]:not([data-present="true"]) .header h1 { overflow: hidden; font-size: 1.125rem; text-overflow: ellipsis; white-space: nowrap; }
+    html[data-workbench="on"]:not([data-present="true"]) .header-row { min-width: 0; }
+    html[data-workbench="on"]:not([data-present="true"]) .header .subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* The product mark: an arch with its keystone, in the place of the title dot. It keeps
+       the dot's footprint, so the title does not move. */
+    .header .header-row .pulse-dot {
+      position: relative;
+      width: 10px;
+      height: 10px;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+    }
+    .header .header-row .pulse-dot::before,
+    .header .header-row .pulse-dot::after {
+      position: absolute;
+      inset: -5px;
+      content: "";
+      -webkit-mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: contain;
+      mask-position: center;
+      mask-repeat: no-repeat;
+      mask-size: contain;
+    }
+    .header .header-row .pulse-dot::before { background: var(--text); -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.200 17.500V10a5.800 5.800 0 0 1 11.600 0v7.500' fill='none' stroke='black' stroke-width='3.400'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.200 17.500V10a5.800 5.800 0 0 1 11.600 0v7.500' fill='none' stroke='black' stroke-width='3.400'/%3E%3C/svg%3E"); }
+    .header .header-row .pulse-dot::after { background: var(--ame-accent); -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M7.900 2h4.200l-.900 5H8.800z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M7.900 2h4.200l-.900 5H8.800z'/%3E%3C/svg%3E"); }
+
+    /* ---- Toolbar, canvas and inherited panels: new paint, inherited geometry ----------- */
+    .toolbar-group::before { border-radius: 0.375rem; background: var(--panel); box-shadow: none; backdrop-filter: none; }
+    .toolbar-group button::before { border-radius: 0.25rem; }
+    .toolbar #btn-export::before { border-radius: 0.375rem; box-shadow: none; }
+    .toolbar button:focus-visible { outline-color: var(--ame-accent); }
+    .toolbar #btn-workbench[hidden] { display: none !important; }
+    .toolbar #btn-workbench .ame-icon { width: 1rem; height: 1rem; }
+    .toolbar #btn-workbench[aria-pressed="true"] { color: var(--ame-accent); }
+    .toolbar :is(.preset-menu, .export-menu) { border-radius: 0.5rem; }
+    html:not([data-embed="true"]) .diagram-container { border-radius: 0.625rem; box-shadow: none; }
+    .card { border-radius: 0.5rem; }
+    .diagram-nav {
+      border-color: var(--panel-border);
+      border-radius: 0.5rem;
+      background: var(--ame-chrome);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      backdrop-filter: none;
+    }
+    .diagram-nav button { border-radius: 0.25rem; }
+    /* With the workbench on, a selected component is described in the inspector, so the
+       floating passport does not cover the canvas. */
+    html[data-workbench="on"] .focus-chip { display: none !important; }
+
+    /* ---- Icons (CSS masks; the page may contain only one inline SVG) ----------- */
+    .ame-icon {
+      display: inline-block;
+      flex: none;
+      width: 1.25rem;
+      height: 1.25rem;
+      background: currentColor;
+      -webkit-mask-position: center;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-size: contain;
+      mask-position: center;
+      mask-repeat: no-repeat;
+      mask-size: contain;
+    }
+    .ame-icon--explore { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10' cy='10' r='7.2'/%3E%3Cpath d='M12.9 7.1 11.2 11.2 7.1 12.9 8.8 8.8z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10' cy='10' r='7.2'/%3E%3Cpath d='M12.9 7.1 11.2 11.2 7.1 12.9 8.8 8.8z'/%3E%3C/svg%3E"); }
+    .ame-icon--review { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='3.5' width='11' height='13.5' rx='1.6'/%3E%3Cpath d='M7.6 3.5v-1h4.8v1M7.4 10.6l1.9 1.9 3.5-3.9'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='3.5' width='11' height='13.5' rx='1.6'/%3E%3Cpath d='M7.6 3.5v-1h4.8v1M7.4 10.6l1.9 1.9 3.5-3.9'/%3E%3C/svg%3E"); }
+    .ame-icon--simulate { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11.2 2.6 5 11.2h4.4l-.8 6.2L15 8.8h-4.4z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11.2 2.6 5 11.2h4.4l-.8 6.2L15 8.8h-4.4z'/%3E%3C/svg%3E"); }
+    .ame-icon--security { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2.6 16 5v4.7c0 3.5-2.5 6.3-6 7.7-3.5-1.400-6-4.2-6-7.7V5z'/%3E%3Cpath d='m7.600 10.100 1.700 1.700 3.200-3.500'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 2.6 16 5v4.7c0 3.5-2.5 6.3-6 7.7-3.5-1.400-6-4.2-6-7.7V5z'/%3E%3Cpath d='m7.600 10.100 1.700 1.700 3.200-3.500'/%3E%3C/svg%3E"); }
+    .ame-icon--performance { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.800 14.200a7 7 0 1 1 12.400 0'/%3E%3Cpath d='M10 11.400 13.400 7.200'/%3E%3Ccircle cx='10' cy='11.600' r='1.100'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.800 14.200a7 7 0 1 1 12.400 0'/%3E%3Cpath d='M10 11.400 13.400 7.200'/%3E%3Ccircle cx='10' cy='11.600' r='1.100'/%3E%3C/svg%3E"); }
+    .ame-icon--finops { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10' cy='10' r='7.2'/%3E%3Cpath d='M12.300 7.800c-.400-.700-1.200-1.100-2.300-1.100-1.300 0-2.200.700-2.200 1.600 0 2.300 4.700 1 4.700 3.400 0 .900-1 1.600-2.500 1.600-1.100 0-2-.500-2.400-1.200M10 5.200v9.600'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='10' cy='10' r='7.2'/%3E%3Cpath d='M12.300 7.800c-.400-.700-1.200-1.100-2.300-1.100-1.300 0-2.200.700-2.200 1.600 0 2.300 4.700 1 4.700 3.400 0 .900-1 1.600-2.500 1.600-1.100 0-2-.500-2.400-1.200M10 5.200v9.600'/%3E%3C/svg%3E"); }
+    .ame-icon--optimize { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.500 6h5.700M12.800 6h3.700M3.500 14h2.700M9.800 14h6.700'/%3E%3Ccircle cx='11' cy='6' r='1.800'/%3E%3Ccircle cx='8' cy='14' r='1.800'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.500 6h5.700M12.800 6h3.700M3.500 14h2.700M9.800 14h6.700'/%3E%3Ccircle cx='11' cy='6' r='1.800'/%3E%3Ccircle cx='8' cy='14' r='1.800'/%3E%3C/svg%3E"); }
+    .ame-icon--decide { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6' cy='4.800' r='1.800'/%3E%3Ccircle cx='6' cy='15.200' r='1.800'/%3E%3Ccircle cx='14.200' cy='8' r='1.800'/%3E%3Cpath d='M6 6.600v6.800M6 11.400c0-2.200 2.200-3.400 6.400-3.400'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6' cy='4.800' r='1.800'/%3E%3Ccircle cx='6' cy='15.200' r='1.800'/%3E%3Ccircle cx='14.200' cy='8' r='1.800'/%3E%3Cpath d='M6 6.600v6.800M6 11.400c0-2.200 2.200-3.400 6.400-3.400'/%3E%3C/svg%3E"); }
+    .ame-icon--handoff { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 12.600V3.400M6.800 6.600 10 3.400l3.200 3.200M4.500 11.500v4.500h11v-4.500'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 12.600V3.400M6.800 6.600 10 3.400l3.200 3.200M4.500 11.500v4.500h11v-4.500'/%3E%3C/svg%3E"); }
+    .ame-icon--close { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.500 5.500 9 9M14.500 5.500l-9 9'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5.500 5.500 9 9M14.500 5.500l-9 9'/%3E%3C/svg%3E"); }
+    .ame-icon--workbench { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3.500' width='14' height='13' rx='1.600'/%3E%3Cpath d='M7.200 3.500v13M7.200 12.200H17'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3.500' width='14' height='13' rx='1.600'/%3E%3Cpath d='M7.200 3.500v13M7.200 12.200H17'/%3E%3C/svg%3E"); }
+    .ame-icon--collapse { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.500 5.500 12 10l-4.500 4.500M15 4.500v11'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.500 5.500 12 10l-4.500 4.500M15 4.500v11'/%3E%3C/svg%3E"); }
+    .ame-icon--play { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 4.800v10.400l8.200-5.200z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 4.800v10.400l8.200-5.200z'/%3E%3C/svg%3E"); }
+    .ame-icon--reset { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.600 10a5.400 5.400 0 1 0 1.700-3.900M4.400 3.600v3h3'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.600 10a5.400 5.400 0 1 0 1.700-3.900M4.400 3.600v3h3'/%3E%3C/svg%3E"); }
+
+    /* ---- Mode rail ------------------------------------------------------------- */
+    .ame-rail {
+      position: fixed;
+      z-index: 110;
+      inset: 0 auto 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+      width: var(--ame-rail);
+      padding: 0.75rem 0.375rem;
+      overflow-y: auto;
+      border-right: 1px solid var(--panel-border);
+      background: var(--ame-chrome);
+      scrollbar-width: none;
+    }
+    .ame-rail::-webkit-scrollbar { display: none; }
+    html[data-present="true"] .ame-rail,
+    html[data-embed="true"] .ame-rail,
+    html[data-present="true"] .ame-vitals,
+    html[data-embed="true"] .ame-vitals,
+    html[data-present="true"] .ame-inspector,
+    html[data-embed="true"] .ame-inspector { display: none; }
+    .ame-rail-btn {
+      position: relative;
+      display: grid;
+      flex: none;
+      justify-items: center;
+      gap: 0.1875rem;
+      padding: 0.4375rem 0.125rem 0.375rem;
+      border: 0;
+      border-radius: 0.375rem;
+      background: transparent;
+      color: var(--text-muted);
+      font: 500 0.625rem/1.2 var(--ame-sans);
+      letter-spacing: 0.01em;
+      cursor: pointer;
+    }
+    .ame-rail-btn:hover { color: var(--text); background: color-mix(in srgb, var(--text) 6%, transparent); }
+    .ame-rail-btn[aria-pressed="true"] { color: var(--text); background: color-mix(in srgb, var(--ame-accent) 14%, transparent); }
+    .ame-rail-btn[aria-pressed="true"]::before {
+      position: absolute;
+      inset: 0.5rem auto 0.5rem -0.375rem;
+      width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: var(--ame-accent);
+      content: "";
+    }
+    .ame-rail-btn[aria-pressed="true"] .ame-icon { color: var(--ame-accent); }
+    .ame-rail-sep { flex: none; height: 1px; margin: 0.375rem 0.5rem; background: var(--panel-border); }
+    .ame-rail-count {
+      position: absolute;
+      top: 0.25rem;
+      right: 0.5rem;
+      min-width: 1rem;
+      padding: 0 0.25rem;
+      border-radius: 999px;
+      background: var(--ame-critical);
+      color: var(--ame-chrome);
+      font: 600 0.5625rem/1rem var(--ame-mono);
+      text-align: center;
+    }
+    .ame-rail-count[data-tone="warning"] { background: var(--ame-warning); }
+    .ame-rail-count[data-tone="quiet"] { background: var(--text-dim); }
+
+    /* ---- Vitals strip ------------------------------------------------------------ */
+    .ame-vitals {
+      position: fixed;
+      z-index: 105;
+      inset: auto var(--ame-inspector) var(--ame-tabbar) var(--ame-rail);
+      display: flex;
+      align-items: stretch;
+      height: var(--ame-vitals);
+      overflow: hidden;
+      border-top: 1px solid var(--panel-border);
+      background: var(--ame-chrome);
+    }
+    .ame-vitals[hidden], .ame-inspector[hidden] { display: none; }
+    .ame-basis {
+      display: grid;
+      flex: 0 1 auto;
+      align-content: center;
+      gap: 0.125rem;
+      min-width: 9.5rem;
+      max-width: 13.5rem;
+      padding: 0 0.625rem;
+      border-right: 1px solid var(--panel-border);
+    }
+    .ame-basis-line { overflow: hidden; color: var(--text-muted); font: 500 0.625rem/1.25 var(--ame-mono); text-overflow: ellipsis; white-space: nowrap; }
+    .ame-readouts { display: flex; flex: 1 1 0; min-width: 0; }
+    .ame-readout {
+      display: grid;
+      flex: 1 1 0;
+      align-content: center;
+      min-width: 0;
+      padding: 0 0.5rem;
+      border-right: 1px solid var(--panel-border);
+    }
+    .ame-readout:last-child { border-right: 0; }
+    .ame-readout-label {
+      overflow: hidden;
+      color: var(--text-muted);
+      font: 500 0.5625rem/1.3 var(--ame-mono);
+      letter-spacing: 0.05em;
+      text-overflow: ellipsis;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .ame-readout-value { overflow: hidden; font: 600 0.8125rem/1.25 var(--ame-mono); font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+    .ame-readout-was { overflow: hidden; color: var(--text-muted); font: 500 0.5625rem/1.3 var(--ame-mono); text-overflow: ellipsis; white-space: nowrap; }
+    .ame-readout[data-tone="critical"] .ame-readout-value { color: var(--ame-critical); }
+    .ame-readout[data-tone="warning"] .ame-readout-value { color: var(--ame-warning); }
+    .ame-readout[data-tone="ok"] .ame-readout-value { color: var(--ame-ok); }
+    .ame-vitals-close {
+      flex: none;
+      align-self: center;
+      width: 2rem;
+      height: 2rem;
+      margin: 0 0.5rem;
+      border: 0;
+      border-radius: 0.25rem;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .ame-vitals-close:hover { color: var(--text); background: color-mix(in srgb, var(--text) 6%, transparent); }
+
+    /* ---- Basis tags: what kind of number this is ---------------------------------- */
+    .ame-tag {
+      display: inline-block;
+      padding: 0 0.3125rem;
+      border: 1px solid currentColor;
+      border-radius: 0.1875rem;
+      font: 600 0.5625rem/1.5 var(--ame-mono);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      vertical-align: 0.0625rem;
+      white-space: nowrap;
+    }
+    .ame-tag--modelled { color: var(--ame-accent); }
+    .ame-tag--assumed { color: var(--ame-warning); border-style: dashed; }
+    .ame-tag--authored { color: var(--text-muted); }
+    .ame-tag--measured { color: var(--ame-ok); }
+    .ame-tag--critical { color: var(--ame-critical); }
+    .ame-tag--high { color: var(--ame-critical); }
+    .ame-tag--medium { color: var(--ame-warning); }
+    .ame-tag--low { color: var(--text-muted); }
+    .ame-tag--better { color: var(--ame-ok); }
+    .ame-tag--worse { color: var(--ame-critical); }
+    .ame-tag--unchanged, .ame-tag--quiet { color: var(--text-muted); }
+
+    /* ---- Inspector ------------------------------------------------------------------ */
+    .ame-inspector {
+      position: fixed;
+      z-index: 115;
+      inset: 0 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      width: var(--ame-inspector-width);
+      max-width: 100vw;
+      border-left: 1px solid var(--panel-border);
+      background: var(--ame-chrome);
+      color: var(--text);
+      font: 400 0.8125rem/1.45 var(--ame-sans);
+    }
+    .ame-inspector-head {
+      display: flex;
+      flex: none;
+      align-items: center;
+      gap: 0.5rem;
+      min-height: 3.25rem;
+      padding: 0 0.5rem 0 1rem;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .ame-inspector-head h2 { flex: 1 1 auto; min-width: 0; font-size: 0.9375rem; font-weight: 600; }
+    .ame-inspector-body { flex: 1 1 auto; min-width: 0; min-height: 0; padding: 0.25rem 1rem 1.5rem; overflow: hidden auto; overflow-wrap: anywhere; scrollbar-width: thin; scrollbar-color: var(--toolbar-border) transparent; }
+    .ame-table-wrap { scrollbar-width: thin; scrollbar-color: var(--toolbar-border) transparent; }
+    /* Selectors start at html, not at [data-theme], so the export stylesheet copy leaves them out. */
+    html[data-theme="dark"] :is(.ame-inspector, .ame-rail, .ame-vitals) { color-scheme: dark; }
+    html[data-theme="light"] :is(.ame-inspector, .ame-rail, .ame-vitals) { color-scheme: light; }
+    .ame-inspector-body:focus-visible { outline: 2px solid var(--ame-accent); outline-offset: -2px; }
+    .ame-lede { margin: 0.75rem 0 0; color: var(--text-muted); }
+    .ame-section { margin-top: 1.125rem; }
+    .ame-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 0 0 0.5rem;
+      color: var(--text-muted);
+      font: 600 0.625rem/1.4 var(--ame-mono);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .ame-eyebrow::after { flex: 1 1 auto; height: 1px; background: var(--panel-border); content: ""; }
+    .ame-inspector p { margin: 0.375rem 0; }
+    .ame-muted { color: var(--text-muted); }
+    .ame-num { font-family: var(--ame-mono); font-variant-numeric: tabular-nums; }
+
+    .ame-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.375rem;
+      min-height: 2rem;
+      padding: 0.25rem 0.75rem;
+      border: 1px solid var(--toolbar-border);
+      border-radius: 0.25rem;
+      background: transparent;
+      color: var(--text);
+      font: 500 0.8125rem/1.2 var(--ame-sans);
+      cursor: pointer;
+    }
+    .ame-btn:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+    .ame-btn--primary { border-color: var(--ame-accent); background: var(--ame-accent); color: var(--ame-accent-ink); font-weight: 600; }
+    .ame-btn--primary:hover { background: color-mix(in srgb, var(--ame-accent) 88%, var(--text)); }
+    .ame-btn--quiet { border-color: transparent; color: var(--text-muted); }
+    .ame-btn:disabled { cursor: default; opacity: 0.45; }
+    .ame-btn[aria-pressed="true"] { border-color: var(--ame-accent); background: color-mix(in srgb, var(--ame-accent) 14%, transparent); }
+    .ame-icon-btn { width: 2rem; padding: 0; }
+    .ame-actions { display: flex; flex-wrap: wrap; gap: 0.375rem; margin-top: 0.625rem; }
+    .ame-inspector :is(button, select, input, summary):focus-visible,
+    .ame-rail-btn:focus-visible,
+    .ame-vitals-close:focus-visible { outline: 2px solid var(--ame-accent); outline-offset: 1px; }
+
+    /* Cards: scenarios, findings, changes. A card is a button; the selected one expands. */
+    .ame-cards { display: grid; gap: 0.375rem; margin: 0; padding: 0; list-style: none; }
+    .ame-card {
+      display: grid;
+      gap: 0.1875rem;
+      width: 100%;
+      padding: 0.5rem 0.625rem;
+      border: 1px solid var(--panel-border);
+      border-radius: 0.375rem;
+      background: var(--panel);
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .ame-card:hover { border-color: var(--toolbar-border); }
+    .ame-card[aria-pressed="true"], .ame-card[aria-expanded="true"] { border-color: var(--ame-accent); box-shadow: inset 3px 0 0 var(--ame-accent); }
+    .ame-card:disabled { cursor: default; opacity: 0.5; }
+    .ame-card-title { display: flex; align-items: baseline; gap: 0.5rem; font-weight: 600; }
+    .ame-card-title > span:first-child { flex: none; }
+    .ame-card-note { color: var(--text-muted); font-size: 0.75rem; }
+    .ame-detail {
+      display: grid;
+      gap: 0.5rem;
+      margin: 0.25rem 0 0.375rem;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--panel-border);
+      border-radius: 0.375rem;
+      background: var(--ame-raised);
+    }
+    .ame-detail dl { display: grid; gap: 0.5rem; margin: 0; }
+    .ame-detail dt { color: var(--text-muted); font: 600 0.625rem/1.4 var(--ame-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+    .ame-detail dd { margin: 0.0625rem 0 0; }
+
+    /* Property and comparison tables. */
+    .ame-kv { width: 100%; border-collapse: collapse; }
+    .ame-kv th, .ame-kv td { padding: 0.3125rem 0; border-bottom: 1px solid var(--panel-border); text-align: left; vertical-align: top; }
+    .ame-kv th { width: 42%; padding-right: 0.5rem; color: var(--text-muted); font-weight: 400; }
+    .ame-kv td { font-family: var(--ame-mono); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+    .ame-table-wrap { max-width: 100%; overflow-x: auto; }
+    .ame-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+    .ame-table th, .ame-table td { padding: 0.3125rem 0.5rem 0.3125rem 0; border-bottom: 1px solid var(--panel-border); text-align: left; vertical-align: top; }
+    .ame-table thead th { color: var(--text-muted); font: 600 0.625rem/1.4 var(--ame-mono); letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+    .ame-table td.ame-num, .ame-table th.ame-num { text-align: right; white-space: nowrap; }
+    /* Words in tables break between words, never inside one. */
+    .ame-table, .ame-kv { overflow-wrap: normal; word-break: normal; }
+    .ame-table td:first-child { min-width: 6.5rem; }
+    .ame-table .ame-tag { vertical-align: 0; }
+    /* A component name inside a table or sentence is a link to it, not a boxed button. */
+    .ame-link {
+      display: inline-block;
+      min-width: 1.5rem;
+      min-height: 1.5rem;
+      padding: 0;
+      line-height: 1.5rem;
+      border: 0;
+      background: none;
+      color: var(--ame-accent);
+      font: inherit;
+      text-align: left;
+      text-decoration: underline;
+      text-decoration-color: color-mix(in srgb, var(--ame-accent) 45%, transparent);
+      text-underline-offset: 0.15em;
+      cursor: pointer;
+    }
+    .ame-link:hover { text-decoration-color: currentColor; }
+    .ame-link + .ame-link::before { content: ", "; color: var(--text-muted); text-decoration: none; display: inline-block; }
+    .ame-facts { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+    .ame-facts li { display: grid; gap: 0.125rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--panel-border); }
+    .ame-facts .ame-fact-line { color: var(--text-muted); font-size: 0.75rem; }
+    .ame-list { margin: 0; padding-left: 1.1rem; }
+    .ame-list li { margin: 0.25rem 0; }
+    .ame-steps { margin: 0.5rem 0 0; padding-left: 1.4rem; }
+    .ame-steps li { margin: 0.25rem 0; color: var(--text-muted); }
+    .ame-steps li[aria-current="step"] { color: var(--text); font-weight: 600; }
+    .ame-steps li[aria-current="step"]::marker { color: var(--ame-accent); }
+
+    /* Controls. */
+    .ame-field { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr) 3rem; align-items: center; gap: 0.5rem; margin: 0.375rem 0; color: var(--text-muted); }
+    .ame-field input[type="range"] { width: 100%; accent-color: var(--ame-accent); }
+    .ame-field output { color: var(--text); font: 600 0.75rem/1 var(--ame-mono); text-align: right; }
+    .ame-inspector select {
+      min-height: 2rem;
+      max-width: 100%;
+      padding: 0.125rem 0.5rem;
+      border: 1px solid var(--toolbar-border);
+      border-radius: 0.25rem;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+    }
+    .ame-bar { min-width: 4.5rem; height: 0.375rem; margin-top: 0.375rem; border-radius: 999px; background: color-mix(in srgb, var(--text) 9%, transparent); overflow: hidden; }
+    .ame-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--ame-accent); }
+    .ame-bar[data-tone="critical"] > span { background: var(--ame-critical); }
+    .ame-bar[data-tone="warning"] > span { background: var(--ame-warning); }
+    .ame-score { display: flex; align-items: baseline; gap: 0.5rem; }
+    .ame-score strong { font: 600 1.75rem/1 var(--ame-mono); }
+    .ame-callout {
+      margin: 0.75rem 0 0;
+      padding: 0.5rem 0.625rem;
+      border: 1px solid color-mix(in srgb, var(--ame-accent) 45%, var(--panel-border));
+      border-radius: 0.375rem;
+      background: color-mix(in srgb, var(--ame-accent) 7%, transparent);
+      font-size: 0.75rem;
+    }
+    .ame-callout[data-tone="critical"] { border-color: color-mix(in srgb, var(--ame-critical) 55%, var(--panel-border)); background: color-mix(in srgb, var(--ame-critical) 8%, transparent); }
+    .ame-callout[data-tone="ok"] { border-color: color-mix(in srgb, var(--ame-ok) 55%, var(--panel-border)); background: color-mix(in srgb, var(--ame-ok) 8%, transparent); }
+
+    /* ---- Canvas overlays: present only while the workbench is on, removed from exports.
+       Selectors start at .diagram-container, never at svg, so the export's stylesheet
+       copy (which keeps rules that begin with svg) leaves them out. ------------------- */
+    .diagram-container [data-wb-mode="simulate"][data-wb-arm="true"] :is([data-node-id], [data-edge-key], [data-composition-frame-id]) { cursor: crosshair; }
+    .diagram-container g[data-wb-state="failing"] > rect:not(.c-mask) { stroke: var(--ame-critical); stroke-width: 1.75px; stroke-dasharray: 5 3; }
+    .diagram-container g[data-wb-state="failing"] > :is(text, g) { opacity: 0.72; }
+    .diagram-container g[data-wb-state="degraded"] > rect:not(.c-mask) { stroke: var(--ame-warning); stroke-width: 1.75px; stroke-dasharray: 5 3; }
+    .diagram-container g[data-wb-state="recovered"] > rect:not(.c-mask) { stroke: var(--ame-ok); stroke-width: 1.75px; }
+    .diagram-container g[data-wb-pending="true"] > rect:not(.c-mask) { stroke-dasharray: none; }
+    .diagram-container path:is([data-wb-edge="cut"], [data-wb-edge="failing"], [data-wb-edge="down"], [data-wb-edge="partitioned"], [data-wb-edge="failed-over"]) { stroke: var(--ame-critical); stroke-dasharray: 3 4; }
+    .diagram-container path:is([data-wb-edge="degraded"], [data-wb-edge="brownout"], [data-wb-edge="retrying"], [data-wb-edge="surge"]) { stroke: var(--ame-warning); stroke-dasharray: 6 3; }
+    .diagram-container path[data-wb-edge="fallback-active"] { stroke: var(--ame-ok); stroke-width: 2.4; }
+    .diagram-container path[data-wb-edge="trace-done"] { stroke: var(--ame-accent); }
+    .diagram-container path[data-wb-edge="trace-current"] { stroke: var(--ame-accent); stroke-width: 3.2; }
+    .diagram-container rect[data-wb-fault] { stroke: var(--ame-critical); stroke-width: 2; stroke-dasharray: 8 4; }
+    /* Spotlight: what a selected finding, change or option is about. */
+    /* 0.7 keeps secondary labels above 3:1 in both themes (measured by scripts/visual-qa.mjs). */
+    .diagram-container [data-wb-spotlight="true"] g[data-node-id]:not([data-wb-lit]) { opacity: 0.7; }
+    .diagram-container [data-wb-spotlight="true"] path[data-edge-key]:not([data-wb-lit]) { opacity: 0.3; }
+    .diagram-container g[data-wb-lit] > rect:not(.c-mask) { stroke: var(--ame-accent); stroke-width: 2.25px; }
+    .diagram-container path[data-wb-lit] { stroke: var(--ame-accent); stroke-width: 2.6; }
+    .workbench-badge { pointer-events: none; }
+    .workbench-badge rect { fill: var(--mask); stroke: var(--text-muted); stroke-width: 1; }
+    .workbench-badge text { fill: var(--text); font-family: var(--ame-mono); font-size: 9px; font-weight: 600; }
+    .workbench-badge--fail rect { fill: var(--ame-critical); stroke: var(--ame-critical); }
+    .workbench-badge--fail text { fill: var(--mask); }
+    .workbench-badge--warn rect { stroke: var(--ame-warning); }
+    .workbench-badge--ok rect { stroke: var(--ame-ok); }
+    .workbench-badge--info rect { stroke: var(--ame-accent); }
+    .workbench-badge--muted text { fill: var(--text-muted); }
+
+    /* ---- Workbench off: the rail is a column of icons in the page gutter ----------------
+       It takes no space from the page (the gutter is the inherited 2rem padding). */
+    html:not([data-workbench="on"]) .ame-rail {
+      width: 2rem;
+      padding: 5.25rem 0.125rem 0.5rem;
+      border-right: 0;
+      background: transparent;
+    }
+    html:not([data-workbench="on"]) .ame-rail-btn { padding: 0.375rem 0; }
+    html:not([data-workbench="on"]) .ame-rail-label,
+    html:not([data-workbench="on"]) .ame-rail-count,
+    html:not([data-workbench="on"]) .ame-rail-sep { display: none; }
+    html:not([data-workbench="on"]) .ame-rail .ame-icon { width: 1.125rem; height: 1.125rem; }
+
+    /* ---- Responsive ---------------------------------------------------------------- */
+    @media (max-width: 1199px) {
+      /* The inspector is a drawer over the right edge of the canvas; the canvas keeps its width. */
+      html[data-workbench="on"][data-ame-inspector="open"] { --ame-inspector: 0px; }
+      .ame-inspector { box-shadow: -12px 0 32px -12px rgba(0, 0, 0, 0.35); }
+      .ame-vitals { right: 0; }
+      html[data-workbench="on"] { --ame-rail: 3.5rem; }
+      .ame-rail-btn { font-size: 0.5625rem; }
+    }
+    @media (max-width: 899px) {
+      /* Off: no rail; the toolbar's Workbench button is the way in. On: modes become a tab bar
+         at the bottom, the vitals sit above it, and the inspector is a sheet above the tab bar. */
+      html:not([data-workbench="on"]) .ame-rail { display: none; }
+      html[data-workbench="on"] { --ame-rail: 0px; --ame-tabbar: 3.5rem; --ame-vitals: 3rem; }
+      html[data-present="true"], html[data-embed="true"] { --ame-tabbar: 0px; --ame-vitals: 0px; }
+      .ame-rail {
+        inset: auto 0 0 0;
+        flex-direction: row;
+        width: auto;
+        height: var(--ame-tabbar);
+        padding: 0.25rem 0.375rem;
+        overflow: auto hidden;
+        border-top: 1px solid var(--panel-border);
+        border-right: 0;
+      }
+      .ame-rail-btn { min-width: 4rem; padding-top: 0.3125rem; }
+      .ame-rail-btn[aria-pressed="true"]::before { inset: -0.25rem 0.75rem auto 0.75rem; width: auto; height: 3px; border-radius: 0 0 3px 3px; }
+      .ame-rail-sep { width: 1px; height: auto; margin: 0.5rem 0.25rem; }
+      .ame-vitals { overflow-x: auto; scrollbar-width: none; }
+      .ame-vitals::-webkit-scrollbar { display: none; }
+      .ame-readouts { flex: none; }
+      .ame-readout { flex: none; min-width: 7rem; padding: 0 0.625rem; }
+      .ame-basis { flex: none; }
+      .ame-inspector {
+        z-index: 116;
+        inset: auto 0 calc(var(--ame-tabbar) + var(--ame-vitals)) 0;
+        width: auto;
+        height: min(52vh, 28rem);
+        border-top: 1px solid var(--panel-border);
+        border-left: 0;
+        border-radius: 0.75rem 0.75rem 0 0;
+        box-shadow: 0 -12px 32px -12px rgba(0, 0, 0, 0.35);
+      }
+    }
+    @media (max-width: 720px) {
+      #workbench-label { display: none; }
+    }
+    @media (max-width: 480px) {
+      html[data-ame-rail="true"] #preset-label { display: none; }
+      html[data-ame-rail="true"] .toolbar #btn-preset { min-width: 0; }
+    }
+    @media print {
+      .ame-rail, .ame-vitals, .ame-inspector { display: none !important; }
+      [data-workbench-overlay] { display: none !important; }
+      .header { border-image: none; }
+    }
   </style>
 <script type="application/json" id="archi-made-easy-software-notices">"NOTICE\nArchi-Made-Easy\nCopyright (c) 2026 Avinash Roy\n\nArchi-Made-Easy is distributed under the Apache License, Version 2.0 (LICENSE),\nexcept where a file, package manifest, or third-party notice specifies otherwise.\n\nArchi-Made-Easy is a modified version of a work published at\nhttps://github.com/tt-a1i/archify (commit 11b0d6031853bdae89eed57e7979aabbf0034097).\nModifications by Avinash Roy include renaming the product and all of its\nidentifiers, and adding the architecture workbench, review, simulation,\nknowledge and export capabilities; see ATTRIBUTION.md and the repository\nhistory for details. The original work's NOTICE is reproduced below in full,\nas required by section 4(d) of the Apache License, Version 2.0.\n\n----------------------------------------------------------------------------\nNOTICE of the original work\n----------------------------------------------------------------------------\n\nArchify\nCopyright (c) 2026 tt-a1i (Archify)\nCopyright (c) 2025 Cocoon AI\n\nArchify is distributed under the Apache License, Version 2.0 (LICENSE),\nexcept where a file, package manifest, or third-party notice specifies otherwise.\nThe separately versioned DeepSeek Harness adapter remains MIT; its bundled\nSkill retains the license of the immutable source selected in release.json.\n\nCode and contributions received under the MIT License through pre-transition\ncommit 25cf37080fc8b1dbe758a4efc3935b55f3327083 remain available under their\noriginal terms. Previously published releases keep their existing licenses. The complete historical MIT\ncopyright and permission notice is preserved in LICENSE-MIT. This transition\ndoes not revoke existing MIT grants or assert a new patent grant on behalf\nof historical contributors.\n\nArchify originated from Cocoon-AI/architecture-diagram-generator:\nhttps://github.com/Cocoon-AI/architecture-diagram-generator\n\nThird-party components retain their own licenses; see THIRD_PARTY_NOTICES.md\nand the license files beside those components. Names and logos do not imply\nofficial endorsement, and the software license grants no general trademark\npermission.\n\nThese software licenses cover Archify's embedded runtime and templates, not\nownership of a user's authored content, business data, or source repository.\n\n----------------------------------------------------------------------------\n\nArchi-Made-Easy is not affiliated with or endorsed by the authors of the\noriginal work. Names of the original work above are used only to attribute\nits origin.\n\nLICENSE\n\n                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n\n   APPENDIX: How to apply the Apache License to your work.\n\n      To apply the Apache License to your work, attach the following\n      boilerplate notice, with the fields enclosed by brackets \"[]\"\n      replaced with your own identifying information. (Don't include\n      the brackets!)  The text should be enclosed in the appropriate\n      comment syntax for the file format. We also recommend that a\n      file or class name and description of purpose be included on the\n      same \"printed page\" as the copyright notice for easier\n      identification within third-party archives.\n\n   Copyright [yyyy] [name of copyright owner]\n\n   Licensed under the Apache License, Version 2.0 (the \"License\");\n   you may not use this file except in compliance with the License.\n   You may obtain a copy of the License at\n\n       http://www.apache.org/licenses/LICENSE-2.0\n\n   Unless required by applicable law or agreed to in writing, software\n   distributed under the License is distributed on an \"AS IS\" BASIS,\n   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n   See the License for the specific language governing permissions and\n   limitations under the License.\n\nLICENSE-MIT\nMIT License\n\nCopyright (c) 2026 tt-a1i (Archify)\nCopyright (c) 2025 Cocoon AI\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n\nTHIRD_PARTY_NOTICES.md\n# Third-party notices\n\nArchi-Made-Easy includes optional vector data for third-party brand marks. These marks\nare provided only to identify technologies and services in user-authored\ndiagrams. Their inclusion does not imply sponsorship, endorsement, partnership,\nor affiliation with Archi-Made-Easy.\n\nArchi-Made-Easy's license and historical MIT grants are described in LICENSE, NOTICE,\nand LICENSE-MIT. The software license does not\nreplace the copyright licenses, trademark policies, or brand guidelines that\napply to third-party marks. Users are responsible for confirming that their\nparticular use is permitted.\n\n## Simple Icons\n\nMost of the built-in vector paths and their metadata were generated from\n[Simple Icons 16.28.0](https://github.com/simple-icons/simple-icons/tree/16.28.0).\nSimple Icons makes its collection work available under\n[CC0 1.0 Universal](https://github.com/simple-icons/simple-icons/blob/16.28.0/LICENSE.md).\n\nAs Simple Icons explains in its\n[disclaimer](https://github.com/simple-icons/simple-icons/blob/16.28.0/DISCLAIMER.md),\nCC0 for the collection does not mean that every underlying icon is CC0. License\nand brand-guideline metadata may be incomplete or change over time. The absence\nof an individual license entry is not a grant of permission.\n\nArchi-Made-Easy embeds the selected icons as vector-path data and may render them in a\nuser-selected color. The following individual licenses were recorded in the\npinned Simple Icons 16.28.0 metadata:\n\n| Mark | Recorded source | Recorded license | Archi-Made-Easy treatment |\n|---|---|---|---|\n| Angular | [Angular press kit](https://angular.dev/press-kit) | [`CC-BY-4.0`](https://creativecommons.org/licenses/by/4.0/) | Embedded as vector-path data; color may be changed by the authored diagram. |\n| Apache Airflow | [Apache logos](https://apache.org/logos) | [`Apache-2.0`](https://www.apache.org/licenses/LICENSE-2.0) | Embedded as vector-path data; Apache trademarks remain subject to the [ASF trademark policy](https://www.apache.org/foundation/marks/). |\n| Apache Kafka | [Apache logos](https://apache.org/logos) | [`Apache-2.0`](https://www.apache.org/licenses/LICENSE-2.0) | Embedded as vector-path data; Apache trademarks remain subject to the [ASF trademark policy](https://www.apache.org/foundation/marks/). |\n| .NET | [.NET brand repository](https://github.com/dotnet/brand/blob/c7d0f51b8ec59531332d05fb27a5b758a7a3d689/logo/dotnet-logo.svg) | [`CC0-1.0`](https://creativecommons.org/publicdomain/zero/1.0/) | Embedded as vector-path data; color may be changed by the authored diagram. |\n| JavaScript | [JS community logo](https://github.com/voodootikigod/logo.js/blob/1544bdeed6d618a6cfe4f0650d04ab8d9cfa76d9/js.svg) | [`MIT`](https://github.com/voodootikigod/logo.js/blob/1544bdeed6d618a6cfe4f0650d04ab8d9cfa76d9/LICENSE) | Embedded as vector-path data; color may be changed by the authored diagram. |\n| Jenkins | [Jenkins artwork source](https://get.jenkins.io/art/) | [`CC-BY-SA-3.0`](https://creativecommons.org/licenses/by-sa/3.0/) | Embedded as vector-path data; color may be changed by the authored diagram. Jenkins retains its trademark rights. |\n| Rust | [Rust project](https://www.rust-lang.org) | [`CC-BY-SA-4.0`](https://creativecommons.org/licenses/by-sa/4.0/) | Embedded as vector-path data; color may be changed by the authored diagram. See the [Rust media guide](https://www.rust-lang.org/policies/media-guide). |\n| Vue.js | [Vue logo source](https://github.com/vuejs/art/blob/a1c78b74569b70a25300925b4eacfefcc143b8f6/logo.svg) | [`CC-BY-NC-SA-4.0`](https://creativecommons.org/licenses/by-nc-sa/4.0/) | Embedded as vector-path data; color may be changed by the authored diagram. The non-commercial and share-alike conditions remain applicable; see the [Vue artwork terms](https://github.com/vuejs/art/blob/a1c78b74569b70a25300925b4eacfefcc143b8f6/README.md). |\n\nThe source, guideline, and known license fields for every packaged mark are\npreserved in `renderers/shared/generated-brand-marks.mjs`.\n\n## OpenAI mark\n\nThe OpenAI vector path is recorded from the\n[OpenAI brand guidelines](https://openai.com/brand/), not from Simple Icons.\nUse remains subject to those current guidelines and any applicable trademark\nrights. Its inclusion does not state or imply endorsement by OpenAI.\n\n## JetBrains Mono\n\nDelivered Archi-Made-Easy viewer artifacts embed the JetBrains Mono variable font\nsubsets served by Google Fonts. For characters covered by these subsets, font\nselection does not depend on a network request or a locally installed copy.\nUncovered characters (including CJK) still use the system fallback stack;\nbrowser and operating-system rasterization can differ.\nJetBrains Mono is maintained at\n[github.com/JetBrains/JetBrainsMono](https://github.com/JetBrains/JetBrainsMono)\nand is distributed under the SIL Open Font License 1.1. The complete license\ntext is preserved in `assets/JetBrainsMono-OFL.txt` in the packaged Skill and\nin the font CSS carried by standalone HTML and SVG exports.\n\n## Pele\n\nThe explainer renders Mermaid chart fences with an unmodified subset of\n[Pele 1.3.0](https://github.com/obsidianmd/pele), copyright (c) 2026 kepano,\ndistributed under the MIT License. The subset and its license text are in\n`explainer/vendor/pele/` in the packaged Skill. Charts are rendered to static\nSVG when a page is built; delivered pages contain no Pele code.\n\n## No additional rights granted\n\nBrand names, logos, and trademarks remain the property of their respective\nowners. This notice records provenance and known terms; it does not grant rights\nthat Archi-Made-Easy does not hold, and it does not state that every packaged mark has\nbeen cleared for every commercial, promotional, or redistributive use."</script>
 </head>
@@ -5148,6 +5736,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       <span id="present-icon" class="toolbar-icon" aria-hidden="true"></span>
       <span id="present-label">Present</span>
     </button>
+    <!-- Shown only on architecture pages, which carry workbench data. It turns the
+         workbench frame (mode rail, vitals, inspector) on and off. -->
+    <button id="btn-workbench" type="button" hidden
+            title="Turn the architecture workbench on or off"
+            aria-label="Architecture workbench"
+            aria-pressed="false">
+      <span class="ame-icon ame-icon--workbench" aria-hidden="true"></span>
+      <span id="workbench-label">Workbench</span>
+    </button>
     </div>
     <div class="export-wrap">
       <button id="btn-export" type="button"
@@ -5197,6 +5794,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <h1>Order management schema</h1>
       </div>
     </div>
+
 
 
     <script id="archi-made-easy-i18n-data" type="application/json">{"locale":"en","messages":{"viewer.kind.frontend":"Frontend","viewer.kind.backend":"Backend","viewer.kind.database":"Database","viewer.kind.cloud":"Cloud","viewer.kind.security":"Security","viewer.kind.messagebus":"Message bus","viewer.kind.external":"External","viewer.kind.neutral":"Neutral","viewer.kind.node":"Node","viewer.kind.start":"Start","viewer.kind.active":"Active","viewer.kind.waiting":"Waiting","viewer.kind.decision":"Decision","viewer.kind.success":"Success","viewer.kind.failure":"Failure","viewer.toolbar.actions":"Diagram actions","viewer.theme.toggle.title":"Toggle theme (T)","viewer.theme.toggle":"Toggle color theme","viewer.theme.dark":"Dark","viewer.theme.light":"Light","viewer.preset.choose.title":"Choose visual style (S cycles)","viewer.preset.choose":"Choose visual style","viewer.preset.style":"Style","viewer.preset.menu":"Visual style","viewer.preset.identity":"Visual identity","viewer.preset.cycles":"to cycle","viewer.preset.classic":"Classic","viewer.preset.classic.short":"Classic","viewer.preset.classic.hint":"Stable technical default","viewer.preset.flow":"Signal Flow","viewer.preset.flow.short":"Flow","viewer.preset.flow.hint":"Motion-forward presentation","viewer.preset.blueprint":"Blueprint","viewer.preset.blueprint.hint":"Engineering review","viewer.preset.editorial":"Editorial","viewer.preset.editorial.hint":"Publication and launch notes","viewer.preset.badge.signalFlow":"SIGNAL FLOW","viewer.preset.badge.blueprint":"BLUEPRINT / REV 01","viewer.preset.badge.editorial":"EDITORIAL / FIELD NOTE","viewer.preset.badge.editorialPlate":"ARCHI-MADE-EASY / PLATE 04","viewer.preset.current":"Visual style: {style}. Choose visual style","viewer.motion.live":"Live","viewer.motion.still":"Still","viewer.motion.pause":"Pause motion","viewer.motion.resume":"Resume motion","viewer.motion.reduced":"Motion paused by reduced-motion preference","viewer.motion.hidden":"Motion paused while this page is hidden","viewer.motion.yielding":"Pause motion; currently yielding to {owner}","viewer.motion.yielding.title":"Live preview enabled · yielding to {owner}","viewer.owner.route":"Route Probe","viewer.owner.lens":"Semantic Lens","viewer.owner.relationship":"Relationship Preview","viewer.owner.intent":"Intent Trace","viewer.owner.focus":"semantic focus","viewer.owner.legend":"legend preview","viewer.owner.reader":"reader interaction","viewer.present.enter":"Enter presentation stage","viewer.present.enter.title":"Presentation stage (F)","viewer.present.exit":"Exit presentation stage","viewer.present.exit.title":"Exit presentation stage (F or Escape)","viewer.present.present":"Present","viewer.present.exit.label":"Exit","viewer.export.button":"Export","viewer.export.button.title":"Export diagram (E)","viewer.export.diagram":"Export diagram","viewer.export.menu":"Export","viewer.export.subtitle":"Portable, clean outputs","viewer.export.share":"Share","viewer.export.shareCard":"Share Card","viewer.export.routeShareCard":"Route Share Card","viewer.export.reachShareCard":"Reach Share Card","viewer.export.copyDiagram":"Copy diagram","viewer.export.clipboardPng":"PNG to clipboard","viewer.export.raster":"Raster images","viewer.export.image":"Image","viewer.export.lossless":"Lossless image","viewer.export.compact":"Compact image","viewer.export.modern":"Modern image","viewer.export.vectorMotion":"Vector and motion","viewer.export.vectorMotion.heading":"Vector \u0026 motion","viewer.export.editable":"Editable vector","viewer.export.svg.auto":"SVG · Auto","viewer.export.svg.auto.hint":"Matches host theme","viewer.export.svg.light":"SVG · Light","viewer.export.svg.light.hint":"Always light","viewer.export.svg.dark":"SVG · Dark","viewer.export.svg.dark.hint":"Always dark","viewer.export.motion6s":"6s motion","viewer.export.unsupported":"Not supported by this browser","viewer.export.clipboardUnsupported":"Clipboard image write not supported by this browser","viewer.export.clipboardUnsupported.short":"Clipboard image write not supported in this browser.","viewer.export.motionUnavailable":"Motion capture unavailable in this browser","viewer.export.webmUnavailable":"WebM unavailable in this browser","viewer.export.failed":"Export failed: {message}","viewer.export.unknownVariant":"Unknown Share Card variant: {variant}","viewer.export.routeRequired":"Trace a route before exporting a Route Share Card","viewer.export.reachRequired":"Trace authored reach before exporting a Reach Share Card","viewer.export.unknown":"unknown","viewer.export.routeFailed":"Route Share Card export failed: {message}","viewer.export.reachFailed":"Reach Share Card export failed: {message}","viewer.export.copyFailed":"Copy failed: {message}","viewer.export.copiedPng":"Copied PNG to clipboard","viewer.export.downloadedRoute":"Downloaded Route Share Card","viewer.export.downloadedReach":"Downloaded Reach Share Card","viewer.export.downloadedWebm":"Downloaded WebM","viewer.export.recording":"Recording 6 seconds of motion…","viewer.export.card.routeSummary.one":"Path: {source} → {target} · {count} step","viewer.export.card.routeSummary.other":"Path: {source} → {target} · {count} steps","viewer.export.card.reachSummary":"Authored {direction} from {origin} · {nodes} · {links} · max {hops}","viewer.export.card.node.one":"{count} node","viewer.export.card.node.other":"{count} nodes","viewer.export.card.link.one":"{count} link","viewer.export.card.link.other":"{count} links","viewer.export.card.hop.one":"{count} hop","viewer.export.card.hop.other":"{count} hops","viewer.export.card.routeBadge":"ARCHI-MADE-EASY · ROUTE · {hops}","viewer.export.card.reachBadge":"ARCHI-MADE-EASY · {direction} REACH","viewer.export.direction.upstream":"Upstream","viewer.export.direction.downstream":"Downstream","viewer.export.error.canvasUnavailable":"Canvas unavailable for {label}","viewer.export.error.contextUnavailable":"2D canvas context unavailable for {label}","viewer.export.error.toBlobUnavailable":"canvas.toBlob unavailable for {label}","viewer.export.error.toBlobNull":"canvas.toBlob returned no data for {label}","viewer.export.error.variantsCombined":"Share Card variants cannot be combined","viewer.export.error.viewerState":"Share Card export could not remove temporary viewer state","viewer.export.error.routeState":"Route Card export could not preserve the resolved route safely","viewer.export.error.reachState":"Reach Card export could not preserve authored reach safely","viewer.export.error.webmRequirements":"WebM motion export requires a trace animation and browser MediaRecorder support","viewer.export.error.mediaRecorder":"MediaRecorder failed","viewer.export.error.emptyWebm":"MediaRecorder produced an empty WebM","viewer.export.error.webmBackground":"SVG background could not be loaded for WebM export","viewer.guide.title":"Explore this system","viewer.focus.selectedNodes":"{count} selected nodes","viewer.guide.eyebrow":"Diagram guide","viewer.guide.close":"Close diagram guide","viewer.guide.inspecting":"Inspecting compiled semantics","viewer.guide.actions":"Diagram exploration actions","viewer.guide.find":"Find any node","viewer.guide.find.hint":"Search labels, responsibilities, kinds, and stable IDs.","viewer.guide.route":"Trace a route","viewer.guide.route.aria":"Trace a directed route","viewer.guide.route.hint":"Ask how two semantic nodes connect in authored direction.","viewer.guide.map":"See the whole system","viewer.guide.map.hint":"Open Semantic Radar with a live viewport and stable nodes.","viewer.guide.lens":"Compare semantic kinds","viewer.guide.lens.hint":"Count roles, reveal their traffic, and compare direct authored links.","viewer.guide.present":"Enter Presentation Stage","viewer.guide.present.hint":"Give the live diagram the viewport without changing export.","viewer.guide.shortcuts":"Additional keyboard shortcuts","viewer.guide.shortcut.export":"Export","viewer.guide.shortcut.theme":"Theme","viewer.guide.shortcut.style":"Style","viewer.guide.shortcut.reset":"Reset","viewer.guide.shortcut.zoomIn":"Zoom in","viewer.guide.shortcut.zoomOut":"Zoom out","viewer.guide.shortcut.close":"Close","viewer.guide.credit":"Find Archi-Made-Easy useful? A star on GitHub helps","viewer.guide.star":"Star","viewer.guide.facts":"{nodes} · {relationships}","viewer.guide.fact.node.one":"{count} semantic node","viewer.guide.fact.node.other":"{count} semantic nodes","viewer.guide.fact.relationship.one":"{count} relationship","viewer.guide.fact.relationship.other":"{count} relationships","viewer.guide.open":"Open diagram guide","viewer.finder.title":"Find a node","viewer.finder.close":"Close node finder","viewer.finder.placeholder":"Search labels or IDs","viewer.finder.search":"Search diagram nodes","viewer.finder.results":"Diagram nodes","viewer.finder.empty":"No matching nodes","viewer.finder.result.focus":"Focus {label}","viewer.finder.result.routeStart":"Choose {label} as route start","viewer.finder.result.routeTarget":"Choose {label} as route destination, {links}","viewer.finder.status.empty":"No matching nodes","viewer.finder.status.count.one":"{count} matching node","viewer.finder.status.count.other":"{count} matching nodes","viewer.finder.noun.nodes":"nodes","viewer.finder.link.one":"{count} link","viewer.finder.link.other":"{count} links","viewer.finder.result.focus.one":"Focus {label}, {count} related connection","viewer.finder.result.focus.other":"Focus {label}, {count} related connections","viewer.finder.status.filtered":"{visible} of {available} {noun}","viewer.finder.status.all":"{available} {noun}","viewer.passport.eyebrow":"Semantic passport","viewer.passport.metadata":"Node metadata","viewer.passport.evidence":"Verified source evidence","viewer.passport.verified":"Verified source","viewer.passport.verificationScope":"Verified against local Git at the pinned revision. Remote access has not been checked.","viewer.passport.reach":"Authored reach","viewer.passport.reach.trace":"Trace authored reachability","viewer.passport.upstream":"Upstream","viewer.passport.downstream":"Downstream","viewer.passport.upstream.trace":"Trace upstream authored reachability","viewer.passport.downstream.trace":"Trace downstream authored reachability","viewer.passport.close":"Close semantic passport","viewer.passport.move":"Move semantic passport. Drag, use arrow keys, or press Home to reset.","viewer.passport.copy":"Copy link","viewer.passport.copy.focus":"Copy link to focused node","viewer.passport.relations":"Relations","viewer.passport.relations.show":"Show connected relationships","viewer.passport.relations.hide":"Hide connected relationships","viewer.passport.relations.list":"Connected relationships","viewer.passport.copyRelation":"Copy relation","viewer.passport.copyNode":"Copy node","viewer.passport.copyPinned":"Copy link to pinned relationship","viewer.passport.copySource":"Copy link to source node","viewer.passport.copy.focused.success":"Focused node link copied","viewer.passport.copy.pinned.success":"Pinned relationship link copied","viewer.passport.copy.focused.failed":"Could not copy focused node link","viewer.passport.copy.pinned.failed":"Could not copy pinned relationship link","viewer.passport.relationship.none":"No connected relationships","viewer.passport.relationship.count.one":"{count} relation","viewer.passport.relationship.count.other":"{count} relations","viewer.passport.relationship.show.one":"Show {count} connected relationship","viewer.passport.relationship.show.other":"Show {count} connected relationships","viewer.passport.relationship.summary":"{out} outgoing · {in} incoming{loops}","viewer.passport.relationship.loops":" · {count} loop","viewer.passport.relationship.explorer":"Direct relationship explorer","viewer.passport.relationship.help":"Use arrow keys to explore relationships. Press Enter or Space to pin details; Escape clears.","viewer.passport.relationship.loopsBack":"loops back","viewer.passport.relationship.connectsTo":"connects to","viewer.passport.relationship.connectsFrom":"connects from","viewer.passport.relationship.pinned":"Pinned relationship · {from} → {to} · {label}","viewer.passport.relationship.inspect":"Inspect relationship {index} of {total}: {from} to {to}, {label}. Press Enter for details.","viewer.passport.relationship.group.out":"Outgoing","viewer.passport.relationship.group.in":"Incoming","viewer.passport.relationship.group.loop":"Self loops","viewer.passport.relationship.row":"{group}: {relationship}, {neighbor}","viewer.passport.relationship.direction.out":"OUT →","viewer.passport.relationship.direction.in":"← IN","viewer.passport.relationship.direction.loop":"LOOP","viewer.passport.sourceCount.one":"{count} verified source reference","viewer.passport.sourceCount.other":"{count} verified source references","viewer.passport.repository.open":"Open verified repository revision {revision}","viewer.passport.source.open":"Open verified source {path} at revision {revision}","viewer.passport.source.openLink":"Open ↗","viewer.passport.reach.upstream.one":"Trace {count} upstream authored node","viewer.passport.reach.upstream.other":"Trace {count} upstream authored nodes","viewer.passport.reach.downstream.one":"Trace {count} downstream authored node","viewer.passport.reach.downstream.other":"Trace {count} downstream authored nodes","viewer.passport.reach.noUpstream":"No upstream authored nodes","viewer.passport.reach.noDownstream":"No downstream authored nodes","viewer.passport.reach.status":"{direction} · {nodes} nodes · {links} links · max {hops} hops","viewer.route.eyebrow":"Path","viewer.route.start":"Click where the path starts","viewer.route.start.find":"Find start","viewer.route.start.find.aria":"Find a route start","viewer.route.copy":"Copy link","viewer.route.copy.aria":"Copy link to traced route","viewer.route.clear":"Clear","viewer.route.clear.aria":"Clear route probe","viewer.route.traced":"Path","viewer.route.pickTwo":"Click two nodes on the diagram","viewer.route.pickOne":"Click a node on the diagram","viewer.route.controls":"Route journey controls","viewer.route.previous":"Previous route position","viewer.route.play":"Play route journey","viewer.route.pause":"Pause route journey","viewer.route.replay":"Replay route journey","viewer.route.next":"Next route position","viewer.route.journey":"Journey","viewer.route.pause.label":"Pause","viewer.route.replay.label":"Replay","viewer.route.overview":"Overview","viewer.route.overview.aria":"Show complete route overview","viewer.route.instructions":"Click a start, then an end. Paths follow the arrows.","viewer.route.destination":"Where does the path from {label} end?","viewer.route.destination.find":"Find target","viewer.route.destination.find.aria":"Find a reachable route destination","viewer.route.differentDestination":"Choose a different destination","viewer.route.distinct":"Pick two different nodes.","viewer.route.unreachable":"Cannot reach {label} from here","viewer.route.unreachable.detail":"{target} cannot be reached from {source} along the arrows. Pick a highlighted node.","viewer.route.start.instructions":"Next, pick the end. Only nodes you can reach will light up.","viewer.route.copy.success":"Traced route link copied","viewer.route.copy.failed":"Could not copy traced route link","viewer.route.position":"Route position {index} of {total}: {label}","viewer.route.step":"Step {index} of {total} · {phase} · {label}","viewer.route.motionRequired":"Automatic journey requires Live motion","viewer.route.trigger.clear":"Clear traced route","viewer.route.overview.status":"{nodes} · {hops} · shortest path","viewer.route.overview.node.one":"{count} node","viewer.route.overview.node.other":"{count} nodes","viewer.route.overview.hop.one":"{count} step","viewer.route.overview.hop.other":"{count} steps","viewer.route.phase.playing":"Playing","viewer.route.phase.complete":"Complete","viewer.route.phase.inspecting":"Inspecting","viewer.route.destination.count.one":"{count} reachable node is highlighted. Click it.","viewer.route.destination.count.other":"{count} reachable nodes are highlighted. Click one.","viewer.route.noOutgoing":"No arrows lead out of this node. Clear it and pick another start.","viewer.route.result.title":"{source} to {target}","viewer.route.finder.source.title":"Choose route start","viewer.route.finder.source.placeholder":"Search route sources","viewer.route.finder.source.empty":"No matching route sources","viewer.route.finder.source.results":"Nodes that can start a route","viewer.route.finder.source.noun":"route sources","viewer.route.finder.source.badge":"start","viewer.route.finder.target.title":"Destination from {label}","viewer.route.finder.target.placeholder":"Search reachable destinations","viewer.route.finder.target.empty":"No matching reachable destinations","viewer.route.finder.target.results":"Reachable route destinations","viewer.route.finder.target.noun":"reachable destinations","viewer.route.hop.one":"{count} hop","viewer.route.hop.other":"{count} hops","viewer.lens.eyebrow":"Semantic lens","viewer.lens.title":"Compare system roles","viewer.lens.close":"Close semantic lens","viewer.lens.instruction":"Choose up to two semantic kinds. One reveals its real traffic; two compare only direct authored relationships.","viewer.lens.kinds":"Semantic kinds","viewer.lens.choose":"Choose a kind to inspect its nodes and touching relationships.","viewer.lens.copy":"Copy link to semantic lens","viewer.lens.clear":"Clear semantic lens","viewer.lens.open":"Open semantic lens","viewer.lens.openActive":"Open active semantic lens","viewer.lens.legend":"Semantic legend","viewer.lens.legend.inspect.one":"Inspect {label}, {count} node","viewer.lens.legend.inspect.other":"Inspect {label}, {count} nodes","viewer.lens.kind.count.one":"{label}, {count} node","viewer.lens.kind.count.other":"{label}, {count} nodes","viewer.lens.compare.one":"{first} → {second}: {forward} · {second} → {first}: {reverse} · {count} direct relationship","viewer.lens.compare.other":"{first} → {second}: {forward} · {second} → {first}: {reverse} · {count} direct relationships","viewer.lens.single":"{nodes} · {relationships} · connected peers remain visible","viewer.lens.node.one":"{count} {label} node","viewer.lens.node.other":"{count} {label} nodes","viewer.lens.relationship.one":"{count} touching relationship","viewer.lens.relationship.other":"{count} touching relationships","viewer.radar.title":"Semantic radar","viewer.radar.building":"Building overview","viewer.radar.openFull":"Open full semantic radar","viewer.radar.open":"Open radar","viewer.radar.close":"Close semantic radar","viewer.radar.surface":"Diagram overview. Click a node to focus it, or use arrow keys to pan.","viewer.radar.click":"Click node","viewer.radar.drag":"Drag to pan","viewer.radar.space":"Semantic radar needs more MAP space.","viewer.radar.nodes":"Semantic diagram radar nodes","viewer.radar.focus":"Focus {label} from Semantic Radar","viewer.radar.status":"{count} nodes · {viewport}","viewer.radar.fullMap":"{count} nodes · full map","viewer.radar.compacted":"Radar compacted to avoid covering the Semantic Passport or MAP controls.","viewer.radar.cancelWaiting":"Cancel semantic radar waiting for more MAP space","viewer.radar.needsSpace":"Semantic radar needs more visible MAP space","viewer.radar.viewport.full":"full map","viewer.radar.viewport.width":"{percent}% width","viewer.radar.viewport.scale":"{percent}% viewport","viewer.nav.controls":"Diagram view controls","viewer.nav.route":"Trace a directed route","viewer.nav.route.title":"Trace route (R)","viewer.nav.route.short":"ROUTE","viewer.nav.radar":"Open semantic radar","viewer.nav.radar.title":"Semantic radar (M)","viewer.nav.radar.short":"MAP","viewer.nav.lens":"Open semantic lens","viewer.nav.lens.title":"Semantic lens (L)","viewer.nav.lens.short":"LENS","viewer.nav.find":"Find a node","viewer.nav.find.title":"Find a node (/)","viewer.outline.title":"Node index","viewer.rail.show":"Notes \u0026 index","viewer.rail.controls":"Side panel","viewer.rail.collapse":"Collapse side panel","viewer.rail.bottom":"Move panel below the diagram","viewer.rail.right":"Move panel beside the diagram","viewer.nav.guide":"Open diagram guide","viewer.nav.guide.title":"Diagram guide (?)","viewer.nav.zoomOut":"Zoom out","viewer.nav.zoomOut.title":"Zoom out (-)","viewer.nav.reset":"Reset diagram view","viewer.nav.reset.title":"Reset view (0)","viewer.nav.read":"READ","viewer.nav.zoomIn":"Zoom in","viewer.nav.zoomIn.title":"Zoom in (+)","viewer.nav.camera":"{hint}. Reset diagram view","viewer.nav.camera.title":"{semantic}{hint} · reset view (0)","viewer.nav.camera.semantic":"Semantic camera active · ","viewer.nav.level.map":"MAP","viewer.nav.level.read":"READ","viewer.nav.level.full":"FULL","viewer.nav.level.auto":"AUTO","viewer.nav.detail.map":"Zoom in to reveal relationship labels and node context","viewer.nav.detail.read":"Zoom in again to reveal tags and annotations","viewer.nav.detail.full":"Full diagram detail","viewer.intent.summary":"{label}. {out} outgoing, {in} incoming{loops}. {total} connections. Press Enter for details.","viewer.intent.loops":", {count} self loop","viewer.common.copied":"Copied","viewer.common.copyFailed":"Copy failed","viewer.common.copyLink":"Copy link","viewer.common.clear":"Clear","viewer.common.close":"Close"}}</script>
@@ -6280,6 +6878,14 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         Array.prototype.forEach.call(clone.querySelectorAll('[data-intent-trace-overlay]'), function (el) {
           el.remove();
         });
+        // Workbench fault states, badges and mode are exploration state.
+        ['data-wb-mode', 'data-wb-arm', 'data-wb-spotlight'].forEach(function (name) { clone.removeAttribute(name); });
+        Array.prototype.forEach.call(clone.querySelectorAll('[data-workbench-overlay]'), function (el) {
+          el.remove();
+        });
+        Array.prototype.forEach.call(clone.querySelectorAll('[data-wb-state], [data-wb-edge], [data-wb-fault], [data-wb-lit], [data-wb-pending]'), function (el) {
+          ['data-wb-state', 'data-wb-edge', 'data-wb-fault', 'data-wb-lit', 'data-wb-pending'].forEach(function (name) { el.removeAttribute(name); });
+        });
         Array.prototype.forEach.call(clone.querySelectorAll('[data-route-probe-overlay]'), function (el) {
           el.remove();
         });
@@ -6412,9 +7018,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           !clone.hasAttribute('data-share-route') &&
           !clone.hasAttribute('data-share-reach') &&
           !clone.hasAttribute('data-tree-any-collapsed') &&
+          !clone.hasAttribute('data-wb-mode') &&
+          !clone.hasAttribute('data-wb-arm') &&
+          !clone.hasAttribute('data-wb-spotlight') &&
           !clone.style.getPropertyValue('transform') &&
           !clone.style.getPropertyValue('clip-path') &&
-          clone.querySelectorAll('[data-ambient-flow-overlay], [data-reader-legend-corner], [data-focus-match], [data-focus-selected], [data-reach-match], [data-reach-origin], [data-reach-depth], [data-semantic-lens-overlay], [data-lens-match], [data-lens-selected], [data-lens-peer], [data-legend-bridge], [data-legend-kind], [data-legend-bridge-runtime], [data-legend-count], [data-legend-zero], [data-legend-selected], [data-legend-preview-match], [data-legend-preview-selected], [data-legend-preview-peer], [data-relationship-hit-overlay], [data-relationship-pulse-overlay], [data-relationship-preview], [data-relationship-preview-node], [data-relationship-preview-source], [data-relationship-preview-target], [data-intent-trace-overlay], [data-intent-trace-match], [data-intent-trace-selected], [data-route-probe-overlay], [data-route-journey-overlay], [data-route-match], [data-route-start], [data-route-end], [data-route-step], [data-route-candidate], [data-route-journey-state], [data-route-journey-current], [data-share-route-match], [data-share-route-step], [data-share-route-start], [data-share-route-end], [data-share-route-middle], [data-share-reach-match], [data-share-reach-origin], [data-share-reach-depth], [data-source-evidence-beacon], [data-source-evidence-count], [data-source-evidence-original-label], [data-detail], [data-detail-anchor], [data-tree-hidden], [data-tree-collapsed]').length === 0;
+          clone.querySelectorAll('[data-ambient-flow-overlay], [data-reader-legend-corner], [data-focus-match], [data-focus-selected], [data-reach-match], [data-reach-origin], [data-reach-depth], [data-semantic-lens-overlay], [data-lens-match], [data-lens-selected], [data-lens-peer], [data-legend-bridge], [data-legend-kind], [data-legend-bridge-runtime], [data-legend-count], [data-legend-zero], [data-legend-selected], [data-legend-preview-match], [data-legend-preview-selected], [data-legend-preview-peer], [data-relationship-hit-overlay], [data-relationship-pulse-overlay], [data-relationship-preview], [data-relationship-preview-node], [data-relationship-preview-source], [data-relationship-preview-target], [data-intent-trace-overlay], [data-intent-trace-match], [data-intent-trace-selected], [data-route-probe-overlay], [data-route-journey-overlay], [data-route-match], [data-route-start], [data-route-end], [data-route-step], [data-route-candidate], [data-route-journey-state], [data-route-journey-current], [data-share-route-match], [data-share-route-step], [data-share-route-start], [data-share-route-end], [data-share-route-middle], [data-share-reach-match], [data-share-reach-origin], [data-share-reach-depth], [data-source-evidence-beacon], [data-source-evidence-count], [data-source-evidence-original-label], [data-detail], [data-detail-anchor], [data-tree-hidden], [data-tree-collapsed], [data-workbench-overlay], [data-wb-state], [data-wb-edge], [data-wb-fault], [data-wb-lit], [data-wb-pending]').length === 0;
       }
 
 
@@ -11199,7 +11808,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         if (eligible()) {
           var rest = restingNavRect();
           var box = container.getBoundingClientRect();
-          next = Math.round(Math.max(0, Math.min(rest.bottom - (window.innerHeight - 16), rest.top - box.top - 16)));
+          // An open workbench dock pinned to the viewport floor raises that floor.
+          var workbench = ArchiMadeEasy.workbench;
+          var floor = window.innerHeight - 16 - (workbench && workbench.viewportInset ? workbench.viewportInset() : 0);
+          next = Math.round(Math.max(0, Math.min(rest.bottom - floor, rest.top - box.top - 16)));
         }
         if (next === lift) return;
         lift = next;
@@ -11384,6 +11996,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         measure: measure,
         schedule: schedule,
         reprobe: reprobe,
+        scheduleLift: scheduleLift,
         whenStable: whenStable,
         stageRect: protectedStageRect,
         dockRect: function () { return nav ? restingNavRect() : null; },
@@ -15107,6 +15720,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         ArchiMadeEasy.presentation.exit();
       }
     });
+
   </script>
 </body>
 </html>

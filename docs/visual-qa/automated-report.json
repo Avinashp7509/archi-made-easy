@@ -1,0 +1,288 @@
+{
+  "generated": "2026-11-10",
+  "scope": "full",
+  "states": 384,
+  "seconds": 232,
+  "defects": {
+    "critical": 0,
+    "high": 0,
+    "medium": 10
+  },
+  "distinctDefects": [
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"Stateless, autoscaled\" renders at 5.9px at phone width before zooming",
+      "count": 38,
+      "examples": [
+        "web-ha/initial 390x844 light",
+        "web-ha/workbench-off 390x844 light",
+        "web-ha/explore-component 390x844 light"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"Stateless, autoscaled\" renders at 5.8px at phone width before zooming",
+      "count": 32,
+      "examples": [
+        "web-ha/initial 768x1024 light",
+        "web-ha/explore-component 768x1024 light",
+        "web-ha/review-finding 768x1024 light"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"Stateless, autoscaled\" renders at 5.5px at phone width before zooming",
+      "count": 6,
+      "examples": [
+        "web-ha/workbench-off 768x1024 light",
+        "web-ha/inherited-focus 768x1024 light",
+        "web-ha/inherited-search 768x1024 light"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"Browser / mobile\" renders at 6.0px at phone width before zooming",
+      "count": 6,
+      "examples": [
+        "long-labels/initial 768x1024 light",
+        "long-labels/review-finding 768x1024 light",
+        "long-labels/simulate-ran 768x1024 light"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"asks for work\" renders at 4.9px at phone width before zooming",
+      "count": 4,
+      "examples": [
+        "workflow/initial 768x1024 light",
+        "workflow/export-menu 768x1024 light",
+        "workflow/initial 768x1024 dark"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"asks for work\" renders at 5.2px at phone width before zooming",
+      "count": 4,
+      "examples": [
+        "workflow/initial 390x844 light",
+        "workflow/export-menu 390x844 light",
+        "workflow/initial 390x844 dark"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"browser session\" renders at 4.4px at phone width before zooming",
+      "count": 4,
+      "examples": [
+        "sequence/initial 768x1024 light",
+        "sequence/export-menu 768x1024 light",
+        "sequence/initial 768x1024 dark"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"browser session\" renders at 4.7px at phone width before zooming",
+      "count": 4,
+      "examples": [
+        "sequence/initial 390x844 light",
+        "sequence/export-menu 390x844 light",
+        "sequence/initial 390x844 dark"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"Browser / Mobile\" renders at 5.6px at phone width before zooming",
+      "count": 2,
+      "examples": [
+        "web-app/initial 768x1024 light",
+        "web-app/initial 768x1024 dark"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"Browser / Mobile\" renders at 5.9px at phone width before zooming",
+      "count": 2,
+      "examples": [
+        "web-app/open-review 768x1024 light",
+        "web-app/open-review 768x1024 dark"
+      ]
+    }
+  ],
+  "notes": [
+    {
+      "severity": "note",
+      "check": "covered-while-sheet-open",
+      "detail": "canvas tools is under the open sheet",
+      "count": 76,
+      "examples": [
+        "web-ha/explore-component 768x1024 light",
+        "web-ha/review-finding 768x1024 light",
+        "web-ha/simulate-setup 768x1024 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "covered-while-sheet-open",
+      "detail": "legend is under the open sheet",
+      "count": 50,
+      "examples": [
+        "web-ha/explore-component 390x844 light",
+        "web-ha/review-finding 390x844 light",
+        "web-ha/simulate-setup 390x844 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Stateless, autoscaled\" renders at 7.2px; zoom is available",
+      "count": 26,
+      "examples": [
+        "web-ha/explore-component 1366x768 light",
+        "web-ha/review-finding 1366x768 light",
+        "web-ha/simulate-setup 1366x768 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Stateless, autoscaled\" renders at 6.5px; zoom is available",
+      "count": 26,
+      "examples": [
+        "web-ha/explore-component 1280x800 light",
+        "web-ha/review-finding 1280x800 light",
+        "web-ha/simulate-setup 1280x800 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "focus-dimming",
+      "detail": "the inherited Focus view dims 10 unrelated labels below 3:1 on purpose",
+      "count": 24,
+      "examples": [
+        "web-ha/explore-component 1920x1080 light",
+        "web-ha/inherited-focus 1920x1080 light",
+        "web-ha/explore-component 1920x1080 dark"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Browser / mobile\" renders at 6.1px; zoom is available",
+      "count": 6,
+      "examples": [
+        "long-labels/initial 390x844 light",
+        "long-labels/review-finding 390x844 light",
+        "long-labels/simulate-ran 390x844 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Routing, auth, limits\" renders at 7.3px; zoom is available",
+      "count": 6,
+      "examples": [
+        "dense/review-finding 768x1024 light",
+        "dense/simulate-ran 768x1024 light",
+        "dense/performance-10x 768x1024 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Routing, auth, limits\" renders at 7.4px; zoom is available",
+      "count": 6,
+      "examples": [
+        "dense/review-finding 390x844 light",
+        "dense/simulate-ran 390x844 light",
+        "dense/performance-10x 390x844 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Browser / mobile\" renders at 7.4px; zoom is available",
+      "count": 4,
+      "examples": [
+        "long-labels/review-finding 1366x768 light",
+        "long-labels/simulate-ran 1366x768 light",
+        "long-labels/review-finding 1366x768 dark"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Browser / mobile\" renders at 6.7px; zoom is available",
+      "count": 4,
+      "examples": [
+        "long-labels/review-finding 1280x800 light",
+        "long-labels/simulate-ran 1280x800 light",
+        "long-labels/review-finding 1280x800 dark"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Browser / Mobile\" renders at 6.0px; zoom is available",
+      "count": 4,
+      "examples": [
+        "web-app/initial 390x844 light",
+        "web-app/open-review 390x844 light",
+        "web-app/initial 390x844 dark"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"asks for work\" renders at 7.2px; zoom is available",
+      "count": 4,
+      "examples": [
+        "workflow/initial 1366x768 light",
+        "workflow/export-menu 1366x768 light",
+        "workflow/initial 1366x768 dark"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"browser session\" renders at 7.4px; zoom is available",
+      "count": 4,
+      "examples": [
+        "sequence/initial 1366x768 light",
+        "sequence/export-menu 1366x768 light",
+        "sequence/initial 1366x768 dark"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Browser / Mobile\" renders at 7.3px; zoom is available",
+      "count": 2,
+      "examples": [
+        "web-app/open-review 1366x768 light",
+        "web-app/open-review 1366x768 dark"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Browser / Mobile\" renders at 6.6px; zoom is available",
+      "count": 2,
+      "examples": [
+        "web-app/open-review 1280x800 light",
+        "web-app/open-review 1280x800 dark"
+      ]
+    }
+  ],
+  "screenshots": 72,
+  "comparisons": null
+}

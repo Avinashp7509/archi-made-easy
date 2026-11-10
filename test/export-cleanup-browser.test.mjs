@@ -114,8 +114,9 @@ test('Export cleanup preserves canonical artifacts and live interaction state', 
 
   await t.test('explicit light and dark SVG exports stay fixed under the opposite OS theme', async () => {
     const cases = [
-      { authorTheme: 'dark', hostTheme: 'dark', format: 'svg-light', theme: 'light', background: 'rgb(244, 245, 247)' },
-      { authorTheme: 'light', hostTheme: 'light', format: 'svg-dark', theme: 'dark', background: 'rgb(2, 6, 23)' },
+      // The page background tokens (--bg) of the Archi-Made-Easy palette: #ecedef and #0b0c0e.
+      { authorTheme: 'dark', hostTheme: 'dark', format: 'svg-light', theme: 'light', background: 'rgb(236, 237, 239)' },
+      { authorTheme: 'light', hostTheme: 'light', format: 'svg-dark', theme: 'dark', background: 'rgb(11, 12, 14)' },
     ];
     for (const item of cases) {
       await load(files.architecture, item.authorTheme);

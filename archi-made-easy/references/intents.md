@@ -93,9 +93,10 @@ Never present a modelled number as measured, guaranteed, or a provider commitmen
 ## Not available yet
 
 These capabilities are planned and are not part of this version:
-- the interactive workbench inside the HTML (clicking components to inject faults, live sliders, scorecard tabs);
 - command-line SVG and PNG export (use the viewer's Export menu);
-- child diagrams opened by drilling into a component.
+- child diagrams opened by drilling into a component;
+- workbench text in languages other than English;
+- saving a change made in the workbench back into the document (edit the document and render again).
 
 When a user asks for one, say plainly that this version does not include it yet, and offer the closest available help: the command-line review and simulation above, or the existing HTML viewer.
 
@@ -105,3 +106,4 @@ Follow the Output section of `SKILL.md`. For architecture requests, also include
 - the assumptions you made;
 - the requirements you could not represent;
 - for analysis questions, that the result is a model of the declared design, and which inputs were assumed.
+- for an architecture page, that the Workbench button in the toolbar and the mode rail on the left (Review, Simulate, Optimize and the others) let them try failures, load and changes themselves (see [Exports, comparison and the workbench](workbench-ui-and-exporters.md)).
