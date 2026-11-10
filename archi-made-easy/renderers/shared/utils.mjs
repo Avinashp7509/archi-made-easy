@@ -1,3 +1,4 @@
+import { LEVELS_DATA_VERSION, packLevel } from '../../workbench/levels.mjs';
 import {
   escapeHtml as esc,
   localizeTemplate,
@@ -133,6 +134,9 @@ const SUBTITLE_SLOT_RE = /^([ \t]*)<p class="subtitle">\[Subtitle description\]<
 const SOURCE_EVIDENCE_PLACEHOLDER = '    <!-- ARCHI_MADE_EASY:SOURCE_EVIDENCE_DATA -->';
 const I18N_PLACEHOLDER = '    <!-- ARCHI_MADE_EASY:I18N_DATA -->';
 const WORKBENCH_PLACEHOLDER = '    <!-- ARCHI_MADE_EASY:WORKBENCH_DATA -->';
+// Stands where the child diagrams go until the rest of the page is known: a child is
+// stored without the blocks it shares with the finished page.
+const LEVELS_TOKEN = '    <!-- ARCHI_MADE_EASY:LEVELS_DATA -->';
 const WORKBENCH_BLOCK_RE = /\/\* ARCHI_MADE_EASY:WORKBENCH_BLOCK_START \*\/\n[\s\S]*?\/\* ARCHI_MADE_EASY:WORKBENCH_BLOCK_END \*\/\n/;
 
 function serializeScriptJson(value) {
@@ -158,6 +162,7 @@ export function applyTemplate(template, {
   visualPreset = 'classic',
   sourceEvidence = null,
   workbenchData = null,
+  levels = null,
 }) {
   if (!SVG_SLOT_RE.test(template)) {
     throw new Error('applyTemplate: template missing ARCHI_MADE_EASY:SVG_SLOT sentinel');
@@ -188,7 +193,8 @@ export function applyTemplate(template, {
     ? `<p class="subtitle">${esc(subtitle)}</p>`
     : '';
   const i18nData = `    <script id="archi-made-easy-i18n-data" type="application/json">${i18nJson}</script>`;
-  return localizeTemplate(template, resolvedLocale)
+  const carriesLevels = Boolean(workbenchData && levels?.length);
+  const page = localizeTemplate(template, resolvedLocale)
     // The workbench scripts are for pages that carry workbench data. Those pages keep the
     // template's scripts byte for byte, the two block comments included. Every other page
     // is delivered without the block, which is about a sixth of the template. This runs
@@ -209,8 +215,14 @@ export function applyTemplate(template, {
     // The workbench is an optional enhancement: a custom template without the slot simply
     // renders without it, and a diagram without workbench data leaves no trace.
     .replace(WORKBENCH_PLACEHOLDER, () => workbenchData
-      ? `    <script id="archi-made-easy-workbench-data" type="application/json">${serializeScriptJson(workbenchData)}</script>`
+      ? `    <script id="archi-made-easy-workbench-data" type="application/json">${serializeScriptJson(workbenchData)}</script>${carriesLevels ? `\n${LEVELS_TOKEN}` : ''}`
       : '');
+  if (!carriesLevels) return page;
+  // Authored text is escaped and the diagram is generated, so the token occurs once.
+  return page.replace(LEVELS_TOKEN, () => `    <script id="archi-made-easy-levels-data" type="application/json">${serializeScriptJson({
+    schemaVersion: LEVELS_DATA_VERSION,
+    levels: levels.map(({ id, title, html }) => ({ id, title, html: packLevel(html, page) })),
+  })}</script>`);
 }
 
 // CJK and other wide/fullwidth glyphs render at roughly twice the advance

@@ -1,12 +1,12 @@
 {
   "generated": "2026-11-10",
   "scope": "full",
-  "states": 384,
-  "seconds": 232,
+  "states": 744,
+  "seconds": 548,
   "defects": {
     "critical": 0,
     "high": 0,
-    "medium": 10
+    "medium": 12
   },
   "distinctDefects": [
     {
@@ -29,6 +29,28 @@
         "web-ha/initial 768x1024 light",
         "web-ha/explore-component 768x1024 light",
         "web-ha/review-finding 768x1024 light"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"Checkout, POS, APIs\" renders at 5.1px at phone width before zooming",
+      "count": 10,
+      "examples": [
+        "fintech/initial 768x1024 light",
+        "fintech/review-finding 768x1024 light",
+        "fintech/simulate-region-loss 768x1024 light"
+      ]
+    },
+    {
+      "severity": "medium",
+      "check": "unreadable-label",
+      "detail": "smallest diagram label \"Checkout, POS, APIs\" renders at 5.2px at phone width before zooming",
+      "count": 10,
+      "examples": [
+        "fintech/initial 390x844 light",
+        "fintech/review-finding 390x844 light",
+        "fintech/simulate-region-loss 390x844 light"
       ]
     },
     {
@@ -123,7 +145,7 @@
       "severity": "note",
       "check": "covered-while-sheet-open",
       "detail": "canvas tools is under the open sheet",
-      "count": 76,
+      "count": 164,
       "examples": [
         "web-ha/explore-component 768x1024 light",
         "web-ha/review-finding 768x1024 light",
@@ -134,7 +156,7 @@
       "severity": "note",
       "check": "covered-while-sheet-open",
       "detail": "legend is under the open sheet",
-      "count": 50,
+      "count": 130,
       "examples": [
         "web-ha/explore-component 390x844 light",
         "web-ha/review-finding 390x844 light",
@@ -177,6 +199,127 @@
     {
       "severity": "note",
       "check": "small-label",
+      "detail": "smallest diagram label \"Web, mobile\" renders at 7.4px; zoom is available",
+      "count": 16,
+      "examples": [
+        "ecommerce-c4/initial 768x1024 light",
+        "ecommerce-c4/review-clean 768x1024 light",
+        "ecommerce-c4/simulate-region-loss 768x1024 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Chat, copilots, APIs\" renders at 6.1px; zoom is available",
+      "count": 10,
+      "examples": [
+        "ai-platform/initial 768x1024 light",
+        "ai-platform/review-finding 768x1024 light",
+        "ai-platform/simulate-provider-brownout 768x1024 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Chat, copilots, APIs\" renders at 6.2px; zoom is available",
+      "count": 10,
+      "examples": [
+        "ai-platform/initial 390x844 light",
+        "ai-platform/review-finding 390x844 light",
+        "ai-platform/simulate-provider-brownout 390x844 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Checkout, POS, APIs\" renders at 6.9px; zoom is available",
+      "count": 8,
+      "examples": [
+        "fintech/review-finding 1440x900 light",
+        "fintech/simulate-region-loss 1440x900 light",
+        "fintech/performance-10x 1440x900 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Checkout, POS, APIs\" renders at 6.3px; zoom is available",
+      "count": 8,
+      "examples": [
+        "fintech/review-finding 1366x768 light",
+        "fintech/simulate-region-loss 1366x768 light",
+        "fintech/performance-10x 1366x768 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "covered-while-sheet-open",
+      "detail": "canvas tools is under the open drawer",
+      "count": 8,
+      "examples": [
+        "fintech/review-finding 1280x800 light",
+        "fintech/simulate-region-loss 1280x800 light",
+        "fintech/performance-10x 1280x800 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Chat, copilots, APIs\" renders at 6.9px; zoom is available",
+      "count": 8,
+      "examples": [
+        "ai-platform/review-finding 1280x800 light",
+        "ai-platform/simulate-provider-brownout 1280x800 light",
+        "ai-platform/performance-10x 1280x800 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Caller\" renders at 7.4px; zoom is available",
+      "count": 8,
+      "examples": [
+        "c4-catalog-service/initial 768x1024 light",
+        "c4-catalog-service/review-clean 768x1024 light",
+        "c4-catalog-service/simulate-store-outage 768x1024 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Caller\" renders at 6.1px; zoom is available",
+      "count": 8,
+      "examples": [
+        "c4-checkout-service/initial 768x1024 light",
+        "c4-checkout-service/review-clean 768x1024 light",
+        "c4-checkout-service/simulate-store-outage 768x1024 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Caller\" renders at 6.2px; zoom is available",
+      "count": 8,
+      "examples": [
+        "c4-checkout-service/initial 390x844 light",
+        "c4-checkout-service/review-clean 390x844 light",
+        "c4-checkout-service/simulate-store-outage 390x844 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Order placed\" renders at 7.4px; zoom is available",
+      "count": 8,
+      "examples": [
+        "c4-fulfilment-service/initial 768x1024 light",
+        "c4-fulfilment-service/review-clean 768x1024 light",
+        "c4-fulfilment-service/simulate-store-outage 768x1024 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
       "detail": "smallest diagram label \"Browser / mobile\" renders at 6.1px; zoom is available",
       "count": 6,
       "examples": [
@@ -205,6 +348,17 @@
         "dense/review-finding 390x844 light",
         "dense/simulate-ran 390x844 light",
         "dense/performance-10x 390x844 light"
+      ]
+    },
+    {
+      "severity": "note",
+      "check": "small-label",
+      "detail": "smallest diagram label \"Caller\" renders at 6.9px; zoom is available",
+      "count": 6,
+      "examples": [
+        "c4-checkout-service/review-clean 1280x800 light",
+        "c4-checkout-service/simulate-store-outage 1280x800 light",
+        "c4-checkout-service/performance-10x 1280x800 light"
       ]
     },
     {
@@ -283,6 +437,6 @@
       ]
     }
   ],
-  "screenshots": 72,
+  "screenshots": 182,
   "comparisons": null
 }

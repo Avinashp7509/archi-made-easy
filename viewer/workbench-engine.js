@@ -405,6 +405,10 @@ function applyAlternative(document, alternativeId) {
 // "No limit". Spelled this way because a rendered page inlines this module, and the
 // artifact checks reject any page that contains the bare non-finite number names.
 const UNBOUNDED = Number.POSITIVE_INFINITY;
+// Above this, the composite figure is dominated by the assumption that components fail
+// independently, which real systems do not: the result carries a note saying so.
+const INDEPENDENCE_NOTE_FROM = 0.9999;
+const INDEPENDENCE_NOTE = 'Availability this high depends on the assumption that components fail independently. Shared software, configuration and provider-wide incidents are not modelled and usually set the real limit.';
 
 const FAULT_STATES = Object.freeze(['healthy', 'degraded', 'brownout', 'down', 'partitioned', 'surge']);
 const SIM_SCHEMA_VERSION = 1;
@@ -763,6 +767,7 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
     entrySla.set(entry, value);
   }
   const compositeSla = entries.length ? Math.min(...entrySla.values()) : null;
+  if (compositeSla != null && compositeSla >= INDEPENDENCE_NOTE_FROM && compositeSla < 1) warnings.push(INDEPENDENCE_NOTE);
 
   // ---- 6. Latency --------------------------------------------------------------------
   const hopFor = (node) => {
@@ -867,7 +872,8 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
     kind: 'analytical-model',
     inputs: { multiplier, cacheHit, faults },
     kpis: {
-      composite_sla_percent: compositeSla == null ? null : round(compositeSla * 100, 5),
+      // A share below 1 is never reported as 100%: rounding must not turn "almost always" into "always".
+      composite_sla_percent: compositeSla == null ? null : (compositeSla < 1 ? Math.min(99.99999, round(compositeSla * 100, 5)) : 100),
       critical_path: criticalPath,
       max_sustainable_rps: maxSustainable == null ? null : round(maxSustainable),
       limiting_node: maxSustainable == null ? null : limitingNode,
@@ -883,7 +889,7 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
     warnings,
   };
 }
-    return { FAULT_STATES, SIM_SCHEMA_VERSION, nodeAvailability, pathPercentiles, simulate };
+    return { INDEPENDENCE_NOTE, FAULT_STATES, SIM_SCHEMA_VERSION, nodeAvailability, pathPercentiles, simulate };
   })();
   // ---- cost.mjs
   __modules["cost.mjs"] = (function () {

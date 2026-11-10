@@ -1,0 +1,316 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Event-driven processing on Amazon Web Services",
+    "output": "aws-event-driven.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [
+      40,
+      110
+    ],
+    "cols": 6,
+    "cellW": 130,
+    "cellH": 60,
+    "gapX": 80,
+    "gapY": 80
+  },
+  "components": [
+    {
+      "id": "clients",
+      "type": "external",
+      "label": "Producers",
+      "sublabel": "Apps, devices",
+      "row": 1,
+      "col": 0,
+      "operational": {
+        "role": "ingress",
+        "security": {
+          "public_exposed": true
+        }
+      }
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API Gateway",
+      "sublabel": "Auth, throttling",
+      "row": 1,
+      "col": 1,
+      "operational": {
+        "role": "gateway",
+        "redundancy": "multi-az",
+        "security": {
+          "auth_method": "oauth2-oidc",
+          "public_exposed": true
+        }
+      }
+    },
+    {
+      "id": "ingest",
+      "type": "backend",
+      "label": "Lambda",
+      "sublabel": "Validate, publish",
+      "row": 1,
+      "col": 2,
+      "operational": {
+        "role": "stateless-compute",
+        "redundancy": "multi-az"
+      }
+    },
+    {
+      "id": "stream",
+      "type": "messagebus",
+      "label": "Kinesis",
+      "sublabel": "Ordered, retained",
+      "row": 1,
+      "col": 3,
+      "operational": {
+        "role": "stream",
+        "redundancy": "multi-az"
+      }
+    },
+    {
+      "id": "archive",
+      "type": "database",
+      "label": "S3",
+      "sublabel": "Event archive",
+      "row": 0,
+      "col": 3,
+      "operational": {
+        "role": "object-store"
+      }
+    },
+    {
+      "id": "dlq",
+      "type": "messagebus",
+      "label": "SQS",
+      "sublabel": "Dead letters",
+      "row": 2,
+      "col": 3,
+      "operational": {
+        "role": "message-broker",
+        "redundancy": "multi-az"
+      }
+    },
+    {
+      "id": "processor",
+      "type": "backend",
+      "label": "EKS",
+      "sublabel": "Idempotent consumer",
+      "row": 1,
+      "col": 4,
+      "operational": {
+        "role": "stateless-compute",
+        "redundancy": "multi-az",
+        "capacity": {
+          "autoscale_min": 2,
+          "autoscale_max": 20
+        }
+      }
+    },
+    {
+      "id": "store",
+      "type": "database",
+      "label": "DynamoDB",
+      "sublabel": "Read model",
+      "row": 0,
+      "col": 4,
+      "operational": {
+        "role": "stateful-db",
+        "redundancy": "multi-az",
+        "security": {
+          "encryption_at_rest": true
+        }
+      }
+    },
+    {
+      "id": "partner",
+      "type": "external",
+      "label": "Partner API",
+      "sublabel": "Webhook",
+      "row": 1,
+      "col": 5,
+      "operational": {
+        "role": "external-saas"
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "region",
+      "kind": "region",
+      "label": "Region (zone-redundant)",
+      "wraps": [
+        "api",
+        "ingest",
+        "stream",
+        "archive",
+        "dlq",
+        "processor",
+        "store"
+      ],
+      "operational": {
+        "scope": "region"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "clients-api",
+      "from": "clients",
+      "to": "api",
+      "label": "HTTPS",
+      "variant": "emphasis",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST"
+      }
+    },
+    {
+      "id": "api-ingest",
+      "from": "api",
+      "to": "ingest",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST"
+      }
+    },
+    {
+      "id": "ingest-stream",
+      "from": "ingest",
+      "to": "stream",
+      "label": "publish",
+      "operational": {
+        "call_semantics": "event-stream",
+        "resilience": {
+          "idempotent": true
+        }
+      }
+    },
+    {
+      "id": "stream-archive",
+      "from": "stream",
+      "to": "archive",
+      "label": "archive",
+      "variant": "dashed",
+      "operational": {
+        "call_semantics": "event-stream",
+        "resilience": {
+          "idempotent": true
+        }
+      }
+    },
+    {
+      "id": "stream-dlq",
+      "from": "stream",
+      "to": "dlq",
+      "label": "poison",
+      "variant": "dashed",
+      "operational": {
+        "call_semantics": "async-queue",
+        "resilience": {
+          "idempotent": true
+        }
+      }
+    },
+    {
+      "id": "stream-processor",
+      "from": "stream",
+      "to": "processor",
+      "label": "consume",
+      "operational": {
+        "call_semantics": "event-stream",
+        "resilience": {
+          "idempotent": true,
+          "dlq_node_id": "dlq"
+        }
+      }
+    },
+    {
+      "id": "processor-store",
+      "from": "processor",
+      "to": "store",
+      "label": "upsert",
+      "operational": {
+        "call_semantics": "sync-blocking"
+      }
+    },
+    {
+      "id": "processor-partner",
+      "from": "processor",
+      "to": "partner",
+      "label": "notify",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST",
+        "resilience": {
+          "circuit_breaker_enabled": true,
+          "idempotent": true
+        }
+      }
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Flow",
+      "items": [
+        "Lambda validates each request and publishes an event",
+        "Kinesis decouples producers from consumers"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Resilience",
+      "items": [
+        "Consumers are idempotent, so redelivery is safe",
+        "Events that keep failing go to SQS for inspection",
+        "S3 keeps a replayable history"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Boundaries",
+      "items": [
+        "Calls to Partner API sit behind a circuit breaker"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Assumptions",
+      "items": [
+        "At-least-once delivery: every consumer must be idempotent",
+        "Traffic, latency and cost figures are not set: add real numbers before relying on analysis",
+        "Service choices follow the Amazon Web Services pack (version 0.1.0); confirm they fit your constraints"
+      ]
+    }
+  ],
+  "workbench": {
+    "adrs": [
+      {
+        "id": "adr-stream-over-queue",
+        "title": "A retained stream instead of point-to-point queues",
+        "status": "proposed",
+        "context": "Several consumers need the same events, and history must be replayable.",
+        "decision": "Publish to a retained, partitioned stream and let each consumer track its own position.",
+        "alternatives": [
+          {
+            "option": "One queue per consumer",
+            "pros": [
+              "Simple per-consumer retry"
+            ],
+            "cons": [
+              "No replay",
+              "Producers must know every consumer"
+            ]
+          }
+        ],
+        "consequences": "Ordering holds only within a partition; consumers must handle duplicates."
+      }
+    ]
+  }
+}

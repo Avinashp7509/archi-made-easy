@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Global fintech payment mesh",
+    "subtitle": "Two active regions, each able to take all traffic; fraud scoring degrades instead of blocking payments",
+    "output": "global-fintech-payment-mesh.html",
+    "quality_profile": "showcase"
+  },
+  "layout": { "mode": "grid", "origin": [40, 110], "cols": 6, "cellW": 130, "cellH": 60, "gapX": 80, "gapY": 80 },
+  "components": [
+    { "id": "merchants", "type": "external", "label": "Merchants", "sublabel": "Checkout, POS, APIs", "row": 1, "col": 0,
+      "operational": { "role": "ingress", "capacity": { "baseline_rps": 1200 } } },
+    { "id": "edge", "type": "cloud", "label": "Global edge", "sublabel": "Anycast, WAF, routes", "row": 1, "col": 1,
+      "operational": { "role": "cdn", "sla_percent": 99.99, "redundancy": "active-active-multi-region", "capacity": { "max_rps": 60000 },
+        "latency": { "p50_ms": 8, "p99_ms": 35 }, "security": { "public_exposed": true, "encryption_in_transit": true, "trust_zone": "edge" },
+        "finops": { "monthly_base_cost_usd": 2400, "cost_per_million_requests_usd": 0.6 } } },
+    { "id": "gw_a", "type": "backend", "label": "API gateway A", "sublabel": "Auth, limits, routes", "row": 0, "col": 2,
+      "operational": { "role": "gateway", "sla_percent": 99.95, "redundancy": "multi-az", "capacity": { "max_rps": 1500, "autoscale_min": 2, "autoscale_max": 4 },
+        "latency": { "p50_ms": 6, "p99_ms": 30 }, "security": { "auth_method": "oauth2-oidc", "encryption_in_transit": true, "trust_zone": "dmz" },
+        "finops": { "monthly_base_cost_usd": 900 } } },
+    { "id": "identity", "type": "security", "label": "Identity", "sublabel": "Tokens, mTLS certs", "row": 1, "col": 2,
+      "operational": { "role": "identity", "sla_percent": 99.99, "redundancy": "active-active-multi-region", "capacity": { "max_rps": 20000 },
+        "latency": { "p50_ms": 12, "p99_ms": 60 }, "security": { "auth_method": "mtls", "encryption_in_transit": true, "trust_zone": "identity" },
+        "finops": { "monthly_base_cost_usd": 1500 } } },
+    { "id": "gw_b", "type": "backend", "label": "API gateway B", "sublabel": "Auth, limits, routes", "row": 2, "col": 2,
+      "operational": { "role": "gateway", "sla_percent": 99.95, "redundancy": "multi-az", "capacity": { "max_rps": 1500, "autoscale_min": 2, "autoscale_max": 4 },
+        "latency": { "p50_ms": 6, "p99_ms": 30 }, "security": { "auth_method": "oauth2-oidc", "encryption_in_transit": true, "trust_zone": "dmz" },
+        "finops": { "monthly_base_cost_usd": 900 } } },
+    { "id": "pay_a", "type": "backend", "label": "Payments A", "sublabel": "Authorise, capture", "row": 0, "col": 3,
+      "operational": { "role": "stateless-compute", "sla_percent": 99.95, "redundancy": "multi-az", "capacity": { "max_rps": 300, "autoscale_min": 3, "autoscale_max": 12 },
+        "latency": { "p50_ms": 45, "p99_ms": 180 }, "security": { "auth_method": "mtls", "encryption_in_transit": true, "trust_zone": "payments", "compliance_tags": ["PCI-DSS"] },
+        "finops": { "monthly_base_cost_usd": 3600, "cost_per_million_requests_usd": 1.2 } } },
+    { "id": "fraud", "type": "backend", "label": "Fraud scoring", "sublabel": "Model, rule fallback", "row": 1, "col": 3,
+      "operational": { "role": "ai-model", "sla_percent": 99.9, "redundancy": "active-active-multi-region", "capacity": { "max_rps": 9000 },
+        "latency": { "p50_ms": 35, "p99_ms": 140 }, "security": { "auth_method": "mtls", "encryption_in_transit": true, "trust_zone": "payments" },
+        "finops": { "monthly_base_cost_usd": 5200, "cost_per_million_requests_usd": 4 } } },
+    { "id": "pay_b", "type": "backend", "label": "Payments B", "sublabel": "Authorise, capture", "row": 2, "col": 3,
+      "operational": { "role": "stateless-compute", "sla_percent": 99.95, "redundancy": "multi-az", "capacity": { "max_rps": 300, "autoscale_min": 3, "autoscale_max": 12 },
+        "latency": { "p50_ms": 45, "p99_ms": 180 }, "security": { "auth_method": "mtls", "encryption_in_transit": true, "trust_zone": "payments", "compliance_tags": ["PCI-DSS"] },
+        "finops": { "monthly_base_cost_usd": 3600, "cost_per_million_requests_usd": 1.2 } } },
+    { "id": "ledger_a", "type": "database", "label": "Ledger A", "sublabel": "Double-entry books", "row": 0, "col": 4,
+      "operational": { "role": "stateful-db", "sla_percent": 99.99, "redundancy": "multi-az", "capacity": { "max_rps": 14000 },
+        "latency": { "p50_ms": 9, "p99_ms": 55 }, "dr": { "rpo_sec": 0, "rto_sec": 60, "backup_strategy": "Synchronous standby in a second zone; point-in-time recovery" },
+        "security": { "auth_method": "iam", "encryption_at_rest": true, "encryption_in_transit": true, "trust_zone": "data", "compliance_tags": ["PCI-DSS"] },
+        "finops": { "monthly_base_cost_usd": 6800, "storage_gb": 4000, "storage_cost_per_gb_usd": 0.12 } } },
+    { "id": "stream", "type": "messagebus", "label": "Settlement events", "sublabel": "Ordered, replayable", "row": 1, "col": 4,
+      "operational": { "role": "stream", "sla_percent": 99.95, "redundancy": "active-active-multi-region", "capacity": { "max_rps": 40000 },
+        "security": { "auth_method": "iam", "encryption_at_rest": true, "encryption_in_transit": true, "trust_zone": "data" },
+        "finops": { "monthly_base_cost_usd": 2100 } } },
+    { "id": "ledger_b", "type": "database", "label": "Ledger B", "sublabel": "Double-entry books", "row": 2, "col": 4,
+      "operational": { "role": "stateful-db", "sla_percent": 99.99, "redundancy": "multi-az", "capacity": { "max_rps": 14000 },
+        "latency": { "p50_ms": 9, "p99_ms": 55 }, "dr": { "rpo_sec": 0, "rto_sec": 60, "backup_strategy": "Synchronous standby in a second zone; point-in-time recovery" },
+        "security": { "auth_method": "iam", "encryption_at_rest": true, "encryption_in_transit": true, "trust_zone": "data", "compliance_tags": ["PCI-DSS"] },
+        "finops": { "monthly_base_cost_usd": 6800, "storage_gb": 4000, "storage_cost_per_gb_usd": 0.12 } } },
+    { "id": "settle", "type": "backend", "label": "Settlement", "sublabel": "Reconciles payouts", "row": 1, "col": 5,
+      "operational": { "role": "stateless-compute", "sla_percent": 99.9, "redundancy": "multi-az", "capacity": { "max_rps": 1500, "autoscale_min": 2, "autoscale_max": 8 },
+        "security": { "auth_method": "mtls", "encryption_in_transit": true, "trust_zone": "payments" },
+        "finops": { "monthly_base_cost_usd": 1900 } } }
+  ],
+  "boundaries": [
+    { "id": "region-a", "kind": "region", "label": "Region A", "wraps": ["gw_a", "pay_a", "ledger_a"], "operational": { "scope": "region" } },
+    { "id": "region-b", "kind": "region", "label": "Region B", "wraps": ["gw_b", "pay_b", "ledger_b"], "operational": { "scope": "region" } }
+  ],
+  "connections": [
+    { "id": "merchants-edge", "from": "merchants", "to": "edge", "label": "HTTPS", "variant": "emphasis",
+      "operational": { "protocol": "HTTPS/REST", "resilience": { "timeout_ms": 5000, "retries": 1, "backoff_strategy": "exponential", "jitter": true, "idempotent": true } } },
+    { "id": "edge-gw-a", "from": "edge", "to": "gw_a",
+      "operational": { "traffic": { "request_multiplier": 0.5 }, "resilience": { "timeout_ms": 3000, "retries": 0, "fallback_edge_id": "edge-gw-b" } } },
+    { "id": "edge-gw-b", "from": "edge", "to": "gw_b",
+      "operational": { "traffic": { "request_multiplier": 0.5 }, "resilience": { "timeout_ms": 3000, "retries": 0, "fallback_edge_id": "edge-gw-a" } } },
+    { "id": "gw-a-identity", "from": "gw_a", "to": "identity", "label": "verify", "variant": "security",
+      "operational": { "protocol": "gRPC", "traffic": { "request_multiplier": 0.1 }, "resilience": { "timeout_ms": 150, "retries": 1, "circuit_breaker_enabled": true } } },
+    { "id": "gw-b-identity", "from": "gw_b", "to": "identity", "label": "verify", "variant": "security",
+      "operational": { "protocol": "gRPC", "traffic": { "request_multiplier": 0.1 }, "resilience": { "timeout_ms": 150, "retries": 1, "circuit_breaker_enabled": true } } },
+    { "id": "gw-a-pay", "from": "gw_a", "to": "pay_a",
+      "operational": { "protocol": "gRPC", "resilience": { "timeout_ms": 2000, "retries": 0 } } },
+    { "id": "gw-b-pay", "from": "gw_b", "to": "pay_b",
+      "operational": { "protocol": "gRPC", "resilience": { "timeout_ms": 2000, "retries": 0 } } },
+    { "id": "pay-a-fraud", "from": "pay_a", "to": "fraud", "label": "score",
+      "operational": { "protocol": "gRPC", "resilience": { "timeout_ms": 250, "retries": 0, "circuit_breaker_enabled": true } } },
+    { "id": "pay-b-fraud", "from": "pay_b", "to": "fraud", "label": "score",
+      "operational": { "protocol": "gRPC", "resilience": { "timeout_ms": 250, "retries": 0, "circuit_breaker_enabled": true } } },
+    { "id": "pay-a-ledger", "from": "pay_a", "to": "ledger_a", "label": "post",
+      "operational": { "protocol": "SQL", "resilience": { "timeout_ms": 600, "retries": 1, "backoff_strategy": "exponential", "jitter": true, "idempotent": true }, "traffic": { "read_write_ratio": 0.3 } } },
+    { "id": "pay-b-ledger", "from": "pay_b", "to": "ledger_b", "label": "post",
+      "operational": { "protocol": "SQL", "resilience": { "timeout_ms": 600, "retries": 1, "backoff_strategy": "exponential", "jitter": true, "idempotent": true }, "traffic": { "read_write_ratio": 0.3 } } },
+    { "id": "ledger-a-stream", "from": "ledger_a", "to": "stream", "label": "CDC", "variant": "dashed",
+      "operational": { "call_semantics": "event-stream", "protocol": "CDC", "resilience": { "idempotent": true } } },
+    { "id": "ledger-b-stream", "from": "ledger_b", "to": "stream", "label": "CDC", "variant": "dashed",
+      "operational": { "call_semantics": "event-stream", "protocol": "CDC", "resilience": { "idempotent": true } } },
+    { "id": "stream-settle", "from": "stream", "to": "settle", "variant": "dashed",
+      "operational": { "call_semantics": "event-stream", "protocol": "Kafka", "resilience": { "idempotent": true } } }
+  ],
+  "cards": [
+    { "title": "Resilience", "dot": "emerald", "items": [
+      "Either region can take all traffic; the edge moves requests when a gateway stops answering",
+      "Fraud scoring sits behind a circuit breaker: if it is slow, payments fall back to rules",
+      "Ledger posts are idempotent, so a retried payment is never applied twice"
+    ] },
+    { "title": "Security", "dot": "rose", "items": [
+      "Merchants authenticate at the gateways; services talk over mutual TLS",
+      "Card data stays inside the payments and data zones (PCI-DSS scope)",
+      "Ledgers are encrypted at rest and in transit"
+    ] },
+    { "title": "Data", "dot": "violet", "items": [
+      "Each region's ledger is the authority for payments it accepted",
+      "Changes leave each ledger as ordered events for settlement and reconciliation",
+      "Synchronous standby in a second zone: no committed payment is lost to a zone failure"
+    ] },
+    { "title": "Assumptions", "dot": "amber", "items": [
+      "Every figure in this example is an illustrative design target, not a vendor commitment or a measurement",
+      "Load is split evenly between the regions",
+      "Card networks and banks are outside the diagram"
+    ] }
+  ],
+  "workbench": {
+    "entrypoints": ["merchants"],
+    "requirements": {
+      "availability_target_percent": 99.95,
+      "p99_latency_ms": 450,
+      "peak_rps": 3000,
+      "rpo_sec": 0,
+      "rto_sec": 120,
+      "monthly_budget_usd": 60000,
+      "regions": ["Region A", "Region B"],
+      "compliance": ["PCI-DSS"]
+    },
+    "adrs": [
+      { "id": "adr-active-active", "title": "Two active regions instead of a standby", "status": "accepted",
+        "context": "Payments must keep flowing through the loss of a region, and a cold standby is rarely exercised until the day it is needed.",
+        "decision": "Run the full payment path in two regions at all times and split traffic between them at the edge.",
+        "alternatives": [
+          { "option": "One region with a warm standby", "pros": ["About half the running cost", "Simpler data model"], "cons": ["Failover is a rare, risky event", "Minutes of downtime during switchover"] }
+        ],
+        "consequences": "Each region must be sized to carry all traffic. Each payment belongs to the region that accepted it, so there is no cross-region write conflict." },
+      { "id": "adr-fraud-breaker", "title": "Fraud scoring may degrade; payments may not block on it", "status": "accepted",
+        "context": "The fraud model is the slowest dependency on the payment path and the one most likely to brown out under load.",
+        "decision": "Call fraud scoring with a 250 ms budget behind a circuit breaker, and fall back to static rules when it is open.",
+        "alternatives": [
+          { "option": "Block the payment until scoring answers", "pros": ["Every payment is scored by the model"], "cons": ["A scoring brownout stops all payments"] }
+        ],
+        "consequences": "During a scoring outage, risk decisions are coarser. That window must be monitored and reviewed afterwards." }
+    ],
+    "traces": [
+      { "id": "authorise", "title": "Authorise a card payment", "kind": "happy", "steps": [
+        { "edge": "merchants-edge", "note": "TLS terminates at the nearest edge location" },
+        { "edge": "edge-gw-a", "note": "routed to region A" },
+        { "edge": "gw-a-identity", "note": "token checked (cached for most requests)" },
+        { "edge": "gw-a-pay" },
+        { "edge": "pay-a-fraud", "note": "scored within 250 ms, or rules apply" },
+        { "edge": "pay-a-ledger", "note": "idempotent double-entry post" }
+      ] },
+      { "id": "region-loss", "title": "Region A stops answering", "kind": "failover", "steps": [
+        { "edge": "merchants-edge" },
+        { "edge": "edge-gw-b", "note": "the edge sends region A's share to region B" },
+        { "edge": "gw-b-pay" },
+        { "edge": "pay-b-ledger" }
+      ] }
+    ],
+    "alternatives": [
+      { "id": "blocking-fraud", "title": "Fraud scoring without a circuit breaker", "description": "Payments wait for the model, with no rules fallback",
+        "connection_overrides": [
+          { "id": "pay-a-fraud", "operational": { "resilience": { "circuit_breaker_enabled": false } } },
+          { "id": "pay-b-fraud", "operational": { "resilience": { "circuit_breaker_enabled": false } } }
+        ] }
+    ]
+  }
+}

@@ -1,0 +1,311 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Hybrid cloud integration",
+    "output": "onprem-hybrid.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [
+      40,
+      110
+    ],
+    "cols": 5,
+    "cellW": 130,
+    "cellH": 60,
+    "gapX": 80,
+    "gapY": 80
+  },
+  "components": [
+    {
+      "id": "directory",
+      "type": "security",
+      "label": "Directory",
+      "sublabel": "On-prem identities",
+      "row": 0,
+      "col": 0,
+      "operational": {
+        "role": "identity"
+      }
+    },
+    {
+      "id": "core",
+      "type": "backend",
+      "label": "Core systems",
+      "sublabel": "ERP, mainframe",
+      "row": 1,
+      "col": 0,
+      "operational": {
+        "role": "stateless-compute"
+      }
+    },
+    {
+      "id": "legacy_db",
+      "type": "database",
+      "label": "On-prem DB",
+      "sublabel": "System of record",
+      "row": 2,
+      "col": 0,
+      "operational": {
+        "role": "stateful-db"
+      }
+    },
+    {
+      "id": "link",
+      "type": "cloud",
+      "label": "VPN",
+      "sublabel": "Private connectivity",
+      "row": 1,
+      "col": 1,
+      "operational": {
+        "role": "gateway",
+        "redundancy": "single-instance"
+      }
+    },
+    {
+      "id": "firewall",
+      "type": "security",
+      "label": "Firewall",
+      "sublabel": "Inspect, restrict",
+      "row": 1,
+      "col": 2,
+      "operational": {
+        "role": "gateway"
+      }
+    },
+    {
+      "id": "cloud_identity",
+      "type": "security",
+      "label": "Keycloak",
+      "sublabel": "Cloud identities",
+      "row": 0,
+      "col": 3,
+      "operational": {
+        "role": "identity",
+        "security": {
+          "auth_method": "oauth2-oidc"
+        }
+      }
+    },
+    {
+      "id": "gateway",
+      "type": "backend",
+      "label": "API gateway",
+      "sublabel": "Integration APIs",
+      "row": 1,
+      "col": 3,
+      "operational": {
+        "role": "gateway",
+        "redundancy": "multi-az"
+      }
+    },
+    {
+      "id": "sync",
+      "type": "backend",
+      "label": "Airflow",
+      "sublabel": "Data replication",
+      "row": 2,
+      "col": 3,
+      "operational": {
+        "role": "stateless-compute"
+      }
+    },
+    {
+      "id": "app",
+      "type": "backend",
+      "label": "App servers",
+      "sublabel": "Cloud application",
+      "row": 1,
+      "col": 4,
+      "operational": {
+        "role": "stateless-compute",
+        "redundancy": "multi-az"
+      }
+    },
+    {
+      "id": "cloud_db",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "Cloud copy",
+      "row": 2,
+      "col": 4,
+      "operational": {
+        "role": "stateful-db",
+        "redundancy": "multi-az",
+        "security": {
+          "encryption_at_rest": true
+        }
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "onprem",
+      "kind": "region",
+      "label": "On-premises data centre",
+      "wraps": [
+        "directory",
+        "core",
+        "legacy_db"
+      ],
+      "operational": {
+        "scope": "region"
+      }
+    },
+    {
+      "id": "cloud",
+      "kind": "region",
+      "label": "Cloud Data centre",
+      "wraps": [
+        "cloud_identity",
+        "gateway",
+        "sync",
+        "app",
+        "cloud_db"
+      ],
+      "operational": {
+        "scope": "region"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "directory-sync",
+      "from": "directory",
+      "to": "cloud_identity",
+      "label": "directory sync",
+      "variant": "dashed",
+      "operational": {
+        "call_semantics": "replication-async"
+      }
+    },
+    {
+      "id": "core-link",
+      "from": "core",
+      "to": "link",
+      "operational": {
+        "call_semantics": "sync-blocking"
+      }
+    },
+    {
+      "id": "link-firewall",
+      "from": "link",
+      "to": "firewall",
+      "operational": {
+        "call_semantics": "sync-blocking"
+      }
+    },
+    {
+      "id": "firewall-gateway",
+      "from": "firewall",
+      "to": "gateway",
+      "label": "APIs",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST",
+        "resilience": {
+          "circuit_breaker_enabled": true
+        }
+      }
+    },
+    {
+      "id": "gateway-app",
+      "from": "gateway",
+      "to": "app",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST"
+      }
+    },
+    {
+      "id": "legacy-sync",
+      "from": "legacy_db",
+      "to": "sync",
+      "label": "change data capture",
+      "variant": "dashed",
+      "operational": {
+        "call_semantics": "replication-async",
+        "protocol": "CDC"
+      }
+    },
+    {
+      "id": "sync-clouddb",
+      "from": "sync",
+      "to": "cloud_db",
+      "label": "apply",
+      "variant": "dashed",
+      "operational": {
+        "call_semantics": "replication-async"
+      }
+    },
+    {
+      "id": "app-clouddb",
+      "from": "app",
+      "to": "cloud_db",
+      "label": "SQL",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "SQL"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Connectivity",
+      "items": [
+        "VPN carries traffic privately; Firewall limits what can cross",
+        "A single private link is a single point of failure: add a second path for resilience"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Data",
+      "items": [
+        "Airflow copies changes from On-prem DB to PostgreSQL",
+        "The cloud copy lags the system of record"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Identity",
+      "items": [
+        "Directory stays the source of identities and syncs to Keycloak"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Assumptions",
+      "items": [
+        "On-premises systems remain the system of record",
+        "Link capacity, replication lag and cost are not set: add real numbers before relying on analysis",
+        "Service choices follow the On-premises / provider-neutral pack (version 0.1.0); confirm they fit your constraints"
+      ]
+    }
+  ],
+  "workbench": {
+    "adrs": [
+      {
+        "id": "adr-replicate-not-call",
+        "title": "Replicate data instead of calling on-premises per request",
+        "status": "proposed",
+        "context": "Cloud applications need on-premises data, and the private link adds latency and a failure point.",
+        "decision": "Replicate the needed data to the cloud and read it there.",
+        "alternatives": [
+          {
+            "option": "Call on-premises systems synchronously",
+            "pros": [
+              "Always current"
+            ],
+            "cons": [
+              "Every request depends on the link and the legacy system"
+            ]
+          }
+        ],
+        "consequences": "Cloud reads can be stale; writes still go to the system of record."
+      }
+    ]
+  }
+}

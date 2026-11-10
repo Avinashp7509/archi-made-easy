@@ -1,0 +1,1356 @@
+{
+  "note": "Modelled figures of the flagship and provider examples, recorded as a regression benchmark for the engine. Nothing here is measured.",
+  "examples": {
+    "global-fintech-payment-mesh.architecture.json": {
+      "title": "Global fintech payment mesh",
+      "components": 12,
+      "connections": 14,
+      "healthy": {
+        "composite_sla_percent": 99.99999,
+        "critical_path_p99_ms": 302.376,
+        "max_sustainable_rps": 7200,
+        "affected_components": 0,
+        "ingress_lost_percent": 0,
+        "single_points_of_failure": 0,
+        "monthly_cost_usd": 54950.88,
+        "review_score": 98,
+        "findings": [
+          {
+            "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
+            "title": "Deep synchronous call chain",
+            "severity": "medium"
+          }
+        ]
+      },
+      "scenarios": {
+        "a": {
+          "title": "Primary database or stateful storage outage",
+          "targets": [
+            "ledger_a"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99997,
+            "critical_path_p99_ms": 348.86,
+            "max_sustainable_rps": 3600,
+            "affected_components": 3,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 56150.88,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
+                "title": "Deep synchronous call chain",
+                "severity": "medium"
+              }
+            ]
+          }
+        },
+        "b": {
+          "title": "Availability zone or region blackout",
+          "targets": [
+            "region-a"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99997,
+            "critical_path_p99_ms": 348.86,
+            "max_sustainable_rps": 3600,
+            "affected_components": 3,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 56150.88,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
+                "title": "Deep synchronous call chain",
+                "severity": "medium"
+              }
+            ]
+          }
+        },
+        "c": {
+          "title": "10x flash crowd",
+          "targets": [],
+          "figures": {
+            "composite_sla_percent": 99.99999,
+            "critical_path_p99_ms": 3890.823,
+            "max_sustainable_rps": 7200,
+            "affected_components": 4,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 195361.2,
+            "review_score": 90,
+            "findings": [
+              {
+                "id": "requirement-latency:merchants,edge,gw_a,pay_a,fraud",
+                "title": "Modelled P99 latency above the stated target",
+                "severity": "high"
+              },
+              {
+                "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
+                "title": "Deep synchronous call chain",
+                "severity": "medium"
+              },
+              {
+                "id": "requirement-budget:design",
+                "title": "Estimated monthly cost above the stated budget",
+                "severity": "medium"
+              }
+            ]
+          }
+        },
+        "d": {
+          "title": "Third-party API or model provider high-latency brownout",
+          "targets": [
+            "fraud"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99999,
+            "critical_path_p99_ms": 569.655,
+            "max_sustainable_rps": 7200,
+            "affected_components": 1,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 54950.88,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
+                "title": "Deep synchronous call chain",
+                "severity": "medium"
+              }
+            ]
+          }
+        },
+        "e": {
+          "title": "Cache stampede or cold cache",
+          "applicable": false
+        },
+        "f": {
+          "title": "Compromised edge or zero-trust boundary breach",
+          "targets": [
+            "merchants"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99999,
+            "critical_path_p99_ms": 302.376,
+            "max_sustainable_rps": 7200,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 54950.88,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
+                "title": "Deep synchronous call chain",
+                "severity": "medium"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "enterprise-agentic-ai-platform.architecture.json": {
+      "title": "Enterprise agentic AI platform",
+      "components": 11,
+      "connections": 10,
+      "healthy": {
+        "composite_sla_percent": 99.99995,
+        "critical_path_p99_ms": 5155.62,
+        "max_sustainable_rps": 18.182,
+        "affected_components": 0,
+        "ingress_lost_percent": 0,
+        "single_points_of_failure": 0,
+        "monthly_cost_usd": 104799,
+        "review_score": 92,
+        "findings": [
+          {
+            "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
+            "title": "Caller timeout shorter than the callee retry budget",
+            "severity": "high"
+          }
+        ]
+      },
+      "scenarios": {
+        "a": {
+          "title": "Primary database or stateful storage outage",
+          "targets": [
+            "retrieval"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99995,
+            "critical_path_p99_ms": 5155.62,
+            "max_sustainable_rps": 18.182,
+            "affected_components": 2,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 104799,
+            "review_score": 92,
+            "findings": [
+              {
+                "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
+                "title": "Caller timeout shorter than the callee retry budget",
+                "severity": "high"
+              }
+            ]
+          }
+        },
+        "b": {
+          "title": "Availability zone or region blackout",
+          "applicable": false
+        },
+        "c": {
+          "title": "10x flash crowd",
+          "targets": [],
+          "figures": {
+            "composite_sla_percent": 99.99995,
+            "critical_path_p99_ms": 86095.319,
+            "max_sustainable_rps": 18.182,
+            "affected_components": 2,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 1073167.58,
+            "review_score": 84,
+            "findings": [
+              {
+                "id": "requirement-latency:users,gateway,orchestrator,router,model",
+                "title": "Modelled P99 latency above the stated target",
+                "severity": "high"
+              },
+              {
+                "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
+                "title": "Caller timeout shorter than the callee retry budget",
+                "severity": "high"
+              },
+              {
+                "id": "requirement-budget:design",
+                "title": "Estimated monthly cost above the stated budget",
+                "severity": "medium"
+              }
+            ]
+          }
+        },
+        "d": {
+          "title": "Third-party API or model provider high-latency brownout",
+          "targets": [
+            "model"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99995,
+            "critical_path_p99_ms": 18898.257,
+            "max_sustainable_rps": 9.091,
+            "affected_components": 1,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 191523,
+            "review_score": 92,
+            "findings": [
+              {
+                "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
+                "title": "Caller timeout shorter than the callee retry budget",
+                "severity": "high"
+              }
+            ]
+          }
+        },
+        "e": {
+          "title": "Cache stampede or cold cache",
+          "targets": [
+            "semcache"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99995,
+            "critical_path_p99_ms": 5155.62,
+            "max_sustainable_rps": 18.182,
+            "affected_components": 2,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 104799,
+            "review_score": 92,
+            "findings": [
+              {
+                "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
+                "title": "Caller timeout shorter than the callee retry budget",
+                "severity": "high"
+              }
+            ]
+          }
+        },
+        "f": {
+          "title": "Compromised edge or zero-trust boundary breach",
+          "targets": [
+            "users"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99995,
+            "critical_path_p99_ms": 5155.62,
+            "max_sustainable_rps": 18.182,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 104799,
+            "review_score": 92,
+            "findings": [
+              {
+                "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
+                "title": "Caller timeout shorter than the callee retry budget",
+                "severity": "high"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "cloud-native-ecommerce-c4.architecture.json": {
+      "title": "Cloud-native e-commerce platform",
+      "components": 9,
+      "connections": 9,
+      "healthy": {
+        "composite_sla_percent": 99.99998,
+        "critical_path_p99_ms": 376.479,
+        "max_sustainable_rps": 3225.806,
+        "affected_components": 0,
+        "ingress_lost_percent": 0,
+        "single_points_of_failure": 0,
+        "monthly_cost_usd": 15878,
+        "review_score": 100,
+        "findings": []
+      },
+      "scenarios": {
+        "a": {
+          "title": "Primary database or stateful storage outage",
+          "targets": [
+            "catalog_db"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99998,
+            "critical_path_p99_ms": 376.479,
+            "max_sustainable_rps": 4000,
+            "affected_components": 3,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 15878,
+            "review_score": 100,
+            "findings": []
+          }
+        },
+        "b": {
+          "title": "Availability zone or region blackout",
+          "targets": [
+            "region"
+          ],
+          "figures": {
+            "composite_sla_percent": 0,
+            "critical_path_p99_ms": null,
+            "max_sustainable_rps": 0,
+            "affected_components": 9,
+            "ingress_lost_percent": 100,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 15878,
+            "review_score": 100,
+            "findings": []
+          }
+        },
+        "c": {
+          "title": "10x flash crowd",
+          "targets": [],
+          "figures": {
+            "composite_sla_percent": 99.99998,
+            "critical_path_p99_ms": 6493.304,
+            "max_sustainable_rps": 3225.806,
+            "affected_components": 4,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 31244.67,
+            "review_score": 88,
+            "findings": [
+              {
+                "id": "requirement-latency:shoppers,gateway,checkout,orders_db",
+                "title": "Modelled P99 latency above the stated target",
+                "severity": "high"
+              },
+              {
+                "id": "requirement-budget:design",
+                "title": "Estimated monthly cost above the stated budget",
+                "severity": "medium"
+              }
+            ]
+          }
+        },
+        "d": {
+          "title": "Third-party API or model provider high-latency brownout",
+          "applicable": false
+        },
+        "e": {
+          "title": "Cache stampede or cold cache",
+          "applicable": false
+        },
+        "f": {
+          "title": "Compromised edge or zero-trust boundary breach",
+          "targets": [
+            "shoppers"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99998,
+            "critical_path_p99_ms": 376.479,
+            "max_sustainable_rps": 3225.806,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": 15878,
+            "review_score": 100,
+            "findings": []
+          }
+        }
+      },
+      "levels": {
+        "catalog-service": {
+          "title": "Inside the catalog service",
+          "components": 8,
+          "connections": 7,
+          "healthy": {
+            "composite_sla_percent": 99.99993,
+            "critical_path_p99_ms": 105.194,
+            "max_sustainable_rps": 3100,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 100,
+            "findings": []
+          },
+          "scenarios": {
+            "a": {
+              "title": "Primary database or stateful storage outage",
+              "targets": [
+                "products"
+              ],
+              "figures": {
+                "composite_sla_percent": 0,
+                "critical_path_p99_ms": 40.03,
+                "max_sustainable_rps": 0,
+                "affected_components": 4,
+                "ingress_lost_percent": 96.77,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            },
+            "b": {
+              "title": "Availability zone or region blackout",
+              "applicable": false
+            },
+            "c": {
+              "title": "10x flash crowd",
+              "targets": [],
+              "figures": {
+                "composite_sla_percent": 99.99993,
+                "critical_path_p99_ms": 634.125,
+                "max_sustainable_rps": 3100,
+                "affected_components": 1,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 92,
+                "findings": [
+                  {
+                    "id": "requirement-latency:gateway_in,api,search",
+                    "title": "Modelled P99 latency above the stated target",
+                    "severity": "high"
+                  }
+                ]
+              }
+            },
+            "d": {
+              "title": "Third-party API or model provider high-latency brownout",
+              "applicable": false
+            },
+            "e": {
+              "title": "Cache stampede or cold cache",
+              "targets": [
+                "cache"
+              ],
+              "figures": {
+                "composite_sla_percent": 99.99993,
+                "critical_path_p99_ms": 105.194,
+                "max_sustainable_rps": 3100,
+                "affected_components": 2,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            },
+            "f": {
+              "title": "Compromised edge or zero-trust boundary breach",
+              "targets": [
+                "gateway_in"
+              ],
+              "figures": {
+                "composite_sla_percent": 99.99993,
+                "critical_path_p99_ms": 105.194,
+                "max_sustainable_rps": 3100,
+                "affected_components": 0,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            }
+          }
+        },
+        "checkout-service": {
+          "title": "Inside the checkout service",
+          "components": 9,
+          "connections": 8,
+          "healthy": {
+            "composite_sla_percent": 99.99988,
+            "critical_path_p99_ms": 1245.981,
+            "max_sustainable_rps": 333.333,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 100,
+            "findings": []
+          },
+          "scenarios": {
+            "a": {
+              "title": "Primary database or stateful storage outage",
+              "targets": [
+                "outbox"
+              ],
+              "figures": {
+                "composite_sla_percent": 0,
+                "critical_path_p99_ms": null,
+                "max_sustainable_rps": 0,
+                "affected_components": 4,
+                "ingress_lost_percent": 100,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            },
+            "b": {
+              "title": "Availability zone or region blackout",
+              "applicable": false
+            },
+            "c": {
+              "title": "10x flash crowd",
+              "targets": [],
+              "figures": {
+                "composite_sla_percent": 99.99988,
+                "critical_path_p99_ms": 3386.267,
+                "max_sustainable_rps": 333.333,
+                "affected_components": 3,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 92,
+                "findings": [
+                  {
+                    "id": "requirement-latency:gateway_in,api,orders,payment,psp",
+                    "title": "Modelled P99 latency above the stated target",
+                    "severity": "high"
+                  }
+                ]
+              }
+            },
+            "d": {
+              "title": "Third-party API or model provider high-latency brownout",
+              "targets": [
+                "psp"
+              ],
+              "figures": {
+                "composite_sla_percent": 99.99988,
+                "critical_path_p99_ms": 3684.548,
+                "max_sustainable_rps": 333.333,
+                "affected_components": 1,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            },
+            "e": {
+              "title": "Cache stampede or cold cache",
+              "targets": [
+                "cart_cache"
+              ],
+              "figures": {
+                "composite_sla_percent": 99.99988,
+                "critical_path_p99_ms": 1245.981,
+                "max_sustainable_rps": 333.333,
+                "affected_components": 2,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            },
+            "f": {
+              "title": "Compromised edge or zero-trust boundary breach",
+              "targets": [
+                "gateway_in"
+              ],
+              "figures": {
+                "composite_sla_percent": 99.99988,
+                "critical_path_p99_ms": 1245.981,
+                "max_sustainable_rps": 333.333,
+                "affected_components": 0,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            }
+          }
+        },
+        "fulfilment-service": {
+          "title": "Inside the fulfilment service",
+          "components": 9,
+          "connections": 8,
+          "healthy": {
+            "composite_sla_percent": 99.99998,
+            "critical_path_p99_ms": 40.03,
+            "max_sustainable_rps": 100,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 100,
+            "findings": []
+          },
+          "scenarios": {
+            "a": {
+              "title": "Primary database or stateful storage outage",
+              "targets": [
+                "stock_db"
+              ],
+              "figures": {
+                "composite_sla_percent": 99.99998,
+                "critical_path_p99_ms": 40.03,
+                "max_sustainable_rps": 20000,
+                "affected_components": 3,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            },
+            "b": {
+              "title": "Availability zone or region blackout",
+              "applicable": false
+            },
+            "c": {
+              "title": "10x flash crowd",
+              "targets": [],
+              "figures": {
+                "composite_sla_percent": 99.99998,
+                "critical_path_p99_ms": 40.302,
+                "max_sustainable_rps": 100,
+                "affected_components": 2,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            },
+            "d": {
+              "title": "Third-party API or model provider high-latency brownout",
+              "targets": [
+                "carrier"
+              ],
+              "figures": {
+                "composite_sla_percent": 99.99998,
+                "critical_path_p99_ms": 40.03,
+                "max_sustainable_rps": 100,
+                "affected_components": 1,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            },
+            "e": {
+              "title": "Cache stampede or cold cache",
+              "applicable": false
+            },
+            "f": {
+              "title": "Compromised edge or zero-trust boundary breach",
+              "targets": [
+                "stream_in"
+              ],
+              "figures": {
+                "composite_sla_percent": 99.99998,
+                "critical_path_p99_ms": 40.03,
+                "max_sustainable_rps": 100,
+                "affected_components": 0,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "review_score": 100,
+                "findings": []
+              }
+            }
+          }
+        }
+      }
+    },
+    "providers/aws-event-driven.architecture.json": {
+      "title": "Event-driven processing on Amazon Web Services",
+      "components": 9,
+      "connections": 8,
+      "healthy": {
+        "composite_sla_percent": 99.99988,
+        "critical_path_p99_ms": 211.457,
+        "max_sustainable_rps": 500,
+        "affected_components": 0,
+        "ingress_lost_percent": 0,
+        "single_points_of_failure": 0,
+        "monthly_cost_usd": null,
+        "review_score": 98,
+        "findings": [
+          {
+            "id": "missing-recovery-objectives:archive",
+            "title": "Stateful component without recovery objectives",
+            "severity": "low"
+          },
+          {
+            "id": "missing-recovery-objectives:store",
+            "title": "Stateful component without recovery objectives",
+            "severity": "low"
+          }
+        ]
+      },
+      "scenarios": {
+        "a": {
+          "title": "Primary database or stateful storage outage",
+          "targets": [
+            "store"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99988,
+            "critical_path_p99_ms": 211.457,
+            "max_sustainable_rps": 1000,
+            "affected_components": 2,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:archive",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:store",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "b": {
+          "title": "Availability zone or region blackout",
+          "targets": [
+            "region"
+          ],
+          "figures": {
+            "composite_sla_percent": 0,
+            "critical_path_p99_ms": null,
+            "max_sustainable_rps": 0,
+            "affected_components": 8,
+            "ingress_lost_percent": 100,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:archive",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:store",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "c": {
+          "title": "10x flash crowd",
+          "targets": [],
+          "figures": {
+            "composite_sla_percent": 99.99988,
+            "critical_path_p99_ms": 211.457,
+            "max_sustainable_rps": 500,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:archive",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:store",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "d": {
+          "title": "Third-party API or model provider high-latency brownout",
+          "targets": [
+            "partner"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99988,
+            "critical_path_p99_ms": 211.457,
+            "max_sustainable_rps": 500,
+            "affected_components": 1,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:archive",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:store",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "e": {
+          "title": "Cache stampede or cold cache",
+          "applicable": false
+        },
+        "f": {
+          "title": "Compromised edge or zero-trust boundary breach",
+          "targets": [
+            "clients"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99988,
+            "critical_path_p99_ms": 211.457,
+            "max_sustainable_rps": 500,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:archive",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:store",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "providers/azure-zero-trust.architecture.json": {
+      "title": "Zero-trust application access on Microsoft Azure",
+      "components": 8,
+      "connections": 7,
+      "healthy": {
+        "composite_sla_percent": 99.99975,
+        "critical_path_p99_ms": 302.24,
+        "max_sustainable_rps": 1000,
+        "affected_components": 0,
+        "ingress_lost_percent": 0,
+        "single_points_of_failure": 0,
+        "monthly_cost_usd": null,
+        "review_score": 99,
+        "findings": [
+          {
+            "id": "missing-recovery-objectives:db",
+            "title": "Stateful component without recovery objectives",
+            "severity": "low"
+          }
+        ]
+      },
+      "scenarios": {
+        "a": {
+          "title": "Primary database or stateful storage outage",
+          "targets": [
+            "db"
+          ],
+          "figures": {
+            "composite_sla_percent": 0,
+            "critical_path_p99_ms": null,
+            "max_sustainable_rps": 0,
+            "affected_components": 4,
+            "ingress_lost_percent": 100,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 99,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "b": {
+          "title": "Availability zone or region blackout",
+          "applicable": false
+        },
+        "c": {
+          "title": "10x flash crowd",
+          "targets": [],
+          "figures": {
+            "composite_sla_percent": 99.99975,
+            "critical_path_p99_ms": 302.24,
+            "max_sustainable_rps": 1000,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 99,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "d": {
+          "title": "Third-party API or model provider high-latency brownout",
+          "applicable": false
+        },
+        "e": {
+          "title": "Cache stampede or cold cache",
+          "applicable": false
+        },
+        "f": {
+          "title": "Compromised edge or zero-trust boundary breach",
+          "targets": [
+            "users"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99975,
+            "critical_path_p99_ms": 302.24,
+            "max_sustainable_rps": 1000,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 99,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "providers/gcp-microservices.architecture.json": {
+      "title": "Microservices with an API gateway on Google Cloud",
+      "components": 9,
+      "connections": 9,
+      "healthy": {
+        "composite_sla_percent": 99.99998,
+        "critical_path_p99_ms": 232.35,
+        "max_sustainable_rps": 1000,
+        "affected_components": 0,
+        "ingress_lost_percent": 0,
+        "single_points_of_failure": 0,
+        "monthly_cost_usd": null,
+        "review_score": 98,
+        "findings": [
+          {
+            "id": "missing-recovery-objectives:orders_db",
+            "title": "Stateful component without recovery objectives",
+            "severity": "low"
+          },
+          {
+            "id": "missing-recovery-objectives:payments_db",
+            "title": "Stateful component without recovery objectives",
+            "severity": "low"
+          }
+        ]
+      },
+      "scenarios": {
+        "a": {
+          "title": "Primary database or stateful storage outage",
+          "targets": [
+            "orders_db"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99998,
+            "critical_path_p99_ms": 232.35,
+            "max_sustainable_rps": 2000,
+            "affected_components": 3,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:orders_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:payments_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "b": {
+          "title": "Availability zone or region blackout",
+          "targets": [
+            "region"
+          ],
+          "figures": {
+            "composite_sla_percent": 0,
+            "critical_path_p99_ms": null,
+            "max_sustainable_rps": 0,
+            "affected_components": 9,
+            "ingress_lost_percent": 100,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:orders_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:payments_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "c": {
+          "title": "10x flash crowd",
+          "targets": [],
+          "figures": {
+            "composite_sla_percent": 99.99998,
+            "critical_path_p99_ms": 232.35,
+            "max_sustainable_rps": 1000,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:orders_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:payments_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "d": {
+          "title": "Third-party API or model provider high-latency brownout",
+          "applicable": false
+        },
+        "e": {
+          "title": "Cache stampede or cold cache",
+          "applicable": false
+        },
+        "f": {
+          "title": "Compromised edge or zero-trust boundary breach",
+          "targets": [
+            "users"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.99998,
+            "critical_path_p99_ms": 232.35,
+            "max_sustainable_rps": 1000,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "review_score": 98,
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:orders_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:payments_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "providers/onprem-hybrid.architecture.json": {
+      "title": "Hybrid cloud integration",
+      "components": 10,
+      "connections": 8,
+      "healthy": {
+        "composite_sla_percent": 99.80012,
+        "critical_path_p99_ms": 332.8,
+        "max_sustainable_rps": 1000,
+        "affected_components": 0,
+        "ingress_lost_percent": 0,
+        "single_points_of_failure": 3,
+        "monthly_cost_usd": null,
+        "review_score": 82,
+        "findings": [
+          {
+            "id": "spof:core",
+            "title": "Single point of failure on a critical path",
+            "severity": "high"
+          },
+          {
+            "id": "spof:firewall",
+            "title": "Single point of failure on a critical path",
+            "severity": "high"
+          },
+          {
+            "id": "spof:link",
+            "title": "Single point of failure on a critical path",
+            "severity": "high"
+          },
+          {
+            "id": "missing-recovery-objectives:cloud_db",
+            "title": "Stateful component without recovery objectives",
+            "severity": "low"
+          },
+          {
+            "id": "missing-recovery-objectives:legacy_db",
+            "title": "Stateful component without recovery objectives",
+            "severity": "low"
+          }
+        ]
+      },
+      "scenarios": {
+        "a": {
+          "title": "Primary database or stateful storage outage",
+          "targets": [
+            "cloud_db"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.80012,
+            "critical_path_p99_ms": 221.031,
+            "max_sustainable_rps": 1000,
+            "affected_components": 4,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 3,
+            "monthly_cost_usd": null,
+            "review_score": 82,
+            "findings": [
+              {
+                "id": "spof:core",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "spof:firewall",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "spof:link",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "missing-recovery-objectives:cloud_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:legacy_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "b": {
+          "title": "Availability zone or region blackout",
+          "targets": [
+            "cloud"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.80012,
+            "critical_path_p99_ms": 221.031,
+            "max_sustainable_rps": 1000,
+            "affected_components": 6,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 3,
+            "monthly_cost_usd": null,
+            "review_score": 82,
+            "findings": [
+              {
+                "id": "spof:core",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "spof:firewall",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "spof:link",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "missing-recovery-objectives:cloud_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:legacy_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "c": {
+          "title": "10x flash crowd",
+          "targets": [],
+          "figures": {
+            "composite_sla_percent": 99.80012,
+            "critical_path_p99_ms": 332.8,
+            "max_sustainable_rps": 1000,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 3,
+            "monthly_cost_usd": null,
+            "review_score": 82,
+            "findings": [
+              {
+                "id": "spof:core",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "spof:firewall",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "spof:link",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "missing-recovery-objectives:cloud_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:legacy_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "d": {
+          "title": "Third-party API or model provider high-latency brownout",
+          "applicable": false
+        },
+        "e": {
+          "title": "Cache stampede or cold cache",
+          "applicable": false
+        },
+        "f": {
+          "title": "Compromised edge or zero-trust boundary breach",
+          "targets": [
+            "core"
+          ],
+          "figures": {
+            "composite_sla_percent": 99.80012,
+            "critical_path_p99_ms": 332.8,
+            "max_sustainable_rps": 1000,
+            "affected_components": 0,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 3,
+            "monthly_cost_usd": null,
+            "review_score": 82,
+            "findings": [
+              {
+                "id": "spof:core",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "spof:firewall",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "spof:link",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "missing-recovery-objectives:cloud_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:legacy_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

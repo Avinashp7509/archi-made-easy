@@ -13,6 +13,13 @@ Compares the upstream viewer (tt-a1i/archify at commit `11b0d60`) with Archi-Mad
 
 Evidence: [upstream-baseline/observations.json](upstream-baseline/observations.json) and [archi-made-easy-before/observations.json](archi-made-easy-before/observations.json). Compare [upstream](upstream-baseline/web-ha-1440x900-light-initial.png) with [before](archi-made-easy-before/web-ha-1440x900-light-initial.png).
 
+**After the redesign (measured at the end of Phase 6, same document, viewports and selectors):**
+
+- 0 of the 14 colour tokens have upstream's value ([final observations](archi-made-easy-after/observations.json)).
+- With the workbench on (how every flagship and scaffolded architecture opens), the page is a frame of mode rail, vitals bar and inspector around the canvas; upstream has no counterpart. With it off, the page keeps upstream's geometry under new paint, by decision.
+- Screenshot against screenshot, 18 pairs: a median of 61.6% of pixels differ at all, and 11.6% differ by more than 24 of 255 in a channel. Most of each frame is light background in both products, which is why the second number is low. Tool and figures: [tools/compare-with-upstream.mjs](tools/compare-with-upstream.mjs), [upstream-comparison.json](upstream-comparison.json).
+- Fonts are unchanged: no typeface is bundled, and both products use the platform sans and JetBrains Mono for labels. The title is 18px with the frame on (upstream 24px).
+
 ## How the evidence was gathered
 
 | Kind | Meaning in this document |

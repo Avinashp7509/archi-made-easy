@@ -1,0 +1,1987 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Cloud-native e-commerce platform",
+    "subtitle": "Container level: three services, one gateway, joined by events",
+    "output": "cloud-native-ecommerce-c4.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [
+      40,
+      110
+    ],
+    "cols": 4,
+    "cellW": 130,
+    "cellH": 60,
+    "gapX": 80,
+    "gapY": 80
+  },
+  "components": [
+    {
+      "id": "shoppers",
+      "type": "external",
+      "label": "Shoppers",
+      "sublabel": "Web, mobile",
+      "row": 1,
+      "col": 0,
+      "operational": {
+        "role": "ingress",
+        "capacity": {
+          "baseline_rps": 500
+        },
+        "c4_level": "context"
+      }
+    },
+    {
+      "id": "identity",
+      "type": "security",
+      "label": "Identity",
+      "sublabel": "Sign-in, tokens",
+      "row": 0,
+      "col": 1,
+      "operational": {
+        "role": "identity",
+        "sla_percent": 99.99,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 10000
+        },
+        "latency": {
+          "p50_ms": 12,
+          "p99_ms": 60
+        },
+        "security": {
+          "auth_method": "oauth2-oidc",
+          "encryption_in_transit": true,
+          "trust_zone": "identity"
+        },
+        "finops": {
+          "monthly_base_cost_usd": 600
+        },
+        "c4_level": "container"
+      }
+    },
+    {
+      "id": "gateway",
+      "type": "backend",
+      "label": "API gateway",
+      "sublabel": "Routes, auth, limits",
+      "row": 1,
+      "col": 1,
+      "operational": {
+        "role": "gateway",
+        "sla_percent": 99.95,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 5000
+        },
+        "latency": {
+          "p50_ms": 6,
+          "p99_ms": 30
+        },
+        "security": {
+          "auth_method": "jwt",
+          "encryption_in_transit": true,
+          "trust_zone": "edge",
+          "public_exposed": true
+        },
+        "finops": {
+          "monthly_base_cost_usd": 900
+        },
+        "c4_level": "container"
+      }
+    },
+    {
+      "id": "catalog",
+      "type": "backend",
+      "label": "Catalog service",
+      "sublabel": "Browse, search",
+      "row": 0,
+      "col": 2,
+      "operational": {
+        "role": "stateless-compute",
+        "sla_percent": 99.95,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 250,
+          "autoscale_min": 3,
+          "autoscale_max": 12
+        },
+        "latency": {
+          "p50_ms": 25,
+          "p99_ms": 110
+        },
+        "security": {
+          "auth_method": "mtls",
+          "encryption_in_transit": true
+        },
+        "finops": {
+          "monthly_base_cost_usd": 2100
+        },
+        "c4_level": "container",
+        "drilldown_diagram_id": "catalog-service"
+      }
+    },
+    {
+      "id": "bus",
+      "type": "messagebus",
+      "label": "Event stream",
+      "sublabel": "Domain events",
+      "row": 1,
+      "col": 2,
+      "operational": {
+        "role": "stream",
+        "sla_percent": 99.95,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 20000
+        },
+        "latency": {
+          "p50_ms": 5,
+          "p99_ms": 40
+        },
+        "security": {
+          "auth_method": "mtls",
+          "encryption_at_rest": true,
+          "encryption_in_transit": true
+        },
+        "finops": {
+          "monthly_base_cost_usd": 1100
+        },
+        "c4_level": "container"
+      }
+    },
+    {
+      "id": "checkout",
+      "type": "backend",
+      "label": "Checkout service",
+      "sublabel": "Cart, order, payment",
+      "row": 2,
+      "col": 2,
+      "operational": {
+        "role": "stateless-compute",
+        "sla_percent": 99.95,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 40,
+          "autoscale_min": 3,
+          "autoscale_max": 10
+        },
+        "latency": {
+          "p50_ms": 70,
+          "p99_ms": 320
+        },
+        "security": {
+          "auth_method": "mtls",
+          "encryption_in_transit": true,
+          "compliance_tags": [
+            "PCI DSS"
+          ]
+        },
+        "finops": {
+          "monthly_base_cost_usd": 2600
+        },
+        "c4_level": "container",
+        "drilldown_diagram_id": "checkout-service"
+      }
+    },
+    {
+      "id": "catalog_db",
+      "type": "database",
+      "label": "Catalog store",
+      "sublabel": "Products, prices",
+      "row": 0,
+      "col": 3,
+      "operational": {
+        "role": "stateful-db",
+        "sla_percent": 99.95,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 6000
+        },
+        "latency": {
+          "p50_ms": 4,
+          "p99_ms": 25
+        },
+        "dr": {
+          "rpo_sec": 300,
+          "rto_sec": 900,
+          "backup_strategy": "Replica in a second zone; five-minute log shipping"
+        },
+        "security": {
+          "auth_method": "iam",
+          "encryption_at_rest": true,
+          "encryption_in_transit": true
+        },
+        "finops": {
+          "monthly_base_cost_usd": 3200,
+          "storage_gb": 400,
+          "storage_cost_per_gb_usd": 0.12
+        },
+        "c4_level": "container"
+      }
+    },
+    {
+      "id": "fulfilment",
+      "type": "backend",
+      "label": "Fulfilment service",
+      "sublabel": "Stock, shipping",
+      "row": 1,
+      "col": 3,
+      "operational": {
+        "role": "stateless-compute",
+        "sla_percent": 99.95,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 20,
+          "autoscale_min": 2,
+          "autoscale_max": 6
+        },
+        "latency": {
+          "p50_ms": 90,
+          "p99_ms": 400
+        },
+        "security": {
+          "auth_method": "mtls",
+          "encryption_in_transit": true
+        },
+        "finops": {
+          "monthly_base_cost_usd": 1500
+        },
+        "c4_level": "container",
+        "drilldown_diagram_id": "fulfilment-service"
+      }
+    },
+    {
+      "id": "orders_db",
+      "type": "database",
+      "label": "Orders store",
+      "sublabel": "Orders, payments",
+      "row": 2,
+      "col": 3,
+      "operational": {
+        "role": "stateful-db",
+        "sla_percent": 99.95,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 3000
+        },
+        "latency": {
+          "p50_ms": 6,
+          "p99_ms": 40
+        },
+        "dr": {
+          "rpo_sec": 60,
+          "rto_sec": 600,
+          "backup_strategy": "Synchronous replica in a second zone; continuous backup"
+        },
+        "security": {
+          "auth_method": "iam",
+          "encryption_at_rest": true,
+          "encryption_in_transit": true,
+          "compliance_tags": [
+            "PCI DSS"
+          ]
+        },
+        "finops": {
+          "monthly_base_cost_usd": 3800,
+          "storage_gb": 250,
+          "storage_cost_per_gb_usd": 0.12
+        },
+        "c4_level": "container"
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "region",
+      "kind": "region",
+      "label": "One region, three zones",
+      "wraps": [
+        "identity",
+        "gateway",
+        "catalog",
+        "bus",
+        "checkout",
+        "catalog_db",
+        "fulfilment",
+        "orders_db"
+      ],
+      "operational": {
+        "scope": "region"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "shoppers-gateway",
+      "from": "shoppers",
+      "to": "gateway",
+      "variant": "emphasis",
+      "label": "HTTPS",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST",
+        "resilience": {
+          "timeout_ms": 10000,
+          "retries": 0
+        }
+      }
+    },
+    {
+      "id": "gateway-identity",
+      "from": "gateway",
+      "to": "identity",
+      "variant": "security",
+      "label": "validate",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST",
+        "resilience": {
+          "timeout_ms": 300,
+          "retries": 1,
+          "circuit_breaker_enabled": true
+        },
+        "traffic": {
+          "request_multiplier": 0.05
+        }
+      }
+    },
+    {
+      "id": "gateway-catalog",
+      "from": "gateway",
+      "to": "catalog",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST",
+        "resilience": {
+          "timeout_ms": 2000,
+          "retries": 1,
+          "circuit_breaker_enabled": true
+        },
+        "traffic": {
+          "request_multiplier": 0.9
+        }
+      }
+    },
+    {
+      "id": "gateway-checkout",
+      "from": "gateway",
+      "to": "checkout",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST",
+        "resilience": {
+          "timeout_ms": 6000,
+          "retries": 0,
+          "circuit_breaker_enabled": true
+        },
+        "traffic": {
+          "request_multiplier": 0.1
+        }
+      }
+    },
+    {
+      "id": "catalog-db",
+      "from": "catalog",
+      "to": "catalog_db",
+      "label": "SQL",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "SQL",
+        "resilience": {
+          "timeout_ms": 500,
+          "retries": 1
+        },
+        "traffic": {
+          "read_write_ratio": 0.98
+        }
+      }
+    },
+    {
+      "id": "checkout-db",
+      "from": "checkout",
+      "to": "orders_db",
+      "label": "SQL",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "SQL",
+        "resilience": {
+          "timeout_ms": 800,
+          "retries": 0
+        },
+        "traffic": {
+          "read_write_ratio": 0.4
+        }
+      }
+    },
+    {
+      "id": "checkout-bus",
+      "from": "checkout",
+      "to": "bus",
+      "variant": "dashed",
+      "label": "order placed",
+      "operational": {
+        "call_semantics": "event-stream",
+        "protocol": "Kafka",
+        "resilience": {
+          "idempotent": true
+        },
+        "traffic": {
+          "request_multiplier": 0.3
+        }
+      }
+    },
+    {
+      "id": "bus-fulfilment",
+      "from": "bus",
+      "to": "fulfilment",
+      "variant": "dashed",
+      "label": "consume",
+      "operational": {
+        "call_semantics": "event-stream",
+        "protocol": "Kafka",
+        "resilience": {
+          "idempotent": true
+        }
+      }
+    },
+    {
+      "id": "bus-catalog",
+      "from": "bus",
+      "to": "catalog",
+      "variant": "dashed",
+      "label": "stock",
+      "operational": {
+        "call_semantics": "event-stream",
+        "protocol": "Kafka",
+        "resilience": {
+          "idempotent": true
+        }
+      }
+    }
+  ],
+  "cards": [
+    {
+      "title": "Request path",
+      "dot": "cyan",
+      "items": [
+        "Every call enters through the gateway, which validates the token and applies limits",
+        "Nine calls in ten browse the catalog; one in ten reaches checkout",
+        "Each service owns its data: no service reads another service's store"
+      ]
+    },
+    {
+      "title": "Events",
+      "dot": "emerald",
+      "items": [
+        "Checkout publishes \"order placed\" from a transactional outbox",
+        "Fulfilment and the catalog consume it; every consumer is idempotent",
+        "A slow consumer builds lag on the stream and does not slow checkout"
+      ]
+    },
+    {
+      "title": "Levels",
+      "dot": "rose",
+      "items": [
+        "This is the container level of the C4 model",
+        "Catalog, checkout and fulfilment each open into a component diagram",
+        "Each level has its own figures, review and failure scenarios"
+      ]
+    },
+    {
+      "title": "Assumptions",
+      "dot": "amber",
+      "items": [
+        "Every figure in this example is an illustrative design target, not a vendor commitment or a measurement",
+        "The whole platform runs in one region: a regional outage stops the shop",
+        "The gateway keeps answering when a service behind it fails, with that feature missing"
+      ]
+    }
+  ],
+  "workbench": {
+    "entrypoints": [
+      "shoppers"
+    ],
+    "requirements": {
+      "availability_target_percent": 99.95,
+      "p99_latency_ms": 800,
+      "peak_rps": 2500,
+      "rpo_sec": 300,
+      "rto_sec": 1800,
+      "monthly_budget_usd": 20000,
+      "users": 400000,
+      "compliance": [
+        "PCI DSS",
+        "GDPR"
+      ],
+      "data_residency": [
+        "EU"
+      ]
+    },
+    "adrs": [
+      {
+        "id": "adr-one-region",
+        "title": "One region with three zones",
+        "status": "accepted",
+        "context": "The shop sells in one market. A second region would double the data stores and require conflict handling for orders and stock.",
+        "decision": "Run in one region across three zones, with every store replicated to a second zone, and rehearse a restore into another region.",
+        "alternatives": [
+          {
+            "option": "Two regions, active-active",
+            "pros": [
+              "Survives a regional outage",
+              "Lower latency for distant shoppers"
+            ],
+            "cons": [
+              "Roughly double the data cost",
+              "Stock and orders need conflict resolution"
+            ]
+          }
+        ],
+        "consequences": "A regional outage stops the shop until the restore completes. The failure scenario for a region shows this plainly."
+      },
+      {
+        "id": "adr-outbox",
+        "title": "Events are published from a transactional outbox",
+        "status": "accepted",
+        "context": "An order that is stored but never announced is never shipped; an order that is announced but not stored is shipped without a record.",
+        "decision": "Write the order and its event in one database transaction, and let a relay publish the outbox to the event stream.",
+        "alternatives": [
+          {
+            "option": "Write to the store, then publish",
+            "pros": [
+              "Simpler code"
+            ],
+            "cons": [
+              "A crash between the two steps loses or invents an order"
+            ]
+          }
+        ],
+        "consequences": "Events can be delivered more than once, so every consumer must be idempotent. They are."
+      }
+    ],
+    "traces": [
+      {
+        "id": "browse",
+        "title": "Browse the catalog",
+        "kind": "happy",
+        "steps": [
+          {
+            "edge": "shoppers-gateway"
+          },
+          {
+            "edge": "gateway-identity",
+            "note": "token validated"
+          },
+          {
+            "edge": "gateway-catalog"
+          },
+          {
+            "edge": "catalog-db",
+            "note": "product read"
+          }
+        ]
+      },
+      {
+        "id": "order",
+        "title": "Place an order",
+        "kind": "happy",
+        "steps": [
+          {
+            "edge": "shoppers-gateway"
+          },
+          {
+            "edge": "gateway-checkout"
+          },
+          {
+            "edge": "checkout-db",
+            "note": "order and event, one transaction"
+          },
+          {
+            "edge": "checkout-bus",
+            "note": "order placed"
+          },
+          {
+            "edge": "bus-fulfilment",
+            "note": "stock held, shipment planned"
+          },
+          {
+            "edge": "bus-catalog",
+            "note": "stock level updated"
+          }
+        ]
+      }
+    ],
+    "alternatives": [
+      {
+        "id": "small-checkout",
+        "title": "Checkout capped at 5 instances",
+        "description": "A lower autoscaling ceiling to reduce peak spend",
+        "component_overrides": [
+          {
+            "id": "checkout",
+            "operational": {
+              "capacity": {
+                "autoscale_max": 5
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "drilldowns": [
+      {
+        "id": "catalog-service",
+        "title": "Inside the catalog service",
+        "spec": {
+          "schema_version": 1,
+          "diagram_type": "architecture",
+          "meta": {
+            "title": "Inside the catalog service",
+            "subtitle": "Component level: browsing and search read from fresh copies",
+            "output": "catalog-service.html",
+            "quality_profile": "showcase"
+          },
+          "layout": {
+            "mode": "grid",
+            "origin": [
+              40,
+              110
+            ],
+            "cols": 4,
+            "cellW": 130,
+            "cellH": 60,
+            "gapX": 90,
+            "gapY": 80
+          },
+          "components": [
+            {
+              "id": "gateway_in",
+              "type": "external",
+              "label": "API gateway",
+              "sublabel": "Caller",
+              "row": 1,
+              "col": 0,
+              "operational": {
+                "role": "ingress",
+                "capacity": {
+                  "baseline_rps": 450
+                }
+              }
+            },
+            {
+              "id": "api",
+              "type": "backend",
+              "label": "Catalog API",
+              "sublabel": "Browse, search",
+              "row": 1,
+              "col": 1,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 3000
+                },
+                "latency": {
+                  "p50_ms": 6,
+                  "p99_ms": 30
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "search",
+              "type": "database",
+              "label": "Search index",
+              "sublabel": "Full text, facets",
+              "row": 2,
+              "col": 1,
+              "operational": {
+                "role": "stateful-db",
+                "sla_percent": 99.9,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 2500
+                },
+                "latency": {
+                  "p50_ms": 18,
+                  "p99_ms": 90
+                },
+                "dr": {
+                  "rpo_sec": 3600,
+                  "rto_sec": 1800,
+                  "backup_strategy": "Rebuilt from the catalog store"
+                },
+                "security": {
+                  "auth_method": "iam",
+                  "encryption_at_rest": true,
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "cache",
+              "type": "database",
+              "label": "Product cache",
+              "sublabel": "Hot products",
+              "row": 0,
+              "col": 2,
+              "operational": {
+                "role": "cache",
+                "sla_percent": 99.9,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 30000
+                },
+                "latency": {
+                  "p50_ms": 1,
+                  "p99_ms": 5
+                },
+                "security": {
+                  "auth_method": "iam",
+                  "encryption_at_rest": true,
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "query",
+              "type": "backend",
+              "label": "Product reader",
+              "sublabel": "Read-through",
+              "row": 1,
+              "col": 2,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 3000
+                },
+                "latency": {
+                  "p50_ms": 5,
+                  "p99_ms": 25
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "indexer",
+              "type": "backend",
+              "label": "Indexer",
+              "sublabel": "Applies changes",
+              "row": 2,
+              "col": 2,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 500
+                },
+                "latency": {
+                  "p50_ms": 20,
+                  "p99_ms": 100
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "products",
+              "type": "database",
+              "label": "Catalog store",
+              "sublabel": "Products, prices",
+              "row": 1,
+              "col": 3,
+              "operational": {
+                "role": "stateful-db",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 6000
+                },
+                "latency": {
+                  "p50_ms": 4,
+                  "p99_ms": 25
+                },
+                "dr": {
+                  "rpo_sec": 300,
+                  "rto_sec": 900,
+                  "backup_strategy": "Replica in a second zone; five-minute log shipping"
+                },
+                "security": {
+                  "auth_method": "iam",
+                  "encryption_at_rest": true,
+                  "encryption_in_transit": true
+                }
+              }
+            },
+            {
+              "id": "stream",
+              "type": "messagebus",
+              "label": "Event stream",
+              "sublabel": "Stock, price changes",
+              "row": 2,
+              "col": 3,
+              "operational": {
+                "role": "stream",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 20000,
+                  "baseline_rps": 15
+                },
+                "latency": {
+                  "p50_ms": 5,
+                  "p99_ms": 40
+                }
+              }
+            }
+          ],
+          "boundaries": [
+            {
+              "id": "service",
+              "kind": "security-group",
+              "label": "Catalog service",
+              "wraps": [
+                "api",
+                "search",
+                "cache",
+                "query",
+                "indexer"
+              ]
+            }
+          ],
+          "connections": [
+            {
+              "id": "gateway-api",
+              "from": "gateway_in",
+              "to": "api",
+              "variant": "emphasis",
+              "label": "HTTPS",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 2000,
+                  "retries": 0
+                }
+              }
+            },
+            {
+              "id": "api-search",
+              "from": "api",
+              "to": "search",
+              "label": "search",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 600,
+                  "retries": 1,
+                  "circuit_breaker_enabled": true
+                },
+                "traffic": {
+                  "request_multiplier": 0.3,
+                  "read_write_ratio": 1
+                }
+              }
+            },
+            {
+              "id": "api-query",
+              "from": "api",
+              "to": "query",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 800,
+                  "retries": 0
+                },
+                "traffic": {
+                  "request_multiplier": 0.7
+                }
+              }
+            },
+            {
+              "id": "query-cache",
+              "from": "query",
+              "to": "cache",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "TCP",
+                "resilience": {
+                  "timeout_ms": 40,
+                  "retries": 0,
+                  "circuit_breaker_enabled": true
+                },
+                "traffic": {
+                  "read_write_ratio": 0.95
+                }
+              }
+            },
+            {
+              "id": "query-products",
+              "from": "query",
+              "to": "products",
+              "label": "SQL",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "SQL",
+                "resilience": {
+                  "timeout_ms": 300,
+                  "retries": 1
+                },
+                "traffic": {
+                  "read_write_ratio": 1
+                }
+              }
+            },
+            {
+              "id": "stream-indexer",
+              "from": "stream",
+              "to": "indexer",
+              "variant": "dashed",
+              "label": "consume",
+              "operational": {
+                "call_semantics": "event-stream",
+                "protocol": "Kafka",
+                "resilience": {
+                  "idempotent": true
+                }
+              }
+            },
+            {
+              "id": "indexer-search",
+              "from": "indexer",
+              "to": "search",
+              "label": "reindex",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 1000,
+                  "retries": 2,
+                  "idempotent": true,
+                  "backoff_strategy": "exponential",
+                  "jitter": true
+                }
+              }
+            }
+          ],
+          "cards": [
+            {
+              "title": "What is inside",
+              "dot": "cyan",
+              "items": [
+                "The API answers browsing from the product reader and search from the index",
+                "The product reader reads through a cache in front of the catalog store",
+                "The indexer applies stock and price events to the search index"
+              ]
+            },
+            {
+              "title": "Staleness",
+              "dot": "emerald",
+              "items": [
+                "Search results lag the catalog store by the time the indexer takes",
+                "If search fails, browsing still works: the call sits behind a circuit breaker",
+                "The index can be rebuilt from the catalog store"
+              ]
+            },
+            {
+              "title": "Assumptions",
+              "dot": "amber",
+              "items": [
+                "Every figure in this example is an illustrative design target, not a vendor commitment or a measurement",
+                "Entry load is the share of platform traffic that reaches the catalog"
+              ]
+            }
+          ],
+          "workbench": {
+            "entrypoints": [
+              "gateway_in",
+              "stream"
+            ],
+            "requirements": {
+              "availability_target_percent": 99.9,
+              "p99_latency_ms": 400,
+              "peak_rps": 2250,
+              "rpo_sec": 3600,
+              "rto_sec": 1800
+            },
+            "traces": [
+              {
+                "id": "browse",
+                "title": "Open a product page",
+                "kind": "happy",
+                "steps": [
+                  {
+                    "edge": "gateway-api"
+                  },
+                  {
+                    "edge": "api-query"
+                  },
+                  {
+                    "edge": "query-cache",
+                    "note": "miss"
+                  },
+                  {
+                    "edge": "query-products",
+                    "note": "read, then fill the cache"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "checkout-service",
+        "title": "Inside the checkout service",
+        "spec": {
+          "schema_version": 1,
+          "diagram_type": "architecture",
+          "meta": {
+            "title": "Inside the checkout service",
+            "subtitle": "Component level: one order, paid for and recorded exactly once",
+            "output": "checkout-service.html",
+            "quality_profile": "showcase"
+          },
+          "layout": {
+            "mode": "grid",
+            "origin": [
+              40,
+              110
+            ],
+            "cols": 5,
+            "cellW": 130,
+            "cellH": 60,
+            "gapX": 80,
+            "gapY": 80
+          },
+          "components": [
+            {
+              "id": "gateway_in",
+              "type": "external",
+              "label": "API gateway",
+              "sublabel": "Caller",
+              "row": 1,
+              "col": 0,
+              "operational": {
+                "role": "ingress",
+                "capacity": {
+                  "baseline_rps": 50
+                }
+              }
+            },
+            {
+              "id": "api",
+              "type": "backend",
+              "label": "Checkout API",
+              "sublabel": "Validates requests",
+              "row": 1,
+              "col": 1,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 400
+                },
+                "latency": {
+                  "p50_ms": 6,
+                  "p99_ms": 30
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "cart",
+              "type": "backend",
+              "label": "Cart",
+              "sublabel": "Items, totals, tax",
+              "row": 0,
+              "col": 2,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 400
+                },
+                "latency": {
+                  "p50_ms": 8,
+                  "p99_ms": 40
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "cart_cache",
+              "type": "database",
+              "label": "Cart cache",
+              "sublabel": "Open carts",
+              "row": 0,
+              "col": 3,
+              "operational": {
+                "role": "cache",
+                "sla_percent": 99.9,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 20000
+                },
+                "latency": {
+                  "p50_ms": 1,
+                  "p99_ms": 6
+                },
+                "security": {
+                  "auth_method": "iam",
+                  "encryption_at_rest": true,
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "orders",
+              "type": "backend",
+              "label": "Order workflow",
+              "sublabel": "Saga, order state",
+              "row": 1,
+              "col": 2,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 120
+                },
+                "latency": {
+                  "p50_ms": 25,
+                  "p99_ms": 120
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "payment",
+              "type": "backend",
+              "label": "Payment adapter",
+              "sublabel": "Idempotent calls",
+              "row": 1,
+              "col": 3,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 100
+                },
+                "latency": {
+                  "p50_ms": 15,
+                  "p99_ms": 60
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "psp",
+              "type": "external",
+              "label": "Payment provider",
+              "sublabel": "Card processing",
+              "row": 1,
+              "col": 4,
+              "operational": {
+                "role": "external-saas",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 2000
+                },
+                "latency": {
+                  "p50_ms": 250,
+                  "p99_ms": 1200
+                },
+                "security": {
+                  "auth_method": "api-key",
+                  "encryption_in_transit": true,
+                  "trust_zone": "external",
+                  "compliance_tags": [
+                    "PCI DSS"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "outbox",
+              "type": "database",
+              "label": "Orders store",
+              "sublabel": "Orders, outbox table",
+              "row": 2,
+              "col": 2,
+              "operational": {
+                "role": "stateful-db",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 3000
+                },
+                "latency": {
+                  "p50_ms": 6,
+                  "p99_ms": 40
+                },
+                "dr": {
+                  "rpo_sec": 60,
+                  "rto_sec": 600,
+                  "backup_strategy": "Synchronous replica in a second zone; continuous backup"
+                },
+                "security": {
+                  "auth_method": "iam",
+                  "encryption_at_rest": true,
+                  "encryption_in_transit": true,
+                  "compliance_tags": [
+                    "PCI DSS"
+                  ]
+                }
+              }
+            },
+            {
+              "id": "stream",
+              "type": "messagebus",
+              "label": "Event stream",
+              "sublabel": "Order placed",
+              "row": 2,
+              "col": 4,
+              "operational": {
+                "role": "stream",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 20000
+                },
+                "latency": {
+                  "p50_ms": 5,
+                  "p99_ms": 40
+                }
+              }
+            }
+          ],
+          "boundaries": [
+            {
+              "id": "service",
+              "kind": "security-group",
+              "label": "Checkout service",
+              "wraps": [
+                "api",
+                "cart",
+                "cart_cache",
+                "orders",
+                "payment",
+                "outbox"
+              ]
+            }
+          ],
+          "connections": [
+            {
+              "id": "gateway-api",
+              "from": "gateway_in",
+              "to": "api",
+              "variant": "emphasis",
+              "label": "HTTPS",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 6000,
+                  "retries": 0
+                }
+              }
+            },
+            {
+              "id": "api-cart",
+              "from": "api",
+              "to": "cart",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 500,
+                  "retries": 1
+                },
+                "traffic": {
+                  "request_multiplier": 0.7
+                }
+              }
+            },
+            {
+              "id": "api-orders",
+              "from": "api",
+              "to": "orders",
+              "label": "place order",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 5000,
+                  "retries": 0
+                },
+                "traffic": {
+                  "request_multiplier": 0.3
+                }
+              }
+            },
+            {
+              "id": "cart-cache",
+              "from": "cart",
+              "to": "cart_cache",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "TCP",
+                "resilience": {
+                  "timeout_ms": 50,
+                  "retries": 0,
+                  "circuit_breaker_enabled": true
+                },
+                "traffic": {
+                  "read_write_ratio": 0.7
+                }
+              }
+            },
+            {
+              "id": "orders-payment",
+              "from": "orders",
+              "to": "payment",
+              "label": "authorise",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 4000,
+                  "retries": 0,
+                  "idempotent": true
+                }
+              }
+            },
+            {
+              "id": "payment-psp",
+              "from": "payment",
+              "to": "psp",
+              "variant": "security",
+              "label": "charge",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 1800,
+                  "retries": 1,
+                  "circuit_breaker_enabled": true,
+                  "idempotent": true,
+                  "backoff_strategy": "exponential",
+                  "jitter": true
+                }
+              }
+            },
+            {
+              "id": "orders-outbox",
+              "from": "orders",
+              "to": "outbox",
+              "label": "one transaction",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "SQL",
+                "resilience": {
+                  "timeout_ms": 800,
+                  "retries": 0
+                },
+                "traffic": {
+                  "read_write_ratio": 0.2
+                }
+              }
+            },
+            {
+              "id": "outbox-stream",
+              "from": "outbox",
+              "to": "stream",
+              "variant": "dashed",
+              "label": "relay",
+              "operational": {
+                "call_semantics": "event-stream",
+                "protocol": "Kafka",
+                "resilience": {
+                  "idempotent": true
+                }
+              }
+            }
+          ],
+          "cards": [
+            {
+              "title": "What is inside",
+              "dot": "cyan",
+              "items": [
+                "The API validates the request and splits it: cart changes or an order",
+                "The order workflow owns the saga: authorise, record, publish",
+                "The payment adapter is the only component that talks to the provider"
+              ]
+            },
+            {
+              "title": "Exactly once",
+              "dot": "emerald",
+              "items": [
+                "The order and its event are written in one transaction",
+                "A relay publishes the outbox to the event stream, and may publish twice",
+                "Every payment call carries an idempotency key"
+              ]
+            },
+            {
+              "title": "Assumptions",
+              "dot": "amber",
+              "items": [
+                "Every figure in this example is an illustrative design target, not a vendor commitment or a measurement",
+                "Entry load is the share of platform traffic that reaches checkout"
+              ]
+            }
+          ],
+          "workbench": {
+            "entrypoints": [
+              "gateway_in"
+            ],
+            "requirements": {
+              "availability_target_percent": 99.9,
+              "p99_latency_ms": 2500,
+              "peak_rps": 250,
+              "rpo_sec": 60,
+              "rto_sec": 1800,
+              "compliance": [
+                "PCI DSS"
+              ]
+            },
+            "traces": [
+              {
+                "id": "place-order",
+                "title": "Place an order",
+                "kind": "happy",
+                "steps": [
+                  {
+                    "edge": "gateway-api"
+                  },
+                  {
+                    "edge": "api-orders"
+                  },
+                  {
+                    "edge": "orders-payment",
+                    "note": "authorise the card"
+                  },
+                  {
+                    "edge": "payment-psp"
+                  },
+                  {
+                    "edge": "orders-outbox",
+                    "note": "order and event, one transaction"
+                  },
+                  {
+                    "edge": "outbox-stream",
+                    "note": "order placed"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "id": "fulfilment-service",
+        "title": "Inside the fulfilment service",
+        "spec": {
+          "schema_version": 1,
+          "diagram_type": "architecture",
+          "meta": {
+            "title": "Inside the fulfilment service",
+            "subtitle": "Component level: an order becomes a stock hold and a shipment",
+            "output": "fulfilment-service.html",
+            "quality_profile": "showcase"
+          },
+          "layout": {
+            "mode": "grid",
+            "origin": [
+              40,
+              110
+            ],
+            "cols": 4,
+            "cellW": 130,
+            "cellH": 60,
+            "gapX": 90,
+            "gapY": 80
+          },
+          "components": [
+            {
+              "id": "stream_in",
+              "type": "messagebus",
+              "label": "Event stream",
+              "sublabel": "Order placed",
+              "row": 1,
+              "col": 0,
+              "operational": {
+                "role": "stream",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 20000,
+                  "baseline_rps": 15
+                },
+                "latency": {
+                  "p50_ms": 5,
+                  "p99_ms": 40
+                }
+              }
+            },
+            {
+              "id": "consumer",
+              "type": "backend",
+              "label": "Order consumer",
+              "sublabel": "Idempotent, ordered",
+              "row": 1,
+              "col": 1,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 20,
+                  "autoscale_min": 2,
+                  "autoscale_max": 6
+                },
+                "latency": {
+                  "p50_ms": 30,
+                  "p99_ms": 150
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "dlq",
+              "type": "messagebus",
+              "label": "Dead letters",
+              "sublabel": "Poison messages",
+              "row": 2,
+              "col": 1,
+              "operational": {
+                "role": "message-broker",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 5000
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "stock",
+              "type": "backend",
+              "label": "Stock holds",
+              "sublabel": "Reserve, release",
+              "row": 0,
+              "col": 2,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 200
+                },
+                "latency": {
+                  "p50_ms": 12,
+                  "p99_ms": 60
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "shipping",
+              "type": "backend",
+              "label": "Shipping planner",
+              "sublabel": "Carrier, label",
+              "row": 1,
+              "col": 2,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 100
+                },
+                "latency": {
+                  "p50_ms": 40,
+                  "p99_ms": 200
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "notify",
+              "type": "backend",
+              "label": "Notifier",
+              "sublabel": "Email, push",
+              "row": 2,
+              "col": 2,
+              "operational": {
+                "role": "stateless-compute",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 300
+                },
+                "latency": {
+                  "p50_ms": 15,
+                  "p99_ms": 80
+                },
+                "security": {
+                  "auth_method": "mtls",
+                  "encryption_in_transit": true
+                },
+                "c4_level": "component"
+              }
+            },
+            {
+              "id": "stock_db",
+              "type": "database",
+              "label": "Stock store",
+              "sublabel": "Levels, holds",
+              "row": 0,
+              "col": 3,
+              "operational": {
+                "role": "stateful-db",
+                "sla_percent": 99.95,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 2000
+                },
+                "latency": {
+                  "p50_ms": 5,
+                  "p99_ms": 30
+                },
+                "dr": {
+                  "rpo_sec": 60,
+                  "rto_sec": 600,
+                  "backup_strategy": "Synchronous replica in a second zone"
+                },
+                "security": {
+                  "auth_method": "iam",
+                  "encryption_at_rest": true,
+                  "encryption_in_transit": true
+                }
+              }
+            },
+            {
+              "id": "carrier",
+              "type": "external",
+              "label": "Carrier API",
+              "sublabel": "Labels, tracking",
+              "row": 1,
+              "col": 3,
+              "operational": {
+                "role": "external-saas",
+                "sla_percent": 99.5,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 300
+                },
+                "latency": {
+                  "p50_ms": 300,
+                  "p99_ms": 1500
+                },
+                "security": {
+                  "auth_method": "api-key",
+                  "encryption_in_transit": true,
+                  "trust_zone": "external"
+                }
+              }
+            },
+            {
+              "id": "mail",
+              "type": "external",
+              "label": "Message provider",
+              "sublabel": "Email, push delivery",
+              "row": 2,
+              "col": 3,
+              "operational": {
+                "role": "external-saas",
+                "sla_percent": 99.9,
+                "redundancy": "multi-az",
+                "capacity": {
+                  "max_rps": 1000
+                },
+                "latency": {
+                  "p50_ms": 150,
+                  "p99_ms": 800
+                },
+                "security": {
+                  "auth_method": "api-key",
+                  "encryption_in_transit": true,
+                  "trust_zone": "external"
+                }
+              }
+            }
+          ],
+          "boundaries": [
+            {
+              "id": "service",
+              "kind": "security-group",
+              "label": "Fulfilment service",
+              "wraps": [
+                "consumer",
+                "dlq",
+                "stock",
+                "shipping",
+                "notify"
+              ]
+            }
+          ],
+          "connections": [
+            {
+              "id": "stream-consumer",
+              "from": "stream_in",
+              "to": "consumer",
+              "variant": "emphasis",
+              "label": "consume",
+              "operational": {
+                "call_semantics": "event-stream",
+                "protocol": "Kafka",
+                "resilience": {
+                  "idempotent": true,
+                  "dlq_node_id": "dlq"
+                }
+              }
+            },
+            {
+              "id": "consumer-dlq",
+              "from": "consumer",
+              "to": "dlq",
+              "variant": "dashed",
+              "label": "poison",
+              "operational": {
+                "call_semantics": "async-queue",
+                "resilience": {
+                  "idempotent": true
+                }
+              }
+            },
+            {
+              "id": "consumer-stock",
+              "from": "consumer",
+              "to": "stock",
+              "label": "reserve",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 600,
+                  "retries": 1,
+                  "idempotent": true
+                }
+              }
+            },
+            {
+              "id": "consumer-shipping",
+              "from": "consumer",
+              "to": "shipping",
+              "label": "plan",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 5000,
+                  "retries": 0,
+                  "idempotent": true
+                }
+              }
+            },
+            {
+              "id": "consumer-notify",
+              "from": "consumer",
+              "to": "notify",
+              "variant": "dashed",
+              "operational": {
+                "call_semantics": "async-pubsub",
+                "resilience": {
+                  "idempotent": true
+                }
+              }
+            },
+            {
+              "id": "stock-db",
+              "from": "stock",
+              "to": "stock_db",
+              "label": "SQL",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "SQL",
+                "resilience": {
+                  "timeout_ms": 200,
+                  "retries": 0
+                },
+                "traffic": {
+                  "read_write_ratio": 0.3
+                }
+              }
+            },
+            {
+              "id": "shipping-carrier",
+              "from": "shipping",
+              "to": "carrier",
+              "variant": "security",
+              "label": "book",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 2000,
+                  "retries": 1,
+                  "circuit_breaker_enabled": true,
+                  "idempotent": true,
+                  "backoff_strategy": "exponential",
+                  "jitter": true
+                }
+              }
+            },
+            {
+              "id": "notify-mail",
+              "from": "notify",
+              "to": "mail",
+              "label": "send",
+              "operational": {
+                "call_semantics": "sync-blocking",
+                "protocol": "HTTPS/REST",
+                "resilience": {
+                  "timeout_ms": 3000,
+                  "retries": 2,
+                  "circuit_breaker_enabled": true,
+                  "idempotent": true,
+                  "backoff_strategy": "exponential",
+                  "jitter": true
+                }
+              }
+            }
+          ],
+          "cards": [
+            {
+              "title": "What is inside",
+              "dot": "cyan",
+              "items": [
+                "One consumer reads order placed events in order, per order",
+                "It reserves stock, plans the shipment and asks for a customer message",
+                "A message that keeps failing is parked in dead letters, not retried forever"
+              ]
+            },
+            {
+              "title": "Failure handling",
+              "dot": "emerald",
+              "items": [
+                "Every step is idempotent: an event delivered twice has one effect",
+                "The carrier and the message provider sit behind circuit breakers",
+                "A slow carrier delays the shipment, never the order"
+              ]
+            },
+            {
+              "title": "Assumptions",
+              "dot": "amber",
+              "items": [
+                "Every figure in this example is an illustrative design target, not a vendor commitment or a measurement",
+                "Entry load is the rate of orders placed on the platform"
+              ]
+            }
+          ],
+          "workbench": {
+            "entrypoints": [
+              "stream_in"
+            ],
+            "requirements": {
+              "availability_target_percent": 99.9,
+              "peak_rps": 75,
+              "rpo_sec": 60,
+              "rto_sec": 1800
+            },
+            "traces": [
+              {
+                "id": "fulfil",
+                "title": "Fulfil one order",
+                "kind": "happy",
+                "steps": [
+                  {
+                    "edge": "stream-consumer"
+                  },
+                  {
+                    "edge": "consumer-stock",
+                    "note": "hold the items"
+                  },
+                  {
+                    "edge": "stock-db"
+                  },
+                  {
+                    "edge": "consumer-shipping"
+                  },
+                  {
+                    "edge": "shipping-carrier",
+                    "note": "book the carrier"
+                  },
+                  {
+                    "edge": "consumer-notify"
+                  },
+                  {
+                    "edge": "notify-mail"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

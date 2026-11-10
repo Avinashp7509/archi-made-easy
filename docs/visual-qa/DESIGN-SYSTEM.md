@@ -58,7 +58,7 @@ An architecture produced by this skill carries operational data, so it opens wit
 
 | Width | Rail | Inspector | Vitals bar |
 |---|---|---|---|
-| 1200px and wider | left, labelled | docked right, canvas refits | one row, every figure visible |
+| 1200px and wider | left, labelled | docked right and the canvas refits, **if the diagram's labels stay at 6px or more beside it**; otherwise a drawer over the right edge of the canvas, and the diagram keeps its size | one row, every figure visible |
 | 900 to 1199px | left, narrower | a drawer over the right edge of the canvas, closed by default | one row |
 | below 900px | tab bar along the bottom | a sheet above the vitals bar, about half the height, closed by default | above the tab bar, scrolls sideways |
 
@@ -138,6 +138,8 @@ Why no bundled display face: each embedded face adds about 40KB to every artifac
 | Recovery option | A change that would reduce the impact, with a preview of the figures after the change. |
 | Component card (on the canvas) | Surface-coloured card with a category-coloured accent bar and icon; the outline is neutral. |
 | State badge (on the canvas) | Text badge on a component: `DOWN`, `FAILING`, `DEGRADED`, `SATURATED`, `ON REPLICA`, `NOT SERVED`. |
+| Level marker (on the canvas) | Accent-filled `ZOOM IN` tag on the lower right corner of a component that opens into a diagram of its own. Shown in Explore; it can be clicked. |
+| Level view | A child diagram opened over the whole page: a bar with **Back**, the path (parent, then child) and the level name, and under it the child's own page in a sandboxed frame, in the parent's theme. Escape on the bar, or Back, returns to the parent with focus where it was. The frame is shown when the child page reports that it has loaded. |
 
 ## Workbench experiences
 

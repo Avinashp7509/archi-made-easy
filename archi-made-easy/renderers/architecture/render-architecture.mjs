@@ -13,6 +13,7 @@ import { translateMessage as i18nText } from '../shared/i18n.mjs';
 import { gridLayout, resolveComponentPos, validateGridPlacement } from './grid.mjs';
 import { createRouter } from './routing.mjs';
 import { buildWorkbenchData } from '../../workbench/embed.mjs';
+import { renderLevels } from './render-levels.mjs';
 import { placeAutomaticLabels, reservedLabelRect } from '../shared/automatic-labels.mjs';
 import { cleanRouteDetourProblems } from '../shared/route-quality.mjs';
 import {
@@ -1213,6 +1214,11 @@ if (layoutJsonMode) {
   if (!process.exitCode) console.log(JSON.stringify(buildLayoutReport(), null, 2));
 } else {
   validateArchitecture();
+  // Child diagrams are rendered and checked first; the page carries them.
+  const levels = await renderLevels(arch.workbench?.drilldowns, {
+    rendererPath: fileURLToPath(import.meta.url),
+    checkerPath: path.join(__dirname, '../../scripts/check-render-output.mjs'),
+  });
   writeDiagram({
     outPath,
     template,
@@ -1222,5 +1228,6 @@ if (layoutJsonMode) {
     cards: arch.cards,
     sourceEvidence,
     workbenchData: buildWorkbenchData(arch),
+    levels,
   });
 }

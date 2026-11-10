@@ -77,7 +77,7 @@ Component `operational`:
 - `dr`: `rpo_sec`, `rto_sec`, `backup_strategy`.
 - `finops`: `cloud_provider`, `instance_tier`, `monthly_base_cost_usd`, `cost_per_million_requests_usd`, `storage_gb`, `storage_cost_per_gb_usd`.
 - `security`: `trust_zone`, `auth_method`, `encryption_at_rest`, `encryption_in_transit`, `compliance_tags`, `public_exposed`.
-- `c4_level`, `drilldown_diagram_id`: for child diagrams listed in `workbench.drilldowns`.
+- `c4_level`: `context`, `container`, `component` or `code`. `drilldown_diagram_id`: the `id` of the child diagram in `workbench.drilldowns` that this component opens into. See [Levels](workbench-ui-and-exporters.md#interactive-workbench).
 
 Connection `operational`:
 

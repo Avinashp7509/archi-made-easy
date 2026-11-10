@@ -143,12 +143,18 @@ test('alternatives override operational fields without touching others', () => {
   assert.throws(() => applyAlternative(d, 'nope'), /unknown alternative/);
 });
 
-test('every inherited architecture example builds a model without errors', () => {
-  for (const name of fs.readdirSync(path.join(skillRoot, 'examples')).filter((f) => f.endsWith('.architecture.json'))) {
+// Architecture examples authored with operational data (the flagship examples). Every other
+// bundled architecture example is inherited and carries none.
+const FLAGSHIP_EXAMPLES = new Set(['global-fintech-payment-mesh.architecture.json', 'enterprise-agentic-ai-platform.architecture.json', 'cloud-native-ecommerce-c4.architecture.json']);
+
+test('every bundled architecture example builds a model without errors', () => {
+  const names = fs.readdirSync(path.join(skillRoot, 'examples')).filter((f) => f.endsWith('.architecture.json'));
+  for (const flagship of FLAGSHIP_EXAMPLES) assert.ok(names.includes(flagship), `${flagship} is bundled`);
+  for (const name of names) {
     const { model, diagnostics } = buildModel(example(name));
     assert.deepEqual(diagnostics, [], name);
     assert.ok(model.nodes.length > 0, name);
-    assert.equal(model.authored, false, `${name} has no operational data`);
+    assert.equal(model.authored, FLAGSHIP_EXAMPLES.has(name), `${name}: ${FLAGSHIP_EXAMPLES.has(name) ? 'a flagship states its operational data' : 'an inherited example has none'}`);
     for (const node of model.nodes) assert.ok(node.role, `${name}/${node.id}`);
   }
 });

@@ -1,0 +1,699 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Enterprise agentic AI platform",
+    "subtitle": "Agents behind one gateway, with a second model to fall back on",
+    "output": "enterprise-agentic-ai-platform.html",
+    "quality_profile": "showcase"
+  },
+  "layout": {
+    "mode": "grid",
+    "origin": [
+      40,
+      110
+    ],
+    "cols": 5,
+    "cellW": 130,
+    "cellH": 60,
+    "gapX": 80,
+    "gapY": 80
+  },
+  "components": [
+    {
+      "id": "users",
+      "type": "external",
+      "label": "Employees, apps",
+      "sublabel": "Chat, copilots, APIs",
+      "row": 1,
+      "col": 0,
+      "operational": {
+        "role": "ingress",
+        "capacity": {
+          "baseline_rps": 3
+        },
+        "security": {
+          "public_exposed": false
+        }
+      }
+    },
+    {
+      "id": "identity",
+      "type": "security",
+      "label": "Identity",
+      "sublabel": "Users and services",
+      "row": 0,
+      "col": 1,
+      "operational": {
+        "role": "identity",
+        "sla_percent": 99.99,
+        "redundancy": "active-active-multi-region",
+        "capacity": {
+          "max_rps": 15000
+        },
+        "latency": {
+          "p50_ms": 15,
+          "p99_ms": 70
+        },
+        "security": {
+          "auth_method": "oauth2-oidc",
+          "encryption_in_transit": true,
+          "trust_zone": "identity"
+        },
+        "finops": {
+          "monthly_base_cost_usd": 800
+        }
+      }
+    },
+    {
+      "id": "gateway",
+      "type": "backend",
+      "label": "AI gateway",
+      "sublabel": "Auth, quotas, audit",
+      "row": 1,
+      "col": 1,
+      "operational": {
+        "role": "gateway",
+        "sla_percent": 99.95,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 400
+        },
+        "latency": {
+          "p50_ms": 8,
+          "p99_ms": 40
+        },
+        "security": {
+          "auth_method": "jwt",
+          "encryption_in_transit": true,
+          "trust_zone": "platform",
+          "public_exposed": false,
+          "compliance_tags": [
+            "SOC 2"
+          ]
+        },
+        "finops": {
+          "monthly_base_cost_usd": 1200
+        }
+      }
+    },
+    {
+      "id": "retrieval",
+      "type": "database",
+      "label": "Vector search",
+      "sublabel": "Grounding documents",
+      "row": 0,
+      "col": 2,
+      "operational": {
+        "role": "stateful-db",
+        "sla_percent": 99.9,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 600
+        },
+        "latency": {
+          "p50_ms": 45,
+          "p99_ms": 220
+        },
+        "dr": {
+          "rpo_sec": 3600,
+          "rto_sec": 1800,
+          "backup_strategy": "Index rebuilt from the document store; hourly snapshots"
+        },
+        "security": {
+          "auth_method": "iam",
+          "encryption_at_rest": true,
+          "encryption_in_transit": true,
+          "trust_zone": "data",
+          "compliance_tags": [
+            "GDPR"
+          ]
+        },
+        "finops": {
+          "monthly_base_cost_usd": 4200,
+          "storage_gb": 900,
+          "storage_cost_per_gb_usd": 0.25
+        }
+      }
+    },
+    {
+      "id": "orchestrator",
+      "type": "backend",
+      "label": "Agent runtime",
+      "sublabel": "Plans, guardrails",
+      "row": 1,
+      "col": 2,
+      "operational": {
+        "role": "stateless-compute",
+        "sla_percent": 99.9,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 2,
+          "autoscale_min": 3,
+          "autoscale_max": 12
+        },
+        "latency": {
+          "p50_ms": 120,
+          "p99_ms": 600
+        },
+        "security": {
+          "auth_method": "mtls",
+          "encryption_in_transit": true,
+          "trust_zone": "platform"
+        },
+        "finops": {
+          "monthly_base_cost_usd": 5400
+        }
+      }
+    },
+    {
+      "id": "tools",
+      "type": "backend",
+      "label": "Tool servers",
+      "sublabel": "Actions, lookups",
+      "row": 2,
+      "col": 2,
+      "operational": {
+        "role": "stateless-compute",
+        "sla_percent": 99.9,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 4,
+          "autoscale_min": 2,
+          "autoscale_max": 4
+        },
+        "latency": {
+          "p50_ms": 180,
+          "p99_ms": 1200
+        },
+        "security": {
+          "auth_method": "mtls",
+          "encryption_in_transit": true,
+          "trust_zone": "platform"
+        },
+        "finops": {
+          "monthly_base_cost_usd": 2100
+        }
+      }
+    },
+    {
+      "id": "semcache",
+      "type": "database",
+      "label": "Semantic cache",
+      "sublabel": "Repeated prompts",
+      "row": 0,
+      "col": 3,
+      "operational": {
+        "role": "cache",
+        "sla_percent": 99.9,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 2000
+        },
+        "latency": {
+          "p50_ms": 3,
+          "p99_ms": 15
+        },
+        "security": {
+          "auth_method": "iam",
+          "encryption_at_rest": true,
+          "encryption_in_transit": true,
+          "trust_zone": "data"
+        },
+        "finops": {
+          "monthly_base_cost_usd": 950
+        }
+      }
+    },
+    {
+      "id": "router",
+      "type": "backend",
+      "label": "Model router",
+      "sublabel": "Routing, fallback",
+      "row": 1,
+      "col": 3,
+      "operational": {
+        "role": "stateless-compute",
+        "sla_percent": 99.95,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 15,
+          "autoscale_min": 2,
+          "autoscale_max": 4
+        },
+        "latency": {
+          "p50_ms": 10,
+          "p99_ms": 45
+        },
+        "security": {
+          "auth_method": "mtls",
+          "encryption_in_transit": true,
+          "trust_zone": "platform"
+        },
+        "finops": {
+          "monthly_base_cost_usd": 1400
+        }
+      }
+    },
+    {
+      "id": "telemetry",
+      "type": "cloud",
+      "label": "Observability",
+      "sublabel": "Tokens, cost, traces",
+      "row": 2,
+      "col": 3,
+      "operational": {
+        "role": "stateless-compute",
+        "sla_percent": 99.9,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 5000
+        },
+        "security": {
+          "auth_method": "iam",
+          "encryption_at_rest": true,
+          "encryption_in_transit": true,
+          "trust_zone": "platform"
+        },
+        "finops": {
+          "monthly_base_cost_usd": 1800
+        }
+      }
+    },
+    {
+      "id": "model",
+      "type": "external",
+      "label": "Primary model",
+      "sublabel": "Hosted LLM, region 1",
+      "row": 1,
+      "col": 4,
+      "operational": {
+        "role": "ai-model",
+        "sla_percent": 99.9,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 40
+        },
+        "latency": {
+          "p50_ms": 900,
+          "p99_ms": 4200
+        },
+        "security": {
+          "auth_method": "api-key",
+          "encryption_in_transit": true,
+          "trust_zone": "external",
+          "compliance_tags": [
+            "SOC 2"
+          ]
+        },
+        "finops": {
+          "monthly_base_cost_usd": 0,
+          "cost_per_million_requests_usd": 5000
+        }
+      }
+    },
+    {
+      "id": "fallback",
+      "type": "external",
+      "label": "Fallback model",
+      "sublabel": "Second provider",
+      "row": 2,
+      "col": 4,
+      "operational": {
+        "role": "ai-model",
+        "sla_percent": 99.5,
+        "redundancy": "multi-az",
+        "capacity": {
+          "max_rps": 25
+        },
+        "latency": {
+          "p50_ms": 1300,
+          "p99_ms": 5600
+        },
+        "security": {
+          "auth_method": "api-key",
+          "encryption_in_transit": true,
+          "trust_zone": "external"
+        },
+        "finops": {
+          "monthly_base_cost_usd": 0
+        }
+      }
+    }
+  ],
+  "boundaries": [
+    {
+      "id": "platform",
+      "kind": "security-group",
+      "label": "Platform trust zone",
+      "wraps": [
+        "identity",
+        "gateway",
+        "retrieval",
+        "orchestrator",
+        "tools",
+        "semcache",
+        "router",
+        "telemetry"
+      ],
+      "operational": {
+        "scope": "trust-zone"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "users-gateway",
+      "from": "users",
+      "to": "gateway",
+      "label": "HTTPS",
+      "variant": "emphasis",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST",
+        "resilience": {
+          "timeout_ms": 30000,
+          "retries": 0
+        }
+      }
+    },
+    {
+      "id": "gateway-identity",
+      "from": "gateway",
+      "to": "identity",
+      "label": "validate",
+      "variant": "security",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "resilience": {
+          "timeout_ms": 200,
+          "retries": 1,
+          "circuit_breaker_enabled": true
+        },
+        "traffic": {
+          "request_multiplier": 0.05
+        }
+      }
+    },
+    {
+      "id": "gateway-orchestrator",
+      "from": "gateway",
+      "to": "orchestrator",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST",
+        "resilience": {
+          "timeout_ms": 25000,
+          "retries": 0
+        }
+      }
+    },
+    {
+      "id": "orchestrator-retrieval",
+      "from": "orchestrator",
+      "to": "retrieval",
+      "label": "retrieve",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "resilience": {
+          "timeout_ms": 800,
+          "retries": 1,
+          "circuit_breaker_enabled": true
+        },
+        "traffic": {
+          "request_multiplier": 1.5,
+          "read_write_ratio": 1
+        }
+      }
+    },
+    {
+      "id": "orchestrator-tools",
+      "from": "orchestrator",
+      "to": "tools",
+      "label": "call tools",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "resilience": {
+          "timeout_ms": 5000,
+          "retries": 1,
+          "circuit_breaker_enabled": true,
+          "idempotent": false
+        },
+        "traffic": {
+          "request_multiplier": 0.6
+        }
+      }
+    },
+    {
+      "id": "orchestrator-router",
+      "from": "orchestrator",
+      "to": "router",
+      "label": "prompt",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST",
+        "traffic": {
+          "request_multiplier": 2.2
+        },
+        "resilience": {
+          "timeout_ms": 20000,
+          "retries": 0
+        }
+      }
+    },
+    {
+      "id": "router-cache",
+      "from": "router",
+      "to": "semcache",
+      "label": "lookup",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "resilience": {
+          "timeout_ms": 60,
+          "retries": 0,
+          "circuit_breaker_enabled": true
+        },
+        "traffic": {
+          "read_write_ratio": 0.9
+        }
+      }
+    },
+    {
+      "id": "router-telemetry",
+      "from": "router",
+      "to": "telemetry",
+      "label": "usage",
+      "variant": "dashed",
+      "operational": {
+        "call_semantics": "async-pubsub",
+        "resilience": {
+          "idempotent": true
+        }
+      }
+    },
+    {
+      "id": "router-model",
+      "from": "router",
+      "to": "model",
+      "label": "inference",
+      "operational": {
+        "call_semantics": "sync-blocking",
+        "protocol": "HTTPS/REST",
+        "resilience": {
+          "circuit_breaker_enabled": true,
+          "fallback_edge_id": "router-fallback",
+          "timeout_ms": 12000,
+          "retries": 1,
+          "backoff_strategy": "exponential",
+          "jitter": true
+        }
+      }
+    },
+    {
+      "id": "router-fallback",
+      "from": "router",
+      "to": "fallback",
+      "label": "failover",
+      "variant": "dashed",
+      "operational": {
+        "call_semantics": "failover-route",
+        "protocol": "HTTPS/REST"
+      }
+    }
+  ],
+  "cards": [
+    {
+      "title": "Request path",
+      "dot": "cyan",
+      "items": [
+        "Every caller goes through the gateway: sign-in, per-team quotas and an audit record",
+        "The agent runtime plans, retrieves grounding documents, calls tools and prompts the model",
+        "An agent turn makes about two model calls and one or two retrievals"
+      ]
+    },
+    {
+      "title": "Resilience",
+      "dot": "emerald",
+      "items": [
+        "The model router sends calls to a second provider when the primary fails or is slow",
+        "Retrieval, tools and the cache sit behind circuit breakers: an agent answers with less, not nothing",
+        "Repeated prompts are served from the semantic cache without a model call"
+      ]
+    },
+    {
+      "title": "Safety and cost",
+      "dot": "rose",
+      "items": [
+        "Guardrails run in the agent runtime before and after every model call",
+        "Prompts and documents stay inside the trust zone; only model calls leave it",
+        "Token use and cost are recorded per team from the router"
+      ]
+    },
+    {
+      "title": "Assumptions",
+      "dot": "amber",
+      "items": [
+        "Every figure in this example is an illustrative design target, not a vendor commitment or a measurement",
+        "The model does not credit the cache with fewer model calls, so model load and cost are upper estimates",
+        "The cost of the fallback provider is not stated, so the total is incomplete"
+      ]
+    }
+  ],
+  "workbench": {
+    "entrypoints": [
+      "users"
+    ],
+    "requirements": {
+      "availability_target_percent": 99.9,
+      "p99_latency_ms": 9000,
+      "peak_rps": 15,
+      "rpo_sec": 3600,
+      "rto_sec": 3600,
+      "monthly_budget_usd": 120000,
+      "users": 20000,
+      "compliance": [
+        "GDPR",
+        "SOC 2"
+      ],
+      "data_residency": [
+        "EU"
+      ]
+    },
+    "adrs": [
+      {
+        "id": "adr-second-provider",
+        "title": "A second model provider behind the router",
+        "status": "accepted",
+        "context": "The primary model is an external dependency with its own quota and incidents. Without it, no agent can answer.",
+        "decision": "Route every model call through one router that falls back to a second provider when the primary fails or exceeds its time budget.",
+        "alternatives": [
+          {
+            "option": "One provider, retry on failure",
+            "pros": [
+              "One contract, one prompt format"
+            ],
+            "cons": [
+              "A provider incident is a platform outage",
+              "Retries add load during an incident"
+            ]
+          }
+        ],
+        "consequences": "Prompts must be tested on both models. Answers during a fallback may differ in quality; the router records which model answered."
+      },
+      {
+        "id": "adr-semantic-cache",
+        "title": "Semantic cache in front of the models",
+        "status": "accepted",
+        "context": "A large share of prompts repeat across users, and every model call costs money and seconds.",
+        "decision": "Look up each prompt in a semantic cache before calling a model, and store answers that are safe to reuse.",
+        "alternatives": [
+          {
+            "option": "No cache",
+            "pros": [
+              "Every answer is fresh"
+            ],
+            "cons": [
+              "Higher cost and latency",
+              "Less headroom under the provider quota"
+            ]
+          }
+        ],
+        "consequences": "Cached answers can be stale; entries expire and are keyed by the user's permissions so that no answer crosses an access boundary."
+      }
+    ],
+    "traces": [
+      {
+        "id": "agent-turn",
+        "title": "One agent turn",
+        "kind": "happy",
+        "steps": [
+          {
+            "edge": "users-gateway"
+          },
+          {
+            "edge": "gateway-identity",
+            "note": "token validated"
+          },
+          {
+            "edge": "gateway-orchestrator"
+          },
+          {
+            "edge": "orchestrator-retrieval",
+            "note": "grounding documents"
+          },
+          {
+            "edge": "orchestrator-router",
+            "note": "prompt with context"
+          },
+          {
+            "edge": "router-cache",
+            "note": "miss"
+          },
+          {
+            "edge": "router-model",
+            "note": "inference"
+          },
+          {
+            "edge": "router-telemetry",
+            "note": "tokens and cost recorded"
+          }
+        ]
+      },
+      {
+        "id": "provider-outage",
+        "title": "Primary model unavailable",
+        "kind": "failover",
+        "steps": [
+          {
+            "edge": "orchestrator-router"
+          },
+          {
+            "edge": "router-cache",
+            "note": "miss"
+          },
+          {
+            "edge": "router-fallback",
+            "note": "second provider answers"
+          }
+        ]
+      }
+    ],
+    "alternatives": [
+      {
+        "id": "small-runtime",
+        "title": "Agent runtime capped at 8 instances",
+        "description": "A lower autoscaling ceiling to reduce peak spend",
+        "component_overrides": [
+          {
+            "id": "orchestrator",
+            "operational": {
+              "capacity": {
+                "autoscale_max": 8
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

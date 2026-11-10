@@ -107,7 +107,7 @@ Phase 5 has two parts. Part 1 is the working workbench. Part 2 is the original i
 - [x] Engine additions for the redesign: `consequence` and model-edit `fixes` on review findings; `workbench/remedy.mjs` (patches, previews, recovery options). `test/workbench-remedy.test.mjs` (8 tests).
 - [x] First interface (a bottom dock), kept as the functional baseline at git ref `refs/backup/phase5-functional`.
   - Its regression baseline: full suite 3,543 tests with the 43 baseline failures and no new one; serial browser suite 294 of 304 (one failure from a missing dev dependency in the isolated checkout, one not reproduced later; see D-018).
-- [ ] Moved to Phase 6: opening child diagrams (C4 drill-down) from the page.
+- [x] Moved to Phase 6 and done there: opening child diagrams (C4 drill-down) from the page.
 
 ### Part 2. Original interface and visual QA
 
@@ -134,8 +134,19 @@ Not done in Phase 5, recorded: workbench text is English only; no new typeface i
 
 ## Phase 6. Showcase
 
-- [ ] Three flagships plus provider examples at showcase quality, each passing the Phase 5 visual QA matrix
-- [ ] Regression benchmarks
+- [x] Three flagship examples, each passing `finalize --quality showcase` (all four gates) and the visual QA matrix:
+  - `global-fintech-payment-mesh`: two active regions, 12 components, review 98;
+  - `enterprise-agentic-ai-platform`: agents, retrieval, tools, semantic cache and a fallback model provider, 11 components, review 92 with one previewable finding;
+  - `cloud-native-ecommerce-c4`: C4 container level with three child diagrams at component level, review 100.
+- [x] Levels (C4 drill-down): a component opens into its own diagram, carried in the same file without the stylesheet and scripts it shares (about 60 KB per child); opened in a sandboxed frame under a bar with Back; children rendered and checked with the parent (`test/workbench-levels.test.mjs`, 10 tests; browser subtest "levels…").
+- [x] One scaffolded example per provider in `archi-made-easy/examples/providers/` (Azure zero-trust, AWS event-driven, GCP microservices, on-premises hybrid), each the unchanged output of `scaffold`, each passing `finalize` at showcase quality, review, every scenario and every export (`test/workbench-showcase.test.mjs`).
+- [x] Regression benchmarks (`test/workbench-benchmark.test.mjs`, `scripts/record-flagship-figures.mjs`): recorded modelled figures of the seven documents and the three levels, healthy and under every scenario; model-quality floors; engine, render and page-size budgets.
+- [x] Visual QA on the final tree (`c7342b1`), recorded in [FINAL-VISUAL-ACCEPTANCE.md](../visual-qa/FINAL-VISUAL-ACCEPTANCE.md#phase-6-record-the-three-flagship-examples-and-levels):
+  - automated matrix: 744 states, 12 documents, six viewports, two themes; 0 critical, 0 high, 12 medium (D-016, inherited); 182 screenshots;
+  - Playwright MCP walkthrough of the three flagships with real input: 156 states, 0 problems;
+  - measured against the upstream baseline: 0 of 14 colour tokens shared ([upstream-comparison.json](../visual-qa/upstream-comparison.json)).
+- [x] Defects found and fixed: D-031 to D-035 ([register](../visual-qa/DEFECT-REGISTER.md)).
+- [x] Regression on the same tree: serial browser suite 315 tests, 308 pass, 0 fail, 7 skipped; full suite outside OneDrive 3,572 tests, 3,329 pass, 44 fail: the 43 baseline failures and one subprocess timeout in `test/class-bus-routing.test.mjs` that passes when rerun alone on the same tree (22 of 22).
 
 ## Phase 7. Distribution readiness
 

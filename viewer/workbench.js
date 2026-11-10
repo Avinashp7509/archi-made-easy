@@ -326,6 +326,7 @@
             edgeElements(step.edge).forEach(function (element) { element.setAttribute('data-wb-edge', index === state.trace.step ? 'trace-current' : 'trace-done'); });
           });
         }
+        if (state.mode === 'explore') levelNodes.forEach(function (node) { levelMark(layer, node); });
         svg.appendChild(layer);
       }
 
@@ -357,7 +358,8 @@
         var usd = function (v) { return v == null ? 'no data' : '$' + number(v); };
         var condition = changed ? conditionText(inputs) + (shownOption ? ', with the change: ' + shownOption.title : '') : '';
         readouts.appendChild(readout(['availability', changed ? 'Answered now' : 'Answered'], pct(f.composite_sla_percent), was('composite_sla_percent', pct),
-          f.composite_sla_percent === 0 ? 'critical' : '', changed ? 'Modelled share of requests answered while: ' + condition + '. Baseline: ' + pct(b.composite_sla_percent) + '.' : 'Modelled composite availability of the request path.'));
+          f.composite_sla_percent === 0 ? 'critical' : '', (changed ? 'Modelled share of requests answered while: ' + condition + '. Baseline: ' + pct(b.composite_sla_percent) + '.' : 'Modelled composite availability of the request path.')
+            + (current.result.warnings.length ? ' ' + current.result.warnings.join(' ') : '')));
         readouts.appendChild(readout(['latency', 'Path P99'], ms(f.critical_path_p99_ms), was('critical_path_p99_ms', ms), f.critical_path_p99_ms == null ? 'critical' : '', k.critical_path ? k.critical_path.nodes.map(label).join(' to ') : 'No entry is served.'));
         readouts.appendChild(readout(['load', 'Max load'], rps(f.max_sustainable_rps), was('max_sustainable_rps', rps), k.headroom != null && k.headroom < 1 ? 'critical' : '',
           k.limiting_node ? 'First to reach its capacity: ' + label(k.limiting_node) + (k.ingress_rps != null ? '. Entry load now: ' + number(k.ingress_rps) + '/s.' : '.') : ''));
@@ -451,6 +453,10 @@
           body.appendChild(section('Components by role', [table(['Role', 'Components'], Object.keys(groups).sort().map(function (role) {
             return [role, el('span', {}, groups[role].map(function (n) { return nodeLink(n.id); }))];
           }))]));
+          if (levelNodes.length) body.appendChild(section('Levels', [
+            el('p', { className: 'ame-muted', text: 'These components open into a diagram of their own, one level down. Each level has its own figures, review and scenarios.' }),
+            levelCards(),
+          ]));
           var basis = baseline.basis;
           body.appendChild(section('About these figures', [
             el('p', {}, [tag('modelled', 'modelled'), ' Every figure in the workbench is computed by an analytical model from this design as declared. It is a prediction to reason with, not an observation.']),
@@ -458,13 +464,16 @@
             el('p', {}, [tag('assumed', 'assumed'), ' ' + basis.assumed_inputs + ' inputs are not stated; a default for the component\'s role is used and marked wherever it appears.']),
             el('p', {}, [tag('measured', 'measured'), ' None. This page contains no measurements from a running system.']),
           ]));
+          if (baseline.warnings.length) body.appendChild(section('Limits of this model', [el('ul', { className: 'ame-list' }, baseline.warnings.map(function (warning) { return el('li', { text: warning }); }))]));
           return;
         }
         var r = current.result.nodes[node.id];
         var b = function (key) { return node.basis[key] === 'assumed' ? 'assumed' : 'authored'; };
         var v = function (value, unit) { return value == null ? 'not stated' : value + (unit || ''); };
         body.appendChild(el('p', { className: 'ame-lede' }, [el('strong', { text: node.label }), node.sublabel ? ' ' + node.sublabel : '']));
-        body.appendChild(section('Properties', [kv([
+        var level = levelOf(node.id);
+        if (level) body.appendChild(el('div', { className: 'ame-actions' }, [button('Open: ' + level.title, function (event) { openLevel(level.id, event.currentTarget); }, { className: 'ame-btn ame-btn--primary', 'data-workbench-level': level.id })]));
+        body.appendChild(section('Properties', [kv((node.c4_level ? [['Level', node.c4_level, 'authored']] : []).concat([
           ['Role', node.role, b('role')],
           ['Redundancy', node.redundancy, b('redundancy')],
           ['Availability of one unit', v(node.sla_percent, '%'), node.sla_percent == null ? null : b('sla_percent')],
@@ -473,7 +482,7 @@
           ['Recovery time / point', v(node.dr.rto_sec, ' s') + ' / ' + v(node.dr.rpo_sec, ' s'), node.dr.rto_sec == null ? null : 'authored'],
           ['Security', [node.security.trust_zone ? 'zone ' + node.security.trust_zone : null, node.security.auth_method ? 'auth ' + node.security.auth_method : null,
             node.security.public_exposed ? 'public' : null, node.security.encryption_at_rest ? 'encrypted at rest' : null].filter(Boolean).join(', ') || 'not stated', null],
-        ])]));
+        ]))]));
         body.appendChild(section('Modelled now', [kv([
           ['State', r.state + (r.cause.length ? ': ' + r.cause[r.cause.length - 1] : '')],
           ['Load', r.load_rps == null ? 'no entry load is stated' : number(r.load_rps) + ' /s' + (r.utilisation != null ? ' (' + Math.round(r.utilisation * 100) + '% of capacity)' : '')],
@@ -833,15 +842,46 @@
         if (!options || !options.keepInspector) drawInspector();
         drawOverlays();
       }
+      // Smallest label size in the diagram's own units (component names and sublabels).
+      var smallestLabel = (function () {
+        var smallest = 0;
+        Array.prototype.forEach.call(svg.querySelectorAll('g[data-node-id] text[data-node-label], g[data-node-id] text[data-detail="context"]'), function (text) {
+          var size = parseFloat(text.getAttribute('font-size'));
+          if (size > 0 && (!smallest || size < smallest)) smallest = size;
+        });
+        return smallest;
+      })();
+      var READABLE_LABEL_PX = 6; // the floor the inherited browser gate enforces
+      /** Would the labels stay readable with the inspector docked beside the canvas? */
+      function dockKeepsLabelsReadable() {
+        var box = svg.viewBox && svg.viewBox.baseVal;
+        if (!smallestLabel || !box || !box.width) return true;
+        var root = parseFloat(window.getComputedStyle(html).fontSize) || 16;
+        var style = window.getComputedStyle(html);
+        var rem = function (name, fallback) { var value = parseFloat(style.getPropertyValue(name)); return (value > 0 ? value : fallback) * root; };
+        var containerStyle = window.getComputedStyle(container);
+        var chrome = (parseFloat(containerStyle.paddingLeft) || 0) + (parseFloat(containerStyle.paddingRight) || 0) + (parseFloat(containerStyle.borderLeftWidth) || 0) + (parseFloat(containerStyle.borderRightWidth) || 0);
+        var available = document.documentElement.clientWidth - 4.25 * root - rem('--ame-inspector-width', 22.5) - 2 * rem('--ame-gap', 0.875) - chrome;
+        return available * (smallestLabel / box.width) >= READABLE_LABEL_PX;
+      }
       function applyChrome() {
-        var before = [html.getAttribute('data-workbench'), html.getAttribute('data-ame-inspector')].join('|');
+        var before = [html.getAttribute('data-workbench'), html.getAttribute('data-ame-inspector'), html.getAttribute('data-ame-dock')].join('|');
         if (state.on) html.setAttribute('data-workbench', 'on'); else html.removeAttribute('data-workbench');
         if (state.on && state.inspector) html.setAttribute('data-ame-inspector', 'open'); else html.removeAttribute('data-ame-inspector');
+        // Dock only when the diagram stays readable beside the inspector; otherwise a drawer.
+        if (state.on && state.inspector) html.setAttribute('data-ame-dock', dockKeepsLabelsReadable() ? 'docked' : 'drawer'); else html.removeAttribute('data-ame-dock');
         vitals.hidden = !state.on;
         if (toggle) toggle.setAttribute('aria-pressed', String(state.on));
         inspector.hidden = !(state.on && state.inspector);
-        if (before !== [html.getAttribute('data-workbench'), html.getAttribute('data-ame-inspector')].join('|')) relayout();
+        if (before !== [html.getAttribute('data-workbench'), html.getAttribute('data-ame-inspector'), html.getAttribute('data-ame-dock')].join('|')) relayout();
       }
+      // A real window resize can change whether docking keeps the labels readable.
+      var resizing = false;
+      window.addEventListener('resize', function () {
+        if (resizing || !(state.on && state.inspector)) return;
+        resizing = true;
+        try { applyChrome(); } finally { resizing = false; }
+      });
       function setOn(on) {
         state.on = Boolean(on);
         if (!state.on) { state.inspector = false; stopPlay(); }
@@ -928,6 +968,164 @@
         drawVitals(); drawInspector(); drawOverlays();
       }
 
+      // ---- levels: child diagrams carried in this page --------------------------------------
+      // A component can open into its own diagram, one level down (a C4 container into its
+      // components, for example). The child is a complete page of its own, with its own
+      // workbench. It is stored in this page without the stylesheet and scripts it shares
+      // with it (archi-made-easy/workbench/levels.mjs); they are put back here, and the page
+      // is shown in a sandboxed frame under a bar that leads back.
+      var levels = (function () {
+        var byId = {};
+        var element = document.getElementById('archi-made-easy-levels-data');
+        if (!element) return byId;
+        try { JSON.parse(element.textContent).levels.forEach(function (level) { byId[level.id] = level; }); } catch (error) { byId = {}; }
+        return byId;
+      })();
+      function levelOf(nodeId) {
+        var node = nodeById[nodeId];
+        return node && node.drilldown_diagram_id && levels[node.drilldown_diagram_id] ? levels[node.drilldown_diagram_id] : null;
+      }
+      var levelNodes = model.nodes.filter(function (node) { return levelOf(node.id); });
+      var levelView = null;
+      var ownBlocks = null;
+      // Same key as sharedKey() in levels.mjs: length and FNV-1a over UTF-16 code units.
+      function sharedKey(text) {
+        var hash = 0x811c9dc5;
+        for (var index = 0; index < text.length; index += 1) { hash ^= text.charCodeAt(index); hash = Math.imul(hash, 0x01000193); }
+        return text.length + ':' + ('0000000' + (hash >>> 0).toString(16)).slice(-8);
+      }
+      /** The complete child page, or null when this page lacks a block the child shares. */
+      function unpackLevel(packed) {
+        if (!ownBlocks) {
+          ownBlocks = {};
+          Array.prototype.forEach.call(document.querySelectorAll('style, script'), function (block) {
+            if (block.closest('svg')) return;
+            var text = block.textContent;
+            if (text.length >= 16384) ownBlocks[sharedKey(text)] = text;
+          });
+        }
+        var complete = true;
+        var page = packed.replace(/(<(style|script)\b[^>]*>)\/\*ame-shared:(\d+:[0-9a-f]{8})\*\/(<\/\2>)/g, function (block, open, name, key, close) {
+          if (ownBlocks[key] == null) { complete = false; return block; }
+          return open + ownBlocks[key] + close;
+        });
+        return complete ? page : null;
+      }
+      // Runs inside the child page: take the parent's theme, then, once the page has loaded
+      // and painted, say that it is ready and what it holds.
+      function levelBridge(token, theme) {
+        var code = '(function(){var token=' + JSON.stringify(token) + ';'
+          + 'document.documentElement.setAttribute("data-theme",' + JSON.stringify(theme === 'light' ? 'light' : 'dark') + ');'
+          + 'var report=function(){requestAnimationFrame(function(){requestAnimationFrame(function(){var w=window.ArchiMadeEasy&&window.ArchiMadeEasy.workbench;var ids={};'
+          + 'Array.prototype.forEach.call(document.querySelectorAll("[data-node-id]"),function(n){ids[n.getAttribute("data-node-id")]=true;});'
+          + 'parent.postMessage({kind:"archi-made-easy-level-ready",token:token,title:document.title,theme:document.documentElement.getAttribute("data-theme"),nodes:Object.keys(ids).length,workbench:!!(w&&w.available&&w.isOn())},"*");});});};'
+          + 'var ready=function(){Promise.resolve(document.fonts&&document.fonts.ready).then(report,report);};'
+          + 'if(document.readyState==="complete")ready();else addEventListener("load",ready,{once:true});'
+          + '})();';
+        return '<' + 'script>' + code + '</' + 'script>';
+      }
+      var C4_LEVELS = ['context', 'container', 'component', 'code'];
+      function closeLevel(options) {
+        if (!levelView) return;
+        var view = levelView;
+        levelView = null;
+        view.overlay.remove();
+        view.hidden.forEach(function (element) { element.inert = false; });
+        html.removeAttribute('data-ame-level');
+        if (options && options.restoreFocus === false) return;
+        var target = view.opener && view.opener.isConnected ? view.opener : (nodeElement(view.node) || railButtons[state.mode]);
+        try { target.focus({ preventScroll: true }); } catch (error) { /* focus is a courtesy */ }
+        announcer.textContent = 'Back at ' + doc.meta.title + '.';
+      }
+      function openLevel(id, opener) {
+        var level = levels[id];
+        if (!level) return false;
+        closeLevel({ restoreFocus: false });
+        var owner = levelNodes.filter(function (node) { return node.drilldown_diagram_id === id; })[0];
+        // One level below the component that opens it, when that component states its level.
+        var below = owner && owner.c4_level ? C4_LEVELS[C4_LEVELS.indexOf(owner.c4_level) + 1] : null;
+        var back = el('button', { type: 'button', className: 'ame-btn', 'data-workbench-level-back': 'true', title: 'Back to ' + doc.meta.title, onclick: function () { closeLevel(); } },
+          [icon('back'), el('span', { text: 'Back' })]);
+        var status = el('p', { className: 'ame-level-status', role: 'status', text: 'Opening ' + level.title + '.' });
+        var overlay = el('section', { className: 'ame-level no-print', id: 'workbench-level', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'workbench-level-title', 'data-workbench-level-open': id }, [
+          el('header', { className: 'ame-level-bar' }, [
+            back,
+            el('nav', { className: 'ame-crumbs', 'aria-label': 'Levels' }, [el('ol', {}, [
+              el('li', { text: doc.meta.title }),
+              el('li', { id: 'workbench-level-title', 'aria-current': 'page', text: level.title }),
+            ])]),
+            below ? el('span', { className: 'ame-level-owner', text: below + ' level' }) : null,
+          ].filter(Boolean)),
+          status,
+        ]);
+        overlay.addEventListener('keydown', function (event) {
+          if (event.key !== 'Escape') return;
+          event.stopPropagation();
+          closeLevel();
+        });
+        var hidden = Array.prototype.filter.call(document.body.children, function (element) { return !element.inert; });
+        hidden.forEach(function (element) { element.inert = true; });
+        document.body.appendChild(overlay);
+        html.setAttribute('data-ame-level', 'open');
+        levelView = { id: id, overlay: overlay, opener: opener || null, node: owner ? owner.id : null, hidden: hidden, token: null, frame: null, ready: false, report: null };
+        var page = unpackLevel(level.html);
+        if (page == null) {
+          status.textContent = 'This level could not be opened: the page no longer holds the stylesheet and scripts the level shares with it.';
+          overlay.setAttribute('data-level-ready', 'failed');
+        } else {
+          var random = new Uint32Array(4);
+          window.crypto.getRandomValues(random);
+          var token = Array.prototype.join.call(random, '-');
+          var frame = el('iframe', { className: 'ame-level-frame', title: level.title, sandbox: 'allow-scripts allow-downloads allow-modals' });
+          // The closing tag is spelled in two pieces, like the script tag of the bridge: this
+          // script is part of a page, and tools that add to a page look for the first one.
+          var end = page.toLowerCase().lastIndexOf('</' + 'body>');
+          var bridge = levelBridge(token, html.getAttribute('data-theme'));
+          frame.srcdoc = end < 0 ? page + bridge : page.slice(0, end) + bridge + page.slice(end);
+          levelView.token = token; levelView.frame = frame;
+          overlay.appendChild(frame);
+          // The frame is shown when the child page says it is laid out. A page that never
+          // says so is shown anyway, so the reader is not left with a blank level.
+          var view = levelView;
+          window.setTimeout(function () { if (levelView === view && !view.ready) overlay.setAttribute('data-level-ready', 'shown'); }, 5000);
+        }
+        back.focus({ preventScroll: true });
+        announcer.textContent = level.title + ' opened.';
+        return true;
+      }
+      window.addEventListener('message', function (event) {
+        var view = levelView;
+        if (!view || !view.frame || event.source !== view.frame.contentWindow || !event.data || event.data.token !== view.token) return;
+        if (event.data.kind !== 'archi-made-easy-level-ready') return;
+        // What the child page says about itself is shown to nobody; it is kept for diagnosis and tests.
+        view.ready = true;
+        view.report = { title: String(event.data.title || '').slice(0, 200), theme: event.data.theme === 'light' ? 'light' : 'dark', nodes: Number(event.data.nodes) || 0, workbench: event.data.workbench === true };
+        view.overlay.setAttribute('data-level-ready', 'true');
+      });
+      // A marker on each component that opens into a level, in Explore.
+      function levelMark(layer, node) {
+        var element = nodeElement(node.id); var box;
+        if (!element) return;
+        try { box = element.getBBox(); } catch (error) { return; }
+        var text = 'ZOOM IN'; var width = text.length * 6.1 + 12;
+        var group = svgEl('g', { 'class': 'workbench-badge workbench-badge--level', 'data-workbench-level': node.drilldown_diagram_id, transform: 'translate(' + (box.x + box.width - width + 6) + ' ' + (box.y + box.height - 7) + ')' });
+        group.appendChild(svgEl('rect', { width: width, height: 16, rx: 3 }));
+        var label_ = svgEl('text', { x: width / 2, y: 11.5, 'text-anchor': 'middle' });
+        label_.textContent = text;
+        group.appendChild(label_);
+        group.addEventListener('click', function (event) { event.stopPropagation(); openLevel(node.drilldown_diagram_id, element); });
+        layer.appendChild(group);
+      }
+      function levelCards() {
+        return el('ul', { className: 'ame-cards' }, levelNodes.map(function (node) {
+          var level = levelOf(node.id);
+          return el('li', {}, [el('button', { type: 'button', className: 'ame-card', 'data-workbench-level': level.id, onclick: function (event) { openLevel(level.id, event.currentTarget); } }, [
+            el('span', { className: 'ame-card-title' }, [icon('levels'), el('span', { text: level.title })]),
+            el('span', { className: 'ame-card-note', text: 'Opens from ' + node.label }),
+          ])]);
+        }));
+      }
+
       // ---- canvas interaction ----------------------------------------------------------
       function hit(target) {
         if (!target || !target.closest) return null;
@@ -946,6 +1144,7 @@
         }
         return null;
       }
+      var lastNodeClick = { id: null, time: 0 };
       function onActivate(event) {
         if (!state.on) return;
         if (container.getAttribute('data-just-panned') === 'true') return;
@@ -957,6 +1156,7 @@
           event.stopImmediatePropagation();
           cycleFault(target.kind, target.id);
         } else if (target.kind === 'node') {
+          if (Date.now() - lastNodeClick.time > 700) lastNodeClick = { id: target.id, time: Date.now() };
           state.selected = target.id;
           if (state.mode === 'explore') { state.inspector = true; applyChrome(); drawRail(); }
           drawInspector();
@@ -964,6 +1164,16 @@
       }
       svg.addEventListener('click', onActivate, true);
       svg.addEventListener('keydown', function (event) { if ((event.key === 'Enter' || event.key === ' ') && state.on) onActivate(event); }, true);
+      // A double click on a component that has a level opens it. The first click may open
+      // the inspector and refit the canvas, so the second click can land beside the
+      // component: the component of the first click is the one that counts.
+      container.addEventListener('dblclick', function (event) {
+        if (!state.on || (state.mode === 'simulate' && state.sim.arm)) return;
+        var target = hit(event.target);
+        var id = Date.now() - lastNodeClick.time < 700 ? lastNodeClick.id : (target && target.kind === 'node' ? target.id : null);
+        var level = id ? levelOf(id) : null;
+        if (level) { event.preventDefault(); openLevel(level.id, nodeElement(id)); }
+      });
 
       // ---- start -----------------------------------------------------------------------
       current.review = engine.review(model, {});
@@ -1001,6 +1211,11 @@
           });
           return floor - top;
         },
+        // Levels: child diagrams this page carries, and the one that is open.
+        levels: function () { return levelNodes.map(function (node) { var level = levelOf(node.id); return { id: level.id, title: level.title, node: node.id }; }); },
+        openLevel: function (id) { return openLevel(id, null); },
+        closeLevel: function () { closeLevel(); },
+        level: function () { return levelView ? { id: levelView.id, ready: levelView.ready, report: levelView.report } : null; },
         state: function () { return JSON.parse(JSON.stringify(state)); },
         inputs: function () { return JSON.parse(JSON.stringify(activeInputs())); },
         result: function () { return current.result; },

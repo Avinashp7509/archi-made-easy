@@ -32,8 +32,16 @@ Rules for the shell and the workbench, each enforced by a test or a gate:
   reader layout, the canvas-tool placement and the browser gate are tuned to them, and the
   inherited browser tests check them. The frame's regions are `position: fixed` and reserve
   space through the page padding only while `html[data-workbench="on"]`.
+- **Two inherited layout modules read the frame, and only while it is on.**
+  `viewer-chrome-layout.js` keeps the canvas tools above the vitals bar, and `reader-layout.js`
+  lets a wide diagram narrow to its declared readable width so that it fits the first screen
+  above the bar. Do not add a second fitting pass in `workbench.js`: one was tried and
+  settled differently after the frame was turned off and on (D-034).
 - No literal `<svg` (the artifact check counts that substring anywhere in the page) and no
   bare `NaN` or `Infinity` (artifact validation rejects them). Icons are CSS masks.
+- No page tag spelled out in `workbench.js`, opening or closing (`body`, `html`, `head`,
+  `script`, `style`): the script is part of the page, and tools that add to a page splice
+  before the first closing body tag they find (D-035). Build such strings in two pieces.
 - Canvas overlay selectors start at `.diagram-container`, and theme-scoped rules at `html`,
   never at `svg` or `[data-theme]`: the export copies rules that begin with those.
 - Overlays and every `data-wb-*` attribute are stripped by `export-cleanup.js`.

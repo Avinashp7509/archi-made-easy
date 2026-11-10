@@ -327,10 +327,16 @@
           ? viewBox.width * (automaticSequence ? 1 : minimumReadableScale()) + chrome.diagramX
           : MIN_READER_WIDTH;
         var maxWidth = Math.min(MAX_READER_WIDTH, viewportCap);
+        // With the workbench frame on, its vitals bar takes height from the first
+        // screen. A wide diagram may then narrow to its declared readable width, as
+        // a tall one already does, instead of holding the desktop reader floor and
+        // running under the bar. The page shell keeps its floor; the diagram is
+        // centred in it. With the frame off, nothing here changes.
+        var frameOn = html.getAttribute('data-workbench') === 'on';
         var readableMinimumWidth = automaticSequence || measuredHeightFit && ratio < WIDE_RATIO
           ? readableWidth
           : measuredHeightFit && ratio >= WIDE_RATIO && Number.isFinite(declaredMinimumText)
-            ? Math.max(MIN_READER_WIDTH, readableWidth)
+            ? (frameOn ? readableWidth : Math.max(MIN_READER_WIDTH, readableWidth))
             : MIN_READER_WIDTH;
         var minWidth;
         if (automaticSequence) {

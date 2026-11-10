@@ -1,0 +1,66 @@
+{
+  "source": "Archi-Made-Easy, Phase 6 candidate, rendered by its own renderer and read from the live page with Playwright MCP on 2026-11-10. Document: web-ha (10 components, 9 connections, authored operational data), light theme. The page starts with the workbench frame on.",
+  "method": "Read through the Playwright MCP tool with the same selectors as upstream-baseline/observations.json; rectangles are [left, top, width, height] in CSS pixels from getBoundingClientRect at scroll position 0, after the reader and chrome layouts report stable.",
+  "tokens": {
+    "--bg": "#ecedef",
+    "--panel": "#fcfcfd",
+    "--panel-border": "#d5d7db",
+    "--text": "#15171a",
+    "--text-muted": "#555b66",
+    "--frontend-stroke": "#0a6fb3",
+    "--backend-stroke": "#1a7f5a",
+    "--database-stroke": "#6d45cf",
+    "--cloud-stroke": "#9a6206",
+    "--security-stroke": "#bf2d55",
+    "--messagebus-stroke": "#bd4f18",
+    "--external-stroke": "#596170",
+    "--arrow": "#5f6672",
+    "--arrow-emphasis": "#2f4fe0"
+  },
+  "typography": {
+    "body": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", ... sans-serif, 16px",
+    "title": "same family, 18px with the frame on, weight 650, letter-spacing -0.27px",
+    "nodeLabel": "\"JetBrains Mono\", ui-monospace, ... monospace, 11px, weight 600"
+  },
+  "toolbarButtons": [
+    "Toggle color theme",
+    "Visual style: Classic. Choose visual style",
+    "Motion paused by reduced-motion preference",
+    "Enter presentation stage",
+    "Architecture workbench",
+    "Export diagram"
+  ],
+  "navButtons": [
+    "Trace a directed route",
+    "Open semantic lens",
+    "Find a node",
+    "Open diagram guide",
+    "Zoom out",
+    "100% · Zoom in again to reveal tags and annotations. Reset diagram view",
+    "Zoom in"
+  ],
+  "railModes": ["Explore", "Review (with a count of findings: 5 on this document)", "Simulate", "Security", "Performance", "FinOps", "Optimize", "Decide", "Handoff"],
+  "vitalsReadouts": ["availability", "latency", "load", "spof", "cost", "score"],
+  "productMark": true,
+  "viewports": {
+    "1920x1080": {
+      "scroll": [1905, 1516],
+      "workbench": "on",
+      "bodyPadding": "32px 14px 66px 82px",
+      "rects": { "toolbar": [1361, 32, 475, 44], "header": [130, 32, 1713, 44], "diagram": [130, 92, 1713, 910], "svg": [184, 127, 1605, 807], "legend": [145, 892, 998, 61], "nav": [1474, 944, 352, 42], "cards": [130, 1018, 1713, 199], "rail": [0, 0, 68, 1080], "vitals": [68, 1028, 1837, 52] }
+    },
+    "1440x900": {
+      "scroll": [1425, 1324],
+      "workbench": "on",
+      "bodyPadding": "6px 14px 66px 82px",
+      "rects": { "toolbar": [936, 4, 475, 44], "header": [82, 6, 1329, 44], "diagram": [82, 58, 1329, 731], "svg": [97, 67, 1299, 653], "legend": [139, 661, 807, 50], "nav": [1042, 730, 352, 42], "cards": [82, 805, 1329, 220], "rail": [0, 0, 68, 900], "vitals": [68, 848, 1357, 52] }
+    },
+    "390x844": {
+      "scroll": [375, 1454],
+      "workbench": "on",
+      "bodyPadding": "16px 14px 118px",
+      "rects": { "toolbar": [14, 16, 347, 44], "header": [14, 76, 347, 44], "diagram": [14, 140, 347, 454], "svg": [27, 153, 720, 362], "legend": [50, 483, 447, 27], "nav": [39, 521, 314, 54], "cards": [14, 610, 347, 726], "rail": [0, 788, 375, 56], "vitals": [0, 740, 375, 48] },
+      "note": "The SVG is 720px wide inside a 347px container: the diagram scrolls horizontally inside its card, as it does upstream. The mode rail is a tab bar along the bottom, with the vitals bar above it."
+    }
+  }
+}

@@ -35,6 +35,10 @@ Every state runs in the light and the dark theme. Layer 1 emulates reduced motio
 | `long-labels` | The same with a 107-character title, a long subtitle and component labels at the longest the renderer accepts | Edge case: long text |
 | `dense` | Microservices pattern on Azure | Edge case: more components and connections |
 | `web-app` | The inherited example, no operational data | An inherited architecture: workbench off by default |
+| `fintech` | Flagship: global fintech payment mesh, two active regions, 12 components on six columns | A wide diagram; a region can be lost and the mesh keeps answering |
+| `ai-platform` | Flagship: enterprise agentic AI platform, 11 components, a fallback model provider | A design with one review finding to act on; a provider brownout |
+| `ecommerce-c4` | Flagship: cloud-native e-commerce at C4 container level, 9 components, three child diagrams | Levels; a single region that can be lost |
+| `c4-catalog-service`, `c4-checkout-service`, `c4-fulfilment-service` | The three child diagrams of `ecommerce-c4`, each as the page of its own that a level opens | A child page meets the same checks as any page |
 | `workflow`, `sequence` | Inherited examples of other diagram types | Compatibility: new paint only, no workbench |
 
 The renderer refuses a component label that would overflow its box (`architecture/component-label-overflow`), so a cut-off component label cannot reach the browser. That guard is inherited and unchanged.
@@ -56,7 +60,7 @@ Letters follow the addendum. "Auto" is layer 1 (state id in `scripts/visual-qa.m
 | I | FinOps | `finops` | same | yes |
 | J | Review and remediation | `review-finding`, `optimize-change` | "Review and Optimize…" | yes |
 | K | Decisions and alternatives | `decide-trace` | "Security, Performance, FinOps, Decide and Handoff…" | yes |
-| L | C4 drill-down | not implemented in this phase (moved to Phase 6) | | |
+| L | C4 drill-down (levels) | `levels-explore`, `level-open`, `level-closed` on `ecommerce-c4`; `initial`, `review-clean`, `simulate-store-outage`, `performance-10x` on each child page | "levels: a component opens into its own diagram…" (button, double click, canvas marker, Escape, Back, phone, dark theme); `test/workbench-levels.test.mjs` | opened and inspected at desktop and phone width |
 | M | Diagram and report export | `export-menu`, `handoff` | "an export taken during a simulation…", handoff downloads | baseline capture state `export-menu` |
 | N | Light and dark themes | every state in both | | both captured |
 | O | Responsive layouts | every state at six viewports | "narrow screens…" | 390 and 768 captured |

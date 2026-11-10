@@ -1,0 +1,354 @@
+{
+  "note": "Upstream baseline against the final interface: same document, viewport, theme and state. Both sets are screenshots of running pages. changedPercent counts pixels that differ by more than 24 of 255 in a colour channel; anyChangePercent, by more than 4.",
+  "thresholds": {
+    "clearly": 24,
+    "any": 4
+  },
+  "summary": {
+    "pairs": 18,
+    "clearly": {
+      "least": 7.2,
+      "median": 11.6,
+      "most": 19.3
+    },
+    "any": {
+      "least": 25.2,
+      "median": 61.6,
+      "most": 100
+    }
+  },
+  "tokens": {
+    "compared": 14,
+    "same": 0,
+    "rows": [
+      {
+        "token": "--bg",
+        "upstream": "#f4f5f7",
+        "final": "#ecedef",
+        "same": false
+      },
+      {
+        "token": "--panel",
+        "upstream": "#ffffff",
+        "final": "#fcfcfd",
+        "same": false
+      },
+      {
+        "token": "--panel-border",
+        "upstream": "#e5e7eb",
+        "final": "#d5d7db",
+        "same": false
+      },
+      {
+        "token": "--text",
+        "upstream": "#111827",
+        "final": "#15171a",
+        "same": false
+      },
+      {
+        "token": "--text-muted",
+        "upstream": "#5b6474",
+        "final": "#555b66",
+        "same": false
+      },
+      {
+        "token": "--frontend-stroke",
+        "upstream": "#0891b2",
+        "final": "#0a6fb3",
+        "same": false
+      },
+      {
+        "token": "--backend-stroke",
+        "upstream": "#059669",
+        "final": "#1a7f5a",
+        "same": false
+      },
+      {
+        "token": "--database-stroke",
+        "upstream": "#7c3aed",
+        "final": "#6d45cf",
+        "same": false
+      },
+      {
+        "token": "--cloud-stroke",
+        "upstream": "#d97706",
+        "final": "#9a6206",
+        "same": false
+      },
+      {
+        "token": "--security-stroke",
+        "upstream": "#e11d48",
+        "final": "#bf2d55",
+        "same": false
+      },
+      {
+        "token": "--messagebus-stroke",
+        "upstream": "#ea580c",
+        "final": "#bd4f18",
+        "same": false
+      },
+      {
+        "token": "--external-stroke",
+        "upstream": "#64748b",
+        "final": "#596170",
+        "same": false
+      },
+      {
+        "token": "--arrow",
+        "upstream": "#64748b",
+        "final": "#5f6672",
+        "same": false
+      },
+      {
+        "token": "--arrow-emphasis",
+        "upstream": "#059669",
+        "final": "#2f4fe0",
+        "same": false
+      }
+    ]
+  },
+  "pairs": [
+    {
+      "screenshot": "sequence-1440x900-dark-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1440,
+        900
+      ],
+      "changedPercent": 10.4,
+      "anyChangePercent": 100
+    },
+    {
+      "screenshot": "sequence-1440x900-light-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1440,
+        900
+      ],
+      "changedPercent": 7.2,
+      "anyChangePercent": 51.3
+    },
+    {
+      "screenshot": "web-app-1440x900-dark-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1440,
+        900
+      ],
+      "changedPercent": 9.4,
+      "anyChangePercent": 100
+    },
+    {
+      "screenshot": "web-app-1440x900-light-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1440,
+        900
+      ],
+      "changedPercent": 10.2,
+      "anyChangePercent": 52.8
+    },
+    {
+      "screenshot": "web-ha-1280x800-dark-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1280,
+        800
+      ],
+      "changedPercent": 15.3,
+      "anyChangePercent": 100
+    },
+    {
+      "screenshot": "web-ha-1280x800-light-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1280,
+        800
+      ],
+      "changedPercent": 11.6,
+      "anyChangePercent": 56.7
+    },
+    {
+      "screenshot": "web-ha-1366x768-dark-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1366,
+        768
+      ],
+      "changedPercent": 16.6,
+      "anyChangePercent": 99.9
+    },
+    {
+      "screenshot": "web-ha-1366x768-light-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1366,
+        768
+      ],
+      "changedPercent": 11.5,
+      "anyChangePercent": 60.6
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-export-menu.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-focus-node-inspector.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-guide.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-hover-node.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1440,
+        900
+      ],
+      "changedPercent": 14.5,
+      "anyChangePercent": 100
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-lens.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-present.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-route.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-search.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-style-menu.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1440x900-dark-zoom-in.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1440x900-light-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1440,
+        900
+      ],
+      "changedPercent": 11.3,
+      "anyChangePercent": 54.7
+    },
+    {
+      "screenshot": "web-ha-1440x900-light-notes-and-index.png",
+      "counterpart": false
+    },
+    {
+      "screenshot": "web-ha-1920x1080-dark-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1920,
+        1080
+      ],
+      "changedPercent": 13,
+      "anyChangePercent": 99.9
+    },
+    {
+      "screenshot": "web-ha-1920x1080-light-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1920,
+        1080
+      ],
+      "changedPercent": 9.3,
+      "anyChangePercent": 51.2
+    },
+    {
+      "screenshot": "web-ha-390x844-dark-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        390,
+        844
+      ],
+      "changedPercent": 19.3,
+      "anyChangePercent": 100
+    },
+    {
+      "screenshot": "web-ha-390x844-light-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        390,
+        844
+      ],
+      "changedPercent": 14,
+      "anyChangePercent": 49.4
+    },
+    {
+      "screenshot": "web-ha-768x1024-dark-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        768,
+        1024
+      ],
+      "changedPercent": 17.7,
+      "anyChangePercent": 100
+    },
+    {
+      "screenshot": "web-ha-768x1024-light-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        768,
+        1024
+      ],
+      "changedPercent": 13.7,
+      "anyChangePercent": 61.6
+    },
+    {
+      "screenshot": "workflow-1440x900-dark-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1440,
+        900
+      ],
+      "changedPercent": 8,
+      "anyChangePercent": 25.3
+    },
+    {
+      "screenshot": "workflow-1440x900-light-initial.png",
+      "counterpart": true,
+      "sameSize": true,
+      "compared": [
+        1440,
+        900
+      ],
+      "changedPercent": 7.6,
+      "anyChangePercent": 25.2
+    }
+  ]
+}

@@ -47,6 +47,10 @@ test('Architecture workbench in the browser', {
     authored: renderTo('architecture', authoredInput, 'authored.html'),
     inherited: renderTo('architecture', path.join(skillRoot, 'examples', 'web-app.architecture.json'), 'inherited.html'),
     workflow: renderTo('workflow', path.join(skillRoot, 'examples', 'agent-tool-call.workflow.json'), 'workflow.html'),
+    // A wide diagram: six columns.
+    flagship: renderTo('architecture', path.join(skillRoot, 'examples', 'global-fintech-payment-mesh.architecture.json'), 'flagship.html'),
+    // Container level, with three child diagrams carried in the page.
+    levels: renderTo('architecture', path.join(skillRoot, 'examples', 'cloud-native-ecommerce-c4.architecture.json'), 'levels.html'),
   };
 
   const browser = new ChromeVisualBrowser(chrome);
@@ -445,6 +449,137 @@ test('Architecture workbench in the browser', {
         assert.deepEqual([viewport.ok, viewport.overflowX, viewport.viewerChromeOk, viewport.readabilityOk], [true, false, true, true], `${name} ${viewport.width}x${viewport.height}`);
       }
     }
+  });
+
+  await t.test('the inspector docks only where the diagram stays readable; otherwise it opens as a drawer', async () => {
+    const smallest = `Math.min(...[...svg.querySelectorAll('g[data-node-id] text[data-node-label], g[data-node-id] text[data-detail="context"]')].map(text => parseFloat(getComputedStyle(text).fontSize) * svg.getBoundingClientRect().width / svg.viewBox.baseVal.width))`;
+    for (const [name, file, width, height, expected] of [
+      ['wide diagram, small desktop', files.flagship, 1280, 800, 'drawer'],
+      ['wide diagram, large desktop', files.flagship, 1920, 1080, 'docked'],
+      ['ordinary diagram, laptop', files.authored, 1440, 900, 'docked'],
+    ]) {
+      await load(file, { width, height });
+      const before = await page(`{ width: box('.diagram-container > svg').width, smallest: ${smallest} }`);
+      await act(`document.querySelector('[data-workbench-mode="review"]').click();`);
+      const open = await page(`{ dock: html.getAttribute('data-ame-dock'), width: box('.diagram-container > svg').width, canvas: box('.diagram-container'), inspector: box('#workbench-inspector'), vitals: box('#workbench-vitals'), smallest: ${smallest}, overflowX: html.scrollWidth > innerWidth }`);
+      assert.equal(open.dock, expected, name);
+      assert.equal(open.overflowX, false, name);
+      assert.ok(open.smallest >= 5.95, `${name}: smallest label ${open.smallest.toFixed(2)}px with the inspector open`);
+      if (expected === 'drawer') {
+        assert.equal(Math.round(open.width), Math.round(before.width), `${name}: the diagram keeps its size`);
+        assert.ok(open.inspector.bottom <= open.vitals.top + 1, `${name}: the drawer stops above the vitals bar`);
+      } else {
+        assert.ok(open.canvas.right <= open.inspector.left, `${name}: the canvas ends before the inspector`);
+        assert.ok(open.width < before.width, `${name}: the diagram refits`);
+      }
+      await act(`w.setInspector(false);`);
+      assert.equal(await page(`html.getAttribute('data-ame-dock')`), null, `${name}: no dock state with the inspector closed`);
+    }
+  });
+
+  await t.test('with the frame on, a diagram at the reader floor stays above the vitals bar and its tools stay off the legend', async () => {
+    // Four columns and three rows: the tallest diagram that still counts as wide. On a
+    // 768px-high screen the inherited reader held it at its 960px floor, 27px under the bar.
+    const stage = `(() => { const r = (e) => e.getBoundingClientRect(); const c = document.querySelector('.diagram-container'); const nav = r(c.querySelector('.diagram-nav')); const legend = r(svg.querySelector('[data-legend]'));
+      const vitals = document.getElementById('workbench-vitals');
+      const sizes = [...svg.querySelectorAll('g[data-node-id] text[data-node-label], g[data-node-id] text[data-detail="context"]')].map(text => parseFloat(text.getAttribute('font-size')) * r(svg).width / svg.viewBox.baseVal.width);
+      return { width: Math.round(r(svg).width), bottom: r(c).bottom, vitalsTop: vitals.hidden ? null : r(vitals).top,
+        toolsOnLegend: Math.max(0, Math.min(nav.right, legend.right) - Math.max(nav.left, legend.left)) * Math.max(0, Math.min(nav.bottom, legend.bottom) - Math.max(nav.top, legend.top)),
+        lift: c.style.getPropertyValue('--archi-made-easy-dock-lift'), smallest: Math.min(...sizes), overflowX: html.scrollWidth > innerWidth, narrow: html.getAttribute('data-reader-narrow') }; })()`;
+    for (const [width, height] of [[1366, 768], [1280, 800], [1440, 900]]) {
+      await load(files.levels, { width, height });
+      const on = await page(stage);
+      assert.ok(on.bottom <= on.vitalsTop, `${width}x${height}: the canvas ends at ${on.bottom}, the vitals bar starts at ${on.vitalsTop}`);
+      assert.deepEqual([on.toolsOnLegend, on.lift, on.overflowX], [0, '', false], `${width}x${height}: tools clear of the legend, not lifted`);
+      assert.ok(on.smallest >= 7.5, `${width}x${height}: smallest label ${on.smallest.toFixed(2)}px`);
+    }
+    // The fit holds through the frame's states, and turning the frame off gives the inherited page back.
+    await load(files.levels, { width: 1366, height: 768 });
+    const first = await page(stage);
+    assert.equal(first.narrow, 'true', 'the diagram is narrowed inside the page shell, by the inherited mechanism');
+    await act(`document.querySelector('[data-workbench-mode="review"]').click();`);
+    await act(`w.setInspector(false);`);
+    assert.deepEqual(await page(stage), first, 'unchanged after opening and closing the inspector');
+    await act(`w.off();`);
+    const off = await page(stage);
+    assert.ok(off.width > first.width && off.narrow === null && off.vitalsTop === null, 'frame off: the inherited reading width');
+    await act(`w.on();`);
+    assert.deepEqual(await page(stage), first, 'unchanged after turning the frame off and on');
+  });
+
+  await t.test('levels: a component opens into its own diagram, a complete page in a sandboxed frame, and Back returns', async () => {
+    const expected = [['catalog-service', 'catalog'], ['checkout-service', 'checkout'], ['fulfilment-service', 'fulfilment']];
+    const ready = () => evaluate(`new Promise((resolve, reject) => { const started = Date.now(); (function poll() { const level = ArchiMadeEasy.workbench.level(); if (level && level.ready) resolve(true); else if (Date.now() - started > 20000) reject(new Error('the level did not report ready')); else setTimeout(poll, 50); })(); })`, true);
+    const closed = `{ overlay: document.getElementById('workbench-level'), attribute: html.getAttribute('data-ame-level'), inert: [...document.body.children].filter(e => e.inert).length, level: w.level() }`;
+
+    await load(files.levels);
+    assert.deepEqual((await page(`w.levels()`)).map((level) => [level.id, level.node]), expected);
+    assert.deepEqual(await page(closed), { overlay: null, attribute: null, inert: 0, level: null });
+
+    // Explore lists the levels and marks the components that open one.
+    await act(`document.querySelector('[data-workbench-mode="explore"]').click();`);
+    const explore = await page(`{ cards: [...document.querySelectorAll('#workbench-body .ame-card[data-workbench-level]')].map(b => b.getAttribute('data-workbench-level')),
+      marks: [...svg.querySelectorAll('.workbench-badge--level')].map(g => g.getAttribute('data-workbench-level')).sort(), heading: /Levels/.test(document.getElementById('workbench-body').textContent) }`);
+    assert.deepEqual(explore, { cards: expected.map(([id]) => id), marks: expected.map(([id]) => id), heading: true });
+    await act(`document.querySelector('[data-workbench-mode="review"]').click();`);
+    assert.equal(await page(`svg.querySelectorAll('.workbench-badge--level').length`), 0, 'the markers belong to Explore');
+
+    // A selected component states its level and offers the way in.
+    await act(`document.querySelector('[data-workbench-mode="explore"]').click();`);
+    await clickNode('checkout');
+    await evaluate(settle, true);
+    const selected = await page(`{ action: document.querySelector('#workbench-body .ame-btn--primary[data-workbench-level]')?.textContent, level: /Level\\s*container/.test(document.querySelector('#workbench-body .ame-kv').textContent) }`);
+    assert.deepEqual(selected, { action: 'Open: Inside the checkout service', level: true });
+
+    await act(`document.querySelector('#workbench-body .ame-btn--primary[data-workbench-level]').click();`);
+    await ready();
+    const open = await page(`{ level: w.level(), overlay: box('#workbench-level'), bar: box('.ame-level-bar'), frame: box('.ame-level-frame'), inner: [innerWidth, innerHeight],
+      sandbox: document.querySelector('.ame-level-frame').getAttribute('sandbox'), background: [...document.body.children].filter(e => e.id !== 'workbench-level').every(e => e.inert),
+      focus: document.activeElement.getAttribute('data-workbench-level-back'), crumbs: [...document.querySelectorAll('.ame-crumbs li')].map(li => li.textContent),
+      attribute: html.getAttribute('data-ame-level'), ready: document.getElementById('workbench-level').getAttribute('data-level-ready'), overflowX: html.scrollWidth > innerWidth }`);
+    assert.equal(open.level.id, 'checkout-service');
+    // The child is a complete page: its own diagram, its own workbench, the parent's theme.
+    assert.deepEqual(open.level.report, { title: open.level.report.title, theme: 'light', nodes: 9, workbench: true });
+    assert.match(open.level.report.title, /Inside the checkout service/);
+    assert.equal(open.sandbox, 'allow-scripts allow-downloads allow-modals', 'the frame has no access to the page that opened it');
+    assert.deepEqual([open.overlay.left, open.overlay.top, open.overlay.width, open.overlay.height], [0, 0, ...open.inner], 'the level covers the page');
+    assert.ok(open.bar.height >= 40 && Math.abs(open.frame.top - open.bar.bottom) <= 1 && Math.abs(open.frame.bottom - open.inner[1]) <= 1 && Math.round(open.frame.width) === open.inner[0], 'the child page fills everything under the bar');
+    assert.deepEqual([open.background, open.focus, open.attribute, open.ready, open.overflowX], [true, 'true', 'open', 'true', false]);
+    assert.deepEqual(open.crumbs, ['Cloud-native e-commerce platform', 'Inside the checkout service']);
+
+    // Escape on the bar leads back; nothing of the level remains and focus returns to where it was opened.
+    await act(`document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));`);
+    assert.deepEqual(await page(closed), { overlay: null, attribute: null, inert: 0, level: null });
+    assert.equal(await page(`document.activeElement.getAttribute('data-workbench-level')`), 'checkout-service');
+
+    // A double click on the component opens its level; the Back button closes it.
+    const point = await evaluate(`(() => { const r = document.querySelector('[data-node-id="catalog"] rect:not(.c-mask)').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; })()`);
+    for (const clickCount of [1, 2]) for (const type of ['mousePressed', 'mouseReleased']) await send('Input.dispatchMouseEvent', { type, x: point.x, y: point.y, button: 'left', clickCount });
+    await ready();
+    const second = await page(`w.level()`);
+    assert.deepEqual([second.id, second.report.nodes, second.report.workbench], ['catalog-service', 8, true]);
+    await clickAt('[data-workbench-level-back]');
+    await evaluate(settle, true);
+    assert.deepEqual(await page(closed), { overlay: null, attribute: null, inert: 0, level: null });
+
+    // The marker on the canvas opens the level too.
+    await act(`w.setMode('explore'); w.setInspector(false);`);
+    await clickAt('.workbench-badge--level[data-workbench-level="fulfilment-service"] rect');
+    await ready();
+    assert.equal(await page(`w.level().id`), 'fulfilment-service');
+    await act(`w.closeLevel();`);
+
+    // Dark theme and a phone: the child follows the theme, the bar fits the screen.
+    await load(files.levels, { width: 390, height: 844 });
+    await act(`html.setAttribute('data-theme', 'dark'); w.openLevel('fulfilment-service');`);
+    await ready();
+    const phone = await page(`{ report: w.level().report, bar: box('.ame-level-bar'), back: box('[data-workbench-level-back]'), frame: box('.ame-level-frame'), inner: [innerWidth, innerHeight], overflowX: html.scrollWidth > innerWidth,
+      title: box('#workbench-level-title') }`);
+    assert.deepEqual([phone.report.theme, phone.report.nodes, phone.overflowX], ['dark', 9, false]);
+    assert.ok(phone.back.height >= 32 && phone.back.left >= 0 && phone.title.right <= phone.inner[0] && phone.bar.right <= phone.inner[0], 'the bar and its Back button fit a phone');
+    assert.ok(Math.round(phone.frame.width) === phone.inner[0] && phone.frame.height > phone.inner[1] * 0.85);
+    await act(`w.closeLevel();`);
+    assert.deepEqual(await evaluate('workbenchTestErrors'), []);
   });
 
   await t.test('narrow screens: modes become a tab bar and the inspector a sheet; other diagram types have no workbench', async () => {

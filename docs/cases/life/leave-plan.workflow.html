@@ -5133,6 +5133,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     @media (min-width: 1600px) { html { --ame-inspector-width: 25rem; } }
     html[data-workbench="on"] { --ame-rail: 4.25rem; --ame-vitals: 3.25rem; }
     html[data-workbench="on"][data-ame-inspector="open"] { --ame-inspector: var(--ame-inspector-width); }
+    /* A diagram too wide to stay readable beside a docked inspector keeps its size; the
+       inspector opens as a drawer over the right edge of the canvas, above the vitals bar. */
+    html[data-workbench="on"][data-ame-inspector="open"][data-ame-dock="drawer"] { --ame-inspector: 0px; }
+    @media (min-width: 900px) {
+      html[data-ame-dock="drawer"] .ame-inspector { bottom: var(--ame-vitals); box-shadow: -12px 0 32px -12px rgba(0, 0, 0, 0.35); }
+    }
     html[data-present="true"],
     html[data-embed="true"] { --ame-rail: 0px; --ame-vitals: 0px; --ame-inspector: 0px; --ame-tabbar: 0px; }
 
@@ -5237,6 +5243,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .ame-icon--collapse { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.500 5.500 12 10l-4.500 4.500M15 4.500v11'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7.500 5.500 12 10l-4.500 4.500M15 4.500v11'/%3E%3C/svg%3E"); }
     .ame-icon--play { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 4.800v10.400l8.200-5.200z'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 4.800v10.400l8.200-5.200z'/%3E%3C/svg%3E"); }
     .ame-icon--reset { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.600 10a5.400 5.400 0 1 0 1.700-3.900M4.400 3.600v3h3'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.600 10a5.400 5.400 0 1 0 1.700-3.900M4.400 3.600v3h3'/%3E%3C/svg%3E"); }
+    .ame-icon--back { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15.500 10h-11M8.500 5.500 4 10l4.500 4.500'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15.500 10h-11M8.500 5.500 4 10l4.500 4.500'/%3E%3C/svg%3E"); }
+    .ame-icon--levels { -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 3.200 16.800 6.800 10 10.400 3.200 6.800zM3.200 10.400 10 14l6.800-3.600M3.200 13.600 10 17.200l6.800-3.600'/%3E%3C/svg%3E"); mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 3.200 16.800 6.800 10 10.400 3.200 6.800zM3.200 10.400 10 14l6.800-3.600M3.200 13.600 10 17.200l6.800-3.600'/%3E%3C/svg%3E"); }
 
     /* ---- Mode rail ------------------------------------------------------------- */
     .ame-rail {
@@ -5599,6 +5607,50 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .workbench-badge--ok rect { stroke: var(--ame-ok); }
     .workbench-badge--info rect { stroke: var(--ame-accent); }
     .workbench-badge--muted text { fill: var(--text-muted); }
+    /* A component that opens into its own diagram carries a marker that can be clicked. */
+    .workbench-badge--level { pointer-events: auto; cursor: pointer; }
+    .workbench-badge--level rect { fill: var(--ame-accent); stroke: var(--ame-accent); }
+    .workbench-badge--level text { fill: var(--ame-accent-ink); }
+
+    /* ---- Level view: a child diagram, opened over the page under a bar that leads back ---- */
+    html[data-ame-level="open"] { overflow: hidden; }
+    .ame-level {
+      position: fixed;
+      z-index: 300;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg);
+      color: var(--text);
+      font: 400 0.8125rem/1.45 var(--ame-sans);
+    }
+    .ame-level-bar {
+      display: flex;
+      flex: none;
+      align-items: center;
+      gap: 0.75rem;
+      min-height: 2.75rem;
+      padding: 0.25rem 0.75rem;
+      border-bottom: 1px solid var(--panel-border);
+      background: var(--ame-chrome);
+    }
+    .ame-crumbs { flex: 1 1 auto; min-width: 0; }
+    .ame-crumbs ol { display: flex; align-items: center; gap: 0.5rem; min-width: 0; margin: 0; padding: 0; list-style: none; }
+    .ame-crumbs li { min-width: 0; overflow: hidden; color: var(--text-muted); text-overflow: ellipsis; white-space: nowrap; }
+    .ame-crumbs li + li::before { content: "/"; margin-right: 0.5rem; color: var(--text-muted); font-weight: 400; }
+    .ame-crumbs li[aria-current] { flex: none; max-width: 100%; color: var(--text); font-weight: 600; }
+    .ame-level-owner { flex: none; color: var(--text-muted); font-family: var(--ame-mono); font-size: 0.6875rem; letter-spacing: 0.06em; text-transform: uppercase; }
+    .ame-level-status { margin: 0; padding: 1rem; color: var(--text-muted); }
+    .ame-level:is([data-level-ready="true"], [data-level-ready="shown"]) .ame-level-status { display: none; }
+    /* The child page is shown once it has loaded and painted. Opacity, not visibility: a
+       browser stops rendering a hidden frame from another origin, and the page inside would
+       never report that it is ready. */
+    .ame-level:not([data-level-ready]) .ame-level-frame { opacity: 0; }
+    .ame-level-frame { flex: 1 1 auto; width: 100%; min-height: 0; border: 0; background: var(--bg); }
+    @media (max-width: 720px) {
+      .ame-crumbs li:first-child, .ame-level-owner { display: none; }
+      .ame-crumbs li + li::before { content: none; }
+    }
 
     /* ---- Workbench off: the rail is a column of icons in the page gutter ----------------
        It takes no space from the page (the gutter is the inherited 2rem padding). */
@@ -5618,7 +5670,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     @media (max-width: 1199px) {
       /* The inspector is a drawer over the right edge of the canvas; the canvas keeps its width. */
       html[data-workbench="on"][data-ame-inspector="open"] { --ame-inspector: 0px; }
-      .ame-inspector { box-shadow: -12px 0 32px -12px rgba(0, 0, 0, 0.35); }
+      .ame-inspector { bottom: var(--ame-vitals); box-shadow: -12px 0 32px -12px rgba(0, 0, 0, 0.35); }
       .ame-vitals { right: 0; }
       html[data-workbench="on"] { --ame-rail: 3.5rem; }
       .ame-rail-btn { font-size: 0.5625rem; }
@@ -11229,10 +11281,16 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           ? viewBox.width * (automaticSequence ? 1 : minimumReadableScale()) + chrome.diagramX
           : MIN_READER_WIDTH;
         var maxWidth = Math.min(MAX_READER_WIDTH, viewportCap);
+        // With the workbench frame on, its vitals bar takes height from the first
+        // screen. A wide diagram may then narrow to its declared readable width, as
+        // a tall one already does, instead of holding the desktop reader floor and
+        // running under the bar. The page shell keeps its floor; the diagram is
+        // centred in it. With the frame off, nothing here changes.
+        var frameOn = html.getAttribute('data-workbench') === 'on';
         var readableMinimumWidth = automaticSequence || measuredHeightFit && ratio < WIDE_RATIO
           ? readableWidth
           : measuredHeightFit && ratio >= WIDE_RATIO && Number.isFinite(declaredMinimumText)
-            ? Math.max(MIN_READER_WIDTH, readableWidth)
+            ? (frameOn ? readableWidth : Math.max(MIN_READER_WIDTH, readableWidth))
             : MIN_READER_WIDTH;
         var minWidth;
         if (automaticSequence) {

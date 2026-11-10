@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { buildModel } from '../archi-made-easy/workbench/model.mjs';
-import { simulate, nodeAvailability, pathPercentiles } from '../archi-made-easy/workbench/sim.mjs';
+import { simulate, nodeAvailability, pathPercentiles, INDEPENDENCE_NOTE } from '../archi-made-easy/workbench/sim.mjs';
 
 const close = (actual, expected, tolerance = 1e-3, message = '') => assert.ok(Math.abs(actual - expected) <= tolerance, `${message} expected ${expected}, got ${actual}`);
 
@@ -292,4 +292,24 @@ test('actors (users) do not limit capacity, lower availability, add latency or c
   close(withUsers.kpis.critical_path.p99_ms, plain.kpis.critical_path.p99_ms, 1e-2);
   // A surge on the users is a 20x flood of the first real tier.
   assert.equal(sim(doc, { faults: { nodes: { users: 'surge' } } }).nodes.web.load_rps, 2000);
+});
+
+test('a share below 1 is never reported as 100%, and a very high figure carries the independence note', () => {
+  // One entry at 99.9999% in two regions: 1 - (0.000001)^2 = 0.999999999999, which would round to 100.
+  const single = {
+    schema_version: 1, diagram_type: 'architecture', meta: { title: 'Nines', output: 'n.html' },
+    components: [{ id: 'edge', type: 'frontend', label: 'Edge', operational: { role: 'ingress', sla_percent: 99.9999, redundancy: 'active-active-multi-region' } }],
+    connections: [],
+  };
+  const high = sim(single);
+  assert.equal(high.kpis.composite_sla_percent, 99.99999, 'capped below 100');
+  assert.deepEqual(high.warnings.filter((w) => w === INDEPENDENCE_NOTE), [INDEPENDENCE_NOTE]);
+  // The healthy chain is at 99.80012%: far from the threshold, so no note.
+  const ordinary = sim(chain());
+  assert.ok(ordinary.kpis.composite_sla_percent < 99.99);
+  assert.equal(ordinary.warnings.includes(INDEPENDENCE_NOTE), false);
+  // A failing entry is exactly 0, and carries no note.
+  const failed = sim(single, { faults: { nodes: { edge: 'down' } } });
+  assert.equal(failed.kpis.composite_sla_percent, 0);
+  assert.equal(failed.warnings.includes(INDEPENDENCE_NOTE), false);
 });

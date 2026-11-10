@@ -44,7 +44,8 @@ const COMMON_CHECKS = String.raw`(() => {
   const rail = q('.ame-rail'); const vitals = q('.ame-vitals'); const inspector = q('.ame-inspector');
   const canvas = q('.diagram-container'); const svg = canvas && canvas.querySelector('svg'); const nav = q('.diagram-nav'); const legend = svg && svg.querySelector('[data-legend]');
   const embed = root.getAttribute('data-embed') === 'true'; const present = root.getAttribute('data-present') === 'true';
-  const docked = vw >= 1200; const narrow = vw < 900;
+  // The inspector docks beside the canvas only where the diagram stays readable; otherwise it is a drawer.
+  const docked = vw >= 1200 && root.getAttribute('data-ame-dock') !== 'drawer'; const narrow = vw < 900;
 
   // 1. Horizontal overflow and the unintended horizontal scrollbar that comes with it.
   if (root.scrollWidth > vw) add('horizontal-overflow', 'high', 'document is ' + root.scrollWidth + 'px wide in a ' + vw + 'px viewport');
@@ -307,6 +308,30 @@ export const ARCHITECTURE_STATES = [
   { id: 'keyboard-rail', workflow: 'P', act: `document.querySelector('[data-workbench-mode="simulate"]').focus(); document.activeElement.click();`,
     expect: `${W} const out = []; if (!w.isOpen() || w.state().mode !== 'simulate') out.push({ check: 'keyboard', severity: 'high', detail: 'activating a focused rail button did not open its mode' }); const body = document.getElementById('workbench-body'); body.focus(); body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); if (w.isOpen()) out.push({ check: 'keyboard', severity: 'high', detail: 'Escape in the inspector did not collapse it' }); if (document.activeElement !== document.querySelector('[data-workbench-mode="simulate"]')) out.push({ check: 'keyboard', severity: 'medium', detail: 'focus did not return to the mode button after Escape' }); return out;` },
 ];
+// States every flagship example goes through. `scenario` is the preset its simulation runs;
+// `finding` says whether its review has a finding to open.
+const flagshipStates = ({ simulate, scenario, finding = true }) => [
+  { id: 'initial', workflow: 'A', shot: 'all', act: '', expect: `${W} return w.isOn() && !w.isOpen() ? [] : [{ check: 'initial-state', severity: 'high', detail: 'a flagship example should start with the workbench on and the inspector closed' }];` },
+  finding
+    ? { id: 'review-finding', workflow: 'J', shot: 'desktop', act: `${click('[data-workbench-mode="review"]')} ${click('[data-workbench-finding]')}`, expect: `return document.querySelector('[data-workbench-finding-detail]') ? [] : [{ check: 'mode-content', severity: 'high', detail: 'no finding detail' }];` }
+    : { id: 'review-clean', workflow: 'J', shot: 'desktop', act: click('[data-workbench-mode="review"]'), expect: `${W} return w.review().findings.length === 0 && /No rule fired/.test(document.getElementById('workbench-body').textContent) ? [] : [{ check: 'mode-content', severity: 'high', detail: 'a review without findings does not say what that means' }];` },
+  { id: simulate, workflow: 'F', shot: 'all', act: `${click('[data-workbench-mode="simulate"]')} ${click(`[data-workbench-scenario="${scenario}"]`)} ${click('[data-workbench-run]')}`, expect: `${W} const k = w.result().kpis; return k.blast_radius.nodes.length ? [] : [{ check: 'simulation-state', severity: 'high', detail: 'the scenario affects no component' }];` },
+  { id: 'performance-10x', workflow: 'G', shot: 'desktop', act: `${click('[data-workbench-mode="performance"]')} ${W} w.setLoad(10, 0);`, expect: 'return [];' },
+  { id: 'decide-trace', workflow: 'K', shot: 'desktop', act: `${click('[data-workbench-mode="decide"]')} ${click('[data-workbench-trace="next"]')}`, expect: 'return [];' },
+];
+const FLAGSHIP_STATES = flagshipStates({ simulate: 'simulate-region-loss', scenario: 'b' });
+// Levels: a component opens into its own diagram, carried in the page (workflow L).
+const LEVEL_READY = "await new Promise((resolve, reject) => { const started = Date.now(); (function poll() { const level = ArchiMadeEasy.workbench.level(); if (level && level.ready) resolve(); else if (Date.now() - started > 20000) reject(new Error('the level did not report ready')); else setTimeout(poll, 50); })(); });";
+export const LEVEL_STATES = [
+  { id: 'levels-explore', workflow: 'L', shot: 'desktop', act: click('[data-workbench-mode="explore"]'),
+    expect: `${W} const marks = document.querySelectorAll('.diagram-container .workbench-badge--level').length; const cards = document.querySelectorAll('#workbench-body .ame-card[data-workbench-level]').length; return marks > 0 && marks === w.levels().length && cards === marks ? [] : [{ check: 'level-content', severity: 'high', detail: 'Explore lists ' + cards + ' levels and marks ' + marks + '; the page carries ' + w.levels().length }];` },
+  { id: 'level-open', workflow: 'L', shot: 'all', act: `${W} w.openLevel('checkout-service'); ${LEVEL_READY} await new Promise((resolve) => setTimeout(resolve, 1200));`,
+    expect: `${W} const out = []; const level = w.level(); const frame = document.querySelector('.ame-level-frame').getBoundingClientRect(); const bar = document.querySelector('.ame-level-bar').getBoundingClientRect(); if (!level.report.workbench || level.report.nodes < 2) out.push({ check: 'level-content', severity: 'critical', detail: 'the child page did not start its workbench' }); if (level.report.theme !== document.documentElement.getAttribute('data-theme')) out.push({ check: 'level-content', severity: 'high', detail: 'the child page does not follow the theme' }); if (Math.abs(frame.top - bar.bottom) > 1 || Math.abs(frame.bottom - innerHeight) > 1 || Math.abs(frame.width - innerWidth) > 1) out.push({ check: 'level-layout', severity: 'high', detail: 'the child page does not fill the window under the bar' }); return out;` },
+  { id: 'level-closed', workflow: 'L', act: `${W} w.openLevel('catalog-service'); ${LEVEL_READY} w.closeLevel();`,
+    expect: `${W} return document.getElementById('workbench-level') || document.documentElement.hasAttribute('data-ame-level') || [...document.body.children].some((e) => e.inert) || w.level() ? [{ check: 'stale-ui', severity: 'high', detail: 'the level view left something behind after Back' }] : [];` },
+];
+// A child diagram on its own: the page a level opens.
+const CHILD_STATES = flagshipStates({ simulate: 'simulate-store-outage', scenario: 'a', finding: false }).filter((s) => s.id !== 'decide-trace').map((s) => ({ ...s, workflow: 'L', shot: s.id === 'initial' ? 'desktop' : false }));
 const SIMPLE_STATES = [
   { id: 'initial', workflow: 'T', shot: 'all', act: '', expect: 'return [];' },
   { id: 'export-menu', workflow: 'M', act: click('#btn-export'), expect: 'return [];' },
@@ -324,6 +349,12 @@ function renderFixtures(directory) {
     'long-labels': render('architecture', write('long-labels', longLabelWebHa()), 'long-labels'),
     dense: render('architecture', write('dense', denseMicroservices()), 'dense'),
     'web-app': render('architecture', path.join(skillRoot, 'examples', 'web-app.architecture.json'), 'web-app'),
+    fintech: render('architecture', path.join(skillRoot, 'examples', 'global-fintech-payment-mesh.architecture.json'), 'fintech'),
+    'ai-platform': render('architecture', path.join(skillRoot, 'examples', 'enterprise-agentic-ai-platform.architecture.json'), 'ai-platform'),
+    'ecommerce-c4': render('architecture', path.join(skillRoot, 'examples', 'cloud-native-ecommerce-c4.architecture.json'), 'ecommerce-c4'),
+    // Each child diagram of the C4 example, as the page of its own that a level opens.
+    ...Object.fromEntries(JSON.parse(fs.readFileSync(path.join(skillRoot, 'examples', 'cloud-native-ecommerce-c4.architecture.json'), 'utf8')).workbench.drilldowns
+      .map((drilldown) => [`c4-${drilldown.id}`, render('architecture', write(`c4-${drilldown.id}`, drilldown.spec), `c4-${drilldown.id}`)])),
     workflow: render('workflow', path.join(skillRoot, 'examples', 'agent-tool-call.workflow.json'), 'workflow'),
     sequence: render('sequence', path.join(skillRoot, 'examples', 'cache-miss-request.sequence.json'), 'sequence'),
   };
@@ -356,6 +387,11 @@ export async function runVisualQa({ chromePath = findChrome(), viewports = VIEWP
       ['dense', ARCHITECTURE_STATES.filter((s) => ['simulate-ran', 'review-finding', 'performance-10x'].includes(s.id)).map((s) => ({ ...s, workflow: 'Q', expect: 'return [];', shot: s.id === 'simulate-ran' ? 'desktop' : false })), viewports],
       ['web-app', [{ id: 'initial', workflow: 'T', shot: 'desktop', act: '', expect: `const w = ArchiMadeEasy.workbench; return w.available && !w.isOn() ? [] : [{ check: 'initial-state', severity: 'high', detail: 'an inherited architecture must start with the workbench off' }];` },
         { id: 'open-review', workflow: 'E', act: click('[data-workbench-mode="review"]'), expect: 'return [];' }], viewports],
+      // Flagship examples: the same states, with the checks that do not depend on one document.
+      ['fintech', FLAGSHIP_STATES, viewports],
+      ['ai-platform', flagshipStates({ simulate: 'simulate-provider-brownout', scenario: 'd' }), viewports],
+      ['ecommerce-c4', [...flagshipStates({ simulate: 'simulate-region-loss', scenario: 'b', finding: false }), ...LEVEL_STATES], viewports],
+      ...['c4-catalog-service', 'c4-checkout-service', 'c4-fulfilment-service'].map((name) => [name, CHILD_STATES, viewports]),
       ['workflow', SIMPLE_STATES, viewports],
       ['sequence', SIMPLE_STATES, viewports],
     ];

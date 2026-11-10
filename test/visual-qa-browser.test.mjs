@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { findChrome } from '../archi-made-easy/bin/visual-check.mjs';
-import { runVisualQa, summarise, ARCHITECTURE_STATES, VIEWPORTS, THEMES } from '../scripts/visual-qa.mjs';
+import { runVisualQa, summarise, ARCHITECTURE_STATES, LEVEL_STATES, VIEWPORTS, THEMES } from '../scripts/visual-qa.mjs';
 
 const chrome = process.env.ARCHI_MADE_EASY_CHROME ? findChrome() : null;
 
@@ -17,6 +17,8 @@ test('the matrix covers every workbench mode, the six required viewports and bot
   }
   assert.equal(new Set(ARCHITECTURE_STATES.map((state) => state.id)).size, ARCHITECTURE_STATES.length, 'state ids are unique');
   for (const letter of 'ACDEFGHIJKMPS') assert.ok(ARCHITECTURE_STATES.some((state) => state.workflow === letter), `workflow ${letter} has a state`);
+  // Workflow L, levels, runs on the example that carries child diagrams.
+  assert.deepEqual(LEVEL_STATES.map((state) => [state.id, state.workflow]), [['levels-explore', 'L'], ['level-open', 'L'], ['level-closed', 'L']]);
 });
 
 test('automated visual QA finds no critical or high defect', {
