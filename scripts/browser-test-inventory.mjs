@@ -46,4 +46,5 @@ export const browserTestFiles = [
   // Appended last: an insertion earlier would flip the shard of every suite after it.
   'workbench-browser.test.mjs',
   'visual-qa-browser.test.mjs',
+  'demo-browser.test.mjs',
 ];

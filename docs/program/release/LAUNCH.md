@@ -10,7 +10,7 @@ Published on 2026-11-11 with the owner's approval: [https://github.com/Avinashp7
 | Repository | `https://github.com/Avinashp7509/archi-made-easy` |
 | Default branch | `main` (the `dev` trial-use branch in CONTRIBUTING.md applies from the second release on; the first release is promoted directly) |
 | Visibility at creation | private, until the owner approves publication |
-| GitHub Pages | off for 1.0.0. The CI workflow's `deploy-pages` job runs only when the repository variable `ARCHI_MADE_EASY_PAGES_DEPLOY` is `true`; the website sources still use a placeholder domain and are not part of this release. Update notices start working once Pages serves `skill-updates/archi-made-easy/stable.json` (a follow-up) |
+| GitHub Pages | Serves only the interactive demo, at https://avinashp7509.github.io/archi-made-easy/demo/, deployed by `.github/workflows/demo-pages.yml` (docs/demo/README.md). The website and its `deploy-pages` job stay off (variable `ARCHI_MADE_EASY_PAGES_DEPLOY`); Pages holds one site, so when the website is turned on its build must include `demo/`. Update notices start working once Pages also serves `skill-updates/archi-made-easy/stable.json` (a follow-up) |
 
 **Description** (GitHub "About", 350 characters or fewer):
 

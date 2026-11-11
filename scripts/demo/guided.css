@@ -1,0 +1,148 @@
+/* Guided demo layer over a rendered Archi-Made-Easy page (scripts/build-demo.mjs).
+   Active while <html data-demo> is set; ?full removes it and shows the whole workbench.
+   Uses the viewer's own tokens (docs/visual-qa/DESIGN-SYSTEM.md). */
+
+/* The workbench keeps running (it draws the failure on the diagram) but its own frame is
+   hidden: no rail, vitals bar, inspector, toolbar or canvas tools. */
+html[data-demo] { --ame-rail: 0px !important; --ame-vitals: 0px !important; --ame-inspector: 0px !important; --ame-tabbar: 0px !important; }
+html[data-demo] .toolbar,
+html[data-demo] #workbench-rail,
+html[data-demo] #workbench-vitals,
+html[data-demo] #workbench-inspector,
+html[data-demo] .diagram-nav,
+html[data-demo] #node-outline,
+html[data-demo] .rail-controls,
+html[data-demo] .rail-reveal { display: none !important; }
+html[data-demo] body { padding: 0 !important; background: var(--bg); }
+html[data-demo] .header h1 { white-space: normal !important; font-size: 1.25rem !important; }
+/* The viewer keeps the header clear of its toolbar; the demo has no toolbar. */
+html[data-demo] .container > .header { width: auto !important; max-width: none !important; padding-right: 0 !important; margin-right: 0 !important; }
+html[data-demo] .header .header-row { width: auto !important; max-width: none !important; }
+html[data-demo] .header .subtitle { white-space: normal !important; width: auto !important; max-width: 70ch !important; grid-column: 1 / -1; }
+
+/* Layout: one column on phones (intro, diagram, result); two columns on wide screens. */
+html[data-demo] .container {
+  display: flex; flex-direction: column; gap: 16px;
+  max-width: 1320px !important; width: auto !important; margin: 0 auto !important; padding: 16px !important; box-sizing: border-box;
+}
+html[data-demo] .container > .header { order: 1; }
+html[data-demo] .demo-lead { order: 2; }
+html[data-demo] .container > .diagram-container { order: 3; margin: 0 !important; }
+html[data-demo] .demo-steps { order: 4; }
+/* The viewer lets the notes rail dissolve into the page on narrow screens; keep it one block, last. */
+html[data-demo] .container > #reader-rail { order: 5; display: block !important; position: static !important; width: auto !important; }
+html[data-demo] .demo-side { display: contents; }
+@media (max-width: 959px) {
+  html[data-demo] .container { padding: 8px !important; gap: 12px; }
+  html[data-demo] .container > .diagram-container { padding: 4px 4px 8px !important; }
+  html[data-demo] .container > .header { padding: 8px 8px 0 !important; }
+}
+
+@media (min-width: 960px) {
+  html[data-demo] .container {
+    display: grid; grid-template-columns: minmax(0, 1fr) 400px; grid-template-rows: auto auto 1fr; column-gap: 24px; align-items: start;
+  }
+  html[data-demo] .container > .header { grid-column: 1; grid-row: 1; }
+  html[data-demo] .container > .diagram-container { grid-column: 1; grid-row: 2; }
+  html[data-demo] .container > #reader-rail { grid-column: 1; grid-row: 3; }
+  html[data-demo] .demo-side {
+    display: flex; flex-direction: column; gap: 16px; grid-column: 2; grid-row: 1 / span 3;
+    position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-bottom: 8px;
+  }
+}
+
+/* Panels */
+.demo-card {
+  background: var(--panel); border: 1px solid var(--panel-border); border-radius: 8px; padding: 16px;
+  color: var(--text); font-family: var(--ame-sans); font-size: 15px; line-height: 1.5;
+}
+.demo-card p { margin: 0 0 12px; }
+.demo-card p:last-child { margin-bottom: 0; }
+.demo-eyebrow, .demo-label {
+  margin: 0 0 8px; font-family: var(--ame-mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted);
+}
+.demo-card h2 { margin: 0 0 8px; font-size: 1.375rem; line-height: 1.25; }
+.demo-card h3 { margin: 0 0 8px; font-size: 1.125rem; line-height: 1.3; }
+.demo-card h3:focus { outline: none; }
+.demo-card h4 { margin: 16px 0 8px; font-size: 15px; }
+.demo-muted { color: var(--text-muted); font-size: 13px; }
+.demo-card ul { margin: 0 0 12px; padding-left: 20px; }
+.demo-card li { margin: 4px 0; }
+
+.demo-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px;
+  border-radius: 4px; border: 1px solid var(--ame-accent); background: var(--ame-accent); color: #fff;
+  font: 600 15px/1.2 var(--ame-sans); cursor: pointer; text-align: center;
+}
+html[data-theme="dark"] .demo-btn { color: #0B0C0E; }
+.demo-btn:hover { filter: brightness(1.08); }
+.demo-btn:focus-visible, .demo-link:focus-visible, .demo-ghost:focus-visible, .demo-seg button:focus-visible, .demo-copy:focus-visible {
+  outline: 2px solid var(--ame-accent); outline-offset: 2px;
+}
+.demo-btn--wide { width: 100%; }
+.demo-ghost {
+  min-height: 44px; padding: 8px 12px; border-radius: 4px; border: 1px solid var(--panel-border); background: transparent; color: var(--text);
+  font: 500 14px/1.2 var(--ame-sans); cursor: pointer;
+}
+.demo-ghost:hover { border-color: var(--text-muted); }
+.demo-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
+.demo-link { color: var(--ame-accent); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.demo-status { min-height: 1.2em; margin: 8px 0 0; font-size: 13px; color: var(--text-muted); }
+
+/* Basis tag, as in the workbench */
+.demo-tag {
+  display: inline-block; padding: 1px 6px; border: 1px solid currentColor; border-radius: 3px;
+  font: 600 10px/1.4 var(--ame-mono); letter-spacing: 0.06em; text-transform: uppercase; vertical-align: 2px; color: var(--ame-accent);
+}
+.demo-tag--assumed { color: var(--ame-warning); }
+
+/* Outcome lists */
+.demo-state { list-style: none; padding: 0 !important; }
+.demo-state li { display: flex; gap: 8px; align-items: baseline; }
+.demo-badge { flex: none; min-width: 72px; padding: 1px 6px; border-radius: 3px; font: 700 10px/1.6 var(--ame-mono); letter-spacing: 0.06em; text-align: center; border: 1px solid currentColor; }
+.demo-badge--down { color: var(--ame-critical); }
+.demo-badge--ok { color: var(--ame-ok); }
+.demo-badge--warn { color: var(--ame-warning); }
+
+/* Figures */
+.demo-figures { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.demo-figure { border: 1px solid var(--panel-border); border-radius: 4px; padding: 8px 10px; }
+.demo-figure b { display: block; font: 600 1.25rem/1.2 var(--ame-mono); font-variant-numeric: tabular-nums; }
+.demo-figure span { font-size: 12px; color: var(--text-muted); }
+.demo-figure--bad b { color: var(--ame-critical); }
+.demo-figure--good b { color: var(--ame-ok); }
+
+/* Compare table */
+.demo-table-wrap { overflow-x: auto; margin: 12px 0; }
+.demo-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.demo-table th, .demo-table td { padding: 8px 6px; border-bottom: 1px solid var(--panel-border); text-align: left; vertical-align: top; }
+.demo-table th[scope="col"] { font: 600 11px/1.3 var(--ame-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+.demo-table td { font-family: var(--ame-mono); font-variant-numeric: tabular-nums; }
+.demo-table td small, .demo-table th small { display: block; font: 400 12px/1.35 var(--ame-sans); color: var(--text-muted); }
+.demo-better { color: var(--ame-ok); font-weight: 700; }
+
+/* Diagram view switch */
+.demo-seg { display: inline-flex; border: 1px solid var(--panel-border); border-radius: 4px; overflow: hidden; }
+.demo-seg button { min-height: 40px; padding: 6px 12px; border: 0; background: transparent; color: var(--text); font: 500 13px/1.2 var(--ame-sans); cursor: pointer; }
+.demo-seg button[aria-pressed="true"] { background: var(--ame-accent); color: #fff; }
+html[data-theme="dark"] .demo-seg button[aria-pressed="true"] { color: #0B0C0E; }
+
+/* Trade-offs */
+.demo-trade { counter-reset: t; list-style: none; padding: 0 !important; }
+.demo-trade li { position: relative; padding-left: 28px; margin: 10px 0; }
+.demo-trade li::before { counter-increment: t; content: counter(t); position: absolute; left: 0; top: 1px; width: 20px; height: 20px; border-radius: 4px; border: 1px solid var(--ame-warning); color: var(--ame-warning); font: 700 11px/18px var(--ame-mono); text-align: center; }
+
+/* Code blocks with copy */
+.demo-code { display: flex; gap: 8px; align-items: stretch; margin: 8px 0 12px; }
+.demo-code code { flex: 1; min-width: 0; padding: 10px; border-radius: 4px; border: 1px solid var(--panel-border); background: var(--bg); font: 13px/1.45 var(--ame-mono); overflow-wrap: anywhere; }
+.demo-copy { flex: none; min-width: 64px; border-radius: 4px; border: 1px solid var(--panel-border); background: transparent; color: var(--text); font: 600 12px var(--ame-sans); cursor: pointer; }
+
+.demo-note { border-left: 3px solid var(--panel-border); padding-left: 12px; }
+.demo-foot { font-size: 12px; color: var(--text-muted); }
+.demo-foot a { color: inherit; }
+[hidden] { display: none !important; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .demo-reveal { animation: demo-in 180ms ease-out; }
+  @keyframes demo-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+}

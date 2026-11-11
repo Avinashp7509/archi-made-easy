@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Online shop checkout",
+    "subtitle": "The path of one order, from the shopper to a saved, paid order",
+    "output": "index.html",
+    "quality_profile": "showcase"
+  },
+  "layout": { "mode": "grid", "origin": [40, 40], "cols": 2, "cellW": 150, "cellH": 60, "gapX": 76, "gapY": 70 },
+  "components": [
+    { "id": "shoppers", "type": "external", "label": "Shoppers", "sublabel": "Web and mobile", "row": 0, "col": 0,
+      "operational": { "role": "ingress" } },
+    { "id": "gateway", "type": "backend", "label": "API gateway", "sublabel": "Sign-in, routing", "row": 1, "col": 0,
+      "operational": { "role": "gateway", "redundancy": "multi-az" } },
+    { "id": "payments", "type": "external", "label": "Payment provider", "sublabel": "Card payments", "row": 1, "col": 1,
+      "operational": { "role": "external-saas" } },
+    { "id": "checkout", "type": "backend", "label": "Checkout service", "sublabel": "Creates the order", "row": 2, "col": 0,
+      "operational": { "role": "stateless-compute", "redundancy": "multi-az" } },
+    { "id": "orders_db", "type": "database", "label": "Orders database", "sublabel": "One instance", "row": 3, "col": 0,
+      "operational": { "role": "stateful-db", "redundancy": "single-instance" } },
+    { "id": "events", "type": "messagebus", "label": "Order events", "sublabel": "Queue", "row": 3, "col": 1,
+      "operational": { "role": "message-broker", "redundancy": "multi-az" } },
+    { "id": "fulfilment", "type": "backend", "label": "Fulfilment", "sublabel": "Packs and ships", "row": 4, "col": 1,
+      "operational": { "role": "stateless-compute", "redundancy": "multi-az" } }
+  ],
+  "connections": [
+    { "id": "shop-gw", "from": "shoppers", "to": "gateway", "label": "HTTPS", "variant": "emphasis" },
+    { "id": "gw-checkout", "from": "gateway", "to": "checkout", "label": "place order", "variant": "emphasis" },
+    { "id": "checkout-db", "from": "checkout", "to": "orders_db", "label": "save order", "variant": "emphasis" },
+    { "id": "checkout-pay", "from": "checkout", "to": "payments", "label": "charge" },
+    { "id": "checkout-events", "from": "checkout", "to": "events", "label": "order placed", "variant": "dashed",
+      "operational": { "call_semantics": "async-queue", "resilience": { "idempotent": true } } },
+    { "id": "events-fulfil", "from": "events", "to": "fulfilment", "label": "consume", "variant": "dashed",
+      "operational": { "call_semantics": "async-queue", "resilience": { "idempotent": true } } }
+  ],
+  "cards": [
+    { "title": "What this shows", "dot": "cyan", "items": [
+      "Only the path of placing an order: browsing and search are left out",
+      "Checkout saves the order before it charges the card, then announces it on a queue"
+    ] },
+    { "title": "Assumptions", "dot": "amber", "items": [
+      "An illustrative design, not a real shop",
+      "Availability, capacity and latency are the model's planning defaults for each kind of component, labelled ASSUMED",
+      "No prices are stated, so cost is not modelled"
+    ] }
+  ],
+  "workbench": { "entrypoints": ["shoppers"] }
+}

@@ -11,6 +11,8 @@
 
 <p align="center"><strong>From one prompt to an interactive architecture.</strong><br>Design it. Explore it. Break it virtually. Review the risks. Improve it.</p>
 
+<p align="center"><a href="https://avinashp7509.github.io/archi-made-easy/demo/"><img src="docs/demo/preview.png" alt="The interactive demo: an online shop checkout with its orders database down, the failing components marked on the diagram and the modelled impact beside it" width="720"></a><br><a href="https://avinashp7509.github.io/archi-made-easy/demo/"><strong>▶ Try the interactive demo</strong></a>: take down a checkout's database, see what fails, compare a standby. In your browser, no install.</p>
+
 <p align="center"><sub>AI-native: your AI coding agent turns plain language into the architecture and runs the tools. The analysis itself (validation, review, simulation, capacity and cost) is a deterministic, tested model, so the same design always gives the same figures.</sub></p>
 
 <p align="center">
