@@ -3,7 +3,8 @@ name: Copilot Edition release
 # The Microsoft 365 Copilot Edition is released on its own tags (copilot-v<version>), so the Full
 # Edition's release workflow (tags v*), its releases and its archive are never touched. The
 # edition has its own version (SKILL.md metadata `version`) and records the Full Edition version
-# it repackages (`engine-version`).
+# it repackages (`engine-version`). A tag copilot-v<version>-rc<N> publishes a testing candidate
+# of <version> as a GitHub pre-release with editions/copilot/TESTING-CANDIDATE.md as its notes.
 on:
   push:
     tags: ['copilot-v*']
@@ -26,6 +27,7 @@ jobs:
         with:
           node-version: 22
       - name: Tag must be annotated and match the edition and Full Edition versions
+        id: kind
         shell: bash
         run: |
           set -euo pipefail
@@ -33,7 +35,17 @@ jobs:
             echo "::error::Copilot Edition releases require an annotated tag: ${GITHUB_REF_NAME}"
             exit 1
           fi
-          version="${GITHUB_REF_NAME#copilot-v}"
+          tagged="${GITHUB_REF_NAME#copilot-v}"
+          if [[ "$tagged" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-rc([0-9]+)$ ]]; then
+            version="${BASH_REMATCH[1]}"
+            { echo "prerelease=true"; echo "notes=editions/copilot/TESTING-CANDIDATE.md"; echo "title=Archi-Made-Easy Copilot Edition ${version} - Testing Candidate (rc${BASH_REMATCH[2]}, not validated in Microsoft Agent Builder)"; } >> "$GITHUB_OUTPUT"
+          elif [[ "$tagged" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            version="$tagged"
+            { echo "prerelease=false"; echo "notes=editions/copilot/RELEASE-NOTES.md"; echo "title=Archi-Made-Easy Copilot Edition ${GITHUB_REF_NAME}"; } >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::Copilot Edition tags are copilot-v<major>.<minor>.<patch> or copilot-v<major>.<minor>.<patch>-rc<N>: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
           full="$(node -p "require('./archi-made-easy/package.json').version")"
           edition="$(sed -n 's/^  version: "\(.*\)"$/\1/p' editions/copilot/SKILL.md)"
           engine="$(sed -n 's/^  engine-version: "\(.*\)"$/\1/p' editions/copilot/SKILL.md)"
@@ -49,13 +61,13 @@ jobs:
         run: cmp -s /tmp/archi-made-easy-copilot-built.zip archi-made-easy-copilot.zip
       - name: Write the checksum file
         run: sha256sum archi-made-easy-copilot.zip > archi-made-easy-copilot.zip.sha256
-      - name: Create the GitHub Release (never marked latest)
+      - name: Create the GitHub Release or pre-release (never marked latest)
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
-          name: Archi-Made-Easy Copilot Edition ${{ github.ref_name }}
+          name: ${{ steps.kind.outputs.title }}
           files: |
             archi-made-easy-copilot.zip
             archi-made-easy-copilot.zip.sha256
-          body_path: editions/copilot/RELEASE-NOTES.md
-          prerelease: false
+          body_path: ${{ steps.kind.outputs.notes }}
+          prerelease: ${{ steps.kind.outputs.prerelease }}
           make_latest: false

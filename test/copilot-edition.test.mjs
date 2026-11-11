@@ -73,10 +73,18 @@ describe('Copilot Edition package', () => {
     const version = fs.readFileSync(path.join(repoRoot, 'editions', 'copilot', 'SKILL.md'), 'utf8').match(/^ {2}version: "([^"]+)"$/m)?.[1];
     const downloads = [...readme.matchAll(/(?:\]\(|href=")([^)"\s]*archi-made-easy-copilot\.zip)(?=[)"])/g)].map((match) => match[1]);
     assert.ok(downloads.length >= 2, 'README should offer the Copilot download near the top and in its section');
-    const linked = [...new Set(downloads)];
-    assert.equal(linked.length, 1, 'README Copilot download links must all name one release');
-    const linkedVersion = linked[0].match(/^https:\/\/github\.com\/Avinashp7509\/archi-made-easy\/releases\/download\/copilot-v(\d+\.\d+\.\d+)\/archi-made-easy-copilot\.zip$/)?.[1];
-    assert.ok(linkedVersion, `README Copilot download must be a release asset URL: ${linked[0]}`);
+    const asset = /^https:\/\/github\.com\/Avinashp7509\/archi-made-easy\/releases\/download\/copilot-v(\d+\.\d+\.\d+)(-rc\d+)?\/archi-made-easy-copilot\.zip$/;
+    for (const link of downloads) assert.match(link, asset, 'README Copilot downloads must be release asset URLs');
+    // Stable links all name one release; a testing-candidate link may name only this edition version,
+    // and then the README must carry this exact ZIP's checksum.
+    const stable = [...new Set(downloads.filter((link) => !link.match(asset)[2]))];
+    const candidates = [...new Set(downloads.filter((link) => link.match(asset)[2]))];
+    assert.equal(stable.length, 1, 'README stable Copilot download links must all name one release');
+    for (const link of candidates) {
+      assert.equal(link.match(asset)[1], version, 'a testing-candidate link must be for this edition version');
+      assert.ok(readme.includes(`\`${report.sha256}\``), 'README must show the testing candidate SHA-256');
+    }
+    const linkedVersion = stable[0].match(asset)[1];
     const order = (v) => v.split('.').map(Number).reduce((total, part) => total * 1000 + part, 0);
     assert.ok(order(linkedVersion) <= order(version), 'README cannot link a release newer than the edition');
     if (linkedVersion === version) {
