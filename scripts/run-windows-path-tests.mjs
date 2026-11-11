@@ -332,10 +332,24 @@ async function runControlledWindowsPathE2E() {
     localRelease.version = '2.15.0';
     const releasePath = path.join(caseRoot, `${token}-skill-release.json`);
     fs.writeFileSync(releasePath, `${JSON.stringify(localRelease)}\n`);
-    const stableManifest = fs.readFileSync(
-      path.join(repoRoot, 'docs', 'skill-updates', 'archi-made-easy', 'stable.json'),
-      'utf8',
-    );
+    // The published stable manifest once it exists; before the first stable Release publishes
+    // one (the first-release window, see scripts/check-release-identity.mjs), a manifest that
+    // satisfies the same contract, so the update check is still exercised through these paths.
+    const publishedManifest = path.join(repoRoot, 'docs', 'skill-updates', 'archi-made-easy', 'stable.json');
+    const stableManifest = fs.existsSync(publishedManifest)
+      ? fs.readFileSync(publishedManifest, 'utf8')
+      : `${JSON.stringify({
+        schemaVersion: 1,
+        skillId: 'archi-made-easy',
+        channel: 'stable',
+        version: '2.16.0',
+        publishedAt: '2026-08-28T07:00:00Z',
+        source: { repository: localRelease.source.repository, ref: 'v2.16.0', treeSha: 'a'.repeat(40) },
+        artifact: { sha256: 'b'.repeat(64) },
+        summary: 'Windows path contract fixture.',
+        releaseNotes: 'https://github.com/Avinashp7509/archi-made-easy/releases/tag/v2.16.0',
+        severity: 'normal',
+      })}\n`;
     const updateCache = path.win32.join(eightDotThreeShortRoot, `${token}-update-cache`);
     const update = await checkForUpdate({
       releasePath,

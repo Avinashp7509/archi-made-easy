@@ -55,11 +55,12 @@ git push -u origin main
 
 # 2. Watch the CI workflow on main: identity and ZIP gates, unit and browser suites,
 #    package smoke on Linux, macOS and Windows, Windows path contracts. Fix and re-push
-#    if a job fails on a platform this machine could not test. Only a documentation-only
-#    commit may be tagged on the existing evidence: a fix that touches archi-made-easy/,
-#    scripts/, viewer/ or the archive needs the archive rebuilt with Node 22, the final
-#    cycle and the clean install run again, and RELEASE-ACCEPTANCE.md sections 2, 4, 8
-#    and 11 updated before the tag.
+#    if a job fails on a platform this machine could not test. A commit may be tagged on
+#    the existing evidence only if it changes nothing that ships (archi-made-easy/, viewer/,
+#    the archive) and CI passes on it, including zip-freshness, which rebuilds the archive
+#    and compares it byte for byte. A fix to shipped code needs the archive rebuilt with
+#    Node 22, the final cycle and the clean install run again, and RELEASE-ACCEPTANCE.md
+#    sections 2, 4, 8 and 11 updated before the tag.
 
 # 3. Tag the verified commit (annotated: the release workflow requires it) and push the tag.
 #    main must be the documentation commit that follows 9802361 (or a later
@@ -78,6 +79,12 @@ git push origin v1.0.0
 #    placeholder domain in website/src, update its toolchain (SECURITY-REVIEW.md S-07),
 #    set Settings → Pages → Source to "GitHub Actions" and the variable
 #    ARCHI_MADE_EASY_PAGES_DEPLOY to true.
+#    The CI website job is off as well, until the variable ARCHI_MADE_EASY_WEBSITE is true.
+#    Before turning it on, the website follow-up must also: give the Cloudflare and
+#    deployment tests a manifest fixture until stable.json is published, restore the README
+#    link they expect to the scenario guide, and handle the empty community catalog
+#    (website/test/agent-diagrams, cloudflare-output, deployment-target, community tests).
+#    Its typecheck and build pass since the launch fix of website/src/data/community.ts.
 
 # 5. Verify discovery from a clean machine, without touching an existing installation:
 npx skills add Avinashp7509/archi-made-easy --list --full-depth   # exactly one skill: archi-made-easy

@@ -435,9 +435,14 @@ jobs:
           --test-name-pattern="cli: lock release failure does not invoke the requested opener"
           test/cli.test.mjs
 
+  # The website (website/) is not part of the 1.0.0 release and is not deployed: its sources
+  # still use a placeholder domain, and several of its tests need the published update
+  # manifest, which exists only after the first Release. It is built only once the repository
+  # variable ARCHI_MADE_EASY_WEBSITE is 'true' (see docs/program/release/LAUNCH.md). The
+  # deployment jobs need this job, so they stay off with it.
   website:
     needs: scope
-    if: needs.scope.outputs.website == 'true'
+    if: needs.scope.outputs.website == 'true' && vars.ARCHI_MADE_EASY_WEBSITE == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
