@@ -4,7 +4,7 @@ All notable changes to Archi-Made-Easy are recorded here. Versions follow [Seman
 
 ## [Unreleased]
 
-## [1.0.0] - 2026-11-10
+## [1.0.0] - 2026-11-11
 
 First release of Archi-Made-Easy. Evidence for every item: [release acceptance report](docs/program/RELEASE-ACCEPTANCE.md).
 

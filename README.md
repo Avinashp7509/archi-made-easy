@@ -111,7 +111,7 @@ The skill needs an agent that can run `node` commands. The release candidate was
 What was tested, and how, before this release: [release acceptance report](docs/program/RELEASE-ACCEPTANCE.md). In short:
 
 - unit and integration suites, the real-browser suite, and a visual QA matrix of 744 interface states at six screen sizes in both themes;
-- a clean install from the release archive, then the three flagship and four provider examples scaffolded, finalized, reviewed, run through every preset scenario and exported from the installed copy;
+- a clean install from the release archive, then the four provider examples scaffolded, and all seven showcase examples (three flagships, four providers) finalized, reviewed, run through every preset scenario and exported from the installed copy;
 - a [security review](docs/program/SECURITY-REVIEW.md) of the page, the exports and the command line.
 
 Known limitations:
@@ -120,6 +120,7 @@ Known limitations:
 - On phones and tablets, diagram labels are smaller than 6px until you zoom ([defect register](docs/visual-qa/DEFECT-REGISTER.md), D-016).
 - The workbench is in English only.
 - Agents other than Claude Code, and Linux and macOS outside CI, have not been exercised.
+- A large architecture takes a while: with Claude Code at its `xhigh` effort setting (one below `max`), a design of 22 to 23 components from a requirements document took 32 and 51 minutes, almost all of it the agent reasoning before its first draft (the skill's own commands take seconds). Smaller requests took 6 to 21 minutes; questions about an existing design, 1 to 2.
 
 ## Contributing
 

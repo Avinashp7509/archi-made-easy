@@ -32,7 +32,7 @@ Three complete examples ship rendered: a global fintech payment mesh, an enterpr
 Where and on which revision each check ran is recorded in [RELEASE-ACCEPTANCE.md](https://github.com/Avinashp7509/archi-made-easy/blob/main/docs/program/RELEASE-ACCEPTANCE.md): the regression suites, the visual QA matrix and the clean install on the final tree and archive; the agent runs on the release candidates before it, with one rerun on the final archive.
 
 - Unit, integration and real-browser suites; a visual QA matrix of 744 interface states at six screen sizes in both themes, with 0 critical and 0 high defects.
-- A clean install from the release archive, then the three flagship and four provider examples scaffolded, finalized, reviewed, run through every preset scenario and exported from the installed copy; each page opened offline with figures equal to the command line.
+- A clean install from the release archive, then the four provider examples scaffolded, and all seven showcase examples (three flagships, four providers) finalized, reviewed, run through every preset scenario and exported from the installed copy; each page opened offline with figures equal to the command line.
 - Nine plain-language prompts given to Claude Code with the skill freshly installed, with each run's commands, tokens, costs and final reply recorded (the raw event streams are not published: they carry account session identifiers).
 - A security review of the page, the exports and the command line, with hostile-text tests for every output: authored text does not become markup, script, an image or a hidden link (a bare web address may be shown as a link by Markdown renderers that autolink).
 
@@ -41,6 +41,7 @@ Where and on which revision each check ran is recorded in [RELEASE-ACCEPTANCE.md
 - The figures are a model of the declared design: they rank risks and show propagation; they are not load tests, failover drills or provider commitments.
 - On phones and tablets, diagram labels render under 6px until you zoom.
 - The workbench text is English only.
+- A large architecture takes a while: with Claude Code at its `xhigh` effort setting (one below `max`), a design of 22 to 23 components from a requirements document took 32 and 51 minutes, almost all of it the agent reasoning before its first draft; the skill's own commands take seconds.
 - Tested with Claude Code on Windows 11. The installer places the skill for six other agents, which were not exercised; Linux and macOS are covered by the CI workflows only.
 - Update notices read one fixed manifest on this project's GitHub Pages once it is published; the skill never installs anything by itself.
 

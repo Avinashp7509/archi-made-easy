@@ -39,7 +39,7 @@ Everything here is prepared locally. Nothing has been pushed, published or made 
 
 ## Before the first push
 
-- **History.** An earlier commit recorded this machine's workspace path in three files (a design note and two capture scripts). Before publication the `main` history was rewritten to replace that path (2026-11-11, `git filter-branch` over those three files only; authors, dates and messages unchanged; the newest tree unchanged). The previous history is kept locally in `refs/backup/pre-scrub-main`, with `refs/backup/phase5-functional` and `refs/backup/phase6-flagship1`; none of them is pushed by the commands below. Push `main` and the tag only, never `--all` or `--mirror`, or delete those refs first.
+- **History.** An earlier commit recorded this machine's workspace path in three files (a design note and two capture scripts). Before publication the `main` history was rewritten to replace that path (2026-11-11, `git filter-branch` over those three files only: the path line in each was replaced in every commit that held it; every other file, and the authors, dates and messages, unchanged). The release commit `f756802` was made on the rewritten history. The previous history is kept locally in `refs/backup/pre-scrub-main`, with `refs/backup/phase5-functional` and `refs/backup/phase6-flagship1`; none of them is pushed by the commands below. Push `main` and the tag only, never `--all` or `--mirror`, or delete those refs first.
 - **Author identity.** Every commit is authored as `Avinash Roy` with the e-mail address configured in git on this machine; pushing makes it public in the commit metadata. To use GitHub's no-reply address instead, rewrite the author before the first push (for example `git filter-branch --env-filter`), or accept it.
 - **Size.** A clone is about 125 MiB: every rebuilt `archi-made-easy.zip` (6.9 MB each) and the rendered example pages remain in history. The release gates compare the committed archive byte for byte, so it stays tracked.
 
@@ -54,10 +54,16 @@ git push -u origin main
 
 # 2. Watch the CI workflow on main: identity and ZIP gates, unit and browser suites,
 #    package smoke on Linux, macOS and Windows, Windows path contracts. Fix and re-push
-#    if a job fails on a platform this machine could not test.
+#    if a job fails on a platform this machine could not test. Only a documentation-only
+#    commit may be tagged on the existing evidence: a fix that touches archi-made-easy/,
+#    scripts/, viewer/ or the archive needs the archive rebuilt with Node 22, the final
+#    cycle and the clean install run again, and RELEASE-ACCEPTANCE.md sections 2, 4, 8
+#    and 11 updated before the tag.
 
 # 3. Tag the verified commit (annotated: the release workflow requires it) and push the tag.
-git tag -a v1.0.0 <final commit sha> -m "Archi-Made-Easy 1.0.0"
+#    main must be the documentation commit that follows f756802 (or a later
+#    documentation-only commit); check with: git log --oneline -3 main
+git tag -a v1.0.0 main -m "Archi-Made-Easy 1.0.0"
 git push origin v1.0.0
 #    The release workflow builds archi-made-easy.zip, compares it with the committed one,
 #    and creates the GitHub Release with the archive attached (release notes: paste
@@ -83,9 +89,9 @@ npx skills add Avinashp7509/archi-made-easy
 
 | # | Item | Status |
 |---|---|---|
-| 1 | Scope and revision | Version 1.0.0, stable channel. Final source SHA: see RELEASE-ACCEPTANCE.md. Comparison base: the imported upstream commit `11b0d60`. Release notes and known issues: this folder. |
-| 2 | Identity and build | `node scripts/check-release-identity.mjs` passes for 1.0.0; `archi-made-easy.zip` built from a clean checkout of the same tree with Node 22 and committed; SHA-256 in RELEASE-ACCEPTANCE.md. |
-| 3 | Final-head validation | Local: the full suite outside OneDrive, the serial browser suite, the visual matrix, the clean install, the agent runs (RELEASE-ACCEPTANCE.md). CI run URLs: **pending the first push.** Linux and macOS package smoke: **pending the first push.** |
+| 1 | Scope and revision | Version 1.0.0, stable channel. Release commit `f756802` (tree `105a7c2`); the documentation-only commit after it records the results (RELEASE-ACCEPTANCE.md section 11). Comparison base: `abc813d`, the import of upstream tt-a1i/archify `11b0d60`. Release notes and known issues: this folder. Tag the latest commit on `main`. |
+| 2 | Identity and build | `node scripts/check-release-identity.mjs` passes for 1.0.0; `archi-made-easy.zip` built with Node 22, outside OneDrive, from a checkout of a snapshot whose tree equals the release commit's apart from the archive, then committed in the release commit; SHA-256 `ca480ef8…62ef` (RELEASE-ACCEPTANCE.md section 8), rebuilt from the tested tree with the same bytes. |
+| 3 | Final-head validation | Local, on the release tree: full suite outside OneDrive (only the 43 baseline failures), serial browser suite (0 failures), visual matrix (0 critical, 0 high), clean install from the committed archive (23 of 23); agent runs on the candidates and run 9c on the final archive (RELEASE-ACCEPTANCE.md sections 2 to 5). CI run URLs: **pending the first push.** Linux and macOS: **pending the first push.** |
 | 4 | Authorized publication | **Waiting for the owner's approval.** Nothing pushed. |
 | 5 | Manifest, website and integrations | After the Release: publish `stable.json`. The website and its Pages deployment are **deferred** (not part of 1.0.0: placeholder domain in `website/src`, open toolchain advisories S-07); the `deploy-pages` job is switched off by the `ARCHI_MADE_EASY_PAGES_DEPLOY` variable until then, and update notices stay silent. |
 | 6 | Public acceptance and closure | After publication: Skills CLI discovery from a clean machine, Pages version, download digest. |

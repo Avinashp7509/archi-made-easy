@@ -150,6 +150,10 @@ Not done in Phase 5, recorded: workbench text is English only; no new typeface i
 
 ## Phase 7. Distribution readiness
 
-- [ ] Release workflow, CI matrix, documentation, troubleshooting
-- [ ] Security review
-- [ ] Acceptance tests 1 to 5 (PLAN.md section 9)
+- [x] Release workflow, CI matrix, documentation, troubleshooting: owner `Avinashp7509` and version 1.0.0 applied; first-release window in the identity check; Pages deployment switched off by a repository variable until the website is ready; README, release notes, launch plan, installation guide with troubleshooting ([RELEASE-ACCEPTANCE.md](RELEASE-ACCEPTANCE.md), [release/LAUNCH.md](release/LAUNCH.md)).
+- [x] Security review: [SECURITY-REVIEW.md](SECURITY-REVIEW.md), S-01 to S-12. S-01 (draw.io) was the release blocker; S-12 (line breaks, backslashes, substitutions and directives in the text exports) came from the release-readiness audit; both fixed with tests.
+- [x] Release-readiness audit (2026-11-11): read-only reviewers for packaging, licences, secrets and personal data, page and command-line security, documentation claims and export escaping, each finding checked by a second reviewer; confirmed findings fixed or recorded as accepted. The local workspace path was removed from the history of `main` (backup in `refs/backup/pre-scrub-main`).
+- [x] Acceptance tests 1 to 3: clean install from the committed archive, 23 of 23 steps ([acceptance/clean-install-2026-11-11-release.json](acceptance/clean-install-2026-11-11-release.json)).
+- [x] Acceptance test 4: nine prompts with Claude Code ([acceptance/agent-runs/README.md](acceptance/agent-runs/README.md)); every prompt passed after at most one diagnosed rerun.
+- [ ] Acceptance test 5: identity guard, packaging and installation pass locally; the cross-platform CI jobs run only after the first push (waiting for the owner).
+- [x] Regression on the release tree: full suite outside OneDrive 3,580 tests, only the 43 baseline failures; serial browser suite 316 tests, 0 failures; visual matrix 744 states, 0 critical, 0 high, 12 medium (D-016); archive rebuilt byte-identical.

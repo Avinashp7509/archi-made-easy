@@ -1,0 +1,64 @@
+{
+  "run": "9c",
+  "prompt": "Create an architecture from my uploaded requirements document.",
+  "candidate": "final",
+  "candidateArchive": "archi-made-easy.zip (1.0.0, SHA-256 ca480ef8…62ef)",
+  "outcome": "pass",
+  "purpose": "One rerun of prompt 9 on the final 1.0.0 archive, after the authoring guidance was changed to keep the placement pass short (see README, \"Why the create runs take so long\").",
+  "fixture": "requirements-document",
+  "turns": [
+    {
+      "prompt": "Create an architecture from my uploaded requirements document.",
+      "exit": 0,
+      "timedOut": false,
+      "ms": 3085473,
+      "subtype": "success",
+      "isError": false,
+      "numTurns": 28,
+      "costUsd": 7.871542000000001,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5"
+      ]
+    }
+  ],
+  "durationSeconds": 3085,
+  "costUsd": 7.8715,
+  "costNote": "total_cost_usd reported by Claude Code",
+  "usage": {
+    "input_tokens": 62,
+    "output_tokens": 222924,
+    "cache_creation_input_tokens": 141405,
+    "cache_read_input_tokens": 1766984
+  },
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-opus-5"
+  ],
+  "skillUsed": true,
+  "archiMadeEasyCommands": [
+    "scaffold",
+    "scaffold",
+    "finalize",
+    "finalize",
+    "finalize"
+  ],
+  "toolCalls": 26,
+  "pages": [
+    {
+      "page": ".archi-made-easy/architecture-carelink-20261111-1131/carelink-architecture.html",
+      "title": "CareLink: online consultation platform on Azure",
+      "bytes": 1187197,
+      "checks": "9/9",
+      "layoutGate": "pass (4 viewports)",
+      "agentFinalize": "pass at showcase",
+      "workbench": true,
+      "components": 22,
+      "componentsWithOperationalData": 14,
+      "assumptionsCard": true,
+      "levels": false,
+      "published": "pages/run-9c-carelink-architecture.html"
+    }
+  ],
+  "finalAnswer": "Created **[CareLink architecture on Azure](<temp>\\project\\.archi-made-easy\\architecture-carelink-20261111-1131\\carelink-architecture.html)** from `requirements.md`.\n\nOne EU Azure region with three zone-redundant tiers: Front Door → API Management (token validation) → three App Service APIs (booking, consultation, records) on Azure SQL + Redis, with Service Bus and Functions carrying reminders and retries out of the request path. The on-premises FHIR API stays the system of record; video, card payments, identity verification and e-prescriptions are external. Every functional requirement maps to a visible component, boundary, label or card.\n\n**Assumptions I made** (all also listed in the diagram's Assumptions card and ADRs)\n- One region, three availability zones, no second region — your open question 2, recorded as a proposed ADR with the active-passive alternative and its cost consequence.\n- No consultation recordings — your open question 1, so no media storage or consent flow.\n- Clinician search is served from Azure SQL with a Redis availability cache rather than a separate search index (1,200 clinicians, 300 rps).\n- One \"Entra ID\" box stands for two tenants: workforce Entra ID with MFA for staff, Entra External ID with e-mail one-time code for patients.\n- Autoscale range, Azure region name and service tiers are design intent, not your stated requirements.\n\n**Requirements I could not represent**\n- \"25 concurrent video consultations per clinic\" — capacity of the bought video service, outside the components you own.\n- The EUR 30,000 monthly ceiling is recorded in a card but not in the model: the budget field is USD and I did not invent a conversion, so cost analysis is unavailable.\n- \"Eight developers who know C# and TypeScript\" informed the choice of App Service and Functions over a container platform, but is not a diagram element.\n\nThe built-in review (an analytical model of this declared design, not measurements) scores it 83 with no critical findings. Its one high finding — modelled P99 of 3.8 s on `Front Door → API Management → Consultation API → Video service` against your 800 ms target — rests on assumed per-hop latencies and on a path your target does not actually cover; your 800 ms applies to search and booking. Worth re-running once you have real latency figures for the video provider.\n\nThe Workbench button in the toolbar and the mode rail on the left (Review, Simulate, Optimize) let you try failures, load and changes yourself — the on-premises FHIR outage trace is already included."
+}

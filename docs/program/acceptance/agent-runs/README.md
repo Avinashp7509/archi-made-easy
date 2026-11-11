@@ -7,11 +7,11 @@ Acceptance test 4 of [PLAN.md](../../PLAN.md): each of the nine example prompts 
 - Agent: Claude Code 2.1.219, headless (`-p`), on Windows 11, with the account and model configured on the machine (Claude Opus 5, plus Claude Haiku 4.5 for Claude Code's own small tasks).
 - For each run: a fresh project folder outside the repository; the skill installed into it from the release archive with the bundled installer (project scope); the prompt's fixture copied in.
 - Tools: Bash, Read, Write, Edit, Glob, Grep, Skill, TodoWrite (Claude Code's to-do list). Pre-approved shell commands: `node` only, in permission mode `dontAsk`. No MCP servers, no web access, no sub-agents. Spending cap $15 per turn.
-- Claude Code ran with the settings configured on the machine, including reasoning effort `xhigh`. That setting is why the create runs are long: the agent composes the whole architecture document in one reasoning pass before writing it (runs 1, 8, 9: reasoning blocks of 54,000 to 64,000 estimated tokens; 9a restarted twice at the 64,000 mark and ran out of time).
+- Claude Code ran with the settings configured on the machine, including reasoning effort `xhigh`. With that setting the create runs are long: the agent composes the whole architecture document in one reasoning pass before writing it (runs 1, 8, 9b and 9c: reasoning of 54,000 to 64,000 estimated tokens before the first draft; in 9a and 9c that pass restarted after reaching about 64,000; see "Why the create runs take so long").
 - No automatic retries. A run that failed was rerun once, only after a diagnosis, and both runs are reported.
 - Pages were re-checked independently: the nine artifact checks and the real-browser layout gate on a copy of each page alone.
 
-Archives: candidate A `release-candidate.zip` (Phase 7 candidate A: before the skill description was widened); candidate B `release-candidate-b.zip` (Phase 7 candidate B: the skill description names review, failure, load and cost questions).
+Archives: candidate A `release-candidate.zip` (Phase 7 candidate A: before the skill description was widened); candidate B `release-candidate-b.zip` (Phase 7 candidate B: the skill description names review, failure, load and cost questions); final: the committed 1.0.0 `archi-made-easy.zip` (SHA-256 `ca480ef8…62ef`; see [RELEASE-ACCEPTANCE.md](../../RELEASE-ACCEPTANCE.md) section 8 for how it differs from candidate B).
 
 ## Results
 
@@ -29,8 +29,11 @@ Archives: candidate A `release-candidate.zip` (Phase 7 candidate A: before the s
 | [8](run-8.json) | Convert my application repository into an interactive architecture diagram. | **pass** | yes | finalize | [page](pages/run-8-parcelpoint-architecture.html): checks 9/9, layout pass | 949 s | 3.39 |
 | [9a](run-9a.json) | Create an architecture from my uploaded requirements document. | **fail** (see diagnosis) | yes | scaffold | — | 1800 s | not reported |
 | [9b](run-9b.json) | Create an architecture from my uploaded requirements document. | **pass** | yes | scaffold, finalize | [page](pages/run-9b-carelink-architecture.html): checks 9/9, layout pass | 1925 s | 6.25 |
+| [9c](run-9c.json) | Create an architecture from my uploaded requirements document. (final archive) | **pass** | yes | scaffold, finalize | [page](pages/run-9c-carelink-architecture.html): checks 9/9, layout pass | 3085 s | 7.87 |
 
-Total reported cost: **$21.13** (run 9a was stopped before Claude Code reported its cost; it is not included).
+Total reported cost: **$29.00**, of which $21.13 for runs 1 to 9b and $7.87 for run 9c (run 9a was stopped before Claude Code reported its cost; it is not included).
+
+Run 9c is not a retry: it is the one run on the final 1.0.0 archive, made to check the guidance change below and to exercise the archive that ships.
 
 ## Diagnoses of the failed runs
 
@@ -54,11 +57,12 @@ Measured from the timestamps in each run's event stream (the streams themselves 
 | 1 | 1,260 s | 1,245 s | 17 s | 97,549 | 790 s, reasoning of about 63,900 tokens |
 | 8 | 947 s | 939 s | 10 s | 72,666 | 702 s, about 53,750 tokens |
 | 9b | 1,923 s | 1,904 s | 20 s | 152,752 | 820 s, about 63,900 tokens |
+| 9c | 3,083 s | 3,059 s | 25 s | 222,924 | 2,586 s before the first draft: reasoning reached about 64,000 tokens, an API retry, then attempts of about 14,000 and 63,900 that restarted, and one of about 56,900 that wrote the draft |
 
 - Almost all the time is the model generating, not the skill. Each `finalize` (validation, nine artifact checks, real-browser layout gate) took 4 to 7 seconds; `scaffold` about a second.
 - Most of the generated tokens are reasoning before the first candidate is written: the agent placed every component and checked the geometry in its head, up to the reasoning limit of about 64,000 tokens at the machine's `xhigh` effort setting. In 9b this happened between reading the schema (80 s) and writing the first candidate (1,501 s). The two later repair rounds after `finalize` reported its findings took 163 s and 80 s.
 - The skill's own guidance asked for that up-front work: `references/authoring-defaults.md` told the agent to trace every relationship and budget label space in pixels "before writing positions".
 
-**Change made for 1.0.0.** The guidance now tells the agent to keep that pass short: place by rows and columns, write the candidate, and let `finalize` measure the layout and name each repair; for about 15 components or more, write the main journey first, finalize it, then add the rest (`references/authoring-defaults.md`, "Layout and routing"; `references/operational-model.md`). Whether that shortens real runs is checked by one rerun of prompt 9 on the final archive, recorded below as run 9c.
+**Change made for 1.0.0.** The guidance now tells the agent to keep that pass short: place by rows and columns, write the candidate, and let `finalize` measure the layout and name each repair; for about 15 components or more, write the main journey first, finalize it, then add the rest (`references/authoring-defaults.md`, "Layout and routing"; `references/operational-model.md`). Run 9c tested it on the final archive. **It did not shorten the run** (51 minutes, against 32 for 9b): the agent still planned the whole 22-component document in its reasoning before writing anything, and that reasoning reached the reply's output limit and restarted three times (once after an API retry). The guidance did no harm: the first draft passed `finalize` at showcase quality at once; one layout repair failed the gates and the agent restored the passing version. Prompt 9 at `xhigh` effort therefore finished in 32 and 51 minutes in two runs and did not finish within 30 minutes in a third. The cause is the model's reasoning before the first write, not the skill's commands (25 seconds in 9c). Whether a lower effort setting shortens it was not measured.
 
 Token counts per run are in each run's record (`usage`). Each record also holds the agent's final reply, with this machine's paths replaced by `<temp>` and `<home>` and each run's folder name replaced by `project`.
