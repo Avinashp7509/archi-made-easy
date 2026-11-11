@@ -1,1 +1,13 @@
+# Blank issues stay enabled for questions, and for asking the maintainer for a private
+# contact when GitHub private vulnerability reporting is unavailable (SECURITY.md).
 blank_issues_enabled: true
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Avinashp7509/archi-made-easy/security/advisories/new
+    about: Report it privately through GitHub private vulnerability reporting, as described in SECURITY.md. Do not open a public issue with vulnerability details.
+  - name: Installation and troubleshooting
+    url: https://github.com/Avinashp7509/archi-made-easy/blob/main/archi-made-easy/references/installation.md#troubleshooting
+    about: Requirements, installation for each agent, the compatibility matrix and fixes for common problems.
+  - name: Known limitations and roadmap
+    url: https://github.com/Avinashp7509/archi-made-easy/blob/main/ROADMAP.md
+    about: What 1.0.0 contains, its recorded limitations and the next steps planned for them.

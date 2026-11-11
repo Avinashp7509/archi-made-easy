@@ -1,6 +1,6 @@
 {
   "note": "Images captured by scripts/capture-docs-assets.mjs from pages this repository renders. Nothing is drawn or edited by hand.",
-  "captured": "2026-11-10",
+  "captured": "2026-11-11",
   "images": {
     "archi-made-easy-architecture.png": {
       "source": "archi-made-easy/examples/global-fintech-payment-mesh.html",
@@ -10,6 +10,15 @@
       "capture": "viewport",
       "state": "workbench on",
       "bytes": 297093
+    },
+    "archi-made-easy-before-after.png": {
+      "source": "archi-made-easy/examples/global-fintech-payment-mesh.html",
+      "theme": "light",
+      "viewport": "1600x900",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "Simulate: scenario A, Ledger A down, run; recovery option \"Add a standby for Ledger A\" chosen, diagram with this change; inspector at 5. Before and after and 6. Recovery options",
+      "bytes": 213189
     },
     "archi-made-easy-class.png": {
       "source": "archi-made-easy/examples/class-payments-rendered.html",
@@ -52,6 +61,59 @@
       "deviceScaleFactor": 2,
       "capture": "element",
       "bytes": 295566
+    },
+    "archi-made-easy-failure-simulation.png": {
+      "source": "archi-made-easy/examples/enterprise-agentic-ai-platform.html",
+      "theme": "light",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "Simulate: scenario D, model provider high-latency brownout (Primary model degraded), run; inspector scrolled to conditions, run, impact, before and after",
+      "bytes": 201970
+    },
+    "archi-made-easy-flagship-agentic-ai.png": {
+      "source": "archi-made-easy/examples/enterprise-agentic-ai-platform.html",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "Review: first finding selected (caller timeout shorter than the callee retry budget), inspector scrolled to the findings",
+      "bytes": 193901
+    },
+    "archi-made-easy-flagship-c4.png": {
+      "source": "archi-made-easy/examples/cloud-native-ecommerce-c4.html",
+      "theme": "light",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "Explore: level checkout-service opened (component diagram inside the checkout service)",
+      "bytes": 116601
+    },
+    "archi-made-easy-flagship-fintech.png": {
+      "source": "archi-made-easy/examples/global-fintech-payment-mesh.html",
+      "theme": "light",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "Explore: Payments A (pay_a) selected, its inspection panel open",
+      "bytes": 169622
+    },
+    "archi-made-easy-install-demo.png": {
+      "source": "docs/assets/install-demo/transcript.txt",
+      "theme": "dark",
+      "viewport": "1200x1691",
+      "deviceScaleFactor": 1,
+      "capture": "rendered transcript of a recorded run",
+      "state": "The rendered transcript of a recorded run, not a page of the product and not captured by scripts/capture-docs-assets.mjs. On 2026-11-11 (UTC), on Windows 11 with Node.js v24.18.0, the release archive archi-made-easy.zip (sha256 ca480ef81f1c65751538b0ac69fa0fea01c774153a7a22995b577d4bb4b162ef) was unpacked with extractZip from scripts/release-archive.mjs into a new empty folder, installed into that folder only (project scope), and the commands below were run from the installed copy; each exited 0. transcript.txt holds the commands and their standard output, with the folder's machine path shown as ~/demo and the finalize --json receipt shortened to its status and gates. A one-off HTML page (not kept in the repository) shows transcript.txt in the dark colours of docs/visual-qa/DESIGN-SYSTEM.md with JetBrains Mono and ligatures off; before the screenshot it checked that its rendered text equals transcript.txt. Screenshot by headless Chrome.",
+      "recorded": "2026-11-11",
+      "commands": [
+        "node --input-type=module -e \"<extractZip from ./scripts/release-archive.mjs, as written in transcript.txt>\" ~/demo",
+        "node archi-made-easy/install.mjs --agent claude-code --project ~/demo",
+        "node .claude/skills/archi-made-easy/bin/archi-made-easy.mjs doctor",
+        "node .claude/skills/archi-made-easy/bin/archi-made-easy.mjs scaffold web-ha --provider azure --out candidate.json",
+        "node .claude/skills/archi-made-easy/bin/archi-made-easy.mjs finalize architecture candidate.json shop.html --quality showcase --json"
+      ],
+      "bytes": 243761
     },
     "archi-made-easy-lifecycle.png": {
       "source": "archi-made-easy/examples/lifecycle-agent-run.html",

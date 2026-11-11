@@ -1,13 +1,14 @@
 # Contributing to Archi-Made-Easy
 
-Archi-Made-Easy is Agent-first: people describe systems, and the Skill, typed JSON, renderers, validators, and delivery receipts produce reproducible diagrams. Keep each contribution focused on one user-visible behavior or one tightly related delivery slice. Maintainers and Agents reviewing a PR or a revised head follow [Reviewing](REVIEWING.md).
+Archi-Made-Easy is Agent-first: people describe systems, and the Skill, typed JSON, renderers, validators, and delivery receipts produce reproducible diagrams. Keep each contribution focused on one user-visible behavior or one tightly related delivery slice. Maintainers and Agents reviewing a PR or a revised head follow [Reviewing](REVIEWING.md). Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Choose the right path
 
-- Renderer, validator, package, or Viewer defect: use the [bug report form](.github/ISSUE_TEMPLATE/bug-report.yml).
+- Renderer, validator, package, workbench, export, or Viewer defect: use the [bug report form](.github/ISSUE_TEMPLATE/bug-report.yml).
+- A new capability or a small change in behavior: use the [feature request form](.github/ISSUE_TEMPLATE/feature-request.yml). Check the [roadmap](ROADMAP.md) first; its next steps are already tracked.
 - Standalone community package: follow the [submission guide](community/README.md#submitting-a-package) and submit one metadata file to `dev`.
 - Reproducible real-world diagram: use the [showcase form](.github/ISSUE_TEMPLATE/showcase.yml).
-- Changes to generation, layout/routing, validation, interaction, performance, dependencies, tests, or other behavior require a related issue and explicit maintainer agreement on the problem, value, and intended scope before substantial implementation or a formal PR. Use the bug form for defects and the [improvement proposal](.github/ISSUE_TEMPLATE/improvement.yml) for changes. Link an existing issue or recorded maintainer decision when available; a second approval thread is unnecessary.
+- Changes to generation, layout/routing, validation, the model, review rules, interaction, performance, dependencies, tests, or other behavior require a related issue and explicit maintainer agreement on the problem, value, and intended scope before substantial implementation or a formal PR. Use the bug form for defects and the [larger-change proposal](.github/ISSUE_TEMPLATE/improvement.yml) for changes. Link an existing issue or recorded maintainer decision when available; a second approval thread is unnecessary.
 - Purely mechanical documentation corrections, such as typos or repairing a broken link to its intended destination, may go directly to a PR. Describe why the change is mechanical. Authoring instructions, new policy, behavioral documentation, and test changes are not exempt just because they are small or text-only.
 - Security vulnerabilities: follow [SECURITY.md](SECURITY.md).
 
@@ -28,7 +29,7 @@ A scope comment signals active work, not permanent ownership. If work pauses or 
 
 ## Prepare a reviewable change
 
-Start from the latest `dev` and target `dev` for fixes and features. Check whether its existing controls already solve the reported case. Record the comparison base and candidate head.
+Start from the latest `dev` and target `dev` for fixes and features. The first release, 1.0.0, was promoted directly to `main` (see [the launch record](docs/program/release/LAUNCH.md#repository)); while no `dev` branch exists, start from and target `main`, and say so in the PR. Check whether its existing controls already solve the reported case. Record the comparison base and candidate head.
 
 Use Draft for unresolved scope or early implementation feedback. At this stage, provide the smallest reproduction and relevant checks. Prepare broad integration evidence and generated artifacts once the approach is settled.
 
@@ -54,7 +55,7 @@ Link actual validation results in the existing Tests run / Visual evidence secti
 
 Maintainers may request missing disclosure or evidence, defer review, or close a PR that lacks agreed scope, cannot be explained by its contributor, or contains unverified claims. Give a specific reason and a route back through the relevant issue. Repeated submissions that ignore this feedback may be restricted. Evaluate observable conduct and evidence rather than guessing AI use from writing style or an automated detector. Do not bulk-close older PRs solely because they predate this disclosure field.
 
-Policy references consulted on 2026-10-16: [Ghostty](https://github.com/ghostty-org/ghostty/blob/main/AI_POLICY.md), [LLVM](https://llvm.org/docs/AIToolPolicy.html), and [Astral](https://github.com/astral-sh/.github/blob/main/AI_POLICY.md). Archi-Made-Easy's requirements are defined here; other projects' restrictions do not apply automatically.
+Related policies in other projects: [Ghostty](https://github.com/ghostty-org/ghostty/blob/main/AI_POLICY.md), [LLVM](https://llvm.org/docs/AIToolPolicy.html), and [Astral](https://github.com/astral-sh/.github/blob/main/AI_POLICY.md). Archi-Made-Easy's requirements are defined here; other projects' restrictions do not apply automatically.
 
 ## PR improvement check
 
@@ -306,7 +307,7 @@ Showcase submissions should include the prompt, agent/client, model, Archi-Made-
 
 ## Automated review
 
-CodeRabbit provides advisory feedback under the repository [configuration](.coderabbit.yaml). Answer with relevant evidence or explain why a finding does not apply. Missing evidence is an unresolved claim, not proof of a code defect. Maintainers settle disputed scope; required CI and the maintainer's merge decision remain separate.
+When the CodeRabbit app is enabled for this repository, it provides advisory feedback under the repository [configuration](.coderabbit.yaml); the configuration alone does not run any review. Answer with relevant evidence or explain why a finding does not apply. Missing evidence is an unresolved claim, not proof of a code defect. Maintainers settle disputed scope; required CI and the maintainer's merge decision remain separate.
 
 For retriggering or pausing reviews, use the official [review commands](https://docs.coderabbit.ai/reference/review-commands) and check the updated results. Bot assessments are snapshots at the stated revision; refresh stale checks after description or CI updates and read the latest evidence before repeating a request. Fork-CI approval requires a maintainer to inspect the proposed workflow/code changes; authors can link the waiting run.
 

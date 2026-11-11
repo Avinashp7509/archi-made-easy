@@ -114,8 +114,8 @@ Difference from the archives the agent runs used: besides identity strings, the 
 
 | | |
 |---|---|
-| Release commit | `f756802` "Prepare the 1.0.0 release candidate", tree `105a7c24b4ca74a5c2db88031336a61fc97ab313` |
+| Release commit | `9802361` "Prepare the 1.0.0 release candidate", tree `105a7c24b4ca74a5c2db88031336a61fc97ab313` |
 | Tested tree | the release commit's tree: the final cycle regenerated every derived file from it without a change, ran the full unit suite in a checkout of it outside OneDrive and the serial browser suite and visual matrix in the workspace on the same tree, and rebuilt the same archive; it differed only by the visual-QA screenshots it deletes and captures again |
 | Agent run 9c and clean install | on the archive committed in the release commit |
 | Documentation commit | the commit that follows the release commit and adds this record: it changes documentation, the README and the visual-QA screenshots and report only; no file under `archi-made-easy/` and not the archive. Tag `v1.0.0` on it (LAUNCH.md) |
-| History | rewritten before any push to remove a local path (LAUNCH.md, "Before the first push"); commit identifiers before `f756802` changed then; in three files the path line was replaced in every commit that held it, and every other file is unchanged |
+| History | rewritten twice before any push: once to remove a local path, once to replace the personal e-mail address in commit metadata with the owner's GitHub no-reply address (trees unchanged); the identifiers above are those after both rewrites. First rewrite: to remove a local path (LAUNCH.md, "Before the first push"); commit identifiers before `9802361` changed then; in three files the path line was replaced in every commit that held it, and every other file is unchanged |

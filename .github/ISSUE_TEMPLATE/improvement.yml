@@ -1,11 +1,13 @@
-name: Propose an improvement
-description: Discuss a feature or substantial change before implementation.
+name: Propose a larger change
+description: Agree on a substantial change before implementing it (generation, layout or routing, validation, the model, review rules, interaction, dependencies).
 title: "[Proposal]: "
+labels:
+  - enhancement
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for proposing an improvement. Describe the problem and intended benefit before investing in implementation. Maintainers will discuss scope and compatibility; agreement on direction is not a promise to merge. Purely mechanical documentation corrections may go directly to a PR under CONTRIBUTING.md.
+        Use this form when you plan a substantial change and want agreement on the problem, value and scope before a pull request, as [CONTRIBUTING.md](https://github.com/Avinashp7509/archi-made-easy/blob/main/CONTRIBUTING.md#choose-the-right-path) requires. For a short suggestion, use the feature request form instead. Agreement on direction is not a promise to merge. Purely mechanical documentation corrections may go directly to a pull request.
   - type: textarea
     id: problem
     attributes:
@@ -17,7 +19,7 @@ body:
     id: current_limit
     attributes:
       label: Why are the current capabilities insufficient?
-      description: Mention the version and any existing controls or alternatives you considered.
+      description: Mention the version and any existing controls or alternatives you considered. If the gap is already on the [roadmap](https://github.com/Avinashp7509/archi-made-easy/blob/main/ROADMAP.md), name the item.
     validations:
       required: true
   - type: textarea
@@ -27,6 +29,13 @@ body:
       description: Describe the desired result, likely scope, and known tradeoffs. A detailed design or implementation is not required.
     validations:
       required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and evidence
+      description: Which existing behaviour must stay unchanged (existing documents, receipts, exports, modelled figures), and how would you show the change works? See "Choose evidence by impact" in CONTRIBUTING.md.
+    validations:
+      required: false
   - type: textarea
     id: related
     attributes:

@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Read-only by default; the Pages deployment job declares the extra permissions it needs.
+permissions:
+  contents: read
+
 # Cancel obsolete PR runs, but never interrupt main verification/deployment.
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.run_id }}

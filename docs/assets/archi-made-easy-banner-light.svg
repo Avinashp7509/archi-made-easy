@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="320" viewBox="0 0 1280 320" role="img" aria-labelledby="ame-banner-title ame-banner-desc">
+  <title id="ame-banner-title">Archi-Made-Easy: The AI-Native Architecture Engineering Workbench</title>
+  <desc id="ame-banner-desc">The Archi-Made-Easy layered-architecture symbol beside the wordmark ARCHI-MADE-EASY, the line "The AI-Native Architecture Engineering Workbench", and the line "Design it. Explore it. Break it virtually. Review the risks. Improve it." Dark text for a light page; transparent background.</desc>
+  <g transform="translate(84 52) scale(.6)">
+    <rect x="130" y="20" width="140" height="80" rx="22" fill="#4F46E5"/>
+    <rect x="189" y="100" width="22" height="40" fill="#64748B"/>
+    <rect x="70" y="140" width="260" height="80" rx="22" fill="#14B8A6"/>
+    <rect x="189" y="220" width="22" height="40" fill="#64748B"/>
+    <rect x="10" y="260" width="380" height="80" rx="22" fill="#4F46E5"/>
+  </g>
+  <g font-family="system-ui, 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', 'Noto Sans', Arial, sans-serif">
+    <text id="wordmark" x="374" y="138" font-size="84" font-weight="700" letter-spacing="3" textLength="818" lengthAdjust="spacingAndGlyphs" fill="#15171A">ARCHI-MADE-EASY</text>
+    <text id="subtitle" x="376" y="196" font-size="31" font-weight="600" textLength="686" lengthAdjust="spacingAndGlyphs" fill="#2F4FE0">The AI-Native Architecture Engineering Workbench</text>
+    <text id="tagline" x="376" y="240" font-size="23" font-weight="400" fill="#555B66">Design it. Explore it. Break it virtually. Review the risks. Improve it.</text>
+  </g>
+</svg>

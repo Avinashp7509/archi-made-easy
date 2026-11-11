@@ -27,6 +27,16 @@ const cases = (name) => path.join(repoRoot, 'docs', 'cases', name);
 const gallery = (name) => path.join(repoRoot, 'docs', 'gallery', 'artifacts', name);
 
 const W = 'const w = ArchiMadeEasy.workbench;';
+// Workbench steps for `act`, built on the page's own API (ArchiMadeEasy.workbench) and controls.
+// Each step throws when the page does not reach the named state, so a wrong state is never captured.
+/** Wait until the level opened with w.openLevel() reports that its page has loaded, then let it paint. */
+const LEVEL_READY = `await new Promise((resolve, reject) => { const started = Date.now(); (function poll() { const level = w.level(); if (level && level.ready) resolve(); else if (Date.now() - started > 20000) reject(new Error('level not ready')); else setTimeout(poll, 50); })(); });
+  await new Promise((resolve) => setTimeout(resolve, 900));`;
+/** Scroll the inspector, as a reader would, so the section whose heading starts with `heading` is at its top. */
+const inspectorAt = (heading) => `{ const body = document.getElementById('workbench-body');
+  const section = [...body.querySelectorAll('.ame-section')].find((s) => s.querySelector('h3').textContent.trim().startsWith(${JSON.stringify(heading)}));
+  if (!section) throw new Error(${JSON.stringify(`no inspector section "${heading}"`)});
+  body.scrollTop += section.getBoundingClientRect().top - body.getBoundingClientRect().top - 4; }`;
 /** One entry per image. `capture`: viewport, element (`.diagram-container`), or share-card. */
 export const CAPTURES = [
   // The product's own page, with the workbench frame on: the website's light/dark comparison and the export menu.
@@ -48,6 +58,29 @@ export const CAPTURES = [
   // The workbench during a failure scenario: shown on its own and inside the social card.
   { name: 'archi-made-easy-workbench.png', page: examples('global-fintech-payment-mesh.html'), theme: 'dark', viewport: [1440, 900], capture: 'viewport', state: 'Simulate: region A blackout, run',
     act: `${W} w.setMode('simulate'); w.chooseScenario('b'); w.run({ instant: true });` },
+  // Launch screenshots: one workbench state each, on the three flagship examples.
+  { name: 'archi-made-easy-flagship-fintech.png', page: examples('global-fintech-payment-mesh.html'), theme: 'light', viewport: [1440, 900], capture: 'viewport',
+    state: 'Explore: Payments A (pay_a) selected, its inspection panel open',
+    act: `${W} w.setMode('explore'); w.select('pay_a');
+      if (!w.isOpen() || w.state().selected !== 'pay_a') throw new Error('Payments A is not selected');` },
+  { name: 'archi-made-easy-flagship-agentic-ai.png', page: examples('enterprise-agentic-ai-platform.html'), theme: 'dark', viewport: [1440, 900], capture: 'viewport',
+    state: 'Review: first finding selected (caller timeout shorter than the callee retry budget), inspector scrolled to the findings',
+    act: `${W} w.setMode('review'); const finding = w.review().findings[0]; if (!finding) throw new Error('no finding'); w.selectFinding(finding.id);
+      if (!document.querySelector('[data-workbench-finding-detail]')) throw new Error('finding not expanded'); ${inspectorAt('Findings')}` },
+  { name: 'archi-made-easy-flagship-c4.png', page: examples('cloud-native-ecommerce-c4.html'), theme: 'light', viewport: [1440, 900], capture: 'viewport',
+    state: 'Explore: level checkout-service opened (component diagram inside the checkout service)',
+    act: `${W} w.setMode('explore'); w.openLevel('checkout-service'); ${LEVEL_READY}` },
+  { name: 'archi-made-easy-failure-simulation.png', page: examples('enterprise-agentic-ai-platform.html'), theme: 'light', viewport: [1440, 900], capture: 'viewport',
+    state: 'Simulate: scenario D, model provider high-latency brownout (Primary model degraded), run; inspector scrolled to conditions, run, impact, before and after',
+    act: `${W} w.setMode('simulate'); w.chooseScenario('d'); w.run({ instant: true });
+      if (!w.state().sim.ran || w.state().sim.scenario !== 'd') throw new Error('scenario D did not run'); ${inspectorAt('2.')}` },
+  // The inspector is 400px wide from 1600px (DESIGN-SYSTEM.md); at 1440px its option table clips the Change column.
+  { name: 'archi-made-easy-before-after.png', page: examples('global-fintech-payment-mesh.html'), theme: 'light', viewport: [1600, 900], capture: 'viewport',
+    state: 'Simulate: scenario A, Ledger A down, run; recovery option "Add a standby for Ledger A" chosen, diagram with this change; inspector at 5. Before and after and 6. Recovery options',
+    act: `${W} w.setMode('simulate'); w.chooseScenario('a'); w.run({ instant: true });
+      const option = w.plan() && w.plan().options.find((o) => o.id === 'standby:ledger_a'); if (!option || !option.previewable) throw new Error('no previewable standby option');
+      w.chooseOption(option.id); document.querySelector('[data-workbench-view="option"]').click();
+      if (w.state().sim.view !== 'option') throw new Error('diagram is not showing the change'); ${inspectorAt('5.')}` },
   // Share cards, from the viewer's Share Card export.
   { name: 'archi-made-easy-route-share-card.png', page: gallery('agent-tool-call.workflow.html'), hash: 'route=user~external', theme: 'dark', viewport: [1440, 900], capture: 'share-card', variant: 'route', state: 'route user to external' },
   { name: 'mco-runtime-share-card.png', page: cases('mco-runtime.architecture.html'), hash: 'route=callers~consumers', theme: 'dark', viewport: [1440, 900], capture: 'share-card', variant: 'route', state: 'route callers to consumers' },

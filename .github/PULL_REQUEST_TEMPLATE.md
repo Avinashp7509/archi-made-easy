@@ -41,6 +41,8 @@ Omit this section for non-visual changes.
 - Comparison conditions: <!-- same input, viewport, theme, preset, mode, zoom, page state -->
 - Automated or browser checks:
 - Perceptual visual review: passed / failed / skipped / Not applicable
+- Viewer, workbench, diagram styling or example changes: checks from [the Playwright test matrix](https://github.com/Avinashp7509/archi-made-easy/blob/main/docs/visual-qa/PLAYWRIGHT-TEST-MATRIX.md) run, and defects recorded in [the defect register](https://github.com/Avinashp7509/archi-made-easy/blob/main/docs/visual-qa/DEFECT-REGISTER.md): yes / Not applicable
+- Screenshots captured from the running page, not drawn or edited; modelled figures labelled modelled and assumed inputs labelled assumed: yes / Not applicable
 
 Report automated or browser evidence separately from perceptual review.
 

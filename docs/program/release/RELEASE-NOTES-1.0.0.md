@@ -10,11 +10,11 @@ Archi-Made-Easy is an Agent Skill for AI coding agents. Describe a system in pla
 npx skills add Avinashp7509/archi-made-easy
 ```
 
-Or from this release's `archi-made-easy.zip`: unpack it and run `node archi-made-easy/install.mjs --agent claude-code` (or `codex`, `github-copilot`, `cursor`, `opencode`, `windsurf`, `gemini-cli`). Requires Node.js 18 or newer. Chrome, Chromium or Edge is optional and enables the real-browser layout check in `finalize`; images are exported from the page itself.
+Or from this release's `archi-made-easy.zip`: unpack it and run `node archi-made-easy/install.mjs --agent claude-code` (or `codex`, `github-copilot`, `cursor`, `opencode`, `windsurf`, `gemini-cli`). Requires Node.js 18 or newer; the Skills CLI itself needs Node.js 22.20 or newer. Chrome, Chromium or Edge runs the real-browser layout check in `finalize`: without one, that gate is reported as skipped and `finalize` does not pass. Images are exported from the page itself (tested in Chrome).
 
 ## What is in 1.0.0
 
-- **Plain-language requests.** "Build a highly available e-commerce architecture on Azure", "what happens if the database fails?", "simulate a 20x increase in traffic", "optimize this for lower cost", "diagram my repository", "create an architecture from my requirements document". The agent asks only for facts that change the design and lists every assumption it makes, on the page and in its reply.
+- **Plain-language requests.** "Build a highly available e-commerce architecture on Azure", "what happens if the database fails?", "simulate a 20x increase in traffic", "optimize this for lower cost", "diagram my repository", "create an architecture from my requirements document". The skill tells the agent to ask only for facts that change the design and to list its assumptions on the page and in its reply.
 - **The workbench, in the page.** Nine modes around the diagram: Explore, Review, Simulate, Security, Performance, FinOps, Optimize, Decide and Handoff.
 - **Failure simulation.** Six preset scenarios (database outage, zone or region blackout, tenfold surge, provider brownout, cold cache, compromised edge), or mark components yourself; run it, watch the failure spread, compare before and after, try recovery options.
 - **Architecture review.** 14 rules across reliability, security, performance, cost, operational excellence and sustainability, each with evidence, consequence and a recommended change; where the change is an operational setting (redundancy, circuit breaker, timeout, idempotency, encryption at rest), a modelled preview of the figures after it.

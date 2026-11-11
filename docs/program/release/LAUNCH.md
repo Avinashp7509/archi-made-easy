@@ -39,8 +39,9 @@ Everything here is prepared locally. Nothing has been pushed, published or made 
 
 ## Before the first push
 
-- **History.** An earlier commit recorded this machine's workspace path in three files (a design note and two capture scripts). Before publication the `main` history was rewritten to replace that path (2026-11-11, `git filter-branch` over those three files only: the path line in each was replaced in every commit that held it; every other file, and the authors, dates and messages, unchanged). The release commit `f756802` was made on the rewritten history. The previous history is kept locally in `refs/backup/pre-scrub-main`, with `refs/backup/phase5-functional` and `refs/backup/phase6-flagship1`; none of them is pushed by the commands below. Push `main` and the tag only, never `--all` or `--mirror`, or delete those refs first.
-- **Author identity.** Every commit is authored as `Avinash Roy` with the e-mail address configured in git on this machine; pushing makes it public in the commit metadata. To use GitHub's no-reply address instead, rewrite the author before the first push (for example `git filter-branch --env-filter`), or accept it.
+- **History.** An earlier commit recorded this machine's workspace path in three files (a design note and two capture scripts). Before publication the `main` history was rewritten to replace that path (2026-11-11, `git filter-branch` over those three files only: the path line in each was replaced in every commit that held it; every other file, and the authors, dates and messages, unchanged). The release commit `9802361` was made on the rewritten history. The previous history is kept locally in `refs/backup/pre-scrub-main`, with `refs/backup/phase5-functional` and `refs/backup/phase6-flagship1`; none of them is pushed by the commands below. Push `main` and the tag only, never `--all` or `--mirror`, or delete those refs first.
+- **Author identity.** Every commit is authored and committed as `Avinash Roy` with the owner's GitHub no-reply address. The commits were first made with a personal address; on 2026-11-11, before any push and with the owner's approval, only the author and committer e-mail of the 14 commits was rewritten (`git filter-branch --env-filter`; names, dates, messages, trailers and every tree unchanged). The earlier history is kept locally in `refs/backup/pre-email-main`, which is not pushed. New commits use the no-reply address (repository git configuration).
+- **New files in the documentation commit.** Eleven files that the README links to, or that its links rely on, are new and untracked, so `git commit -a` would leave them out and the banner, the five launch screenshots, the install demo, the Code of Conduct and the feature request form would be broken on GitHub. Add them by name: `git add CODE_OF_CONDUCT.md .github/ISSUE_TEMPLATE/feature-request.yml docs/assets/archi-made-easy-banner-dark.svg docs/assets/archi-made-easy-banner-light.svg docs/assets/archi-made-easy-before-after.png docs/assets/archi-made-easy-failure-simulation.png docs/assets/archi-made-easy-flagship-agentic-ai.png docs/assets/archi-made-easy-flagship-c4.png docs/assets/archi-made-easy-flagship-fintech.png docs/assets/archi-made-easy-install-demo.png docs/assets/install-demo/transcript.txt`. Before tagging, check that `git ls-files` lists all eleven and that `git status --short` shows nothing untracked that the README links to.
 - **Size.** A clone is about 125 MiB: every rebuilt `archi-made-easy.zip` (6.9 MB each) and the rendered example pages remain in history. The release gates compare the committed archive byte for byte, so it stays tracked.
 
 ## Proposed commands (run only after approval)
@@ -61,7 +62,7 @@ git push -u origin main
 #    and 11 updated before the tag.
 
 # 3. Tag the verified commit (annotated: the release workflow requires it) and push the tag.
-#    main must be the documentation commit that follows f756802 (or a later
+#    main must be the documentation commit that follows 9802361 (or a later
 #    documentation-only commit); check with: git log --oneline -3 main
 git tag -a v1.0.0 main -m "Archi-Made-Easy 1.0.0"
 git push origin v1.0.0
@@ -89,7 +90,7 @@ npx skills add Avinashp7509/archi-made-easy
 
 | # | Item | Status |
 |---|---|---|
-| 1 | Scope and revision | Version 1.0.0, stable channel. Release commit `f756802` (tree `105a7c2`); the documentation-only commit after it records the results (RELEASE-ACCEPTANCE.md section 11). Comparison base: `abc813d`, the import of upstream tt-a1i/archify `11b0d60`. Release notes and known issues: this folder. Tag the latest commit on `main`. |
+| 1 | Scope and revision | Version 1.0.0, stable channel. Release commit `9802361` (tree `105a7c2`); the documentation-only commit after it records the results (RELEASE-ACCEPTANCE.md section 11). Comparison base: `964b571`, the import of upstream tt-a1i/archify `11b0d60`. Release notes and known issues: this folder. Tag the latest commit on `main`. |
 | 2 | Identity and build | `node scripts/check-release-identity.mjs` passes for 1.0.0; `archi-made-easy.zip` built with Node 22, outside OneDrive, from a checkout of a snapshot whose tree equals the release commit's apart from the archive, then committed in the release commit; SHA-256 `ca480ef8…62ef` (RELEASE-ACCEPTANCE.md section 8), rebuilt from the tested tree with the same bytes. |
 | 3 | Final-head validation | Local, on the release tree: full suite outside OneDrive (only the 43 baseline failures), serial browser suite (0 failures), visual matrix (0 critical, 0 high), clean install from the committed archive (23 of 23); agent runs on the candidates and run 9c on the final archive (RELEASE-ACCEPTANCE.md sections 2 to 5). CI run URLs: **pending the first push.** Linux and macOS: **pending the first push.** |
 | 4 | Authorized publication | **Waiting for the owner's approval.** Nothing pushed. |

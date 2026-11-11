@@ -1,5 +1,5 @@
 name: Share an Archi-Made-Easy diagram
-description: Submit a real, reproducible diagram for the community showcase.
+description: Submit a real, reproducible diagram to be considered for the project's showcase.
 title: "[Showcase]: "
 labels:
   - documentation
@@ -8,6 +8,8 @@ body:
     attributes:
       value: |
         Thanks for sharing real-world proof. Please attach enough evidence for maintainers to reproduce and validate the result. Redact private repository details before submitting.
+
+        Screenshots must come from the real page as it rendered, not drawn or edited. If you show workbench figures, keep their labels: they are modelled from the declared design, not measured, and assumed inputs are marked as assumed.
 
   - type: dropdown
     id: diagram_type
@@ -24,6 +26,7 @@ body:
         - Tree
         - Timeline
         - Waterfall
+        - Explainer
     validations:
       required: true
 
@@ -32,7 +35,7 @@ body:
     attributes:
       label: Archi-Made-Easy version or commit
       description: Use an exact package version or full repository commit when possible.
-      placeholder: "2.12.0 or 0123456789abcdef..."
+      placeholder: "1.0.0 or 0123456789abcdef..."
     validations:
       required: true
 
@@ -40,7 +43,8 @@ body:
     id: agent
     attributes:
       label: Agent or coding client
-      placeholder: "Codex, Claude Code, Cursor, opencode..."
+      description: Include its version when known.
+      placeholder: "Claude Code, Codex, GitHub Copilot, Cursor, OpenCode, Windsurf, Gemini CLI..."
     validations:
       required: true
 
@@ -82,7 +86,7 @@ body:
     id: validation_receipt
     attributes:
       label: Validation receipt
-      description: Paste the complete JSON from `archi-made-easy validate ... --quality showcase --json` or `archi-made-easy deliver ... --json`.
+      description: Paste the complete JSON from `archi-made-easy finalize ... --quality showcase --json`, `archi-made-easy validate ... --quality showcase --json` or `archi-made-easy deliver ... --json`.
       render: json
     validations:
       required: true

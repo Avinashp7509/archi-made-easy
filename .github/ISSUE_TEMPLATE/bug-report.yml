@@ -1,5 +1,5 @@
 name: Report a reproducible bug
-description: Report a renderer, validator, package, or generated-artifact problem.
+description: Report a problem with a command, a generated page or its workbench, an export, the validator, or installation.
 title: "[Bug]: "
 labels:
   - bug
@@ -7,13 +7,15 @@ body:
   - type: markdown
     attributes:
       value: |
-        Stability comes first. For diagram defects, include a small typed JSON reproduction and validation receipt when available. For installation or Viewer problems, provide the relevant steps and error; explain when a command, JSON, or receipt does not apply.
+        Stability comes first. For diagram defects, include a small JSON reproduction (the architecture document your agent wrote) and the validation receipt when available. For installation or page problems, provide the relevant steps and error; explain when a command, JSON, or receipt does not apply.
+
+        Workbench figures (availability, latency, capacity, cost) are modelled from the declared design, not measured; a difference from a real system is not a bug by itself, but a figure that contradicts its own inputs is. Never report a security vulnerability here; follow [SECURITY.md](https://github.com/Avinashp7509/archi-made-easy/blob/main/SECURITY.md).
 
   - type: input
     id: archi_made_easy_version
     attributes:
       label: Archi-Made-Easy version or commit
-      placeholder: "2.12.0 or 0123456789abcdef..."
+      placeholder: "1.0.0 or 0123456789abcdef..."
     validations:
       required: true
 
@@ -22,10 +24,10 @@ body:
     attributes:
       label: Installation method
       options:
-        - npm package
-        - Git clone
-        - Downloaded archi-made-easy.zip
-        - Uploaded skill archive
+        - Skills CLI (npx skills add)
+        - Bundled installer from archi-made-easy.zip (install.mjs)
+        - Source checkout (git clone)
+        - Manual copy of the skill folder
         - Other
     validations:
       required: true
@@ -33,7 +35,7 @@ body:
   - type: dropdown
     id: diagram_type
     attributes:
-      label: Diagram type
+      label: Diagram type or area
       options:
         - Architecture
         - Workflow
@@ -45,6 +47,10 @@ body:
         - Tree
         - Timeline
         - Waterfall
+        - Explainer
+        - Workbench (Explore, Review, Simulate, Security, Performance, FinOps, Optimize, Decide, Handoff)
+        - Review or simulate command
+        - Export (Mermaid, draw.io, Structurizr, design document)
         - Installation or packaging
         - Generated viewer
     validations:
@@ -54,7 +60,7 @@ body:
     id: command
     attributes:
       label: Exact command
-      description: Include flags and paths, replacing private path segments with neutral placeholders. For a UI-only problem, describe the actions instead.
+      description: Include flags and paths, replacing private path segments with neutral placeholders. If your agent ran the commands, copy them from its reply or transcript. For a problem seen in the page, describe the actions instead.
       render: shell
     validations:
       required: true
@@ -63,7 +69,7 @@ body:
     id: minimal_json
     attributes:
       label: Minimal redacted JSON reproduction
-      description: Remove unrelated nodes and facts while preserving the failure. If JSON does not apply or cannot be produced, explain why and provide reproduction steps.
+      description: The document passed to `finalize` (or another command), with unrelated components and facts removed while preserving the failure. If JSON does not apply or cannot be produced, explain why and provide reproduction steps.
       render: json
     validations:
       required: true
@@ -72,7 +78,7 @@ body:
     id: validation_receipt
     attributes:
       label: Validation receipt or exact error
-      description: Prefer the complete JSON produced by `validate --json` or `deliver --json`. If no receipt or error exists, say so and describe the observed failure.
+      description: Prefer the complete JSON produced by `finalize --json`, `validate --json` or `deliver --json`. If no receipt or error exists, say so and describe the observed failure.
       render: json
     validations:
       required: true
@@ -103,8 +109,8 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: Include operating system, Node.js version, coding client, and model when relevant.
-      placeholder: "macOS 15, Node.js 22, Cursor, model-name"
+      description: Include operating system, Node.js version, browser, agent or coding client and its version, and model when relevant.
+      placeholder: "Windows 11, Node.js 24, Chrome, Claude Code 2.1.219, model-name"
     validations:
       required: true
 

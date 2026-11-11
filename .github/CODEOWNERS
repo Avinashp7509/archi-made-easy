@@ -1,5 +1,19 @@
-# Keep repository governance and automation changes under the owner's review.
-/.github/CODEOWNERS @Avinashp7509
-/.github/workflows/** @Avinashp7509
-/.github/actions/** @Avinashp7509
-/SECURITY.md @Avinashp7509
+# Keep repository governance, release identity, community and legal files under the
+# owner's review.
+/.github/CODEOWNERS                     @Avinashp7509
+/.github/workflows/**                   @Avinashp7509
+/.github/ISSUE_TEMPLATE/**              @Avinashp7509
+/.github/PULL_REQUEST_TEMPLATE.md       @Avinashp7509
+/SECURITY.md                            @Avinashp7509
+/CODE_OF_CONDUCT.md                     @Avinashp7509
+/LICENSE                                @Avinashp7509
+/LICENSE-MIT                            @Avinashp7509
+/NOTICE                                 @Avinashp7509
+/ATTRIBUTION.md                         @Avinashp7509
+/THIRD_PARTY_NOTICES.md                 @Avinashp7509
+/archi-made-easy/LICENSE                @Avinashp7509
+/archi-made-easy/LICENSE-MIT            @Avinashp7509
+/archi-made-easy/NOTICE                 @Avinashp7509
+/archi-made-easy/THIRD_PARTY_NOTICES.md @Avinashp7509
+/archi-made-easy/skill-release.json     @Avinashp7509
+/archi-made-easy.zip                    @Avinashp7509

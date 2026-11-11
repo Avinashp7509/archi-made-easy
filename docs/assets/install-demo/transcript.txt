@@ -1,0 +1,71 @@
+# Archi-Made-Easy 1.0.0: a clean install from the release archive
+# Recorded 2026-11-11 (UTC) on Windows 11 with Node.js v24.18.0, in a new empty folder.
+# Commands and their standard output are as run. The folder's machine path is shown as ~/demo.
+# The finalize --json receipt is shortened to its status and gates, as marked below.
+
+# In the repository checkout: unpack archi-made-easy.zip into the empty folder ~/demo
+repo $ node --input-type=module -e "import fs from 'node:fs'; import crypto from 'node:crypto'; import { extractZip } from './scripts/release-archive.mjs'; const zip = fs.readFileSync('archi-made-easy.zip'); console.log('archi-made-easy.zip  sha256 ' + crypto.createHash('sha256').update(zip).digest('hex')); console.log('unpacked ' + extractZip(zip, process.argv[1]).length + ' files into ' + process.argv[1]);" ~/demo
+archi-made-easy.zip  sha256 ca480ef81f1c65751538b0ac69fa0fea01c774153a7a22995b577d4bb4b162ef
+unpacked 257 files into ~/demo
+
+~/demo $ node archi-made-easy/install.mjs --agent claude-code --project ~/demo
+installed     Claude Code (project)
+              ~/demo\.claude\skills\archi-made-easy · doctor ok
+
+Restart the agent (or open a new session) so it discovers the skill, then ask for an architecture in plain language.
+
+~/demo $ node .claude/skills/archi-made-easy/bin/archi-made-easy.mjs doctor
+Archi-Made-Easy doctor
+
+[ok] Node.js v24.18.0 (requires >=18)
+[ok] Core template
+[ok] Example renderer
+[ok] Live preview runtime
+[ok] Visual-check runtime
+[ok] Finalize runtime
+[ok] Output path safety runtime
+[ok] Atomic output safety runtime
+[ok] Physical path semantics runtime
+[ok] Sidecar path naming runtime
+[ok] Portable path contract runtime
+[ok] Scenario recipe guide
+[ok] Progressive authoring references
+[ok] Architecture compare runtime and proof fixtures
+[ok] Standalone schema validators
+[ok] Architecture workbench runtime and knowledge packs
+[ok] architecture renderer, schema, and example
+[ok] workflow renderer, schema, and example
+[ok] sequence renderer, schema, and example
+[ok] dataflow renderer, schema, and example
+[ok] lifecycle renderer, schema, and example
+[ok] erd renderer, schema, and example
+[ok] tree renderer, schema, and example
+[ok] class renderer, schema, and example
+[ok] timeline renderer, schema, and example
+[ok] waterfall renderer, schema, and example
+[ok] explainer renderer, schema, and example
+[ok] Explainer runtime and reader assets
+
+Archi-Made-Easy is ready.
+
+~/demo $ node .claude/skills/archi-made-easy/bin/archi-made-easy.mjs scaffold web-ha --provider azure --out candidate.json
+Wrote candidate.json (Highly available web application, Microsoft Azure).
+Adapt it to the request, then run:
+  archi-made-easy finalize architecture candidate.json web-ha-azure.html --quality showcase --json
+
+~/demo $ node .claude/skills/archi-made-easy/bin/archi-made-easy.mjs finalize architecture candidate.json shop.html --quality showcase --json
+# receipt shortened to its status and gates; the full receipt (one line of JSON) also carries: schemaVersion, ok, specification, artifact, diagnostics, diagnosticSummary, evidence, visualReview, durationMs, browserCheck, review
+{
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  }
+}
+
+# Each command exited with status 0. The page shop.html passed all four finalize gates.
