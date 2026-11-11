@@ -99,17 +99,22 @@ export function resolveTargets(options, env = process.env, home = os.homedir()) 
   // Several agents can share one folder (for example .agents/skills in a project).
   const seen = new Map();
   for (const target of targets) {
-    const key = path.resolve(target.dir).toLowerCase();
+    // The targets usually do not exist yet, so they are compared by name with the same rule
+    // as isSamePath: case folds only where the file system usually ignores case.
+    const key = pathKey(target.dir);
     if (seen.has(key)) seen.get(key).label += `, ${target.label}`;
     else seen.set(key, target);
   }
   return [...seen.values()];
 }
 
+function pathKey(value) {
+  const resolved = path.resolve(value);
+  return process.platform === 'win32' || process.platform === 'darwin' ? resolved.toLowerCase() : resolved;
+}
+
 function isSamePath(a, b) {
-  const ra = path.resolve(a);
-  const rb = path.resolve(b);
-  return process.platform === 'win32' || process.platform === 'darwin' ? ra.toLowerCase() === rb.toLowerCase() : ra === rb;
+  return pathKey(a) === pathKey(b);
 }
 
 function copyTree(from, to, relative = '') {
@@ -219,4 +224,4 @@ export function main(argv = process.argv.slice(2), env = process.env) {
   return failed.length ? 1 : 0;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exitCode = main();
+if (process.argv[1] && isSamePath(process.argv[1], fileURLToPath(import.meta.url))) process.exitCode = main();

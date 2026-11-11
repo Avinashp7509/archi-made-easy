@@ -2,9 +2,19 @@
 // systems, and every other component becomes a container of one software system. The
 // smallest boundary around a component becomes a group.
 
-import { PASSIVE, boundaryForest, edgeText, idMap } from './shared.mjs';
+import { PASSIVE, boundaryForest, edgeText, idMap, oneLine } from './shared.mjs';
 
-const q = (value) => `"${String(value ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r?\n/g, ' ')}"`;
+// Authored text as one Structurizr DSL string. The DSL is read a line at a time (a lone CR
+// also ends a line), so every line break is folded. Its only escape is \" and a backslash is
+// otherwise literal, so a quote is written as \" and a value that ends in a backslash gets an
+// invisible word joiner before the closing quote. It substitutes ${NAME} with constants and
+// environment variables, so a word joiner is put between $ and {.
+const WORD_JOINER = '\u2060';
+const q = (value) => {
+  let text = oneLine(value).replace(/"/g, '\\"').replace(/\$\{/g, () => `$${WORD_JOINER}{`);
+  if (text.endsWith('\\')) text += WORD_JOINER;
+  return `"${text}"`;
+};
 const isExternal = (node) => ['external-saas', 'ai-model'].includes(node.role);
 
 export function toStructurizr(model) {

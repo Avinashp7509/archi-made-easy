@@ -26,7 +26,7 @@ Open the [agent-aware quick start](start.html). Select the agent you actually us
 
 Use a coding-agent environment that can read and write files and execute commands with Node.js. “No repository required” means you can supply a natural-language description without existing source code; the agent still needs a workspace to write JSON and HTML and run the renderer and checks. Viewing the finished HTML only needs a browser.
 
-The [installation reference](https://github.com/OWNER/archi-made-easy/blob/main/README.md#installation-options) distinguishes these surfaces. Claude Code and Codex CLI support the full renderer and validation workflow. Claude.ai depends on Node.js access in its sandbox; uploading a ZIP to Project Knowledge is a prompt-driven fallback, not the same execution environment. Other integrations have their own requirements.
+The [installation reference](https://github.com/Avinashp7509/archi-made-easy/blob/main/README.md#installation-options) distinguishes these surfaces. Claude Code and Codex CLI support the full renderer and validation workflow. Claude.ai depends on Node.js access in its sandbox; uploading a ZIP to Project Knowledge is a prompt-driven fallback, not the same execution environment. Other integrations have their own requirements.
 
 <span id="setup-claude-code" class="section-anchor" aria-hidden="true"></span>
 
@@ -34,7 +34,7 @@ The [installation reference](https://github.com/OWNER/archi-made-easy/blob/main/
 
 For a global copied installation, run this in the terminal of the environment where you use Claude Code:
 
-<pre><code>npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent claude-code --global --copy --yes</code></pre>
+<pre><code>npx -y skills add Avinashp7509/archi-made-easy --skill archi-made-easy --agent claude-code --global --copy --yes</code></pre>
 
 Claude Code uses `~/.claude/skills/` for global skills or `.claude/skills/` in the project. For a project-scoped installation instead, choose [Claude Code in Start](start.html?agent=claude-code#install) and use “This repository only” from the intended project directory.
 
@@ -44,7 +44,7 @@ Claude Code uses `~/.claude/skills/` for global skills or `.claude/skills/` in t
 
 For a global copied installation, run this in the terminal of the environment where you use Codex CLI:
 
-<pre><code>npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent codex --global --copy --yes</code></pre>
+<pre><code>npx -y skills add Avinashp7509/archi-made-easy --skill archi-made-easy --agent codex --global --copy --yes</code></pre>
 
 Codex CLI uses `~/.agents/skills/` for global skills or `.agents/skills/` in the project. For a project-scoped installation instead, choose [Codex in Start](start.html?agent=codex#install) and use “This repository only” from the intended project directory.
 
@@ -54,7 +54,7 @@ After installation, use the description or repository prompt in Start. Installat
 
 ## No code repository: read a Chinese workflow diagram
 
-Without a code repository, you can start with steps, allowances, and rules. Open the existing [Chinese leave-planning workflow](cases/life/leave-plan.workflow.html) alongside its [revision-pinned JSON source](https://github.com/OWNER/archi-made-easy/blob/68031cf978e0b906aa56c684a394049a3ea9d583/docs/cases/life/leave-plan.workflow.json). This is a walkthrough of an existing source file, not a fresh agent execution record.
+Without a code repository, you can start with steps, allowances, and rules. Open the existing [Chinese leave-planning workflow](cases/life/leave-plan.workflow.html) alongside its [revision-pinned JSON source](https://github.com/Avinashp7509/archi-made-easy/blob/68031cf978e0b906aa56c684a394049a3ea9d583/docs/cases/life/leave-plan.workflow.json). This is a walkthrough of an existing source file, not a fresh agent execution record.
 
 Read the two lanes, “休假计划” (leave plan) and “规则提醒” (rule reminders), separately. The diagram has 8 nodes and 7 relationships; its main path has only 6 nodes, from the opening allowance through four allocations to the final balance. Annual leave is allocated as 1 + 4 + 3 + 2, totaling 10 days. The spring allocation also uses 2 compensatory days, bringing the total to 12. Two branches connect expiry and approval reminders; they are not additional leave deductions.
 
@@ -89,7 +89,7 @@ Review meaning before appearance:
 - Does revision return to review rather than ending the process?
 - Has anything been omitted, merged, or added?
 
-Keep the original Mermaid alongside the new JSON so you can compare them. Mermaid styling, layout directives, and callbacks should not be assumed to carry over. The [pinned Skill](https://github.com/OWNER/archi-made-easy/blob/88d1ae4498b6a1df610badf690c5406882622d15/archi-made-easy/SKILL.md#mermaid-input) describes the supported input families. If your goal is to retain Mermaid syntax and render it directly on a web page, use [Mermaid’s own rendering workflow](https://mermaid.ai/open-source/config/usage.html) instead.
+Keep the original Mermaid alongside the new JSON so you can compare them. Mermaid styling, layout directives, and callbacks should not be assumed to carry over. The [pinned Skill](https://github.com/Avinashp7509/archi-made-easy/blob/88d1ae4498b6a1df610badf690c5406882622d15/archi-made-easy/SKILL.md#mermaid-input) describes the supported input families. If your goal is to retain Mermaid syntax and render it directly on a web page, use [Mermaid’s own rendering workflow](https://mermaid.ai/open-source/config/usage.html) instead.
 
 <span id="cache-scenarios" class="section-anchor" aria-hidden="true"></span>
 
@@ -129,7 +129,7 @@ Before accepting a repository-backed diagram, check:
 
 Where an artifact includes verified source links, inspect them. A source link shows where the diagram's evidence comes from; it does not by itself establish production behavior. Logs, traces, configuration, and human review may still be needed.
 
-For an existing source-backed example, see the [MCO runtime architecture](https://archi-made-easy.example/cases/mco-runtime.architecture.html) and its [typed source](https://github.com/OWNER/archi-made-easy/blob/main/docs/cases/mco-runtime.architecture.json). The example describes its pinned revision, not the repository's future state.
+For an existing source-backed example, see the [MCO runtime architecture](https://archi-made-easy.example/cases/mco-runtime.architecture.html) and its [typed source](https://github.com/Avinashp7509/archi-made-easy/blob/main/docs/cases/mco-runtime.architecture.json). The example describes its pinned revision, not the repository's future state.
 
 [Follow the MCO source case: who decodes output and who writes files →](cases/mco-runtime.html)
 
@@ -171,7 +171,7 @@ No. A clear description can be enough. A repository becomes useful when the diag
 
 ### Is it free, and which Archi-Made-Easy is this?
 
-This guide concerns the [OWNER/archi-made-easy open-source project](https://github.com/OWNER/archi-made-easy), whose official website is [archi-made-easy.example](https://archi-made-easy.example). Its code is MIT-licensed. Your agent or other services may have their own costs and terms. A similarly named paid service is not automatically affiliated with this project.
+This guide concerns the [Avinashp7509/archi-made-easy open-source project](https://github.com/Avinashp7509/archi-made-easy), whose official website is [archi-made-easy.example](https://archi-made-easy.example). Its code is MIT-licensed. Your agent or other services may have their own costs and terms. A similarly named paid service is not automatically affiliated with this project.
 
 ### What should I do next?
 

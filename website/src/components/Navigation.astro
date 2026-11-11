@@ -28,7 +28,7 @@ const links = [
   <div class="nav-right">
     <div class="nav-links">
     {links.map(link => <a class="nav-link" href={`${link.page}.html`} aria-current={page === link.page ? 'page' : undefined} {...(home ? { 'data-i18n': `nav-${link.page}` } : page === 'guide' ? { 'data-i18n': guideKeys[link.page] } : { 'data-en': link.en, 'data-zh': link.zh })}>{link.en}</a>)}
-    <a class="nav-link" href="https://github.com/OWNER/archi-made-easy" target="_blank" rel="noopener">GitHub<span class="nav-stars" data-gh-stars hidden></span></a>
+    <a class="nav-link" href="https://github.com/Avinashp7509/archi-made-easy" target="_blank" rel="noopener">GitHub<span class="nav-stars" data-gh-stars hidden></span></a>
     </div>
     <button class="btn-theme" type="button" data-theme-toggle aria-label="Switch to dark theme">
       <svg class="theme-moon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13.5 9.6A5.8 5.8 0 0 1 6.4 2.5a5.8 5.8 0 1 0 7.1 7.1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
@@ -73,7 +73,7 @@ const links = [
       document.addEventListener('DOMContentLoaded', function () { paint(cached.n); });
       return;
     }
-    fetch('https://api.github.com/repos/OWNER/archi-made-easy').then(function (r) { return r.ok ? r.json() : null; }).then(function (repo) {
+    fetch('https://api.github.com/repos/Avinashp7509/archi-made-easy').then(function (r) { return r.ok ? r.json() : null; }).then(function (repo) {
       var n = repo && repo.stargazers_count;
       if (!n) return;
       try { sessionStorage.setItem(KEY, JSON.stringify({ n: n, at: Date.now() })); } catch (_) {}

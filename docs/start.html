@@ -9,8 +9,8 @@
   <meta property="og:type" content="website">
   <meta property="og:title" content="Archi-Made-Easy Start — Describe it, then see it">
   <meta property="og:description" content="Start with a plain-language description, pasted Mermaid, or real code. No repository is required.">
-  <meta property="og:url" content="https://OWNER.github.io/archi-made-easy/start.html">
-  <meta property="og:image" content="https://OWNER.github.io/archi-made-easy/assets/archi-made-easy-social-preview.png">
+  <meta property="og:url" content="https://avinashp7509.github.io/archi-made-easy/start.html">
+  <meta property="og:image" content="https://avinashp7509.github.io/archi-made-easy/assets/archi-made-easy-social-preview.png">
   <link rel="icon" type="image/svg+xml" href="assets/archi-made-easy-mark.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -190,7 +190,7 @@
       <a class="nav-link" href="gallery.html" data-en="Proof Lab" data-zh="验证作品集">Proof Lab</a>
       <a class="nav-link" href="start.html" aria-current="page" data-en="Start" data-zh="快速上手">Start</a>
       <a class="nav-link" href="community.html" data-en="Community" data-zh="社区包">Community</a>
-      <a class="nav-link nav-github" href="https://github.com/OWNER/archi-made-easy" target="_blank" rel="noopener"><svg class="nav-star" viewBox="0 0 16 16" aria-hidden="true"><path d="M 8 1.6 l 1.9 3.9 l 4.3 0.6 l -3.1 3 l 0.7 4.3 L 8 11.4 l -3.8 2 l 0.7 -4.3 l -3.1 -3 l 4.3 -0.6 Z"/></svg>GitHub</a>
+      <a class="nav-link nav-github" href="https://github.com/Avinashp7509/archi-made-easy" target="_blank" rel="noopener"><svg class="nav-star" viewBox="0 0 16 16" aria-hidden="true"><path d="M 8 1.6 l 1.9 3.9 l 4.3 0.6 l -3.1 3 l 0.7 4.3 L 8 11.4 l -3.8 2 l 0.7 -4.3 l -3.1 -3 l 4.3 -0.6 Z"/></svg>GitHub</a>
       </div>
       <button class="btn-lang" id="language" type="button" aria-label="Switch language">中文</button>
       <a class="btn btn-primary nav-cta" href="#install" data-en="Install Skill" data-zh="安装技能">Install Skill</a>
@@ -245,11 +245,11 @@
 
         <div class="command-block">
           <div class="command-bar"><span data-en="Global install" data-zh="全局安装">Global install</span><button class="copy-button" type="button" data-copy-source="install-command" data-en="Copy" data-zh="复制">Copy</button></div>
-          <pre id="install-command">npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent codex --global --copy --yes</pre>
+          <pre id="install-command">npx -y skills add Avinashp7509/archi-made-easy --skill archi-made-easy --agent codex --global --copy --yes</pre>
         </div>
         <div class="command-block">
           <div class="command-bar"><span data-en="This repository only" data-zh="仅安装到当前仓库">This repository only</span><button class="copy-button" type="button" data-copy-source="project-command" data-en="Copy" data-zh="复制">Copy</button></div>
-          <pre id="project-command">npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent codex --copy --yes</pre>
+          <pre id="project-command">npx -y skills add Avinashp7509/archi-made-easy --skill archi-made-easy --agent codex --copy --yes</pre>
         </div>
         <p class="secondary-note" data-en="The Start link carries only your agent, language, diagram type, input mode, and a coarse source label. Journey events stay in this browser session and are never sent by Archi-Made-Easy. No repository path, title, node, relationship, or source JSON is recorded." data-zh="Start 链接只携带 Agent、语言、图表类型、输入模式和粗粒度来源标签。转化步骤只保存在当前浏览器会话中，Archi-Made-Easy 不会发送这些数据，也不会记录仓库路径、标题、节点、关系或源 JSON。">The Start link carries only your agent, language, diagram type, input mode, and a coarse source label. Journey events stay in this browser session and are never sent by Archi-Made-Easy. No repository path, title, node, relationship, or source JSON is recorded.</p>
       </article>
@@ -271,9 +271,9 @@
     </section>
 
     <footer class="page-footer">
-      <span data-en="Archi-Made-Easy v0.1.0-dev.0 · development · self-contained HTML · typed JSON source" data-zh="Archi-Made-Easy v0.1.0-dev.0 · 开发版 · 独立 HTML · 类型化 JSON 源">Archi-Made-Easy v0.1.0-dev.0 · development · self-contained HTML · typed JSON source</span>
+      <span data-en="Archi-Made-Easy v1.0.0 · stable · self-contained HTML · typed JSON source" data-zh="Archi-Made-Easy v1.0.0 · 稳定版 · 独立 HTML · 类型化 JSON 源">Archi-Made-Easy v1.0.0 · stable · self-contained HTML · typed JSON source</span>
       <span id="copy-status" role="status" aria-live="polite"></span>
-      <a href="https://github.com/OWNER/archi-made-easy" data-en="View source on GitHub ↗" data-zh="在 GitHub 查看源码 ↗">View source on GitHub ↗</a>
+      <a href="https://github.com/Avinashp7509/archi-made-easy" data-en="View source on GitHub ↗" data-zh="在 GitHub 查看源码 ↗">View source on GitHub ↗</a>
     </footer>
   </main>
 
@@ -390,8 +390,8 @@
         });
         var agentName = document.querySelector('[data-agent="' + agent + '"]').textContent;
         agentState.textContent = agentName + (language === 'zh' ? ' · 同一份 Skill' : ' · same Skill');
-        installCommand.textContent = 'npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent ' + agent + ' --global --copy --yes';
-        projectCommand.textContent = 'npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent ' + agent + ' --copy --yes';
+        installCommand.textContent = 'npx -y skills add Avinashp7509/archi-made-easy --skill archi-made-easy --agent ' + agent + ' --global --copy --yes';
+        projectCommand.textContent = 'npx -y skills add Avinashp7509/archi-made-easy --skill archi-made-easy --agent ' + agent + ' --copy --yes';
         title.textContent = copy.title;
         question.textContent = copy.question;
         prompt.textContent = currentPrompt();

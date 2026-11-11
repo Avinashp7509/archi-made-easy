@@ -158,8 +158,8 @@ test('start page: every gallery case type resolves to a start entry', () => {
 test('start page: offers six bounded bilingual starts without ingesting source content', () => {
   const html = fs.readFileSync(path.join(repoRoot, 'docs/start.html'), 'utf8');
   assert.doesNotMatch(html, /\[\[[A-Z0-9_]+\]\]/);
-  assert.match(html, /npx -y skills add OWNER\/archi-made-easy --skill archi-made-easy --agent codex --global --copy --yes/);
-  assert.match(html, /npx -y skills add OWNER\/archi-made-easy --skill archi-made-easy --agent codex --copy --yes/);
+  assert.match(html, /npx -y skills add Avinashp7509\/archi-made-easy --skill archi-made-easy --agent codex --global --copy --yes/);
+  assert.match(html, /npx -y skills add Avinashp7509\/archi-made-easy --skill archi-made-easy --agent codex --copy --yes/);
   for (const agent of ['cursor', 'codex', 'claude-code', 'opencode', 'github-copilot']) {
     assert.match(html, new RegExp(`role="tab" data-agent="${agent}"`));
   }

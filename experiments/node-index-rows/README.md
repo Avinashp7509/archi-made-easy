@@ -57,7 +57,7 @@ Visually reviewed the unselected Sample Web App desktop comparison and the
 long-text narrow candidate. Group membership is clear; desktop whitespace is
 used better, and narrow labels wrap. Exact spacing remains open for review.
 
-Related issue: https://github.com/OWNER/archi-made-easy/issues/664
+Related issue: https://github.com/Avinashp7509/archi-made-easy/issues/664
 
 ## Maintainer-requested alternatives
 

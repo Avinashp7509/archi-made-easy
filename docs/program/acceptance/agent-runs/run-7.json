@@ -1,0 +1,76 @@
+{
+  "run": "7",
+  "prompt": "Optimize this architecture for lower cost.",
+  "candidate": "B",
+  "candidateArchive": "release-candidate-b.zip",
+  "outcome": "pass",
+  "fixture": "existing-architecture",
+  "turns": [
+    {
+      "prompt": "Optimize this architecture for lower cost.",
+      "exit": 0,
+      "timedOut": false,
+      "ms": 346472,
+      "subtype": "success",
+      "isError": false,
+      "numTurns": 37,
+      "costUsd": 1.7970320000000002,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ]
+    }
+  ],
+  "durationSeconds": 346,
+  "costUsd": 1.797,
+  "costNote": "total_cost_usd reported by Claude Code",
+  "usage": {
+    "input_tokens": 54,
+    "output_tokens": 24693,
+    "cache_creation_input_tokens": 63626,
+    "cache_read_input_tokens": 1085166
+  },
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-opus-5[1m]"
+  ],
+  "skillUsed": true,
+  "archiMadeEasyCommands": [
+    "simulate",
+    "simulate",
+    "simulate",
+    "simulate",
+    "simulate",
+    "help",
+    "review",
+    "simulate",
+    "simulate",
+    "simulate",
+    "simulate",
+    "simulate",
+    "simulate",
+    "review",
+    "review",
+    "review",
+    "review",
+    "finalize"
+  ],
+  "toolCalls": 35,
+  "pages": [
+    {
+      "page": ".archi-made-easy/architecture-cost-optimized-20261110-230500/cost-optimized.html",
+      "title": "Highly available web application on AWS, cost-optimised",
+      "bytes": 1139612,
+      "checks": "9/9",
+      "layoutGate": "pass (4 viewports)",
+      "agentFinalize": "pass at showcase",
+      "workbench": true,
+      "components": 10,
+      "componentsWithOperationalData": 9,
+      "assumptionsCard": true,
+      "levels": false,
+      "published": "pages/run-7-cost-optimized.html"
+    }
+  ],
+  "finalAnswer": "Modelled, rendered, all gates passed: [Cost-optimised HA web app on AWS](<temp>\\project\\.archi-made-easy\\architecture-cost-optimized-20261110-230500\\cost-optimized.html)\n\n**$1,108.48 → $498.92/month (−55%), with composite availability unchanged at 99.85%.** Your `solution.*` files are untouched; this is a new document.\n\nThe model priced your baseline at $1,108.48, concentrated in two places: the Fargate per-request charge ($420.48) and the Aurora instance ($410). Everything reaching Aurora and Fargate was paying full origin price because nothing was cached at the edge, and both data tiers were running at roughly a quarter of their declared capacity.\n\n| Lever | Saving/mo | What it costs you |\n|---|---|---|\n| CloudFront serves 70% at the edge (`cdn→lb` multiplier 0.3) | −$294.34 | Needs cacheable responses and correct cache headers |\n| Aurora right-sized (1,500 → 800 rps capacity) | −$200.00 | Less burst headroom at the DB |\n| Fargate on ARM64 (task base and per-request rate) | −$53.22 | ARM-compatible image required |\n| ElastiCache right-sized (50,000 → 12,000 rps) | −$62.00 | Smaller hot set before eviction pressure |\n\nSide effects are favourable, not just neutral: critical-path P99 drops 308 ms → 260 ms and max sustainable load rises 1,000 → 2,000 rps, because the origin now carries less traffic.\n\n**Trade-offs made explicit.** I kept every redundancy property — zone spread on all tiers, and the two-task Fargate floor. That floor is why the review score moved 82 → 81: it opens a \"idle capacity kept running\" finding, which is the deliberate price of surviving a zone failure. Three priced alternatives are loaded in the diagram's Workbench so you can switch between them:\n\n- **Smaller Fargate tasks** — $442.92 (−$56), availability unchanged, P99 +17 ms. The best remaining cut, and it closes the idle-capacity finding.\n- **One Fargate task** — $442.92 (−$56) but availability 99.85% → 99.80% and a third SPOF. Same saving as above for strictly worse reliability; don't take this one.\n- **Aurora with a standby** — $708.92 (+$210). Not a saving, but the best reliability buy here: it closes your highest-severity finding and lifts the score to 90.\n\nWorth knowing: **removing ElastiCache costs $172 more, not less**, because every read falls back to Aurora and the larger instance comes back. The cache is paying for itself.\n\nBoth single points of failure (Aurora, Cognito) are unchanged — I didn't make reliability worse to get the cost down, but I didn't fix them either, since both fixes add cost.\n\nCaveats on the numbers: these are an analytical model of the declared design, not measurements or quotes. The prices and instance tiers I set are illustrative design targets — re-run with figures from your actual bill before committing. Only 4 of 10 components carry cost data, so CloudFront data transfer, S3, SQS, Lambda and Cognito are absent from both the before and the after; CDN egress in particular is a real line the model cannot see. A Compute Savings Plan would cut the rates further without any architectural change, but it locks in one to three years, so I left it out of the design and recorded it as a rejected option in the ADR."
+}

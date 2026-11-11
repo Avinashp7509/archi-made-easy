@@ -22,8 +22,8 @@ function fixture(t) {
   const cacheDirectory = path.join(root, 'cache');
   fs.writeFileSync(releasePath, `${JSON.stringify({
     schemaVersion: 1, skillId: 'archi-made-easy', channel: 'stable', version: installed,
-    source: { repository: 'https://github.com/OWNER/archi-made-easy' },
-    updateManifestUrl: 'https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
+    source: { repository: 'https://github.com/Avinashp7509/archi-made-easy' },
+    updateManifestUrl: 'https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
   })}\n`);
   return { root, releasePath, cacheDirectory };
 }
@@ -32,10 +32,10 @@ function manifest() {
   return {
     schemaVersion: 1, skillId: 'archi-made-easy', channel: 'stable', version: available,
     publishedAt: '2026-08-28T07:00:00Z',
-    source: { repository: 'https://github.com/OWNER/archi-made-easy', ref: 'v2.16.0', treeSha: 'a'.repeat(40) },
+    source: { repository: 'https://github.com/Avinashp7509/archi-made-easy', ref: 'v2.16.0', treeSha: 'a'.repeat(40) },
     artifact: { sha256: 'b'.repeat(64) },
     summary: 'A release is available.',
-    releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.16.0',
+    releaseNotes: 'https://github.com/Avinashp7509/archi-made-easy/releases/tag/v2.16.0',
     severity: 'normal',
   };
 }

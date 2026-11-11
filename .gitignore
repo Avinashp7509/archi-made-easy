@@ -7,3 +7,5 @@ node_modules/
 /.impeccable/
 __pycache__/
 *.py[cod]
+# Agent transcripts carry session and request identifiers; only the curated run records are published.
+docs/program/acceptance/**/*.jsonl

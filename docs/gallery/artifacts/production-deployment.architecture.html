@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="generator" content="archi-made-easy 0.1.0-dev.0">
+  <meta name="generator" content="archi-made-easy 1.0.0">
   <meta name="archi-made-easy-reader-contract" content="declared-wide-v1">
   <title>Production Deployment Ownership Diagram</title>
   <script>
@@ -6248,7 +6248,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <span><kbd>E</kbd> Export</span><span><kbd>T</kbd> Theme</span><span><kbd>S</kbd> Style</span><span><kbd>0</kbd> Reset</span><span><kbd>+</kbd> Zoom in</span><span><kbd>-</kbd> Zoom out</span><span><kbd>Esc</kbd> Close</span>
         </div>
         <p class="diagram-guide-feedback" id="diagram-guide-feedback" aria-live="polite"></p>
-        <a class="diagram-guide-credit" href="https://github.com/OWNER/archi-made-easy" target="_blank" rel="noopener noreferrer"><span>Find Archi-Made-Easy useful? A star on GitHub helps</span><span class="diagram-guide-credit-link"><span class="diagram-guide-star" aria-hidden="true"></span>Star <span aria-hidden="true">&#8599;</span></span></a>
+        <a class="diagram-guide-credit" href="https://github.com/Avinashp7509/archi-made-easy" target="_blank" rel="noopener noreferrer"><span>Find Archi-Made-Easy useful? A star on GitHub helps</span><span class="diagram-guide-credit-link"><span class="diagram-guide-star" aria-hidden="true"></span>Star <span aria-hidden="true">&#8599;</span></span></a>
       </div>
       <div class="node-finder no-print" id="node-finder" hidden role="dialog" aria-modal="false" aria-labelledby="node-finder-title">
         <div class="node-finder-head">
@@ -17411,13 +17411,36 @@ function xmlEscape(value) {
   return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// Every character sequence a consumer of the text exports may read as the end of a line:
+// CommonMark, Mermaid and Java's line reader (Structurizr) all end a line at a lone CR as
+// well as at LF and CRLF. Vertical tab, form feed, NEL and the Unicode line and paragraph
+// separators are folded too.
+const LINE_BREAKS = /\s*(?:\r\n|[\r\n\u000b\u000c\u0085\u2028\u2029])\s*/g;
+
+/** Authored text on one line: every line break, with the spaces around it, becomes one space. */
+function oneLine(value) {
+  return String(value ?? '').replace(LINE_BREAKS, ' ');
+}
+
 /**
  * Authored text as Markdown text. Whatever the author wrote, it comes out as text: it
- * cannot become emphasis, a link, an image, a table cell boundary, a code span or raw
- * HTML, and it stays on one line, so it cannot start a new block either.
+ * cannot become emphasis, a link with hidden text, an image, a table cell boundary, a code
+ * span or raw HTML, and it stays on one line. Two limits: where the text starts a line,
+ * wrap it in `mdLineStart` so it cannot start a block; and a bare http(s), www or e-mail
+ * address may still be shown as a link by renderers that autolink them (GitHub does), with
+ * the address itself as the visible text.
  */
 function mdText(value) {
-  return String(value ?? '').replace(/\s*\r?\n\s*/g, ' ').replace(/[\\`*_[\]<>|]/g, '\\$&');
+  return oneLine(value).replace(/[\\`*_[\]<>|]/g, '\\$&');
+}
+
+/**
+ * Escaped authored text (from `mdText`) placed at the start of a line, for example as a
+ * list item: no leading indentation (an indented code block), and a leading heading, list,
+ * rule or fence marker is escaped. `*` and `>` are escaped by `mdText` already.
+ */
+function mdLineStart(escaped) {
+  return String(escaped).replace(/^\s+/, '').replace(/^([#+~=-])/, '\\$1').replace(/^(\d{1,9})([.)])/, '$1\\$2');
 }
 
 /** Markdown the exporter wrote itself (authored parts already escaped), for a table cell. */
@@ -17442,21 +17465,23 @@ function xmlHtmlText(value) {
 function mdTable(headers, rows) {
   return [`| ${headers.join(' | ')} |`, `|${headers.map(() => '---').join('|')}|`, ...rows.map((row) => `| ${row.map(cell).join(' | ')} |`)].join('\n');
 }
-    return { safeId, idMap, ASYNC, PASSIVE, edgeText, plural, boundaryForest, xmlEscape, mdText, preformatted, cell, xmlHtmlText, mdTable };
+    return { safeId, idMap, ASYNC, PASSIVE, edgeText, plural, boundaryForest, xmlEscape, oneLine, mdText, mdLineStart, preformatted, cell, xmlHtmlText, mdTable };
   })();
   // ---- exporters/mermaid.mjs
   __modules["exporters/mermaid.mjs"] = (function () {
     'use strict';
 // Mermaid export: flowchart, C4 and sequence diagrams from an architecture model.
 
-var { ASYNC, PASSIVE, boundaryForest, edgeText, idMap, mdText } = __modules["exporters/shared.mjs"];
+var { ASYNC, PASSIVE, boundaryForest, edgeText, idMap, mdText, oneLine } = __modules["exporters/shared.mjs"];
 
 // Authored text inside a Mermaid diagram, written with Mermaid's entity codes so that it is
 // text in every position. In a quoted label it cannot close the string, start a tag or end
-// the code fence of the Markdown around it.
+// the code fence of the Markdown around it. Every line break is folded (Mermaid also ends a
+// line at a lone CR). A percent sign is encoded even inside quotes, because Mermaid looks for
+// `%%{init: …}%%` directives anywhere in the diagram text.
 const CODES = { '#': '#35;', '"': '#quot;', '<': '#lt;', '>': '#gt;', '`': '#96;', ';': '#59;', '%': '#37;' };
-const encode = (value, characters) => String(value ?? '').replace(/\s*\r?\n\s*/g, ' ').replace(characters, (character) => CODES[character]);
-const text = (value) => encode(value, /[#"<>`]/g);
+const encode = (value, characters) => oneLine(value).replace(characters, (character) => CODES[character]);
+const text = (value) => encode(value, /[#"<>`%]/g);
 // Outside quotes (a title, a participant name, a message, a note) a semicolon would end the
 // statement and a percent sign could start a comment, so those are encoded as well.
 const bare = (value) => encode(value, /[#"<>`;%]/g);
@@ -17677,9 +17702,19 @@ function toDrawio(document, model) {
 // systems, and every other component becomes a container of one software system. The
 // smallest boundary around a component becomes a group.
 
-var { PASSIVE, boundaryForest, edgeText, idMap } = __modules["exporters/shared.mjs"];
+var { PASSIVE, boundaryForest, edgeText, idMap, oneLine } = __modules["exporters/shared.mjs"];
 
-const q = (value) => `"${String(value ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r?\n/g, ' ')}"`;
+// Authored text as one Structurizr DSL string. The DSL is read a line at a time (a lone CR
+// also ends a line), so every line break is folded. Its only escape is \" and a backslash is
+// otherwise literal, so a quote is written as \" and a value that ends in a backslash gets an
+// invisible word joiner before the closing quote. It substitutes ${NAME} with constants and
+// environment variables, so a word joiner is put between $ and {.
+const WORD_JOINER = '\u2060';
+const q = (value) => {
+  let text = oneLine(value).replace(/"/g, '\\"').replace(/\$\{/g, () => `$${WORD_JOINER}{`);
+  if (text.endsWith('\\')) text += WORD_JOINER;
+  return `"${text}"`;
+};
 const isExternal = (node) => ['external-saas', 'ai-model'].includes(node.role);
 
 function toStructurizr(model) {
@@ -17747,7 +17782,7 @@ var { buildFmea } = __modules["fmea.mjs"];
 var { estimateCost } = __modules["cost.mjs"];
 var { buildScenarios, runScenario } = __modules["scenarios.mjs"];
 var { toMermaidFlowchart } = __modules["exporters/mermaid.mjs"];
-var { mdTable, mdText, plural, preformatted } = __modules["exporters/shared.mjs"];
+var { mdLineStart, mdTable, mdText, plural, preformatted } = __modules["exporters/shared.mjs"];
 
 // The asterisk is the exporter's own mark, so the cell is written as Markdown here.
 const mark = (node, key, value) => (value == null ? 'not set' : preformatted(`${mdText(value)}${node.basis[key] === 'assumed' ? '*' : ''}`));
@@ -17788,7 +17823,7 @@ function toRfc(document, model) {
       ].filter(([, value]) => value != null && value !== '');
       if (rows.length) push(mdTable(['Requirement', 'Target'], rows), '');
     }
-    if (assumptions) push('Assumptions:', '', ...assumptions.items.map((item) => `- ${mdText(item)}`), '');
+    if (assumptions) push('Assumptions:', '', ...assumptions.items.map((item) => `- ${mdLineStart(mdText(item))}`), '');
   }
 
   push('## 3. Architecture', '', '```mermaid', toMermaidFlowchart(model), '```', '');

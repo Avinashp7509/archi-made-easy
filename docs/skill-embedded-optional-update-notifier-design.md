@@ -112,7 +112,7 @@ archi-made-easy/
 外部组件：
 
 ```text
-https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json
+https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json
 <system-cache-dir>/archi-made-easy-skill/version-<version-sha256-prefix>/committed-<generation>/state.json
 ```
 
@@ -171,9 +171,9 @@ flowchart TD
   "channel": "stable",
   "version": "3.1.0",
   "source": {
-    "repository": "https://github.com/OWNER/archi-made-easy"
+    "repository": "https://github.com/Avinashp7509/archi-made-easy"
   },
-  "updateManifestUrl": "https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json"
+  "updateManifestUrl": "https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json"
 }
 ```
 
@@ -191,7 +191,7 @@ flowchart TD
   "version": "3.2.0",
   "publishedAt": "2026-08-28T08:00:00Z",
   "source": {
-    "repository": "https://github.com/OWNER/archi-made-easy",
+    "repository": "https://github.com/Avinashp7509/archi-made-easy",
     "ref": "v3.2.0",
     "treeSha": "8f11d3..."
   },
@@ -199,7 +199,7 @@ flowchart TD
     "sha256": "56da..."
   },
   "summary": "改进大型项目扫描与架构图布局",
-  "releaseNotes": "https://github.com/OWNER/archi-made-easy/releases/tag/v3.2.0",
+  "releaseNotes": "https://github.com/Avinashp7509/archi-made-easy/releases/tag/v3.2.0",
   "severity": "normal"
 }
 ```
@@ -218,7 +218,7 @@ flowchart TD
 | `source.treeSha` | 必须是发布 tag 中 `archi-made-easy/` 的 40 位小写 Git tree SHA |
 | `artifact.sha256` | 必须是发布 `archi-made-easy.zip` 的 64 位小写 SHA-256；用于提醒事件身份 |
 | `summary` | 必填纯文本，1–160 个字符；v0.1 校验但不直接输出远端文本 |
-| `releaseNotes` | 必须逐字节等于 `https://github.com/OWNER/archi-made-easy/releases/tag/v<version>`，不接受显式端口、大小写变体、查询或片段 |
+| `releaseNotes` | 必须逐字节等于 `https://github.com/Avinashp7509/archi-made-easy/releases/tag/v<version>`，不接受显式端口、大小写变体、查询或片段 |
 | `severity` | `normal` 或 `security`；两者都不触发自动安装 |
 
 响应体硬上限为 32 KiB，重定向禁用。非成功响应、错误媒体类型和声明超限的响应会先取消未读 body，再静默失败。
@@ -248,7 +248,7 @@ flowchart TD
     "version": "3.2.0",
     "targetDigest": "sha256:56da...",
     "severity": "normal",
-    "releaseNotes": "https://github.com/OWNER/archi-made-easy/releases/tag/v3.2.0"
+    "releaseNotes": "https://github.com/Avinashp7509/archi-made-easy/releases/tag/v3.2.0"
   }
 }
 ```
@@ -320,7 +320,7 @@ generation 只负责提交顺序，固定的 `active-claim` 负责网络请求�
   "targetDigest": "sha256:56da...",
   "severity": "normal",
   "summary": "Archi-Made-Easy 3.2.0 is available; see the official release notes for details.",
-  "releaseNotes": "https://github.com/OWNER/archi-made-easy/releases/tag/v3.2.0"
+  "releaseNotes": "https://github.com/Avinashp7509/archi-made-easy/releases/tag/v3.2.0"
 }
 ```
 
@@ -396,7 +396,7 @@ installation guidance without executing an update in this v0.1 workflow.
 
 > ⬆ Archi-Made-Easy Skill v3.2.0 可用，你正在使用 v3.1.0。
 >
-> 有可用的新版本；详情请查看官方发布说明。[查看变更说明](https://github.com/OWNER/archi-made-easy/releases/tag/v3.2.0)
+> 有可用的新版本；详情请查看官方发布说明。[查看变更说明](https://github.com/Avinashp7509/archi-made-easy/releases/tag/v3.2.0)
 >
 > 是否升级由你决定；本次任务继续使用当前版本。
 
@@ -404,7 +404,7 @@ installation guidance without executing an update in this v0.1 workflow.
 
 > ⚠ Archi-Made-Easy Skill 发布了安全更新 v3.2.1，你正在使用 v3.1.0。
 >
-> 建议查看安全说明后决定是否升级。[查看安全说明](https://github.com/OWNER/archi-made-easy/releases/tag/v3.2.1)
+> 建议查看安全说明后决定是否升级。[查看安全说明](https://github.com/Avinashp7509/archi-made-easy/releases/tag/v3.2.1)
 >
 > 当前版本保持不变。
 
@@ -420,7 +420,7 @@ v0.1 只实现“忽略”和“查看变更”。Snooze/Skip 不预留运行时
 
 ### 15.1 最小网络披露
 
-检查器在成功检查后的 72 小时 ±20% TTL 到期时，才会再次向固定的 `https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json` 执行静态无条件 `GET`；失败后若 Skill 再次被激活，则在首次 6 小时、后续 24 小时退避到期时允许重试。它不回传服务端 `ETag`，也不上传：
+检查器在成功检查后的 72 小时 ±20% TTL 到期时，才会再次向固定的 `https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json` 执行静态无条件 `GET`；失败后若 Skill 再次被激活，则在首次 6 小时、后续 24 小时退避到期时允许重试。它不回传服务端 `ETag`，也不上传：
 
 - 本地安装版本。
 - Agent 宿主名称。

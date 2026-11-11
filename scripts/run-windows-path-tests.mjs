@@ -256,7 +256,7 @@ async function runControlledWindowsPathE2E() {
     requireSuccess('repository revision discovery', revision);
     const evidenceDiagram = JSON.parse(fs.readFileSync(architectureInput, 'utf8'));
     evidenceDiagram.meta.repository = {
-      url: 'https://github.com/OWNER/archi-made-easy',
+      url: 'https://github.com/Avinashp7509/archi-made-easy',
       revision: revision.stdout.trim(),
     };
     evidenceDiagram.components[0].sources = [{

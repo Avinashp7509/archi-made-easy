@@ -1,5 +1,5 @@
 # Keep repository governance and automation changes under the owner's review.
-/.github/CODEOWNERS @OWNER
-/.github/workflows/** @OWNER
-/.github/actions/** @OWNER
-/SECURITY.md @OWNER
+/.github/CODEOWNERS @Avinashp7509
+/.github/workflows/** @Avinashp7509
+/.github/actions/** @Avinashp7509
+/SECURITY.md @Avinashp7509

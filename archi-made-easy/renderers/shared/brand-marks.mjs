@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import { lookup } from 'node:dns/promises';
+import { readFileSync } from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
 import net from 'node:net';
@@ -22,7 +23,24 @@ const MAX_HTML_BYTES = 256 * 1024;
 const MAX_IMAGE_BYTES = 1024 * 1024;
 const MAX_CAPTURE_CONCURRENCY = 3;
 const DEFAULT_CAPTURE_TIMEOUT_MS = 8000;
-const USER_AGENT = 'Archi-Made-Easy/2.15 brand-preview';
+const USER_AGENT = `Archi-Made-Easy/${packageVersion()} brand-preview`;
+const CAPTURE_DISABLED_REASON = 'remote brand capture is disabled by ARCHI_MADE_EASY_BRAND_CAPTURE_DISABLED=1';
+
+/** The skill's own version, for the request user agent. */
+function packageVersion() {
+  try {
+    const version = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version;
+    if (typeof version === 'string' && version.trim()) return version.trim();
+  } catch {
+    // Fall through: the renderer may run from a copy without its manifest.
+  }
+  return 'unknown';
+}
+
+/** Set ARCHI_MADE_EASY_BRAND_CAPTURE_DISABLED=1 to stop every remote brand request, including for pinned brands in documents. */
+function captureDisabled() {
+  return process.env.ARCHI_MADE_EASY_BRAND_CAPTURE_DISABLED === '1';
+}
 
 function lookupForms(value) {
   const raw = String(value ?? '').trim().toLocaleLowerCase('en-US');
@@ -499,6 +517,8 @@ async function captureRemoteBrand(value, deadline = Date.now() + captureTimeoutM
     sourceUrl: publicSourceUrl,
     reason,
   });
+  // Decided before any DNS lookup or socket: a document cannot make the skill contact a host when capture is off.
+  if (captureDisabled()) return fallback(CAPTURE_DISABLED_REASON);
   try {
     const page = await checkedFetch(sourceUrl, 'text/html,application/xhtml+xml,image/*;q=0.8', deadline);
     const pageType = (page.response.headers.get('content-type') || '').toLocaleLowerCase('en-US');

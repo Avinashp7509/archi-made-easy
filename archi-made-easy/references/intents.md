@@ -57,6 +57,7 @@ For an everyday or personal subject, ask for missing personal facts (dates, amou
 - When no pattern fits, author directly: start from the user's goal and the main user journey. Add the components that journey needs, then the supporting tiers (identity, data, messaging, observability) the stated qualities require: "highly available" implies redundancy across zones; "secure" implies identity, a gateway and trust boundaries.
 - Use the provider's real service names when a provider is named (for example Azure Front Door, AWS Application Load Balancer, Google Cloud Run), with `brand` marks only when available (`references/brand-marks.md`).
 - Show trust and network boundaries with `boundaries` (`region`, `security-group`).
+- When the user wants a component opened into its own diagram (for example C4 containers into their components), author the child in `workbench.drilldowns` and name it from the component with `operational.drilldown_diagram_id`, as [Levels](workbench-ui-and-exporters.md#interactive-workbench) describes.
 - Keep to what the request needs. No component count is a target.
 
 ### Turn a repository into a diagram
@@ -94,7 +95,6 @@ Never present a modelled number as measured, guaranteed, or a provider commitmen
 
 These capabilities are planned and are not part of this version:
 - command-line SVG and PNG export (use the viewer's Export menu);
-- child diagrams opened by drilling into a component;
 - workbench text in languages other than English;
 - saving a change made in the workbench back into the document (edit the document and render again).
 

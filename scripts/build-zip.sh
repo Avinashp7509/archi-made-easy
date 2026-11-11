@@ -28,7 +28,7 @@ fi
 
 # The shared stager owns tracked-only selection, index modes, conflict and
 # symlink rejection, repository-only exclusions, and package.json cleanup for
-# both the ZIP and DeepSeek Harness tarball.
+# the release ZIP.
 stage="$(mktemp -d)"
 trap 'rm -rf "$stage"' EXIT
 node "$repo_root/scripts/stage-clean-skill.mjs" \

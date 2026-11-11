@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/OWNER/archi-made-easy/schemas/class.schema.json",
+  "$id": "https://github.com/Avinashp7509/archi-made-easy/schemas/class.schema.json",
   "title": "Archi-Made-Easy Class and Interface Diagram",
   "type": "object",
   "additionalProperties": false,

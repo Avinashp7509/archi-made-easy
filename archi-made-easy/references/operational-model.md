@@ -35,7 +35,7 @@ Providers: `azure`, `aws`, `gcp`, `onprem` (provider-neutral). When the user nam
 
 A scaffold is a starting point. After scaffolding:
 
-1. Rename, add or remove components so the diagram matches the request. Keep the grid (`row`, `col`) tidy: main path on one row, branches directly above or below.
+1. Rename, add or remove components so the diagram matches the request. Keep the grid (`row`, `col`) tidy: main path on one row, branches directly above or below. Place by rows and columns only and write the file; `finalize` measures the layout and reports any repair (see [Authoring defaults](authoring-defaults.md#layout-and-routing) for large requests).
 2. Replace the pattern's assumptions with the user's facts, and keep an `Assumptions` card for what remains assumed.
 3. Add the operational facts the user gave (next section).
 4. Run `finalize` as usual.

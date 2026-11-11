@@ -103,7 +103,7 @@ npx -y skills@latest add https://archi-made-easy.example --skill archi-made-easy
 ```
 
 The second command selects a project installation; global installation requires
-an explicit `--global`. Skills CLI 1.7.4 is the validation baseline. It downloads
+an explicit `--global`. Skills CLI 1.7.0 is the validation baseline. It downloads
 the Skill archive instead of cloning the development repository, verifies its
 SHA-256 digest, and records the website source in its lock file. A project can
 apply subsequent updates with `npx -y skills@latest update archi-made-easy --project`.

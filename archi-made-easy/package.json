@@ -1,6 +1,6 @@
 {
   "name": "archi-made-easy",
-  "version": "0.1.0-dev.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "description": "Archi-Made-Easy: describe a system in plain language and get validated, interactive architecture and diagram artifacts as standalone HTML.",

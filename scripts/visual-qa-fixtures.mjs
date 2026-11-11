@@ -36,6 +36,18 @@ export function authoredWebHa() {
     traces: [{ id: 'page-view', title: 'Page view', kind: 'happy', steps: [{ edge: 'users-cdn' }, { edge: 'cdn-lb', note: 'cache miss' }, { edge: 'lb-app' }, { edge: 'app-db', note: 'read' }] }],
     alternatives: [{ id: 'standby-db', title: 'Database with a standby', description: 'Aurora with a standby in a second zone', component_overrides: [{ id: 'db', operational: { redundancy: 'active-passive-dr', dr: { rto_sec: 120, rpo_sec: 5 } } }] }],
   };
+  // The scaffold's cards describe the scaffold. This document changes the database to a
+  // single instance and states figures, so the cards must say so (an agent reviewing the
+  // document found the contradictions).
+  const replaceItem = (title, from, to) => {
+    const card = document.cards.find((c) => c.title === title);
+    const index = card ? card.items.findIndex((item) => from.test(item)) : -1;
+    if (index < 0) throw new Error(`authoredWebHa: no "${title}" card item matching ${from}`);
+    card.items[index] = to;
+  };
+  replaceItem('Availability', /standby/i, 'Aurora runs as a single instance; a standby in a second zone is the alternative in Decide');
+  replaceItem('Security', /encrypted/i, 'Aurora is encrypted at rest; encryption of the other stores is not stated');
+  replaceItem('Assumptions', /not set/i, 'Load, capacity, latency and cost figures are illustrative test values, not measurements');
   return document;
 }
 

@@ -57,7 +57,7 @@ const { lang = 'en' } = Astro.props;
 
         <div class="command-block">
           <div class="command-bar"><span data-en="Paste into your agent to install" data-zh="复制给 Agent 安装">Paste into your agent to install</span><button class="copy-button" type="button" aria-describedby="agent-install-copy-status" data-copy-source="agent-install-prompt" data-en="Copy" data-zh="复制">Copy</button></div>
-          <pre id="agent-install-prompt">Install Archi-Made-Easy for me by reading https://raw.githubusercontent.com/OWNER/archi-made-easy/main/llms.txt</pre>
+          <pre id="agent-install-prompt">Install Archi-Made-Easy for me by reading https://raw.githubusercontent.com/Avinashp7509/archi-made-easy/main/llms.txt</pre>
           <p id="agent-install-copy-status" class="copy-status" role="status" aria-live="polite"></p>
         </div>
         <p class="secondary-note" data-en="Prefer the terminal? Choose your agent and installation scope below." data-zh="也可以在终端安装：在下方选择 Agent 和安装范围。">Prefer the terminal? Choose your agent and installation scope below.</p>
@@ -105,7 +105,7 @@ const { lang = 'en' } = Astro.props;
 
     <footer class="page-footer">
       <span data-en={`Archi-Made-Easy v${version} · ${productChannel} · self-contained HTML · typed JSON source`} data-zh={`Archi-Made-Easy v${version} · ${productChannel === 'development' ? '开发版' : '稳定版'} · 独立 HTML · 类型化 JSON 源`}>Archi-Made-Easy v{version} · {productChannel} · self-contained HTML · typed JSON source</span>
-      <a href="https://github.com/OWNER/archi-made-easy" data-en="View source on GitHub ↗" data-zh="在 GitHub 查看源码 ↗">View source on GitHub ↗</a>
+      <a href="https://github.com/Avinashp7509/archi-made-easy" data-en="View source on GitHub ↗" data-zh="在 GitHub 查看源码 ↗">View source on GitHub ↗</a>
     </footer>
     <aside class="agent-guide-link" aria-label={lang === 'zh' ? 'Agent 画图指南' : 'Agent diagramming guide'}>
       <a href="agent-diagrams.html" data-en="From prompt to a diagram you can trust →" data-zh="从提示词到可检查的图 →">From prompt to a diagram you can trust →</a>

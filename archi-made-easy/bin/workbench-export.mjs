@@ -44,7 +44,14 @@ export function commandExport(args, { stdout = process.stdout, stderr = process.
     throw error;
   }
   const outputPath = path.resolve(cwd, output);
-  if (fs.existsSync(outputPath) && !args.includes('--force')) return fail(`${output} already exists. Choose another output, or pass --force to replace it.`, 'export/output-exists');
+  const force = args.includes('--force');
+  // Same contract as the other writers: the output is absent or a regular file; a directory or a link is never written through, even with --force.
+  let existing = null;
+  try { existing = fs.lstatSync(outputPath); } catch (error) {
+    if (error.code !== 'ENOENT') return fail(`${output} cannot be checked: ${error.message}`, 'export/output-unavailable');
+  }
+  if (existing && !force) return fail(`${output} already exists. Choose another output, or pass --force to replace it.`, 'export/output-exists');
+  if (existing && !existing.isFile()) return fail(`${output} is not a regular file (${existing.isDirectory() ? 'a directory' : existing.isSymbolicLink() ? 'a link' : 'a special file'}); choose another output.`, 'export/output-type');
 
   if (format === 'html') {
     const cli = path.join(path.dirname(fileURLToPath(import.meta.url)), 'archi-made-easy.mjs');
@@ -56,7 +63,13 @@ export function commandExport(args, { stdout = process.stdout, stderr = process.
         : format === 'structurizr' ? toStructurizr(loaded.model)
           : toRfc(loaded.document, loaded.model);
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    fs.writeFileSync(outputPath, text.endsWith('\n') ? text : `${text}\n`);
+    try {
+      fs.writeFileSync(outputPath, text.endsWith('\n') ? text : `${text}\n`, { flag: force ? 'w' : 'wx' });
+    } catch (error) {
+      if (error.code === 'EEXIST') return fail(`${output} already exists. Choose another output, or pass --force to replace it.`, 'export/output-exists');
+      if (error.code === 'EISDIR' || error.code === 'EPERM' || error.code === 'EACCES') return fail(`${output} cannot be written: ${error.message}`, 'export/output-type');
+      throw error;
+    }
   }
   const bytes = fs.statSync(outputPath).size;
   if (json) stdout.write(`${JSON.stringify({ schemaVersion: 1, ok: true, command: 'export', format, input: loaded.path, output: { path: outputPath, bytes } }, null, 2)}\n`);

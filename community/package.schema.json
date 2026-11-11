@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://OWNER.github.io/archi-made-easy/community/package.schema.json",
+  "$id": "https://avinashp7509.github.io/archi-made-easy/community/package.schema.json",
   "title": "Archi-Made-Easy Community Package",
   "description": "Registry metadata for a standalone community package that builds on Archi-Made-Easy. One file per package under community/packages/. The package content lives in the author's own repository; this file only indexes it.",
   "type": "object",

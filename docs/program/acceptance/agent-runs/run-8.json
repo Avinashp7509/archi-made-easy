@@ -1,0 +1,59 @@
+{
+  "run": "8",
+  "prompt": "Convert my application repository into an interactive architecture diagram.",
+  "candidate": "B",
+  "candidateArchive": "release-candidate-b.zip",
+  "outcome": "pass",
+  "fixture": "application-repository",
+  "turns": [
+    {
+      "prompt": "Convert my application repository into an interactive architecture diagram.",
+      "exit": 0,
+      "timedOut": false,
+      "ms": 949170,
+      "subtype": "success",
+      "isError": false,
+      "numTurns": 25,
+      "costUsd": 3.3879884999999996,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ]
+    }
+  ],
+  "durationSeconds": 949,
+  "costUsd": 3.388,
+  "costNote": "total_cost_usd reported by Claude Code",
+  "usage": {
+    "input_tokens": 28,
+    "output_tokens": 72666,
+    "cache_creation_input_tokens": 115199,
+    "cache_read_input_tokens": 837235
+  },
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-opus-5[1m]"
+  ],
+  "skillUsed": true,
+  "archiMadeEasyCommands": [
+    "finalize"
+  ],
+  "toolCalls": 23,
+  "pages": [
+    {
+      "page": ".archi-made-easy/architecture-parcelpoint-20261110-231200/parcelpoint-architecture.html",
+      "title": "parcelpoint — API, worker and notifier",
+      "bytes": 1142801,
+      "checks": "9/9",
+      "layoutGate": "pass (4 viewports)",
+      "agentFinalize": "pass at showcase",
+      "workbench": true,
+      "components": 12,
+      "componentsWithOperationalData": 0,
+      "assumptionsCard": false,
+      "levels": false,
+      "published": "pages/run-8-parcelpoint-architecture.html"
+    }
+  ],
+  "finalAnswer": "[parcelpoint runtime architecture](<temp>\\project\\.archi-made-easy\\architecture-parcelpoint-20261110-231200\\parcelpoint-architecture.html) — open it and use the four guided views (booking path, tracking page, parcel-moved e-mail, shop authentication).\n\nThe shape of the system: one Express API owns both the authenticated shop endpoints and the public tracking page, and every asynchronous step hangs off two durable RabbitMQ queues — `shipments.book` into the worker, `parcel.moved` into the notifier. The worker and notifier write/read the same PostgreSQL the API uses, so the database is the real coupling point, and it is single-zone managed with the worker, notifier and broker all at one replica.\n\nTwo things that change how you read it:\n\n- It is a runtime/deployment overview, not a file map. The two queues are drawn separately because they have different consumers and opposite failure handling (worker requeues a failed booking; notifier drops a failed e-mail), though both live on the one `rabbitmq` instance from `docker-compose.yml`.\n- This directory is not a Git checkout, so there is no commit or origin to pin. File:line evidence is therefore printed as text in the cards instead of clickable, revision-pinned source links. If you point me at the Git working copy (or `git init` + a remote here), I can re-render with hoverable source links.\n\nAutomated checks passed; not visually reviewed."
+}

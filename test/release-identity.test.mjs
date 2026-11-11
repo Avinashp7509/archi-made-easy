@@ -23,11 +23,11 @@ function runCheck(root, { assumeConfiguredOwner = true } = {}) {
   });
 }
 
-test('while the owner is the OWNER placeholder, a shipped manifest URL is rejected', () => {
+test('the real repository passes its own release identity check and names only the fixed manifest URL', () => {
   const real = spawnSync(process.execPath, [checker], { encoding: 'utf8' });
   assert.equal(real.status, 0, real.stderr);
   const release = JSON.parse(fs.readFileSync(path.join(repoRoot, 'archi-made-easy', 'skill-release.json'), 'utf8'));
-  assert.equal(release.updateManifestUrl, null, 'the repository ships no update manifest before an owner exists');
+  assert.ok([null, 'https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json'].includes(release.updateManifestUrl), 'only the fixed trusted manifest URL, or none');
   // The fixture override only applies with --root; it never relaxes the real repository.
   const ignored = spawnSync(process.execPath, [checker, '--assume-configured-owner'], { encoding: 'utf8' });
   assert.equal(ignored.status, 0, ignored.stderr);
@@ -41,13 +41,13 @@ function stableUpdateManifest(version) {
     version,
     publishedAt: '2026-07-29T00:00:00Z',
     source: {
-      repository: 'https://github.com/OWNER/archi-made-easy',
+      repository: 'https://github.com/Avinashp7509/archi-made-easy',
       ref: `v${version}`,
       treeSha: 'a'.repeat(40),
     },
     artifact: { sha256: 'b'.repeat(64) },
     summary: 'Published stable release.',
-    releaseNotes: `https://github.com/OWNER/archi-made-easy/releases/tag/v${version}`,
+    releaseNotes: `https://github.com/Avinashp7509/archi-made-easy/releases/tag/v${version}`,
     severity: 'normal',
   });
 }
@@ -80,8 +80,8 @@ function writeValidDevelopmentFixture(root, overrides = {}) {
       skillId: 'archi-made-easy',
       channel: 'development',
       version,
-      source: { repository: 'https://github.com/OWNER/archi-made-easy' },
-      updateManifestUrl: 'https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
+      source: { repository: 'https://github.com/Avinashp7509/archi-made-easy' },
+      updateManifestUrl: 'https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
     }),
     'docs/skill-updates/archi-made-easy/stable.json': stableUpdateManifest('2.12.0'),
     'archi-made-easy/SKILL.md': '---\nmetadata:\n  version: "2.13"\n---\n',
@@ -143,8 +143,8 @@ function writeValidStableFixture(root, overrides = {}) {
       skillId: 'archi-made-easy',
       channel: 'stable',
       version,
-      source: { repository: 'https://github.com/OWNER/archi-made-easy' },
-      updateManifestUrl: 'https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
+      source: { repository: 'https://github.com/Avinashp7509/archi-made-easy' },
+      updateManifestUrl: 'https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
     }),
     'docs/skill-updates/archi-made-easy/stable.json': stableUpdateManifest(version),
     'archi-made-easy/SKILL.md': '---\nmetadata:\n  version: "2.13"\n---\n',
@@ -214,6 +214,24 @@ test('stable release preparation allows only the immediate prior public manifest
     const stale = runCheck(fixture);
     assert.notEqual(stale.status, 0);
     assert.match(stale.stderr, /immediate prior v2\.12\.0/);
+  } finally {
+    fs.rmSync(fixture, { recursive: true, force: true });
+  }
+});
+
+test('a first stable release may omit the update manifest until its GitHub Release exists', () => {
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-release-identity-'));
+  try {
+    const changelog = ['# Changelog', '', '## [Unreleased]', '', '## [2.13.0] — 2026-07-29', '- First release.', ''].join('\n');
+    writeValidStableFixture(fixture, { 'CHANGELOG.md': changelog });
+    fs.rmSync(path.join(fixture, 'docs/skill-updates/archi-made-easy/stable.json'));
+    const first = runCheck(fixture);
+    assert.equal(first.status, 0, first.stderr);
+    // With a previous release in the changelog, the manifest is required again.
+    writeFile(fixture, 'CHANGELOG.md', ['# Changelog', '', '## [Unreleased]', '', '## [2.13.0] — 2026-07-29', '- Release.', '', '## [2.12.0] — 2026-07-23', '- Previous.', ''].join('\n'));
+    const later = runCheck(fixture);
+    assert.notEqual(later.status, 0);
+    assert.match(later.stderr, /stable\.json is missing|stable\.json must describe/);
   } finally {
     fs.rmSync(fixture, { recursive: true, force: true });
   }
@@ -426,7 +444,7 @@ test('Raven is not a generated agent-switcher target', () => {
       'docs/start.html': [
         '<span>development · v2.13.0-dev.0 · 开发版</span>',
         '<button data-agent="raven">Raven</button>',
-        '<pre>npx skills add OWNER/archi-made-easy --agent raven</pre>',
+        '<pre>npx skills add Avinashp7509/archi-made-easy --agent raven</pre>',
       ].join('\n'),
     });
 

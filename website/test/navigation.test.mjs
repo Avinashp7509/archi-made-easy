@@ -10,7 +10,7 @@ const hasClass = (node, name) => (attr(node, 'class') || '').split(/\s+/).includ
 const pages = sitePages;
 const cloudflare = process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare';
 const output = new URL(cloudflare ? '../dist-cloudflare/' : '../dist/', import.meta.url);
-const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/';
+const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://avinashp7509.github.io/archi-made-easy/';
 const extension = cloudflare ? '' : '.html';
 
 test('all built pages expose one shared top navigation and the correct current page', () => {
@@ -27,7 +27,7 @@ test('all built pages expose one shared top navigation and the correct current p
     assert.ok(nav, page);
     const links = nodes(nav).filter(node => node.tagName === 'a' && hasClass(node, 'nav-link'));
     assert.deepEqual(links.map(resolvedHref), [
-      ...['guide', 'gallery', 'start', 'community'].map(hrefFor), 'https://github.com/OWNER/archi-made-easy',
+      ...['guide', 'gallery', 'start', 'community'].map(hrefFor), 'https://github.com/Avinashp7509/archi-made-easy',
     ], page);
     assert.deepEqual(links.filter(node => attr(node, 'aria-current') === 'page').map(resolvedHref),
       ['index', 'agent-diagrams', 'cases/mco-runtime'].includes(page) ? [] : [hrefFor(page)], page);

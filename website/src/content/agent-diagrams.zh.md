@@ -26,7 +26,7 @@ Archi-Made-Easy 根据源文件生成 HTML，并执行对应的渲染与校验�
 
 使用能够读写文件、通过 Node.js 执行命令的 Coding Agent 环境。“不需要代码库”是指可以只提供自然语言描述，不必已有源码；Agent 仍需工作目录来写入 JSON、HTML，并执行渲染和校验。查看生成的 HTML 则只需要浏览器。
 
-[安装说明](https://github.com/OWNER/archi-made-easy/blob/main/README.md#installation-options)区分了这些入口：Claude Code 和 Codex CLI 支持完整渲染与校验流程；Claude.ai 取决于沙箱是否能使用 Node.js；向 Project Knowledge 上传 ZIP 是提示词驱动的回退方式，不等于具备相同执行环境。其他集成方式有各自的要求。
+[安装说明](https://github.com/Avinashp7509/archi-made-easy/blob/main/README.md#installation-options)区分了这些入口：Claude Code 和 Codex CLI 支持完整渲染与校验流程；Claude.ai 取决于沙箱是否能使用 Node.js；向 Project Knowledge 上传 ZIP 是提示词驱动的回退方式，不等于具备相同执行环境。其他集成方式有各自的要求。
 
 <span id="setup-claude-code" class="section-anchor" aria-hidden="true"></span>
 
@@ -34,7 +34,7 @@ Archi-Made-Easy 根据源文件生成 HTML，并执行对应的渲染与校验�
 
 如果选择全局复制安装，在运行 Claude Code 的环境终端中执行：
 
-<pre><code>npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent claude-code --global --copy --yes</code></pre>
+<pre><code>npx -y skills add Avinashp7509/archi-made-easy --skill archi-made-easy --agent claude-code --global --copy --yes</code></pre>
 
 Claude Code 的全局 Skill 目录是 `~/.claude/skills/`，项目目录是 `.claude/skills/`。如果只想在当前项目使用，打开 [Start 的 Claude Code 选项](start.html?agent=claude-code#install)，在目标项目目录中使用“仅安装到当前仓库”的命令。
 
@@ -44,7 +44,7 @@ Claude Code 的全局 Skill 目录是 `~/.claude/skills/`，项目目录是 `.cl
 
 如果选择全局复制安装，在运行 Codex CLI 的环境终端中执行：
 
-<pre><code>npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent codex --global --copy --yes</code></pre>
+<pre><code>npx -y skills add Avinashp7509/archi-made-easy --skill archi-made-easy --agent codex --global --copy --yes</code></pre>
 
 Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agents/skills/`。如果只想在当前项目使用，打开 [Start 的 Codex 选项](start.html?agent=codex#install)，在目标项目目录中使用“仅安装到当前仓库”的命令。
 
@@ -54,7 +54,7 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 ## 不用代码仓库：读懂一张中文流程图
 
-没有代码仓库，也可以从步骤、额度和规则开始。打开现有的[中文休假流程图](cases/life/leave-plan.workflow.html)，对照[固定版本的 JSON 源文件](https://github.com/OWNER/archi-made-easy/blob/68031cf978e0b906aa56c684a394049a3ea9d583/docs/cases/life/leave-plan.workflow.json)。这是已有源文件的阅读示例，不是一次新的 Agent 执行记录。
+没有代码仓库，也可以从步骤、额度和规则开始。打开现有的[中文休假流程图](cases/life/leave-plan.workflow.html)，对照[固定版本的 JSON 源文件](https://github.com/Avinashp7509/archi-made-easy/blob/68031cf978e0b906aa56c684a394049a3ea9d583/docs/cases/life/leave-plan.workflow.json)。这是已有源文件的阅读示例，不是一次新的 Agent 执行记录。
 
 先看“休假计划”和“规则提醒”两条泳道：全图有 8 个节点、7 条关系；主路径只有 6 个节点，从年初额度经过四次安排，到全年用完。年假按 1 + 4 + 3 + 2 分配，正好 10 天；春节另用 2 天调休，合计 12 天。两条分支连接过期和审批提醒，不是再次扣减休假额度。
 
@@ -89,7 +89,7 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 - 修改后是否回到审阅，而不是直接结束？
 - 是否遗漏、合并或新增了内容？
 
-保留原始 Mermaid，与新的 JSON 对照检查。不要假定 Mermaid 的样式、布局指令或回调会一并保留。[固定版本的 Skill](https://github.com/OWNER/archi-made-easy/blob/88d1ae4498b6a1df610badf690c5406882622d15/archi-made-easy/SKILL.md#mermaid-input) 说明了受支持的输入类型。如果只想保留 Mermaid 语法并在网页中直接渲染，应使用 [Mermaid 自己的渲染方式](https://mermaid.ai/open-source/config/usage.html)。
+保留原始 Mermaid，与新的 JSON 对照检查。不要假定 Mermaid 的样式、布局指令或回调会一并保留。[固定版本的 Skill](https://github.com/Avinashp7509/archi-made-easy/blob/88d1ae4498b6a1df610badf690c5406882622d15/archi-made-easy/SKILL.md#mermaid-input) 说明了受支持的输入类型。如果只想保留 Mermaid 语法并在网页中直接渲染，应使用 [Mermaid 自己的渲染方式](https://mermaid.ai/open-source/config/usage.html)。
 
 <span id="cache-scenarios" class="section-anchor" aria-hidden="true"></span>
 
@@ -129,7 +129,7 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 如果成品附有已验证的源码链接，应点开检查。源码链接说明证据来自哪里，不会自动证明生产环境的运行行为；必要时仍需日志、链路追踪、配置及人工确认。
 
-可参考现有的 [MCO 运行时架构示例](https://archi-made-easy.example/cases/mco-runtime.architecture.html)及其[结构化源文件](https://github.com/OWNER/archi-made-easy/blob/main/docs/cases/mco-runtime.architecture.json)。它解释的是所标明的提交版本，不代表仓库之后永远保持相同结构。
+可参考现有的 [MCO 运行时架构示例](https://archi-made-easy.example/cases/mco-runtime.architecture.html)及其[结构化源文件](https://github.com/Avinashp7509/archi-made-easy/blob/main/docs/cases/mco-runtime.architecture.json)。它解释的是所标明的提交版本，不代表仓库之后永远保持相同结构。
 
 [对照 MCO 源码：谁解码输出，谁写入文件 →](cases/mco-runtime.html)
 
@@ -171,7 +171,7 @@ Codex CLI 的全局 Skill 目录是 `~/.agents/skills/`，项目目录是 `.agen
 
 ### 免费吗？这里说的是哪个 Archi-Made-Easy？
 
-这里指 [OWNER/archi-made-easy 开源项目](https://github.com/OWNER/archi-made-easy)，官方网站是 [archi-made-easy.example](https://archi-made-easy.example)。项目代码采用 MIT 许可证。你使用的 Agent 或其他服务可能另有费用与条款；名称相似的收费服务不自动构成官方关联。
+这里指 [Avinashp7509/archi-made-easy 开源项目](https://github.com/Avinashp7509/archi-made-easy)，官方网站是 [archi-made-easy.example](https://archi-made-easy.example)。项目代码采用 MIT 许可证。你使用的 Agent 或其他服务可能另有费用与条款；名称相似的收费服务不自动构成官方关联。
 
 ### 接下来做什么？
 

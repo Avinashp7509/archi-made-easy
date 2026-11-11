@@ -107,6 +107,8 @@ jobs:
             import fs from "node:fs";
             import { compareSemver, validateStableUpdateManifest } from "./archi-made-easy/scripts/update-contract.mjs";
             const releasing = process.argv[1];
+            // A first stable release has no manifest yet; it is published after the Release.
+            if (!fs.existsSync("./docs/skill-updates/archi-made-easy/stable.json")) process.exit(0);
             const published = validateStableUpdateManifest(JSON.parse(fs.readFileSync("./docs/skill-updates/archi-made-easy/stable.json", "utf8")));
             if (compareSemver(published.version, releasing) >= 0) {
               console.error(`::error::stable.json must remain below v${releasing} until its GitHub Release exists; publish the manifest in a follow-up commit`);
@@ -134,8 +136,5 @@ jobs:
       - name: Record stable notifier publication follow-up
         if: steps.release-kind.outputs.prerelease == 'false'
         run: |
-          echo '[Complete the central release checklist](https://github.com/OWNER/archi-made-easy/blob/main/CONTRIBUTING.md#release-checklist), including final-head evidence and public acceptance.' >> "$GITHUB_STEP_SUMMARY"
+          echo '[Complete the central release checklist](https://github.com/Avinashp7509/archi-made-easy/blob/main/CONTRIBUTING.md#release-checklist), including final-head evidence and public acceptance.' >> "$GITHUB_STEP_SUMMARY"
           echo 'After the repository Pages source is set to GitHub Actions, publish docs/skill-updates/archi-made-easy/stable.json in a follow-up commit; the gated deploy job will verify this Release, its archi-made-easy.zip digest, and the tagged Skill tree before exposure.' >> "$GITHUB_STEP_SUMMARY"
-      - name: Record DSH synchronization follow-up
-        run: |
-          echo '[Central release checklist](https://github.com/OWNER/archi-made-easy/blob/main/CONTRIBUTING.md#release-checklist), including [DSH synchronization](https://github.com/OWNER/archi-made-easy/blob/main/CONTRIBUTING.md#release-checklist-dsh-synchronization): record the pinned DSH bundle update and verification, or an explicit deferral. Archi-Made-Easy release publication does not publish the independently versioned DSH plugin; keep npm/tag/README/community status accurate until that separate release is verified.' >> "$GITHUB_STEP_SUMMARY"

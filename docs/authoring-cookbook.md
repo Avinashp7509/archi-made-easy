@@ -15,7 +15,7 @@ node bin/archi-made-easy.mjs doctor
 If you are installing from npm-compatible skill tooling, the global install is:
 
 ```bash
-npx skills add OWNER/archi-made-easy -g
+npx skills add Avinashp7509/archi-made-easy -g
 ```
 
 ## 2. Choose a diagram type

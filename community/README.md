@@ -1,8 +1,8 @@
 # Archi-Made-Easy Community Packages
 
-A curated registry of **standalone packages that build on Archi-Made-Easy**: domain skill packs, recipe libraries, brand kits, locale packs, and CLI wrappers. The catalog is rendered at [OWNER.github.io/archi-made-easy/community.html](https://OWNER.github.io/archi-made-easy/community.html) from the metadata files in [`packages/`](packages/).
+A curated registry of **standalone packages that build on Archi-Made-Easy**: domain skill packs, recipe libraries, brand kits, locale packs, and CLI wrappers. The catalog is rendered at [avinashp7509.github.io/archi-made-easy/community.html](https://avinashp7509.github.io/archi-made-easy/community.html) from the metadata files in [`packages/`](packages/).
 
-Design rationale and non-goals are tracked in [issue #663](https://github.com/OWNER/archi-made-easy/issues/663).
+Design rationale and non-goals are tracked in [issue #663](https://github.com/Avinashp7509/archi-made-easy/issues/663).
 
 ## What a community package is
 
@@ -40,7 +40,7 @@ A merge into `dev` does not publish the website. The public catalog updates afte
 Start in a local clone of your fork. Add `upstream` only if it is not already configured; otherwise verify that it points to this repository.
 
 ```bash
-git remote add upstream https://github.com/OWNER/archi-made-easy.git
+git remote add upstream https://github.com/Avinashp7509/archi-made-easy.git
 git fetch upstream dev
 git switch -c community/my-archi-made-easy-recipes upstream/dev
 ```
@@ -72,7 +72,7 @@ Save the following as `community/packages/my-archi-made-easy-recipes.json`. Repl
 }
 ```
 
-Run `node scripts/check-community-packages.mjs` from the repository root, commit only your metadata file, push the branch to your fork, and open a PR against **`OWNER/archi-made-easy:dev`** using the repository PR template. Report the check result and link evidence for the claimed behavior and compatibility. Do not include credentials, private source, personal information, or customer data in evidence.
+Run `node scripts/check-community-packages.mjs` from the repository root, commit only your metadata file, push the branch to your fork, and open a PR against **`Avinashp7509/archi-made-easy:dev`** using the repository PR template. Report the check result and link evidence for the claimed behavior and compatibility. Do not include credentials, private source, personal information, or customer data in evidence.
 
 - Required fields: `name`, `type`, `summary`, `author`, `repository`, `archi-made-easy`, and `schemaVersions`. Unknown fields are rejected.
 - `name`: 3–64 lowercase letters, digits, or hyphens, starting and ending with a letter or digit; the file name must match. `summary.en`: 10–160 characters; `summary.zh`: 6–120 characters. `author.name` is required.
@@ -113,7 +113,7 @@ Removal is also a PR, on record. Maintainers may remove a listing when the packa
 2. Fork 本仓库，在本地副本中从最新 `dev` 建分支。上方英文折叠区给出了 `upstream` 和建分支命令；已有 `upstream` 时先核对地址，不重复添加。
 3. 按上方 JSON 示例新增 `community/packages/<name>.json`，替换作者、简介、名称、全部占位 URL 和版本。示例中的 `example.com` 不是可提交的证据，`3.0.1` / `[1]` 也不代表你的包已经通过兼容性验证。
 4. 在仓库根目录运行 `node scripts/check-community-packages.mjs`。需要 Node.js 18+，这个检查无需安装 npm 依赖。
-5. 只提交新增的元数据文件，推送到自己的 fork，按仓库 PR 模板向 **`OWNER/archi-made-easy:dev`** 提 PR，附实际校验结果与证据。校验通过不等于审核批准；进入 `main` 且 Pages 部署成功后才会更新公开目录，不承诺审核或上线时限。
+5. 只提交新增的元数据文件，推送到自己的 fork，按仓库 PR 模板向 **`Avinashp7509/archi-made-easy:dev`** 提 PR，附实际校验结果与证据。校验通过不等于审核批准；进入 `main` 且 Pages 部署成功后才会更新公开目录，不承诺审核或上线时限。
 
 必填字段是 `name`、`type`、`summary`、`author`、`repository`、`archi-made-easy`、`schemaVersions`。`summary.en` 为 10–160 字符，`summary.zh` 为 6–120 字符，两种语言都要填；`author.name` 必填。名称为 3–64 个小写字母、数字或连字符，首尾不能为连字符，并须与文件名一致。其他长度和字符限制见 [schema](package.schema.json)。
 

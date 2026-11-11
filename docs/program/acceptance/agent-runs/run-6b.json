@@ -1,0 +1,49 @@
+{
+  "run": "6b",
+  "prompt": "Simulate a 20x increase in traffic.",
+  "candidate": "B",
+  "candidateArchive": "release-candidate-b.zip",
+  "outcome": "pass",
+  "fixture": "existing-architecture",
+  "turns": [
+    {
+      "prompt": "Simulate a 20x increase in traffic.",
+      "exit": 0,
+      "timedOut": false,
+      "ms": 72260,
+      "subtype": "success",
+      "isError": false,
+      "numTurns": 15,
+      "costUsd": 0.5263855000000001,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ]
+    }
+  ],
+  "durationSeconds": 72,
+  "costUsd": 0.5264,
+  "costNote": "total_cost_usd reported by Claude Code",
+  "usage": {
+    "input_tokens": 18,
+    "output_tokens": 4842,
+    "cache_creation_input_tokens": 30580,
+    "cache_read_input_tokens": 197689
+  },
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-opus-5[1m]"
+  ],
+  "skillUsed": true,
+  "archiMadeEasyCommands": [
+    "simulate",
+    "simulate",
+    "simulate",
+    "simulate",
+    "simulate",
+    "simulate"
+  ],
+  "toolCalls": 13,
+  "pages": [],
+  "finalAnswer": "This is an analytical model of the declared design in `solution.architecture.json`, not a load test. **20x does not hold: the design saturates at roughly 2.5x baseline.**\n\nBaseline ingress is 400 rps, so 20x is 8,000 rps against a modelled ceiling of **1,000 rps** (first limiter: the Lambda worker tier).\n\n| | 1x (400 rps) | 20x (8,000 rps) |\n|---|---|---|\n| Critical path P50 | 80 ms | **1,007 ms** |\n| Critical path P99 | 308 ms | **4,566 ms** |\n| Headroom | 2.5x | **0.125x** |\n| Saturated components | none | 5 |\n\nWhere it breaks, in order of overload:\n\n- **ECS Fargate — 444%.** Autoscale caps at 6 × 300 rps = 1,800 rps, so it serves 1,800 of the 8,000 offered.\n- **Cognito — 400%** and **S3 — 160%.** Both sit on `users`/`cdn` fan-out and take the full 8,000 rps.\n- **Aurora — 222%**, with a **self-sustaining retry storm**: the 800 ms timeout plus 2 retries on `app-db` amplifies offered load 1.85x, which the model reports as not settling.\n- **Lambda — 180%**, with the SQS backlog growing **800 messages/s** — async work falls behind indefinitely rather than failing requests.\n\nTwo things to read carefully: \"ingress traffic lost: 0%\" means the edge keeps accepting everything (CloudFront 16%, ALB 40% utilised) — the surge shows up as queueing and latency, not as rejected traffic at the door. And Aurora is still a single instance, so it is a SPOF under load as well as at rest.\n\nCache changes the picture materially. Rerunning with an 80% cache hit ratio keeps ECS Fargate *and* Aurora inside capacity; the ceiling moves to Cognito at 2,000 rps. The default run assumes a 0% hit ratio, i.e. no cache benefit at all.\n\nCaveats that affect the conclusion: 27 inputs are authored, 28 assumed from role defaults — including the capacities of the limiter itself (Lambda 1,000 rps), Cognito (2,000 rps) and S3 (5,000 rps). Cost at 20x models to ~$9,378/month, but only 4 of 10 components carry prices. Give me real capacity figures for the worker, Cognito and S3 tiers and I'll rerun.\n\nYou can also try this yourself in [the architecture page](<temp>\\project\\solution.html) — the Workbench button opens a Simulate mode with the load multiplier and fault controls."
+}

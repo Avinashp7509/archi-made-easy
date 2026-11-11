@@ -13,7 +13,7 @@ Archi-Made-Easy 的 MCO 运行时架构案例把 provider 执行、答案解码�
 要在本地渲染同一份输入，需要 Node.js 18 或更新版本、Git 和一个新目录。以下命令固定本次重放使用的 Archi-Made-Easy 稳定版源码，不会运行 MCO 或调用模型：
 
 ```sh
-git clone https://github.com/OWNER/archi-made-easy.git archi-made-easy-mco-case
+git clone https://github.com/Avinashp7509/archi-made-easy.git archi-made-easy-mco-case
 cd archi-made-easy-mco-case
 git checkout --detach ba701d20a55ed6f139484d9ead7ff45671fe40eb
 git clone https://github.com/mco-org/mco.git mco-source
@@ -39,7 +39,7 @@ node archi-made-easy/bin/archi-made-easy.mjs render architecture docs/cases/mco-
 
 ## 先确认两个版本
 
-图表的结构化源文件将 mco-org/mco 固定在 9f1a1cf1afdc04d7b5406782b40dfec76d9bc798。本文查看的 Archi-Made-Easy 版本是 04dc1916e1651086564f16076eab6d2f6ba1ae42。它们属于不同仓库，不能混作一个版本。下文描述的是这个 MCO 快照，不是对其当前或未来 main 分支的保证。 [固定版本的图表源文件](https://github.com/OWNER/archi-made-easy/blob/04dc1916e1651086564f16076eab6d2f6ba1ae42/docs/cases/mco-runtime.architecture.json#L1-L15)
+图表的结构化源文件将 mco-org/mco 固定在 9f1a1cf1afdc04d7b5406782b40dfec76d9bc798。本文查看的 Archi-Made-Easy 版本是 04dc1916e1651086564f16076eab6d2f6ba1ae42。它们属于不同仓库，不能混作一个版本。下文描述的是这个 MCO 快照，不是对其当前或未来 main 分支的保证。 [固定版本的图表源文件](https://github.com/Avinashp7509/archi-made-easy/blob/04dc1916e1651086564f16076eab6d2f6ba1ae42/docs/cases/mco-runtime.architecture.json#L1-L15)
 
 <span class="section-anchor" id="case-decoding"></span>
 
@@ -69,7 +69,7 @@ answer_transport.py 定义统一的 AnswerTransport 结构，包含 deltas、fin
 
 ## 图里的箭头应该怎么读
 
-结构化源文件把 Answer Transport 连到 Invocation Artifacts。这条边表达的是架构层面的数据流：解码后的答案内容进入结果产物。它不是“解码器直接调用文件写入器”的逐函数调用关系。更准确的职责描述是：适配器接口提供解码，调用运行时组织执行并追加流式文本，产物写入器输出报告文件。 [运行时解码处理](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L339-L409) [答案文件准备](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L470-L477) · [流式写入](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L364-L390) [usage 纳入条件](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L303-L317) · [报告与元数据写入](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_artifacts.py#L31-L106) [图表定义的关系](https://github.com/OWNER/archi-made-easy/blob/04dc1916e1651086564f16076eab6d2f6ba1ae42/docs/cases/mco-runtime.architecture.json#L228-L233)
+结构化源文件把 Answer Transport 连到 Invocation Artifacts。这条边表达的是架构层面的数据流：解码后的答案内容进入结果产物。它不是“解码器直接调用文件写入器”的逐函数调用关系。更准确的职责描述是：适配器接口提供解码，调用运行时组织执行并追加流式文本，产物写入器输出报告文件。 [运行时解码处理](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L339-L409) [答案文件准备](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L470-L477) · [流式写入](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L364-L390) [usage 纳入条件](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L303-L317) · [报告与元数据写入](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_artifacts.py#L31-L106) [图表定义的关系](https://github.com/Avinashp7509/archi-made-easy/blob/04dc1916e1651086564f16076eab6d2f6ba1ae42/docs/cases/mco-runtime.architecture.json#L228-L233)
 
 这个案例适合回答一个具体的代码审查问题：“如果解析出来的文本不对，和保存出来的文件不对，分别应该先看哪里？”提取内容异常时，先查看解码行为；文件异常时，再看运行时写入、产物序列化和持久化设置。这些是排查入口，不是对某个已复现缺陷的诊断。
 

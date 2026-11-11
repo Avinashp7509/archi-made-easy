@@ -2,9 +2,8 @@
 
 > Turn a description, a question, or a repository into an interactive diagram or a one-page explainer. Ten diagram types: architecture, workflow, sequence, dataflow, lifecycle, ERD, class, tree, timeline, and waterfall. The result is one standalone HTML file. Free and open source (Apache-2.0).
 
-Version: 0.1.0-dev.0
-Repository: https://github.com/OWNER/archi-made-easy
-Website: https://archi-made-easy.example
+Version: 1.0.0
+Repository: https://github.com/Avinashp7509/archi-made-easy
 
 ## Install for the user
 
@@ -17,7 +16,7 @@ Confirm this scope first:
 
 1. Discover the skill. This only lists the package; it does not install it.
 
-   `npx -y skills@latest add https://archi-made-easy.example --list --full-depth`
+   `npx -y skills@latest add Avinashp7509/archi-made-easy --list --full-depth`
 
    Stop unless the listing contains exactly one skill named `archi-made-easy`.
 
@@ -27,11 +26,11 @@ Confirm this scope first:
 
    One agent:
 
-   `npx -y skills@latest add https://archi-made-easy.example --skill archi-made-easy --agent <agent> --global --copy --yes`
+   `npx -y skills@latest add Avinashp7509/archi-made-easy --skill archi-made-easy --agent <agent> --global --copy --yes`
 
    Several agents, by repeating `--agent`:
 
-   `npx -y skills@latest add https://archi-made-easy.example --skill archi-made-easy --agent cursor --agent codex --agent claude-code --agent opencode --agent github-copilot --global --copy --yes`
+   `npx -y skills@latest add Avinashp7509/archi-made-easy --skill archi-made-easy --agent cursor --agent codex --agent claude-code --agent opencode --agent github-copilot --global --copy --yes`
 
    Omit `--global` for a project-only install. Do not add other skills, agents, sources, or force flags.
 

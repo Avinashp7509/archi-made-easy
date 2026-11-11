@@ -74,6 +74,14 @@ content digest. Later render and validate operations require that exact digest;
 blocked, unavailable, changed, oversized, or unsafe content fails closed instead
 of silently changing the artifact.
 
+Because of that check, rendering, validating or finalizing a document that pins
+a captured brand (`{ "url": …, "sha256": … }`) fetches that URL again. A
+document from someone else can therefore make the skill contact the host it
+names. Set `ARCHI_MADE_EASY_BRAND_CAPTURE_DISABLED=1` to refuse every remote
+brand request, before any DNS lookup: `brands capture` then fails, and a
+document with a pinned brand fails with `brand/capture-unavailable`; remove its
+`brand` field or use a built-in mark. Built-in marks never use the network.
+
 Remote-brand provenance in capture receipts, node metadata and SVG/HTML keeps
 the source URL's HTTP(S) scheme, host, port and path, but omits userinfo, query
 strings and fragments. The authored `brand.url` and all download/redirect URLs

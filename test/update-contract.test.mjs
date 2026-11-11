@@ -40,7 +40,7 @@ function stableManifest(overrides = {}) {
     },
     artifact: { sha256: 'b'.repeat(64) },
     summary: 'Contract fixture.',
-    releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.16.0',
+    releaseNotes: 'https://github.com/Avinashp7509/archi-made-easy/releases/tag/v2.16.0',
     severity: 'normal',
     ...overrides,
   };
@@ -48,10 +48,10 @@ function stableManifest(overrides = {}) {
 
 test('shared release constants identify the only trusted updater source', () => {
   assert.equal(SKILL_ID, 'archi-made-easy');
-  assert.equal(EXPECTED_REPOSITORY, 'https://github.com/OWNER/archi-made-easy');
+  assert.equal(EXPECTED_REPOSITORY, 'https://github.com/Avinashp7509/archi-made-easy');
   assert.equal(
     DEFAULT_MANIFEST_URL,
-    'https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
+    'https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json',
   );
 });
 
@@ -123,9 +123,9 @@ test('stable manifests enforce one exact schema and canonical release identity',
     stableManifest({ artifact: { sha256: 'b'.repeat(64), extra: true } }),
     stableManifest({ summary: '\u202eunsafe' }),
     stableManifest({ severity: 'urgent' }),
-    stableManifest({ releaseNotes: 'https://github.com:443/OWNER/archi-made-easy/releases/tag/v2.16.0' }),
-    stableManifest({ releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.16.0?' }),
-    stableManifest({ releaseNotes: 'https://GITHUB.COM/OWNER/archi-made-easy/releases/tag/v2.16.0' }),
+    stableManifest({ releaseNotes: 'https://github.com:443/Avinashp7509/archi-made-easy/releases/tag/v2.16.0' }),
+    stableManifest({ releaseNotes: 'https://github.com/Avinashp7509/archi-made-easy/releases/tag/v2.16.0?' }),
+    stableManifest({ releaseNotes: 'https://GITHUB.COM/Avinashp7509/archi-made-easy/releases/tag/v2.16.0' }),
   ];
   for (const value of invalid) {
     assert.throws(() => validateStableUpdateManifest(value), UpdateContractError);

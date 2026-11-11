@@ -35,7 +35,7 @@ export function pageMetadata(page, lang, version) {
   return { title, description, canonical, image: `${canonicalOrigin}/assets/archi-made-easy-social-preview.png`,
     schema: { '@context': 'https://schema.org', '@graph': [
       { '@type': 'WebSite', '@id': `${canonicalOrigin}/#website`, url: `${canonicalOrigin}/`, name: 'Archi-Made-Easy', inLanguage: ['en', 'zh-Hans'] },
-      { '@type': 'SoftwareSourceCode', '@id': `${canonicalOrigin}/#source`, name: 'Archi-Made-Easy', codeRepository: 'https://github.com/OWNER/archi-made-easy', url: 'https://github.com/OWNER/archi-made-easy', license: 'https://github.com/OWNER/archi-made-easy/blob/main/LICENSE', version, programmingLanguage: 'JavaScript', description: descriptions.index[lang][1] },
+      { '@type': 'SoftwareSourceCode', '@id': `${canonicalOrigin}/#source`, name: 'Archi-Made-Easy', codeRepository: 'https://github.com/Avinashp7509/archi-made-easy', url: 'https://github.com/Avinashp7509/archi-made-easy', license: 'https://github.com/Avinashp7509/archi-made-easy/blob/main/LICENSE', version, programmingLanguage: 'JavaScript', description: descriptions.index[lang][1] },
       ...(['agent-diagrams', 'cases/mco-runtime'].includes(page) ? [{ '@type': 'TechArticle', '@id': `${canonical}#article`, url: canonical, headline: title, description, inLanguage: lang === 'zh' ? 'zh-Hans' : 'en', isPartOf: { '@id': `${canonicalOrigin}/#website` }, about: { '@id': `${canonicalOrigin}/#source` } }] : []),
     ] },
   };

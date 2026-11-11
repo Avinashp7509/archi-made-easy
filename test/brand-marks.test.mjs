@@ -236,7 +236,7 @@ test('branded lifecycle states move the semantic stamp left and keep the brand a
 });
 
 test('known-brand URLs use the bundled vector instead of the network', () => {
-  const input = writeFixture('architecture', 'known-domain', 'https://github.com/OWNER/archi-made-easy');
+  const input = writeFixture('architecture', 'known-domain', 'https://github.com/Avinashp7509/archi-made-easy');
   const { result, html } = renderSync('architecture', input, 'known-domain');
   assert.equal(result.status, 0, result.stderr || result.stdout);
   assert.match(html, /data-brand-mark="github"[^>]+data-brand-status="preset"/);
@@ -255,6 +255,53 @@ test('unknown URL strings fail closed until an exact captured digest is authored
   assert.equal(receipt.ok, false);
   assert.ok(receipt.diagnostics.some((entry) => entry.code === 'brand/unpinned-url'));
   assert.ok(receipt.diagnostics.some((entry) => entry.supportedFixes.some((fix) => fix.includes('brands capture'))));
+});
+
+test('ARCHI_MADE_EASY_BRAND_CAPTURE_DISABLED=1 stops every remote brand request, including for a pinned brand in a document', async () => {
+  let hits = 0;
+  const agents = new Set();
+  const icon = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
+  const server = http.createServer((request, response) => {
+    hits += 1;
+    agents.add(request.headers['user-agent']);
+    if (request.url === '/mark.png') {
+      response.writeHead(200, { 'content-type': 'image/png' });
+      response.end(icon);
+      return;
+    }
+    response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+    response.end('<!doctype html><title>Example Studio</title><link rel="icon" type="image/png" href="/mark.png">');
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const url = `http://127.0.0.1:${server.address().port}/studio`;
+    const capture = await runCliAsync(['brands', 'capture', url, '--json'], { ARCHI_MADE_EASY_BRAND_ALLOW_PRIVATE: '1' });
+    assert.equal(capture.status, 0, capture.stderr || capture.stdout);
+    const pinned = JSON.parse(capture.stdout).brand;
+    const hitsAfterCapture = hits;
+    assert.ok(hitsAfterCapture >= 2);
+    // Requests name this skill's own version, not an inherited one.
+    const { version } = JSON.parse(fs.readFileSync(path.join(skillRoot, 'package.json'), 'utf8'));
+    assert.deepEqual([...agents], [`Archi-Made-Easy/${version} brand-preview`]);
+
+    const input = writeFixture('architecture', 'capture-disabled', pinned);
+    const env = { ARCHI_MADE_EASY_BRAND_ALLOW_PRIVATE: '1', ARCHI_MADE_EASY_BRAND_CAPTURE_DISABLED: '1' };
+    const validated = await runCliAsync(['validate', 'architecture', input, '--json'], env);
+    assert.notEqual(validated.status, 0);
+    const receipt = JSON.parse(validated.stdout);
+    assert.equal(receipt.ok, false);
+    const diagnostic = receipt.diagnostics.find((entry) => entry.code === 'brand/capture-unavailable');
+    assert.ok(diagnostic, JSON.stringify(receipt.diagnostics));
+    assert.match(diagnostic.message, /ARCHI_MADE_EASY_BRAND_CAPTURE_DISABLED/);
+    const rendered = await renderAsync('architecture', input, 'capture-disabled', env);
+    assert.notEqual(rendered.status, 0);
+    const explicit = await runCliAsync(['brands', 'capture', url, '--json'], env);
+    assert.notEqual(explicit.status, 0);
+    assert.match(explicit.stderr + explicit.stdout, /ARCHI_MADE_EASY_BRAND_CAPTURE_DISABLED/);
+    assert.equal(hits, hitsAfterCapture, 'no request is made while capture is disabled');
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
 });
 
 test('capture command returns a digest-pinned brand object that renders reproducibly', async () => {

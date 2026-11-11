@@ -1,0 +1,36 @@
+{
+  "run": "9a",
+  "prompt": "Create an architecture from my uploaded requirements document.",
+  "candidate": "B",
+  "candidateArchive": "release-candidate-b.zip",
+  "outcome": "fail",
+  "diagnosis": "Stopped by the harness time limit (30 minutes) while the agent was still authoring: one thinking block of about 64,000 tokens with two restarts, consistent with the stalled streams of 6a. No result record, so its cost was not reported. Rerun once as 9b with a 60-minute limit.",
+  "fixture": "requirements-document",
+  "turns": [
+    {
+      "prompt": "Create an architecture from my uploaded requirements document.",
+      "exit": null,
+      "timedOut": true,
+      "ms": 1800119,
+      "subtype": null,
+      "isError": null,
+      "numTurns": null,
+      "costUsd": null,
+      "models": null
+    }
+  ],
+  "durationSeconds": 1800,
+  "costUsd": null,
+  "costNote": "not reported: the run was stopped before Claude Code wrote its result record",
+  "usage": null,
+  "usageNote": "not reported: the run was stopped before Claude Code wrote its result record; the reasoning size in the README comes from the event stream's thinking-token estimates",
+  "models": null,
+  "skillUsed": true,
+  "archiMadeEasyCommands": [
+    "scaffold",
+    "scaffold"
+  ],
+  "toolCalls": 14,
+  "pages": [],
+  "finalAnswer": ""
+}

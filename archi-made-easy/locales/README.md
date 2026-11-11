@@ -31,7 +31,7 @@ Completeness checks prove key and placeholder coverage, not native wording,
 plural grammar, right-to-left layout, or glyph coverage.
 
 The Arabic catalog localizes copy only. Reader text/chrome direction and scene
-geometry are unchanged; full RTL support is tracked in [#935](https://github.com/OWNER/archi-made-easy/issues/935).
+geometry are unchanged; full RTL support is tracked in [#935](https://github.com/Avinashp7509/archi-made-easy/issues/935).
 Route/reach export summaries and reach controls use count-neutral labels within
 the existing `.one`/`.other` model. Other counted messages still have that
 model's Arabic plural limitations.

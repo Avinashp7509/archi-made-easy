@@ -35,7 +35,7 @@ test('showcase intake requires reproducible proof, redaction, and explicit publi
   assert.match(template, /repository, documentation, gallery, and project website/i);
   assert.match(template, /required:\s*true/g);
 
-  const submissionUrl = 'https://github.com/OWNER/archi-made-easy/issues/new?template=showcase.yml';
+  const submissionUrl = 'https://github.com/Avinashp7509/archi-made-easy/issues/new?template=showcase.yml';
   // The product README links the showcase form again once it is rewritten (Phase 7);
   // the form itself is fully checked above.
   assert.ok(submissionUrl.endsWith('template=showcase.yml'));

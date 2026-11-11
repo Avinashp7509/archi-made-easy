@@ -1,0 +1,43 @@
+{
+  "run": "6a",
+  "prompt": "Simulate a 20x increase in traffic.",
+  "candidate": "B",
+  "candidateArchive": "release-candidate-b.zip",
+  "outcome": "fail",
+  "diagnosis": "API error \"Response stalled mid-stream\" after two tool calls; the skill was not reached. Not a product failure. Rerun once as 6b.",
+  "fixture": "existing-architecture",
+  "turns": [
+    {
+      "prompt": "Simulate a 20x increase in traffic.",
+      "exit": 1,
+      "timedOut": false,
+      "ms": 572019,
+      "subtype": "success",
+      "isError": true,
+      "numTurns": 3,
+      "costUsd": 0.0757925,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ]
+    }
+  ],
+  "durationSeconds": 572,
+  "costUsd": 0.0758,
+  "costNote": "total_cost_usd reported by Claude Code",
+  "usage": {
+    "input_tokens": 2,
+    "output_tokens": 335,
+    "cache_creation_input_tokens": 5243,
+    "cache_read_input_tokens": 5225
+  },
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-opus-5[1m]"
+  ],
+  "skillUsed": false,
+  "archiMadeEasyCommands": [],
+  "toolCalls": 2,
+  "pages": [],
+  "finalAnswer": "API Error: Response stalled mid-stream. The response above may be incomplete."
+}

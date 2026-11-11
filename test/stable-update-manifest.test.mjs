@@ -76,13 +76,13 @@ test('stable release gate binds manifest tag, tree, and final archive digest', (
       version: '3.0.0',
       publishedAt,
       source: {
-        repository: 'https://github.com/OWNER/archi-made-easy',
+        repository: 'https://github.com/Avinashp7509/archi-made-easy',
         ref: 'v3.0.0',
         treeSha,
       },
       artifact: { sha256: artifactSha },
       summary: 'Stable release fixture.',
-      releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v3.0.0',
+      releaseNotes: 'https://github.com/Avinashp7509/archi-made-easy/releases/tag/v3.0.0',
       severity: 'normal',
     };
     writeJson(manifestPath, manifest);

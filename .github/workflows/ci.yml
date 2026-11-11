@@ -541,8 +541,12 @@ jobs:
         shell: pwsh
         run: scripts/windows-path-fixtures.ps1 -NodeVersion '${{ matrix.node-version }}' -Cleanup
 
+  # Runs only once the repository variable ARCHI_MADE_EASY_PAGES_DEPLOY is set to 'true'
+  # (Settings → Secrets and variables → Actions → Variables) and the Pages source is
+  # "GitHub Actions". Until then a push to main deploys nothing: the website build still
+  # carries the placeholder domain and is not part of the 1.0.0 release.
   deploy-pages:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.ARCHI_MADE_EASY_PAGES_DEPLOY == 'true'
     needs: [test, canonical-test, webm-artifact, zip-freshness, published-update-manifest, package-smoke, windows-test-portability, website]
     runs-on: ubuntu-latest
     concurrency:

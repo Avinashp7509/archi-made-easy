@@ -1,0 +1,46 @@
+{
+  "run": "4",
+  "prompt": "Review this solution architecture and identify risks.",
+  "candidate": "A",
+  "candidateArchive": "release-candidate.zip",
+  "outcome": "pass",
+  "fixture": "existing-architecture",
+  "turns": [
+    {
+      "prompt": "Review this solution architecture and identify risks.",
+      "exit": 0,
+      "timedOut": false,
+      "ms": 98915,
+      "subtype": "success",
+      "isError": false,
+      "numTurns": 13,
+      "costUsd": 0.5592364999999999,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ]
+    }
+  ],
+  "durationSeconds": 99,
+  "costUsd": 0.5592,
+  "costNote": "total_cost_usd reported by Claude Code",
+  "usage": {
+    "input_tokens": 18,
+    "output_tokens": 6613,
+    "cache_creation_input_tokens": 30814,
+    "cache_read_input_tokens": 170175
+  },
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-opus-5[1m]"
+  ],
+  "skillUsed": true,
+  "archiMadeEasyCommands": [
+    "review",
+    "simulate",
+    "simulate"
+  ],
+  "toolCalls": 11,
+  "pages": [],
+  "finalAnswer": "Reviewed with the skill's analysis model (`review`, plus `simulate --cost` and `--fmea`). All numbers below are an analytical model of what `solution.architecture.json` *declares* — not measurements, and not provider commitments. The model used 27 authored inputs and 28 assumed role defaults.\n\n## Model-based findings — score 82/100\n\nReliability 84 · Security 100 · Performance 100 · Cost 100 · Op-Ex 98 · Sustainability 100\n\n| Sev | Finding | Evidence | Fix |\n|---|---|---|---|\n| HIGH | SPOF on the critical path — Aurora | `db.redundancy: \"single-instance\"`, and every request through the entry depends on it | Run Aurora across ≥2 failure domains (`multi-az`), or give callers a fallback |\n| HIGH | SPOF on the critical path — Cognito | No redundancy declared — **this one is \"assumed\"**, inferred from a missing field | Confirm reality, then declare `redundancy: \"multi-az\"` on `identity` |\n| MEDIUM | Deep synchronous chain | 4 blocking hops, `users → cdn → lb → app → db`, no circuit breaker or async step on the path | Circuit breakers with timeouts along the chain, or move a step behind the queue |\n| LOW | No recovery objectives — Aurora | Backup strategy in prose, no `dr.rpo_sec`/`dr.rto_sec` | Set both and confirm the backup strategy meets them |\n| LOW | No recovery objectives — S3 | Same | Same |\n\n**Modelled behaviour:** composite availability **99.85%** (~13 h/yr); critical path P99 **308 ms**; max sustainable load **1000 rps**, limited by Lambda, against 400 rps declared ingress (2.5× headroom); cost **~$1108/mo** from only 4 of 10 components priced, so the real figure is higher. FMEA rates six single-component failures as losing 100% of ingress: ECS, CloudFront, Aurora, Cognito, ALB and S3.\n\n## Document problems the rules don't check\n\nThese are inconsistencies I found reading the file — each one makes the diagram tell a reader something the data doesn't support:\n\n- **The Availability card contradicts the data.** It says \"Aurora keeps a synchronous standby in another zone,\" but `db` is declared `single-instance`. That claim is the whole first HIGH finding. The `standby-db` alternative in the workbench has the standby — it just isn't the base design. Decide which is true; the 99.85% figure hangs on it.\n- **The Security card over-claims encryption.** \"Data encrypted in transit and at rest\" — but only `db` declares `encryption_at_rest`. `static` (S3) and `cache` (ElastiCache) declare nothing, and ElastiCache holds sessions.\n- **The Assumptions card says figures \"are not set\"** while the document carries authored rps, latency and cost on five components, which is where the cost estimate and headroom come from. One of the two is stale.\n- **Timeouts are unbounded upstream.** `app-db` declares 800 ms × 2 retries (up to ~2.4 s), with no timeout declared at `lb-app`, `cdn-lb` or `users-cdn`. The `timeout-hierarchy` rule can only check authored timeouts, so it stayed silent — the gap is real, not absent.\n- **No dead-letter destination** on `app-queue`/`queue-worker`. The async rule passed on `idempotent: true` alone; a poison message still has nowhere to go.\n- **Boundary misplacement.** The `region` boundary wraps only `lb, app, cache, db, queue, worker`. Cognito and S3 sit outside it, which reads as global/out-of-region. CloudFront outside is correct; those two aren't.\n- **WAF has no component.** It's named in CloudFront's sublabel, and there's no security boundary in the model, so nothing in the analysis accounts for it.\n- The ADR is still `status: \"proposed\"` — the zone-over-region decision isn't recorded as accepted, and its stated consequence is downtime until a restore completes.\n\n## What this does not cover\n\nThe 14 rules say nothing about network design, IAM policy, secrets handling, observability, release practice, backup *testing*, or data classification. A score of 82 means those rules fired as listed, not that the design is complete — and \"Security 100\" here only means no security rule triggered on the declared fields.\n\nI can apply the mechanical fixes to the document (Aurora multi-az, Cognito redundancy, RPO/RTO, DLQ, encryption flags, boundary membership, reconciled cards) and rerun the review so you see the before/after. The recovery objectives and any real traffic or cost figures need numbers from you."
+}

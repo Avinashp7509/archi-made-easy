@@ -5,4 +5,4 @@ import release from '../../../archi-made-easy/skill-release.json';
 export const productVersion = release.version;
 export const productChannel = release.channel === 'development' ? 'development' : 'stable';
 export const sourceRef = productChannel === 'development' ? 'dev' : 'main';
-export const recipeSourceUrl = `https://github.com/OWNER/archi-made-easy/blob/${sourceRef}/archi-made-easy/recipes/scenarios.mjs`;
+export const recipeSourceUrl = `https://github.com/Avinashp7509/archi-made-easy/blob/${sourceRef}/archi-made-easy/recipes/scenarios.mjs`;

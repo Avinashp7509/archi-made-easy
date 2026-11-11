@@ -1,10 +1,10 @@
 {
   "schemaVersion": 1,
   "skillId": "archi-made-easy",
-  "channel": "development",
-  "version": "0.1.0-dev.0",
+  "channel": "stable",
+  "version": "1.0.0",
   "source": {
-    "repository": "https://github.com/OWNER/archi-made-easy"
+    "repository": "https://github.com/Avinashp7509/archi-made-easy"
   },
-  "updateManifestUrl": null
+  "updateManifestUrl": "https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json"
 }

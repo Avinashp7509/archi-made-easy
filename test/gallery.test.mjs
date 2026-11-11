@@ -103,7 +103,7 @@ test('generated proof gallery matches its sources, receipts, and checked-in arti
     assert.match(html, new RegExp(`start\\.html\\?type=${type}&amp;source=gallery`), `${type}: gallery-to-start link missing`);
   }
   assert.match(html, /class="community-callout"/);
-  assert.match(html, /href="https:\/\/github\.com\/OWNER\/archi-made-easy\/issues\/new\?template=showcase\.yml"[^>]+rel="noopener noreferrer"/);
+  assert.match(html, /href="https:\/\/github\.com\/Avinashp7509\/archi-made-easy\/issues\/new\?template=showcase\.yml"[^>]+rel="noopener noreferrer"/);
   assert.match(html, /Share a verified diagram/);
   assert.match(html, /提交已验证成品/);
 

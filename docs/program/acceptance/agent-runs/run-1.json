@@ -1,0 +1,63 @@
+{
+  "run": "1",
+  "prompt": "Build a highly available e-commerce architecture on Azure.",
+  "candidate": "A",
+  "candidateArchive": "release-candidate.zip",
+  "outcome": "pass",
+  "fixture": null,
+  "turns": [
+    {
+      "prompt": "Build a highly available e-commerce architecture on Azure.",
+      "exit": 0,
+      "timedOut": false,
+      "ms": 1263278,
+      "subtype": "success",
+      "isError": false,
+      "numTurns": 20,
+      "costUsd": 3.4792200000000006,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ]
+    }
+  ],
+  "durationSeconds": 1263,
+  "costUsd": 3.4792,
+  "costNote": "total_cost_usd reported by Claude Code",
+  "usage": {
+    "input_tokens": 32,
+    "output_tokens": 97549,
+    "cache_creation_input_tokens": 73441,
+    "cache_read_input_tokens": 610636
+  },
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-opus-5[1m]"
+  ],
+  "skillUsed": true,
+  "archiMadeEasyCommands": [
+    "scaffold",
+    "doctor",
+    "scaffold",
+    "finalize",
+    "finalize"
+  ],
+  "toolCalls": 18,
+  "pages": [
+    {
+      "page": ".archi-made-easy/architecture-azure-ha-ecommerce-20261110-215442/azure-ha-ecommerce.html",
+      "title": "Highly available e-commerce on Azure",
+      "bytes": 1153779,
+      "checks": "9/9",
+      "layoutGate": "pass (4 viewports)",
+      "agentFinalize": "pass at showcase",
+      "workbench": true,
+      "components": 14,
+      "componentsWithOperationalData": 14,
+      "assumptionsCard": true,
+      "levels": false,
+      "published": "pages/run-1-azure-ha-ecommerce.html"
+    }
+  ],
+  "finalAnswer": "Created [Highly available e-commerce on Azure](<temp>\\project\\.archi-made-easy\\architecture-azure-ha-ecommerce-20261110-215442\\azure-ha-ecommerce.html)\n\nThe availability story is zones, not regions: Front Door is the global entry point, every regional tier (API Management, AKS, Cosmos DB, Redis, Service Bus, Azure SQL) is zone-redundant, and fulfilment leaves the request path through Service Bus so a downstream failure costs an order's *status*, not the purchase.\n\nAssumptions I made, since you gave no targets — all of them are also on the diagram's Assumptions card:\n\n- **One region, three zones, no second region.** A regional outage means downtime until a restore. The decision record in the Workbench spells out the active-passive alternative and its cost.\n- **No availability, traffic, latency or cost figures are modelled** — none were stated, and I did not invent any. Autoscale bounds (3–30) are placeholders.\n- **Catalog on Cosmos DB, orders on Azure SQL, search on AI Search** is my design choice, as is the hosted-fields payment provider (card data never enters the shop).\n- **Left out of the drawing:** Key Vault, Azure Monitor/Application Insights and CI/CD, named in the cards instead; they don't change the availability path.\n\nTwo things to know about reading it: the toolbar's Workbench button and the mode rail on the left (Review, Simulate, Optimize) let you fail a component, multiply traffic, or price it yourself. Its built-in review scores the declared design 96 with four low findings — all of them \"no RPO/RTO set\", which is accurate: give me recovery objectives and I'll author them, and the model will then judge whether zone redundancy alone meets them. That score is an analytical model of the declared design, not a measurement.\n\nAutomated checks passed; not visually reviewed. If you want the multi-region active-active variant instead, say so and I'll build it alongside this one for comparison."
+}

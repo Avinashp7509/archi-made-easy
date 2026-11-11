@@ -41,3 +41,5 @@ node docs/visual-qa/tools/compare-with-upstream.mjs --write    # also write ../u
 ```
 
 It pairs every screenshot in `../upstream-baseline/` with the screenshot of the same document, viewport, theme and state in `../archi-made-easy-after/`, and reports the share of pixels that differ clearly (more than 24 of 255 in a colour channel) and at all (more than 4). It reads the colour tokens from the two `observations.json` files. It has no dependency; PNG files are decoded in the script.
+
+Both Playwright scripts write screenshots with an absolute path, because the tool's sandbox has no file-system module. Replace `/ABSOLUTE/PATH/TO/archi-made-easy` in the script with the absolute path of your checkout before running it.

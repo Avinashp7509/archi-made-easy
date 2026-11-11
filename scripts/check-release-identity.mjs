@@ -215,7 +215,12 @@ if (hasSupportedVersion && hasRealUnreleasedChanges) {
 if (hasSupportedVersion) {
   checkSkillRelease(readJson('archi-made-easy/skill-release.json'), version, isDevelopment);
   const stableManifestPath = 'docs/skill-updates/archi-made-easy/stable.json';
-  if (newestStableLabel) {
+  // A first stable release has no manifest yet: the release workflow requires it to be
+  // published in a follow-up commit once the GitHub Release exists. Every later release
+  // keeps the newest or the immediate prior manifest.
+  const firstStableReleaseWindow = !isDevelopment && newestStableLabel && !previousStableLabel
+    && newestStableLabel === version && !fs.existsSync(path.join(repoRoot, stableManifestPath));
+  if (newestStableLabel && !firstStableReleaseWindow) {
     checkStableUpdateManifest(
       readJson(stableManifestPath),
       newestStableLabel,

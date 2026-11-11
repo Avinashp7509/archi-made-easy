@@ -30,7 +30,7 @@ test('landing metadata describes the full technical-diagram product and trusted 
   assert.match(landing, /<title>Archi-Made-Easy — Technical Diagrams from Plain English<\/title>/);
   assert.match(landing, /<meta property="og:title" content="Archi-Made-Easy — Technical Diagrams from Plain English">/);
   assert.match(landing, /An agent skill for Cursor, Claude Code, Codex CLI, OpenCode, and GitHub Copilot/);
-  assert.equal((landing.match(/npx -y skills add OWNER\/archi-made-easy --skill archi-made-easy --agent cursor --global --copy --yes/g) || []).length, 2);
+  assert.equal((landing.match(/npx -y skills add Avinashp7509\/archi-made-easy --skill archi-made-easy --agent cursor --global --copy --yes/g) || []).length, 2);
   assert.match(landing, /From plain English<br>to architecture <em>you can trust\.<\/em>/);
 });
 

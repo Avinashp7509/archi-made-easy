@@ -18,7 +18,7 @@ const read = (page, lang) => parse(fs.readFileSync(path.join(root, lang === 'zh'
 const byClass = (node, name) => [...((attr(node, 'class') || '').split(/\s+/).includes(name) ? [node] : []), ...(node.childNodes || []).flatMap(child => byClass(child, name))];
 const byTag = (node, tag) => node.tagName === tag ? node : (node.childNodes || []).map(child => byTag(child, tag)).find(Boolean);
 function assertProofLink(page, link, lang, proof) {
-  const documentUrl = new URL(`${lang === 'zh' ? 'zh/' : ''}guide${cloudflare ? '' : '.html'}`, cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/');
+  const documentUrl = new URL(`${lang === 'zh' ? 'zh/' : ''}guide${cloudflare ? '' : '.html'}`, cloudflare ? 'https://archi-made-easy.example/' : 'https://avinashp7509.github.io/archi-made-easy/');
   const base = new URL(attr(byTag(page, 'base'), 'href'), documentUrl);
   const expectedBase = cloudflare ? '/' : '/archi-made-easy/';
   assert.equal(base.pathname, expectedBase, 'proof links resolve against the deployment base');
@@ -45,7 +45,7 @@ for (const lang of ['en', 'zh']) {
         recipe[lang].useWhen, recipe[lang].avoidWhen, recipe[lang].prompt, ...recipe[lang].include]) {
         assert.ok(content.includes(clean(value)), `${recipe.id}: missing initial ${lang} copy: ${value}`);
       }
-      assert.ok(links(article).some(link => /github\.com\/OWNER\/archi-made-easy\/blob\/(?:dev|main)\/archi-made-easy\/recipes\/scenarios\.mjs$/.test(attr(link, 'href'))));
+      assert.ok(links(article).some(link => /github\.com\/Avinashp7509\/archi-made-easy\/blob\/(?:dev|main)\/archi-made-easy\/recipes\/scenarios\.mjs$/.test(attr(link, 'href'))));
       if (recipe.proof) {
         const proofLink = links(article).find(link => new URL(attr(link, 'href'), 'https://example.test/').hash === `#proof-${recipe.proof}`);
         assert.ok(proofLink, `missing proof link for ${recipe.id}`);
@@ -77,8 +77,8 @@ test('initial homepage product facts explain identity, inputs, delivery, license
   const content = clean(text(section));
   for (const fact of ['open-source Agent Skill', 'typed JSON', 'interactive HTML', 'Mermaid', 'Apache-2.0', 'Codex', 'PNG', 'runtime system behavior', 'stable main']) assert.ok(content.includes(fact), fact);
   const hrefs = links(section).map(link => attr(link, 'href'));
-  assert.ok(hrefs.includes('https://github.com/OWNER/archi-made-easy/releases'));
-  assert.ok(hrefs.includes('https://github.com/OWNER/archi-made-easy/blob/main/LICENSE'));
+  assert.ok(hrefs.includes('https://github.com/Avinashp7509/archi-made-easy/releases'));
+  assert.ok(hrefs.includes('https://github.com/Avinashp7509/archi-made-easy/blob/main/LICENSE'));
 });
 
 for (const lang of ['en', 'zh']) {
@@ -113,7 +113,7 @@ for (const lang of ['en', 'zh']) {
     assert.ok(identityText.includes(lang === 'zh' ? '开源画图技能' : 'open-source diagram skill'));
     assert.deepEqual(links(identity).map(link => [clean(text(link)), attr(link, 'href')]), [
       ['archi-made-easy.example', 'https://archi-made-easy.example/'],
-      ['OWNER/archi-made-easy', 'https://github.com/OWNER/archi-made-easy'],
+      ['Avinashp7509/archi-made-easy', 'https://github.com/Avinashp7509/archi-made-easy'],
     ], 'visible product identity connects the official site and exact source repository');
     const facts = clean(text(find(page, 'about-archi-made-easy')));
     for (const boundary of lang === 'zh'

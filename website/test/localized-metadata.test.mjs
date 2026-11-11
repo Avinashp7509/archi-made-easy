@@ -30,7 +30,7 @@ test('metadata points both hosts to real localized canonical pages and honest so
     const metadata = pageMetadata(page, lang, '1.2.3');
     assert.equal(metadata.canonical, canonicalUrl(page, lang));
     assert.equal(metadata.schema['@graph'][1].version, '1.2.3');
-    assert.equal(metadata.schema['@graph'][1].codeRepository, 'https://github.com/OWNER/archi-made-easy');
+    assert.equal(metadata.schema['@graph'][1].codeRepository, 'https://github.com/Avinashp7509/archi-made-easy');
     assert.match(metadata.schema['@graph'][1].license, /\/LICENSE$/);
     assert.doesNotMatch(JSON.stringify(metadata.schema), /aggregateRating|ratingValue|downloadCount|interactionStatistic/);
   }
@@ -60,7 +60,7 @@ function runtime({ href, base, lang = 'en', page = 'start', cloudflare = false, 
 
 test('URL locale wins stored preference and route switches preserve query and hash', () => {
   for (const setup of [
-    { href: 'https://OWNER.github.io/archi-made-easy/start.html', base: 'https://OWNER.github.io/archi-made-easy/', expected: 'https://OWNER.github.io/archi-made-easy/zh/start.html' },
+    { href: 'https://avinashp7509.github.io/archi-made-easy/start.html', base: 'https://avinashp7509.github.io/archi-made-easy/', expected: 'https://avinashp7509.github.io/archi-made-easy/zh/start.html' },
     { href: 'https://archi-made-easy.example/start', base: 'https://archi-made-easy.example/', cloudflare: true, expected: 'https://archi-made-easy.example/zh/start' },
     { href: 'file:///tmp/export/start.html', base: 'file:///tmp/export/', expected: 'file:///tmp/export/zh/start.html' },
   ]) {

@@ -5579,7 +5579,7 @@ html[data-theme="dark"] body{background:#071019!important;background-image:none!
 &lt;head&gt;
   &lt;meta charset=&quot;UTF-8&quot;&gt;
   &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
-  &lt;meta name=&quot;generator&quot; content=&quot;archi-made-easy 0.1.0-dev.0&quot;&gt;
+  &lt;meta name=&quot;generator&quot; content=&quot;archi-made-easy 1.0.0&quot;&gt;
   &lt;meta name=&quot;archi-made-easy-reader-contract&quot; content=&quot;declared-wide-v1&quot;&gt;
   &lt;title&gt;Checkout Platform — Baseline Diagram&lt;/title&gt;
   &lt;script&gt;
@@ -11729,7 +11729,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           &lt;span&gt;&lt;kbd&gt;E&lt;/kbd&gt; Export&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;T&lt;/kbd&gt; Theme&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;S&lt;/kbd&gt; Style&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;0&lt;/kbd&gt; Reset&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;+&lt;/kbd&gt; Zoom in&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;-&lt;/kbd&gt; Zoom out&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;Esc&lt;/kbd&gt; Close&lt;/span&gt;
         &lt;/div&gt;
         &lt;p class=&quot;diagram-guide-feedback&quot; id=&quot;diagram-guide-feedback&quot; aria-live=&quot;polite&quot;&gt;&lt;/p&gt;
-        &lt;a class=&quot;diagram-guide-credit&quot; href=&quot;https://github.com/OWNER/archi-made-easy&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;&lt;span&gt;Find Archi-Made-Easy useful? A star on GitHub helps&lt;/span&gt;&lt;span class=&quot;diagram-guide-credit-link&quot;&gt;&lt;span class=&quot;diagram-guide-star&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;Star &lt;span aria-hidden=&quot;true&quot;&gt;&amp;#8599;&lt;/span&gt;&lt;/span&gt;&lt;/a&gt;
+        &lt;a class=&quot;diagram-guide-credit&quot; href=&quot;https://github.com/Avinashp7509/archi-made-easy&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;&lt;span&gt;Find Archi-Made-Easy useful? A star on GitHub helps&lt;/span&gt;&lt;span class=&quot;diagram-guide-credit-link&quot;&gt;&lt;span class=&quot;diagram-guide-star&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;Star &lt;span aria-hidden=&quot;true&quot;&gt;&amp;#8599;&lt;/span&gt;&lt;/span&gt;&lt;/a&gt;
       &lt;/div&gt;
       &lt;div class=&quot;node-finder no-print&quot; id=&quot;node-finder&quot; hidden role=&quot;dialog&quot; aria-modal=&quot;false&quot; aria-labelledby=&quot;node-finder-title&quot;&gt;
         &lt;div class=&quot;node-finder-head&quot;&gt;
@@ -22858,13 +22858,36 @@ function xmlEscape(value) {
   return String(value).replace(/&amp;/g, &#39;&amp;amp;&#39;).replace(/&lt;/g, &#39;&amp;lt;&#39;).replace(/&gt;/g, &#39;&amp;gt;&#39;).replace(/&quot;/g, &#39;&amp;quot;&#39;);
 }
 
+// Every character sequence a consumer of the text exports may read as the end of a line:
+// CommonMark, Mermaid and Java&#39;s line reader (Structurizr) all end a line at a lone CR as
+// well as at LF and CRLF. Vertical tab, form feed, NEL and the Unicode line and paragraph
+// separators are folded too.
+const LINE_BREAKS = /\s*(?:\r\n|[\r\n\u000b\u000c\u0085\u2028\u2029])\s*/g;
+
+/** Authored text on one line: every line break, with the spaces around it, becomes one space. */
+function oneLine(value) {
+  return String(value ?? &#39;&#39;).replace(LINE_BREAKS, &#39; &#39;);
+}
+
 /**
  * Authored text as Markdown text. Whatever the author wrote, it comes out as text: it
- * cannot become emphasis, a link, an image, a table cell boundary, a code span or raw
- * HTML, and it stays on one line, so it cannot start a new block either.
+ * cannot become emphasis, a link with hidden text, an image, a table cell boundary, a code
+ * span or raw HTML, and it stays on one line. Two limits: where the text starts a line,
+ * wrap it in `mdLineStart` so it cannot start a block; and a bare http(s), www or e-mail
+ * address may still be shown as a link by renderers that autolink them (GitHub does), with
+ * the address itself as the visible text.
  */
 function mdText(value) {
-  return String(value ?? &#39;&#39;).replace(/\s*\r?\n\s*/g, &#39; &#39;).replace(/[\\`*_[\]&lt;&gt;|]/g, &#39;\\$&amp;&#39;);
+  return oneLine(value).replace(/[\\`*_[\]&lt;&gt;|]/g, &#39;\\$&amp;&#39;);
+}
+
+/**
+ * Escaped authored text (from `mdText`) placed at the start of a line, for example as a
+ * list item: no leading indentation (an indented code block), and a leading heading, list,
+ * rule or fence marker is escaped. `*` and `&gt;` are escaped by `mdText` already.
+ */
+function mdLineStart(escaped) {
+  return String(escaped).replace(/^\s+/, &#39;&#39;).replace(/^([#+~=-])/, &#39;\\$1&#39;).replace(/^(\d{1,9})([.)])/, &#39;$1\\$2&#39;);
 }
 
 /** Markdown the exporter wrote itself (authored parts already escaped), for a table cell. */
@@ -22889,21 +22912,23 @@ function xmlHtmlText(value) {
 function mdTable(headers, rows) {
   return [`| ${headers.join(&#39; | &#39;)} |`, `|${headers.map(() =&gt; &#39;---&#39;).join(&#39;|&#39;)}|`, ...rows.map((row) =&gt; `| ${row.map(cell).join(&#39; | &#39;)} |`)].join(&#39;\n&#39;);
 }
-    return { safeId, idMap, ASYNC, PASSIVE, edgeText, plural, boundaryForest, xmlEscape, mdText, preformatted, cell, xmlHtmlText, mdTable };
+    return { safeId, idMap, ASYNC, PASSIVE, edgeText, plural, boundaryForest, xmlEscape, oneLine, mdText, mdLineStart, preformatted, cell, xmlHtmlText, mdTable };
   })();
   // ---- exporters/mermaid.mjs
   __modules[&quot;exporters/mermaid.mjs&quot;] = (function () {
     &#39;use strict&#39;;
 // Mermaid export: flowchart, C4 and sequence diagrams from an architecture model.
 
-var { ASYNC, PASSIVE, boundaryForest, edgeText, idMap, mdText } = __modules[&quot;exporters/shared.mjs&quot;];
+var { ASYNC, PASSIVE, boundaryForest, edgeText, idMap, mdText, oneLine } = __modules[&quot;exporters/shared.mjs&quot;];
 
 // Authored text inside a Mermaid diagram, written with Mermaid&#39;s entity codes so that it is
 // text in every position. In a quoted label it cannot close the string, start a tag or end
-// the code fence of the Markdown around it.
+// the code fence of the Markdown around it. Every line break is folded (Mermaid also ends a
+// line at a lone CR). A percent sign is encoded even inside quotes, because Mermaid looks for
+// `%%{init: …}%%` directives anywhere in the diagram text.
 const CODES = { &#39;#&#39;: &#39;#35;&#39;, &#39;&quot;&#39;: &#39;#quot;&#39;, &#39;&lt;&#39;: &#39;#lt;&#39;, &#39;&gt;&#39;: &#39;#gt;&#39;, &#39;`&#39;: &#39;#96;&#39;, &#39;;&#39;: &#39;#59;&#39;, &#39;%&#39;: &#39;#37;&#39; };
-const encode = (value, characters) =&gt; String(value ?? &#39;&#39;).replace(/\s*\r?\n\s*/g, &#39; &#39;).replace(characters, (character) =&gt; CODES[character]);
-const text = (value) =&gt; encode(value, /[#&quot;&lt;&gt;`]/g);
+const encode = (value, characters) =&gt; oneLine(value).replace(characters, (character) =&gt; CODES[character]);
+const text = (value) =&gt; encode(value, /[#&quot;&lt;&gt;`%]/g);
 // Outside quotes (a title, a participant name, a message, a note) a semicolon would end the
 // statement and a percent sign could start a comment, so those are encoded as well.
 const bare = (value) =&gt; encode(value, /[#&quot;&lt;&gt;`;%]/g);
@@ -23124,9 +23149,19 @@ function toDrawio(document, model) {
 // systems, and every other component becomes a container of one software system. The
 // smallest boundary around a component becomes a group.
 
-var { PASSIVE, boundaryForest, edgeText, idMap } = __modules[&quot;exporters/shared.mjs&quot;];
+var { PASSIVE, boundaryForest, edgeText, idMap, oneLine } = __modules[&quot;exporters/shared.mjs&quot;];
 
-const q = (value) =&gt; `&quot;${String(value ?? &#39;&#39;).replace(/\\/g, &#39;\\\\&#39;).replace(/&quot;/g, &#39;\\&quot;&#39;).replace(/\r?\n/g, &#39; &#39;)}&quot;`;
+// Authored text as one Structurizr DSL string. The DSL is read a line at a time (a lone CR
+// also ends a line), so every line break is folded. Its only escape is \&quot; and a backslash is
+// otherwise literal, so a quote is written as \&quot; and a value that ends in a backslash gets an
+// invisible word joiner before the closing quote. It substitutes ${NAME} with constants and
+// environment variables, so a word joiner is put between $ and {.
+const WORD_JOINER = &#39;\u2060&#39;;
+const q = (value) =&gt; {
+  let text = oneLine(value).replace(/&quot;/g, &#39;\\&quot;&#39;).replace(/\$\{/g, () =&gt; `$${WORD_JOINER}{`);
+  if (text.endsWith(&#39;\\&#39;)) text += WORD_JOINER;
+  return `&quot;${text}&quot;`;
+};
 const isExternal = (node) =&gt; [&#39;external-saas&#39;, &#39;ai-model&#39;].includes(node.role);
 
 function toStructurizr(model) {
@@ -23194,7 +23229,7 @@ var { buildFmea } = __modules[&quot;fmea.mjs&quot;];
 var { estimateCost } = __modules[&quot;cost.mjs&quot;];
 var { buildScenarios, runScenario } = __modules[&quot;scenarios.mjs&quot;];
 var { toMermaidFlowchart } = __modules[&quot;exporters/mermaid.mjs&quot;];
-var { mdTable, mdText, plural, preformatted } = __modules[&quot;exporters/shared.mjs&quot;];
+var { mdLineStart, mdTable, mdText, plural, preformatted } = __modules[&quot;exporters/shared.mjs&quot;];
 
 // The asterisk is the exporter&#39;s own mark, so the cell is written as Markdown here.
 const mark = (node, key, value) =&gt; (value == null ? &#39;not set&#39; : preformatted(`${mdText(value)}${node.basis[key] === &#39;assumed&#39; ? &#39;*&#39; : &#39;&#39;}`));
@@ -23235,7 +23270,7 @@ function toRfc(document, model) {
       ].filter(([, value]) =&gt; value != null &amp;&amp; value !== &#39;&#39;);
       if (rows.length) push(mdTable([&#39;Requirement&#39;, &#39;Target&#39;], rows), &#39;&#39;);
     }
-    if (assumptions) push(&#39;Assumptions:&#39;, &#39;&#39;, ...assumptions.items.map((item) =&gt; `- ${mdText(item)}`), &#39;&#39;);
+    if (assumptions) push(&#39;Assumptions:&#39;, &#39;&#39;, ...assumptions.items.map((item) =&gt; `- ${mdLineStart(mdText(item))}`), &#39;&#39;);
   }
 
   push(&#39;## 3. Architecture&#39;, &#39;&#39;, &#39;```mermaid&#39;, toMermaidFlowchart(model), &#39;```&#39;, &#39;&#39;);
@@ -24938,7 +24973,7 @@ function toRfc(document, model) {
 &lt;head&gt;
   &lt;meta charset=&quot;UTF-8&quot;&gt;
   &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
-  &lt;meta name=&quot;generator&quot; content=&quot;archi-made-easy 0.1.0-dev.0&quot;&gt;
+  &lt;meta name=&quot;generator&quot; content=&quot;archi-made-easy 1.0.0&quot;&gt;
   &lt;meta name=&quot;archi-made-easy-reader-contract&quot; content=&quot;declared-wide-v1&quot;&gt;
   &lt;title&gt;Checkout Platform — Fraud Gate Diagram&lt;/title&gt;
   &lt;script&gt;
@@ -31090,7 +31125,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           &lt;span&gt;&lt;kbd&gt;E&lt;/kbd&gt; Export&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;T&lt;/kbd&gt; Theme&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;S&lt;/kbd&gt; Style&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;0&lt;/kbd&gt; Reset&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;+&lt;/kbd&gt; Zoom in&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;-&lt;/kbd&gt; Zoom out&lt;/span&gt;&lt;span&gt;&lt;kbd&gt;Esc&lt;/kbd&gt; Close&lt;/span&gt;
         &lt;/div&gt;
         &lt;p class=&quot;diagram-guide-feedback&quot; id=&quot;diagram-guide-feedback&quot; aria-live=&quot;polite&quot;&gt;&lt;/p&gt;
-        &lt;a class=&quot;diagram-guide-credit&quot; href=&quot;https://github.com/OWNER/archi-made-easy&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;&lt;span&gt;Find Archi-Made-Easy useful? A star on GitHub helps&lt;/span&gt;&lt;span class=&quot;diagram-guide-credit-link&quot;&gt;&lt;span class=&quot;diagram-guide-star&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;Star &lt;span aria-hidden=&quot;true&quot;&gt;&amp;#8599;&lt;/span&gt;&lt;/span&gt;&lt;/a&gt;
+        &lt;a class=&quot;diagram-guide-credit&quot; href=&quot;https://github.com/Avinashp7509/archi-made-easy&quot; target=&quot;_blank&quot; rel=&quot;noopener noreferrer&quot;&gt;&lt;span&gt;Find Archi-Made-Easy useful? A star on GitHub helps&lt;/span&gt;&lt;span class=&quot;diagram-guide-credit-link&quot;&gt;&lt;span class=&quot;diagram-guide-star&quot; aria-hidden=&quot;true&quot;&gt;&lt;/span&gt;Star &lt;span aria-hidden=&quot;true&quot;&gt;&amp;#8599;&lt;/span&gt;&lt;/span&gt;&lt;/a&gt;
       &lt;/div&gt;
       &lt;div class=&quot;node-finder no-print&quot; id=&quot;node-finder&quot; hidden role=&quot;dialog&quot; aria-modal=&quot;false&quot; aria-labelledby=&quot;node-finder-title&quot;&gt;
         &lt;div class=&quot;node-finder-head&quot;&gt;
@@ -42219,13 +42254,36 @@ function xmlEscape(value) {
   return String(value).replace(/&amp;/g, &#39;&amp;amp;&#39;).replace(/&lt;/g, &#39;&amp;lt;&#39;).replace(/&gt;/g, &#39;&amp;gt;&#39;).replace(/&quot;/g, &#39;&amp;quot;&#39;);
 }
 
+// Every character sequence a consumer of the text exports may read as the end of a line:
+// CommonMark, Mermaid and Java&#39;s line reader (Structurizr) all end a line at a lone CR as
+// well as at LF and CRLF. Vertical tab, form feed, NEL and the Unicode line and paragraph
+// separators are folded too.
+const LINE_BREAKS = /\s*(?:\r\n|[\r\n\u000b\u000c\u0085\u2028\u2029])\s*/g;
+
+/** Authored text on one line: every line break, with the spaces around it, becomes one space. */
+function oneLine(value) {
+  return String(value ?? &#39;&#39;).replace(LINE_BREAKS, &#39; &#39;);
+}
+
 /**
  * Authored text as Markdown text. Whatever the author wrote, it comes out as text: it
- * cannot become emphasis, a link, an image, a table cell boundary, a code span or raw
- * HTML, and it stays on one line, so it cannot start a new block either.
+ * cannot become emphasis, a link with hidden text, an image, a table cell boundary, a code
+ * span or raw HTML, and it stays on one line. Two limits: where the text starts a line,
+ * wrap it in `mdLineStart` so it cannot start a block; and a bare http(s), www or e-mail
+ * address may still be shown as a link by renderers that autolink them (GitHub does), with
+ * the address itself as the visible text.
  */
 function mdText(value) {
-  return String(value ?? &#39;&#39;).replace(/\s*\r?\n\s*/g, &#39; &#39;).replace(/[\\`*_[\]&lt;&gt;|]/g, &#39;\\$&amp;&#39;);
+  return oneLine(value).replace(/[\\`*_[\]&lt;&gt;|]/g, &#39;\\$&amp;&#39;);
+}
+
+/**
+ * Escaped authored text (from `mdText`) placed at the start of a line, for example as a
+ * list item: no leading indentation (an indented code block), and a leading heading, list,
+ * rule or fence marker is escaped. `*` and `&gt;` are escaped by `mdText` already.
+ */
+function mdLineStart(escaped) {
+  return String(escaped).replace(/^\s+/, &#39;&#39;).replace(/^([#+~=-])/, &#39;\\$1&#39;).replace(/^(\d{1,9})([.)])/, &#39;$1\\$2&#39;);
 }
 
 /** Markdown the exporter wrote itself (authored parts already escaped), for a table cell. */
@@ -42250,21 +42308,23 @@ function xmlHtmlText(value) {
 function mdTable(headers, rows) {
   return [`| ${headers.join(&#39; | &#39;)} |`, `|${headers.map(() =&gt; &#39;---&#39;).join(&#39;|&#39;)}|`, ...rows.map((row) =&gt; `| ${row.map(cell).join(&#39; | &#39;)} |`)].join(&#39;\n&#39;);
 }
-    return { safeId, idMap, ASYNC, PASSIVE, edgeText, plural, boundaryForest, xmlEscape, mdText, preformatted, cell, xmlHtmlText, mdTable };
+    return { safeId, idMap, ASYNC, PASSIVE, edgeText, plural, boundaryForest, xmlEscape, oneLine, mdText, mdLineStart, preformatted, cell, xmlHtmlText, mdTable };
   })();
   // ---- exporters/mermaid.mjs
   __modules[&quot;exporters/mermaid.mjs&quot;] = (function () {
     &#39;use strict&#39;;
 // Mermaid export: flowchart, C4 and sequence diagrams from an architecture model.
 
-var { ASYNC, PASSIVE, boundaryForest, edgeText, idMap, mdText } = __modules[&quot;exporters/shared.mjs&quot;];
+var { ASYNC, PASSIVE, boundaryForest, edgeText, idMap, mdText, oneLine } = __modules[&quot;exporters/shared.mjs&quot;];
 
 // Authored text inside a Mermaid diagram, written with Mermaid&#39;s entity codes so that it is
 // text in every position. In a quoted label it cannot close the string, start a tag or end
-// the code fence of the Markdown around it.
+// the code fence of the Markdown around it. Every line break is folded (Mermaid also ends a
+// line at a lone CR). A percent sign is encoded even inside quotes, because Mermaid looks for
+// `%%{init: …}%%` directives anywhere in the diagram text.
 const CODES = { &#39;#&#39;: &#39;#35;&#39;, &#39;&quot;&#39;: &#39;#quot;&#39;, &#39;&lt;&#39;: &#39;#lt;&#39;, &#39;&gt;&#39;: &#39;#gt;&#39;, &#39;`&#39;: &#39;#96;&#39;, &#39;;&#39;: &#39;#59;&#39;, &#39;%&#39;: &#39;#37;&#39; };
-const encode = (value, characters) =&gt; String(value ?? &#39;&#39;).replace(/\s*\r?\n\s*/g, &#39; &#39;).replace(characters, (character) =&gt; CODES[character]);
-const text = (value) =&gt; encode(value, /[#&quot;&lt;&gt;`]/g);
+const encode = (value, characters) =&gt; oneLine(value).replace(characters, (character) =&gt; CODES[character]);
+const text = (value) =&gt; encode(value, /[#&quot;&lt;&gt;`%]/g);
 // Outside quotes (a title, a participant name, a message, a note) a semicolon would end the
 // statement and a percent sign could start a comment, so those are encoded as well.
 const bare = (value) =&gt; encode(value, /[#&quot;&lt;&gt;`;%]/g);
@@ -42485,9 +42545,19 @@ function toDrawio(document, model) {
 // systems, and every other component becomes a container of one software system. The
 // smallest boundary around a component becomes a group.
 
-var { PASSIVE, boundaryForest, edgeText, idMap } = __modules[&quot;exporters/shared.mjs&quot;];
+var { PASSIVE, boundaryForest, edgeText, idMap, oneLine } = __modules[&quot;exporters/shared.mjs&quot;];
 
-const q = (value) =&gt; `&quot;${String(value ?? &#39;&#39;).replace(/\\/g, &#39;\\\\&#39;).replace(/&quot;/g, &#39;\\&quot;&#39;).replace(/\r?\n/g, &#39; &#39;)}&quot;`;
+// Authored text as one Structurizr DSL string. The DSL is read a line at a time (a lone CR
+// also ends a line), so every line break is folded. Its only escape is \&quot; and a backslash is
+// otherwise literal, so a quote is written as \&quot; and a value that ends in a backslash gets an
+// invisible word joiner before the closing quote. It substitutes ${NAME} with constants and
+// environment variables, so a word joiner is put between $ and {.
+const WORD_JOINER = &#39;\u2060&#39;;
+const q = (value) =&gt; {
+  let text = oneLine(value).replace(/&quot;/g, &#39;\\&quot;&#39;).replace(/\$\{/g, () =&gt; `$${WORD_JOINER}{`);
+  if (text.endsWith(&#39;\\&#39;)) text += WORD_JOINER;
+  return `&quot;${text}&quot;`;
+};
 const isExternal = (node) =&gt; [&#39;external-saas&#39;, &#39;ai-model&#39;].includes(node.role);
 
 function toStructurizr(model) {
@@ -42555,7 +42625,7 @@ var { buildFmea } = __modules[&quot;fmea.mjs&quot;];
 var { estimateCost } = __modules[&quot;cost.mjs&quot;];
 var { buildScenarios, runScenario } = __modules[&quot;scenarios.mjs&quot;];
 var { toMermaidFlowchart } = __modules[&quot;exporters/mermaid.mjs&quot;];
-var { mdTable, mdText, plural, preformatted } = __modules[&quot;exporters/shared.mjs&quot;];
+var { mdLineStart, mdTable, mdText, plural, preformatted } = __modules[&quot;exporters/shared.mjs&quot;];
 
 // The asterisk is the exporter&#39;s own mark, so the cell is written as Markdown here.
 const mark = (node, key, value) =&gt; (value == null ? &#39;not set&#39; : preformatted(`${mdText(value)}${node.basis[key] === &#39;assumed&#39; ? &#39;*&#39; : &#39;&#39;}`));
@@ -42596,7 +42666,7 @@ function toRfc(document, model) {
       ].filter(([, value]) =&gt; value != null &amp;&amp; value !== &#39;&#39;);
       if (rows.length) push(mdTable([&#39;Requirement&#39;, &#39;Target&#39;], rows), &#39;&#39;);
     }
-    if (assumptions) push(&#39;Assumptions:&#39;, &#39;&#39;, ...assumptions.items.map((item) =&gt; `- ${mdText(item)}`), &#39;&#39;);
+    if (assumptions) push(&#39;Assumptions:&#39;, &#39;&#39;, ...assumptions.items.map((item) =&gt; `- ${mdLineStart(mdText(item))}`), &#39;&#39;);
   }
 
   push(&#39;## 3. Architecture&#39;, &#39;&#39;, &#39;```mermaid&#39;, toMermaidFlowchart(model), &#39;```&#39;, &#39;&#39;);

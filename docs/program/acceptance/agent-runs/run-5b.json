@@ -1,0 +1,49 @@
+{
+  "run": "5b",
+  "prompt": "What happens if the database fails?",
+  "candidate": "B",
+  "candidateArchive": "release-candidate-b.zip",
+  "outcome": "pass",
+  "fixture": "existing-architecture",
+  "turns": [
+    {
+      "prompt": "What happens if the database fails?",
+      "exit": 0,
+      "timedOut": false,
+      "ms": 76650,
+      "subtype": "success",
+      "isError": false,
+      "numTurns": 15,
+      "costUsd": 0.5324015,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ]
+    }
+  ],
+  "durationSeconds": 77,
+  "costUsd": 0.5324,
+  "costNote": "total_cost_usd reported by Claude Code",
+  "usage": {
+    "input_tokens": 16,
+    "output_tokens": 5162,
+    "cache_creation_input_tokens": 31818,
+    "cache_read_input_tokens": 169017
+  },
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-opus-5[1m]"
+  ],
+  "skillUsed": true,
+  "archiMadeEasyCommands": [
+    "simulate",
+    "simulate",
+    "simulate",
+    "simulate",
+    "review",
+    "simulate"
+  ],
+  "toolCalls": 13,
+  "pages": [],
+  "finalAnswer": "Modelled on the declared design in `solution.architecture.json` (not a measurement): **a full Aurora outage is a total outage — 100% of ingress lost, composite availability 0%.**\n\n**Why it spreads all the way to the browser**\n\n`app → db` is a sync-blocking SQL call with retries but no circuit breaker and no fallback, and nothing upstream has one either. So the failure walks the whole path:\n\nAurora (down) → ECS Fargate → ALB → CloudFront → Users\n\nCloudFront fails with it, so even the S3 static assets stop being served in the model — the edge has no fallback for a dead dynamic origin.\n\n**What survives:** SQS and Lambda (async calls never propagate failure upstream — work just queues), and ElastiCache stays healthy. The circuit breaker on `app-cache` doesn't help, because the unprotected call is the database one.\n\n**Two aggravating factors**\n\n- `retries: 2` on `app-db` means Aurora takes **3× amplified load** (1200 rps against its 1500 max) while it's failing — the model flags a retry storm, so it gets hammered through recovery.\n- Recovery is only \"automated backups with point-in-time restore\" with no RTO/RPO declared, and `redundancy: single-instance`. Downtime lasts as long as a restore takes. Note this contradicts your Availability card, which claims \"Aurora keeps a synchronous standby in another zone\" — the document doesn't declare one.\n\n**A slow database, rather than a dead one,** loses no traffic but leaves almost nothing in reserve: Aurora becomes the limiting component at ~429 rps against 400 rps of ingress (1.07× headroom), with P99 on the critical path going from ~308 ms to ~764 ms.\n\n**Your own declared alternative already fixes half of it.** Running `standby-db` (active-passive-dr, RTO 120 s / RPO 5 s) through the model: composite availability 99.850% → 99.897%, SPOFs 2 → 1, review score 82 → 91, no change in modelled cost. The remaining SPOF is Cognito — sign-in has no fallback either.\n\nThe model's priority fixes are: multi-instance across failure domains, a circuit breaker or fallback on `app-db` (so a DB outage degrades to read-only/cached rather than a blank page), and declaring RTO/RPO.\n\nCaveats: 27 inputs are authored, 28 are role defaults, and the document's own Assumptions card says the traffic, latency and cost figures aren't real. Want me to apply the standby plus a circuit breaker to the document and rerun the before/after? You can also try failures yourself in the Workbench button in `solution.html`."
+}

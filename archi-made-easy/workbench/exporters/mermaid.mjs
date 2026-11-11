@@ -1,13 +1,15 @@
 // Mermaid export: flowchart, C4 and sequence diagrams from an architecture model.
 
-import { ASYNC, PASSIVE, boundaryForest, edgeText, idMap, mdText } from './shared.mjs';
+import { ASYNC, PASSIVE, boundaryForest, edgeText, idMap, mdText, oneLine } from './shared.mjs';
 
 // Authored text inside a Mermaid diagram, written with Mermaid's entity codes so that it is
 // text in every position. In a quoted label it cannot close the string, start a tag or end
-// the code fence of the Markdown around it.
+// the code fence of the Markdown around it. Every line break is folded (Mermaid also ends a
+// line at a lone CR). A percent sign is encoded even inside quotes, because Mermaid looks for
+// `%%{init: …}%%` directives anywhere in the diagram text.
 const CODES = { '#': '#35;', '"': '#quot;', '<': '#lt;', '>': '#gt;', '`': '#96;', ';': '#59;', '%': '#37;' };
-const encode = (value, characters) => String(value ?? '').replace(/\s*\r?\n\s*/g, ' ').replace(characters, (character) => CODES[character]);
-const text = (value) => encode(value, /[#"<>`]/g);
+const encode = (value, characters) => oneLine(value).replace(characters, (character) => CODES[character]);
+const text = (value) => encode(value, /[#"<>`%]/g);
 // Outside quotes (a title, a participant name, a message, a note) a semicolon would end the
 // statement and a percent sign could start a comment, so those are encoded as well.
 const bare = (value) => encode(value, /[#"<>`;%]/g);

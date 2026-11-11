@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/OWNER/archi-made-easy/schemas/sequence.schema.json",
+  "$id": "https://github.com/Avinashp7509/archi-made-easy/schemas/sequence.schema.json",
   "title": "Archi-Made-Easy Sequence Diagram",
   "type": "object",
   "additionalProperties": false,

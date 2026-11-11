@@ -388,7 +388,7 @@ Score is `100 − Σ weight`, floored at 0, with weights critical 15, high 8, me
 
 ### On approval: write the plan PDF, then stop
 
-- Output: `Archify-Workbench-Plan.pdf`.
+- Output: `Archify-Workbench-Plan.pdf` at the workspace root.
 - Contents: everything in this plan, with the baseline audit expanded to full detail from the three audits (complete command and flag table, the nine checks with blocking rules, full architecture schema field list, viewer module map with APIs, test and CI gate inventory, contribution and licence constraints), plus a closing section listing the design decisions you are most likely to want to change.
 - Method: the `pdf` skill; if its tooling is missing on this machine, build a print-styled HTML file and convert it with Edge headless (`msedge --headless --print-to-pdf`).
 - Check: open the PDF, confirm page count, that tables and code blocks are not clipped, and that every section of this plan is present.

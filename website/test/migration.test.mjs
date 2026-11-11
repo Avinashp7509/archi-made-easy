@@ -61,9 +61,9 @@ for (const page of pages) {
       const base = elements(next, 'base');
       assert.equal(base.length, 1);
       assert.equal(attr(base[0], 'href'), './');
-      const baseUri = new URL(attr(base[0], 'href'), 'https://OWNER.github.io/archi-made-easy/index.html');
-      assert.equal(new URL(attr(frame, 'src'), baseUri).href, 'https://OWNER.github.io/archi-made-easy/gallery/artifacts/agent-tool-call.workflow.html?embed=1&theme=dark#focus=planner&reach=downstream');
-      assert.equal(new URL(attr(open, 'href'), baseUri).href, 'https://OWNER.github.io/archi-made-easy/gallery/artifacts/agent-tool-call.workflow.html?present=1#focus=planner&reach=downstream');
+      const baseUri = new URL(attr(base[0], 'href'), 'https://avinashp7509.github.io/archi-made-easy/index.html');
+      assert.equal(new URL(attr(frame, 'src'), baseUri).href, 'https://avinashp7509.github.io/archi-made-easy/gallery/artifacts/agent-tool-call.workflow.html?embed=1&theme=dark#focus=planner&reach=downstream');
+      assert.equal(new URL(attr(open, 'href'), baseUri).href, 'https://avinashp7509.github.io/archi-made-easy/gallery/artifacts/agent-tool-call.workflow.html?present=1#focus=planner&reach=downstream');
       const proofScript = elements(next, 'script').find(script => (script.childNodes || []).some(child => (child.value || '').includes("hash: '#lens=backend~database'")));
       assert.ok(proofScript, 'homepage proof configuration must remain present');
       const scriptText = proofScript.childNodes.map(child => child.value || '').join('');

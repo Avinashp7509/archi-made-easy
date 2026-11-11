@@ -8,7 +8,7 @@
 - 边界：commit 成功后 check 或 browser-check 失败不回滚，旧产物只保到提交点。
 
 @answer scope="Archi-Made-Easy @ 82c47ca · bin/finalize.mjs + archi-made-easy.mjs · explainer 默认无 browser-check 门"
-@meta locale=zh-CN repo_url=https://github.com/OWNER/archi-made-easy repo_revision=82c47ca31d83749020ff30d6b1172248e71d255d
+@meta locale=zh-CN repo_url=https://github.com/Avinashp7509/archi-made-easy repo_revision=82c47ca31d83749020ff30d6b1172248e71d255d
 @source finalize-mjs title="runFinalize 编排器" path=archi-made-easy/bin/finalize.mjs lines=722:1050
 @source commit title="commitDeliveryPair：备份、提交、回滚" path=archi-made-easy/bin/archi-made-easy.mjs lines=3236:3624
 @source deliver title="commandDeliver 交付主流程" path=archi-made-easy/bin/archi-made-easy.mjs lines=4400:5301

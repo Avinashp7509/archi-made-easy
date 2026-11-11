@@ -13,7 +13,7 @@ Start with the [interactive HTML](cases/mco-runtime.architecture.html) and its [
 To render the same authored input locally, use Node.js 18 or newer, Git, and a fresh directory. These commands pin the stable Archi-Made-Easy checkout used for this replay; they do not run MCO or invoke a model:
 
 ```sh
-git clone https://github.com/OWNER/archi-made-easy.git archi-made-easy-mco-case
+git clone https://github.com/Avinashp7509/archi-made-easy.git archi-made-easy-mco-case
 cd archi-made-easy-mco-case
 git checkout --detach ba701d20a55ed6f139484d9ead7ff45671fe40eb
 git clone https://github.com/mco-org/mco.git mco-source
@@ -39,7 +39,7 @@ This scope suits a review of component responsibilities and file ownership. For 
 
 ## Version boundary
 
-The diagram’s typed source pins mco-org/mco to 9f1a1cf1afdc04d7b5406782b40dfec76d9bc798. The Archi-Made-Easy source examined here is 04dc1916e1651086564f16076eab6d2f6ba1ae42. These are different repositories and different revisions. The findings below describe that MCO snapshot, not its current or future main branch.  [Pinned diagram source](https://github.com/OWNER/archi-made-easy/blob/04dc1916e1651086564f16076eab6d2f6ba1ae42/docs/cases/mco-runtime.architecture.json#L1-L15)
+The diagram’s typed source pins mco-org/mco to 9f1a1cf1afdc04d7b5406782b40dfec76d9bc798. The Archi-Made-Easy source examined here is 04dc1916e1651086564f16076eab6d2f6ba1ae42. These are different repositories and different revisions. The findings below describe that MCO snapshot, not its current or future main branch.  [Pinned diagram source](https://github.com/Avinashp7509/archi-made-easy/blob/04dc1916e1651086564f16076eab6d2f6ba1ae42/docs/cases/mco-runtime.architecture.json#L1-L15)
 
 <span class="section-anchor" id="case-decoding"></span>
 
@@ -69,7 +69,7 @@ Persistence disabled does not mean zero disk writes. The runner still prepares t
 
 ## How to read the diagram’s arrow
 
-The typed diagram connects Answer Transport to Invocation Artifacts. Read this as an architectural dataflow relationship: decoded answer content contributes to artifacts. It is not a literal function-call edge from a decoder to a file writer. The source-backed ownership description is more precise: decoding happens through the adapter interface, the invocation runtime coordinates it and appends streamed text, and the artifact writer produces report files.  [Runtime decoder handling](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L339-L409) [Answer-file preparation](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L470-L477) · [Streamed writes](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L364-L390) [Usage condition](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L303-L317) · [Report and metadata writer](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_artifacts.py#L31-L106) [Authored diagram edge](https://github.com/OWNER/archi-made-easy/blob/04dc1916e1651086564f16076eab6d2f6ba1ae42/docs/cases/mco-runtime.architecture.json#L228-L233)
+The typed diagram connects Answer Transport to Invocation Artifacts. Read this as an architectural dataflow relationship: decoded answer content contributes to artifacts. It is not a literal function-call edge from a decoder to a file writer. The source-backed ownership description is more precise: decoding happens through the adapter interface, the invocation runtime coordinates it and appends streamed text, and the artifact writer produces report files.  [Runtime decoder handling](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L339-L409) [Answer-file preparation](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L470-L477) · [Streamed writes](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L364-L390) [Usage condition](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_runtime.py#L303-L317) · [Report and metadata writer](https://github.com/mco-org/mco/blob/9f1a1cf1afdc04d7b5406782b40dfec76d9bc798/runtime/invocation_artifacts.py#L31-L106) [Authored diagram edge](https://github.com/Avinashp7509/archi-made-easy/blob/04dc1916e1651086564f16076eab6d2f6ba1ae42/docs/cases/mco-runtime.architecture.json#L228-L233)
 
 This makes the example useful for a concrete repository review question: “Which code changes if decoded text is wrong, and which code changes if saved output is wrong?” Inspect decoder behavior for extraction errors, then inspect runtime writes, artifact serialization, and persistence settings for output-file problems. Those are starting points for investigation, not diagnoses of a reproduced defect.
 

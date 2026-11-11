@@ -34,39 +34,17 @@ const TEXT = /\.(?:js|mjs|cjs|ts|tsx|jsx|astro|json|md|mdc|html|css|ya?ml|txt|sh
 const TEXT_NAMES = /(^|\/)(?:\.gitignore|\.gitattributes|CODEOWNERS)$/;
 
 // Raster captures taken from the viewer before the identity migration. Pixels cannot
-// be searched, so every pre-migration capture is listed here and must be re-captured
-// from the renamed viewer (Phase 7). The list may only shrink.
+// be searched, so every pre-migration capture is listed here until it is re-captured from
+// the renamed viewer (scripts/capture-docs-assets.mjs) or deleted. The list may only shrink.
+// The live-proof animation needs ffmpeg to rebuild (scripts/build-readme-showcase.mjs).
 export const PENDING_RECAPTURE = [
-  'docs/assets/archi-made-easy-architecture.png',
-  'docs/assets/archi-made-easy-class.png',
-  'docs/assets/archi-made-easy-dark.png',
-  'docs/assets/archi-made-easy-dataflow.png',
-  'docs/assets/archi-made-easy-demo-lens.png',
-  'docs/assets/archi-made-easy-demo-reach.png',
-  'docs/assets/archi-made-easy-demo-route.png',
-  'docs/assets/archi-made-easy-erd.png',
-  'docs/assets/archi-made-easy-lifecycle.png',
-  'docs/assets/archi-made-easy-light.png',
   'docs/assets/archi-made-easy-live-proof.gif',
-  'docs/assets/archi-made-easy-menu.png',
-  'docs/assets/archi-made-easy-readme-hero.png',
-  'docs/assets/archi-made-easy-route-share-card.png',
-  'docs/assets/archi-made-easy-sequence.png',
-  'docs/assets/archi-made-easy-social-preview.png',
-  'docs/assets/archi-made-easy-timeline.png',
-  'docs/assets/archi-made-easy-tree.png',
-  'docs/assets/archi-made-easy-waterfall.png',
-  'docs/assets/archi-made-easy-workflow.png',
-  'docs/assets/explainer/finalize-delivery.webp',
-  'docs/assets/explainer/first-rental.webp',
-  'docs/assets/explainer/p99-tail-latency.webp',
-  'docs/assets/explainer/tls-first-visit.webp',
-  'docs/assets/life/job-search.lifecycle.webp',
-  'docs/assets/life/leave-plan.workflow.webp',
-  'docs/assets/life/monthly-money.dataflow.webp',
-  'docs/assets/life/renting.sequence.webp',
-  'docs/assets/mco-runtime-reach-share-card.png',
-  'docs/assets/mco-runtime-share-card.png',
+];
+
+// Captures kept as records: the before and after images of the workflow routing study
+// (docs/specs/workflow-routing-clarity-validation.md). Re-capturing them would change the
+// record. Each was inspected on 2026-11-10: no product name appears in the pixels.
+export const HISTORICAL_RECORDS = [
   'docs/assets/workflow-routing-clarity/maka-after.png',
   'docs/assets/workflow-routing-clarity/maka-before.png',
   'docs/assets/workflow-routing-clarity/openpi-after.png',
@@ -143,6 +121,15 @@ test('pre-migration captures are tracked until re-captured', () => {
   const missing = PENDING_RECAPTURE.filter((file) => !fs.existsSync(path.join(repoRoot, file)));
   assert.deepEqual(missing, [], 'remove re-captured or deleted files from PENDING_RECAPTURE');
   assert.equal(new Set(PENDING_RECAPTURE).size, PENDING_RECAPTURE.length);
+  const records = HISTORICAL_RECORDS.filter((file) => !fs.existsSync(path.join(repoRoot, file)));
+  assert.deepEqual(records, [], 'a record listed in HISTORICAL_RECORDS is missing');
+  // Re-captured images carry their provenance.
+  const manifest = JSON.parse(fs.readFileSync(path.join(repoRoot, 'docs', 'assets', 'capture-manifest.json'), 'utf8'));
+  for (const [name, entry] of Object.entries(manifest.images)) {
+    assert.ok(fs.existsSync(path.join(repoRoot, 'docs', 'assets', ...name.split('/'))), name);
+    assert.ok(entry.source && entry.viewport && entry.capture, name);
+    assert.equal(PENDING_RECAPTURE.includes(`docs/assets/${name}`), false, `${name} is re-captured and still listed as pending`);
+  }
 });
 
 test('notice-context detection only excuses occurrences inside an embedded notice', () => {

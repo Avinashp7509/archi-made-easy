@@ -1,6 +1,6 @@
 export const SKILL_ID = 'archi-made-easy';
-export const EXPECTED_REPOSITORY = 'https://github.com/OWNER/archi-made-easy';
-export const DEFAULT_MANIFEST_URL = 'https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json';
+export const EXPECTED_REPOSITORY = 'https://github.com/Avinashp7509/archi-made-easy';
+export const DEFAULT_MANIFEST_URL = 'https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json';
 // Until the publishing owner replaces the OWNER placeholder, the update source is
 // unconfigured: a manifest URL would point at whoever controls that placeholder name.
 export const UPDATE_SOURCE_CONFIGURED = !/\/\/(?:github\.com\/)?OWNER[./]/.test(`${EXPECTED_REPOSITORY} ${DEFAULT_MANIFEST_URL}`);
@@ -133,7 +133,7 @@ export function validateReleaseNotesUrl(value, version) {
   if (!isStableCoreVersion(version)) {
     throw new UpdateContractError('release notes require a stable core version');
   }
-  const expected = `https://github.com/OWNER/archi-made-easy/releases/tag/v${version}`;
+  const expected = `https://github.com/Avinashp7509/archi-made-easy/releases/tag/v${version}`;
   if (value !== expected) {
     throw new UpdateContractError('release notes URL is outside the exact trusted release path');
   }

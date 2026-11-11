@@ -1,0 +1,43 @@
+{
+  "run": "5a",
+  "prompt": "What happens if the database fails?",
+  "candidate": "A",
+  "candidateArchive": "release-candidate.zip",
+  "outcome": "fail",
+  "diagnosis": "The agent did not use the skill: it read the document and reasoned by hand, with no model run. The skill description named only diagram creation. Fixed in candidate B (description widened); rerun as 5b.",
+  "fixture": "existing-architecture",
+  "turns": [
+    {
+      "prompt": "What happens if the database fails?",
+      "exit": 0,
+      "timedOut": false,
+      "ms": 60611,
+      "subtype": "success",
+      "isError": false,
+      "numTurns": 3,
+      "costUsd": 0.20505400000000001,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ]
+    }
+  ],
+  "durationSeconds": 61,
+  "costUsd": 0.2051,
+  "costNote": "total_cost_usd reported by Claude Code",
+  "usage": {
+    "input_tokens": 6,
+    "output_tokens": 3458,
+    "cache_creation_input_tokens": 10469,
+    "cache_read_input_tokens": 26602
+  },
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-opus-5[1m]"
+  ],
+  "skillUsed": false,
+  "archiMadeEasyCommands": [],
+  "toolCalls": 2,
+  "pages": [],
+  "finalAnswer": "Answering from the architecture model in `solution.architecture.json`, since that's what's in this directory.\n\n## Short answer: it's a full outage, and recovery is a restore from backup\n\nThe database is the one component in the diagram with no redundancy. `solution.architecture.json:154` declares `\"redundancy\": \"single-instance\"`, and its only DR provision is `\"Automated backups with point-in-time restore\"` (line 156). No `rto_sec` or `rpo_sec` is declared anywhere, so nobody has committed to a recovery target.\n\n## Blast radius\n\n**Fails immediately:**\n- All writes. The `app-db` edge is `sync-blocking` (line 291).\n- 80% of traffic is reads (`read_write_ratio: 0.8`, line 298). ElastiCache is multi-AZ and holds hot reads, but it's **read-through** (line 276) — every cache miss becomes a failed SQL call. You get a shrinking window of cached reads, then nothing.\n\n**The cascade is the real problem.** `app-db` has `timeout_ms: 800` and `retries: 2` with **no circuit breaker** (lines 293–296) — while `app-cache` right next to it *does* have one (line 281). So each failing request holds a worker slot for up to ~2.4s and triples load against a database already at a 1500 rps ceiling. The stateless tier (autoscale 2–6, 300 rps each) exhausts its request slots and the failure propagates back up `lb-app` → `cdn-lb` → users as timeouts rather than clean errors.\n\n**Survives:**\n- Static content: `cdn-static` (S3) is off the DB path, so the page shell loads.\n- Sign-in: Cognito is independent; sessions live in ElastiCache.\n- `app-queue` enqueue is `async-queue` and `idempotent` (line 311), so background work buffers in SQS instead of failing.\n\n**Unmodeled risk:** `queue-worker` Lambda has no edge to the database, but async workers almost certainly write. Without a DLQ they'll retry-storm and silently discard jobs. Worth adding to the model either way.\n\n## A contradiction you should resolve\n\nThe Availability card claims *\"Aurora keeps a synchronous standby in another zone\"* (line 342), but the component says `single-instance`. The database also sits inside the `Region (zone-redundant)` boundary (line 212). So the diagram *reads* as highly available while its data says the database is a single point of failure — and it still claims `sla_percent: 99.95` (line 162). One of those is wrong, and it's the kind of gap that gets discovered during an incident.\n\nYour own `standby-db` alternative (lines 419–435) already has the fix: `active-passive-dr`, RTO 120s, RPO 5s. Promote it to the baseline and the answer to this question changes from \"restore from backup\" to \"~2 minutes, ~5 seconds of data lost.\"\n\n## What I'd change, in priority order\n\n1. Set `db.redundancy` to `active-passive-dr` with explicit `rto_sec`/`rpo_sec` — apply the alternative you already designed.\n2. Add `circuit_breaker_enabled: true` to `app-db`. Retries with no breaker is what turns a database failure into a total frontend outage.\n3. Route the 80% reads to a reader endpoint so a primary failover only interrupts writes.\n4. Make the ALB health check shallow (not DB-dependent) so the app tier stays in service and can serve cached and static content instead of being drained to zero.\n5. Add a DLQ behind SQS and model the `worker → db` edge.\n6. Fix the Availability card to match reality, whichever way you decide.\n\nWant me to apply these to the architecture and regenerate `solution.html`? Items 1, 2, 5, and 6 are straightforward edits to the JSON; 3 and 4 add a reader-endpoint connection and a health-check annotation."
+}

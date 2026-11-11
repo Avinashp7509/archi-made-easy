@@ -8,7 +8,7 @@ import { buildFmea } from '../fmea.mjs';
 import { estimateCost } from '../cost.mjs';
 import { buildScenarios, runScenario } from '../scenarios.mjs';
 import { toMermaidFlowchart } from './mermaid.mjs';
-import { mdTable, mdText, plural, preformatted } from './shared.mjs';
+import { mdLineStart, mdTable, mdText, plural, preformatted } from './shared.mjs';
 
 // The asterisk is the exporter's own mark, so the cell is written as Markdown here.
 const mark = (node, key, value) => (value == null ? 'not set' : preformatted(`${mdText(value)}${node.basis[key] === 'assumed' ? '*' : ''}`));
@@ -49,7 +49,7 @@ export function toRfc(document, model) {
       ].filter(([, value]) => value != null && value !== '');
       if (rows.length) push(mdTable(['Requirement', 'Target'], rows), '');
     }
-    if (assumptions) push('Assumptions:', '', ...assumptions.items.map((item) => `- ${mdText(item)}`), '');
+    if (assumptions) push('Assumptions:', '', ...assumptions.items.map((item) => `- ${mdLineStart(mdText(item))}`), '');
   }
 
   push('## 3. Architecture', '', '```mermaid', toMermaidFlowchart(model), '```', '');

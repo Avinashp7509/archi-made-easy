@@ -6,7 +6,7 @@ import { parseSitemap } from '../scripts/indexnow.mjs';
 import { stripPublishedArtifactMetadata } from '../scripts/publish-seo.mjs';
 const cloudflare = process.env.ARCHI_MADE_EASY_SITE_TARGET === 'cloudflare';
 const output = new URL(cloudflare ? '../dist-cloudflare/' : '../dist/', import.meta.url);
-const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/';
+const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://avinashp7509.github.io/archi-made-easy/';
 const nodes = node => [node, ...(node.childNodes || []).flatMap(nodes)];
 const attr = (node, name) => node?.attrs?.find(item => item.name === name)?.value;
 const text = node => node.nodeName === '#text' ? node.value : (node.childNodes || []).map(text).join('');

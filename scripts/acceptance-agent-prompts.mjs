@@ -41,8 +41,11 @@ export const PROMPTS = [
 ];
 const FOLLOW_UP = 'Go ahead with your suggested defaults.';
 // The tools a coding agent normally has, minus the network and sub-agents: the run must be
-// explainable from the skill alone.
+// explainable from the skill alone. Of the shell, only `node` is pre-approved, which is all
+// the skill uses; anything else is refused without a prompt (permission mode dontAsk).
+// Claude Code itself keeps writes to the project folder.
 const TOOLS = 'Bash,Read,Write,Edit,Glob,Grep,Skill,TodoWrite';
+const ALLOWED = 'Bash(node:*),Read,Write,Edit,Glob,Grep,Skill,TodoWrite';
 
 function arg(name, fallback = null) {
   const index = process.argv.indexOf(name);
@@ -128,18 +131,34 @@ function summariseTools(events) {
   return { toolCalls, skills, archiMadeEasyCommands: commands };
 }
 
+/**
+ * Check a page the agent produced, independently of the agent's own receipts. The page is
+ * copied alone into a fresh folder first: next to the original, the delivery receipt and the
+ * agent's browser evidence own their paths, and a second check there is refused by design.
+ * The agent's own finalize receipt, when there is one, is reported beside the result.
+ */
 function verifyArtifact(file, installedCli, env) {
-  const run = (args) => spawnSync(process.execPath, [installedCli, ...args], { encoding: 'utf8', env, maxBuffer: 1 << 26 });
+  const run = (args, cwd) => spawnSync(process.execPath, [installedCli, ...args], { encoding: 'utf8', env, cwd, maxBuffer: 1 << 26 });
   const parse = (result) => { try { return JSON.parse(result.stdout); } catch { return null; } };
   const html = fs.readFileSync(file, 'utf8');
-  const check = parse(run(['check', file, '--json']));
-  const browser = parse(run(['browser-check', file, '--json']));
-  return {
-    file: path.basename(file), bytes: html.length,
-    interactiveWorkbench: html.includes('id="archi-made-easy-workbench-data"'),
-    checks: check ? { ok: check.ok, passed: (check.checks || []).filter((c) => c.ok).length, total: (check.checks || []).length } : null,
-    browserCheck: browser ? { ok: browser.ok, status: browser.status ?? null } : null,
-  };
+  const alone = fs.mkdtempSync(path.join(os.tmpdir(), 'ame-agent-check-'));
+  try {
+    const copy = path.join(alone, path.basename(file));
+    fs.copyFileSync(file, copy);
+    const check = parse(run(['check', copy, '--json'], alone));
+    const layout = parse(run(['visual-check', copy, '--json', '--out-dir', path.join(alone, 'evidence')], alone));
+    const receiptPath = file.replace(/\.html$/i, '.finalize.json');
+    const receipt = fs.existsSync(receiptPath) ? (() => { try { return JSON.parse(fs.readFileSync(receiptPath, 'utf8')); } catch { return null; } })() : null;
+    return {
+      file: path.basename(file), bytes: html.length,
+      interactiveWorkbench: html.includes('id="archi-made-easy-workbench-data"'),
+      checks: check ? { ok: check.ok, passed: (check.checks || []).filter((c) => c.ok).length, total: (check.checks || []).length } : null,
+      layoutGate: layout ? { ok: layout.ok, status: layout.status ?? null, viewports: (layout.containment?.viewports || []).length } : null,
+      agentFinalize: receipt ? { ok: receipt.ok, status: receipt.status ?? null } : null,
+    };
+  } finally {
+    fs.rmSync(alone, { recursive: true, force: true });
+  }
 }
 
 async function main() {
@@ -173,7 +192,7 @@ async function main() {
     const before = new Set(listFiles(project));
     const transcript = path.join(outDirectory, `prompt-${entry.id}.stream.jsonl`);
     fs.rmSync(transcript, { force: true });
-    const base = ['--output-format', 'stream-json', '--verbose', '--tools', TOOLS, '--allowedTools', TOOLS, '--permission-mode', 'dontAsk', '--strict-mcp-config', '--max-budget-usd', String(budget)];
+    const base = ['--output-format', 'stream-json', '--verbose', '--tools', TOOLS, '--allowedTools', ALLOWED, '--permission-mode', 'dontAsk', '--strict-mcp-config', '--max-budget-usd', String(budget)];
     console.log(`prompt ${entry.id}: ${entry.prompt}`);
     const turns = [];
     const first = await runTurn(claude, ['-p', entry.prompt, ...base], { cwd: project, env, transcript, timeoutMs });
@@ -202,8 +221,9 @@ async function main() {
         costUsd: turn.result?.total_cost_usd ?? null, models: turn.result?.modelUsage ? Object.keys(turn.result.modelUsage) : null,
         stderr: turn.code === 0 ? undefined : turn.stderr,
       })),
-      usage: { input_tokens: sum('input_tokens'), output_tokens: sum('output_tokens'), cache_creation_input_tokens: sum('cache_creation_input_tokens'), cache_read_input_tokens: sum('cache_read_input_tokens') },
-      costUsd: Math.round(turns.reduce((total, turn) => total + (turn.result?.total_cost_usd ?? 0), 0) * 10000) / 10000,
+      // A run stopped before Claude Code wrote its result record reports neither: zeros would read as measurements.
+      usage: turns.every((turn) => !turn.result) ? null : { input_tokens: sum('input_tokens'), output_tokens: sum('output_tokens'), cache_creation_input_tokens: sum('cache_creation_input_tokens'), cache_read_input_tokens: sum('cache_read_input_tokens') },
+      costUsd: turns.every((turn) => !turn.result) ? null : Math.round(turns.reduce((total, turn) => total + (turn.result?.total_cost_usd ?? 0), 0) * 10000) / 10000,
       tools, filesProduced: produced, artifacts,
       finalAnswer: finalText(turns[turns.length - 1]),
     };
@@ -220,7 +240,7 @@ async function main() {
   const summary = {
     schemaVersion: 1, kind: 'agent-prompt-acceptance', date: new Date().toISOString(), platform: `${os.platform()} ${os.release()}`, node: process.version,
     agent: `Claude Code ${version}`, archive: { file: path.basename(zipPath), sha256: crypto.createHash('sha256').update(zipBytes).digest('hex') },
-    settings: { tools: TOOLS, permissionMode: 'dontAsk', mcpServers: 'none', budgetUsdPerTurn: budget, timeoutMinutes: timeoutMs / 60000, followUp: FOLLOW_UP },
+    settings: { tools: TOOLS, preApproved: ALLOWED, permissionMode: 'dontAsk', mcpServers: 'none', budgetUsdPerTurn: budget, timeoutMinutes: timeoutMs / 60000, followUp: FOLLOW_UP },
     totalCostUsd: Math.round(records.reduce((total, record) => total + record.costUsd, 0) * 10000) / 10000,
     runs: records.map(({ id, prompt, costUsd, artifacts, tools, turns }) => ({ id, prompt, costUsd, turns: turns.length, pages: artifacts.length, commands: tools.archiMadeEasyCommands })),
   };

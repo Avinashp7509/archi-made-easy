@@ -15,7 +15,7 @@ test('agent guide is readable without JavaScript, honest about examples, and lin
   for (const lang of ['en', 'zh']) {
     const prefix = lang === 'zh' ? 'zh/' : '';
     const all = nodes(parse(fs.readFileSync(new URL(`${prefix}agent-diagrams.html`, output), 'utf8')));
-    const documentUrl = new URL(`${prefix}agent-diagrams${cloudflare ? '' : '.html'}`, cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/');
+    const documentUrl = new URL(`${prefix}agent-diagrams${cloudflare ? '' : '.html'}`, cloudflare ? 'https://archi-made-easy.example/' : 'https://avinashp7509.github.io/archi-made-easy/');
     const baseUri = new URL(attr(all.find(node => node.tagName === 'base'), 'href'), documentUrl);
     const article = all.find(node => node.tagName === 'article');
     assert.ok(article);
@@ -84,7 +84,7 @@ test('README entry points link directly to the matching language guide', () => {
 
 
 test('description workflow exposes pinned evidence, honest limits and localized setup without changing the artifact', () => {
-  const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/';
+  const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://avinashp7509.github.io/archi-made-easy/';
   for (const lang of ['en', 'zh']) {
     const prefix = lang === 'zh' ? 'zh/' : '';
     const all = nodes(parse(fs.readFileSync(new URL(`${prefix}agent-diagrams.html`, output), 'utf8')));
@@ -103,7 +103,7 @@ test('description workflow exposes pinned evidence, honest limits and localized 
     assert.match(visible, lang === 'en' ? /not a real-world guarantee/ : /不是现实保证/);
     const links = section.filter(node => node.tagName === 'a').map(node => new URL(attr(node, 'href'), base));
     assert.ok(links.some(url => url.href === origin + 'cases/life/leave-plan.workflow.html'));
-    assert.ok(links.some(url => url.href === 'https://github.com/OWNER/archi-made-easy/blob/68031cf978e0b906aa56c684a394049a3ea9d583/docs/cases/life/leave-plan.workflow.json'));
+    assert.ok(links.some(url => url.href === 'https://github.com/Avinashp7509/archi-made-easy/blob/68031cf978e0b906aa56c684a394049a3ea9d583/docs/cases/life/leave-plan.workflow.json'));
     const quickstart = links.find(url => url.searchParams.get('type') === 'workflow');
     assert.equal(quickstart.href, origin + `${prefix}start${cloudflare ? '' : '.html'}?type=workflow&input=description`);
   }
@@ -116,7 +116,7 @@ test('description workflow exposes pinned evidence, honest limits and localized 
 });
 
 test('Mermaid guidance preserves the literal example, explains semantic reauthoring and is linked from localized Start pages', () => {
-  const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/';
+  const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://avinashp7509.github.io/archi-made-easy/';
   for (const lang of ['en', 'zh']) {
     const prefix = lang === 'zh' ? 'zh/' : '';
     const all = nodes(parse(fs.readFileSync(new URL(`${prefix}agent-diagrams.html`, output), 'utf8')));
@@ -150,7 +150,7 @@ test('Mermaid guidance preserves the literal example, explains semantic reauthor
     assert.match(prompt, lang === 'en' ? /explain the limitation before simplifying/ : /先说明限制，再讨论简化方式/);
     assert.equal(section.filter(node => node.tagName === 'li').length, 4, 'the semantic review checklist is readable without JavaScript');
     const links = section.filter(node => node.tagName === 'a').map(node => new URL(attr(node, 'href'), base).href);
-    assert.ok(links.includes('https://github.com/OWNER/archi-made-easy/blob/88d1ae4498b6a1df610badf690c5406882622d15/archi-made-easy/SKILL.md#mermaid-input'));
+    assert.ok(links.includes('https://github.com/Avinashp7509/archi-made-easy/blob/88d1ae4498b6a1df610badf690c5406882622d15/archi-made-easy/SKILL.md#mermaid-input'));
     assert.ok(links.includes('https://mermaid.ai/open-source/config/usage.html'));
     assert.ok(nodes(article).some(node => node.tagName === 'a' && new URL(attr(node, 'href'), base).hash === '#mermaid-input'), 'the FAQ points to the full explanation');
 
@@ -166,7 +166,7 @@ test('Mermaid guidance preserves the literal example, explains semantic reauthor
 
 
 test('setup answers are readable without scripts and distinguish prerequisites from optional source code', () => {
-  const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/';
+  const origin = cloudflare ? 'https://archi-made-easy.example/' : 'https://avinashp7509.github.io/archi-made-easy/';
   for (const lang of ['en', 'zh']) {
     const prefix = lang === 'zh' ? 'zh/' : '';
     const page = nodes(parse(fs.readFileSync(new URL(`${prefix}agent-diagrams.html`, output), 'utf8')));
@@ -179,7 +179,7 @@ test('setup answers are readable without scripts and distinguish prerequisites f
     const base = new URL(attr(page.find(node => node.tagName === 'base'), 'href'), origin + `${prefix}agent-diagrams.html`);
     for (const [agent, directory] of [['claude-code', '.claude'], ['codex', '.agents']]) {
       assert.equal(page.filter(node => attr(node, 'id') === `setup-${agent}`).length, 1);
-      const command = `npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent ${agent} --global --copy --yes`;
+      const command = `npx -y skills add Avinashp7509/archi-made-easy --skill archi-made-easy --agent ${agent} --global --copy --yes`;
       assert.ok(nodes(article).some(node => node.tagName === 'pre' && text(node).trim() === command), `${agent}: exact existing Start command is visible in SSR`);
       for (const location of [`~/${directory}/skills/`, `${directory}/skills/`]) assert.ok(visible.includes(location));
       const link = nodes(article).find(node => node.tagName === 'a' && attr(node, 'href')?.includes(`agent=${agent}#install`));

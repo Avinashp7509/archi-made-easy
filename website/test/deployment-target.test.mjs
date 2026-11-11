@@ -38,13 +38,13 @@ test('built deployment uses host-compatible generated assets and canonical metad
     const bases = all.filter(node => node.tagName === 'base');
     assert.equal(bases.length, 1, file);
     assert.equal(attr(bases[0], 'href'), '../'.repeat(file.split('/').length - 1) || './', file);
-    const documentUrl = cloudflare ? canonicalUrl : `https://OWNER.github.io/archi-made-easy/${file}`;
+    const documentUrl = cloudflare ? canonicalUrl : `https://avinashp7509.github.io/archi-made-easy/${file}`;
     const baseUri = new URL(attr(bases[0], 'href'), documentUrl);
     const nav = all.find(node => node.tagName === 'nav' && attr(node, 'class') === 'site-nav');
     const navLinks = nodes(nav).filter(node => node.tagName === 'a' && (attr(node, 'class') || '').split(/\s+/).includes('nav-link'));
     assert.deepEqual(navLinks.map(node => new URL(attr(node, 'href'), baseUri).href), [
-      ...['guide', 'gallery', 'start', 'community'].map(target => `${cloudflare ? 'https://archi-made-easy.example/' : 'https://OWNER.github.io/archi-made-easy/'}${lang === 'zh' ? 'zh/' : ''}${target}${cloudflare ? '' : '.html'}`),
-      'https://github.com/OWNER/archi-made-easy',
+      ...['guide', 'gallery', 'start', 'community'].map(target => `${cloudflare ? 'https://archi-made-easy.example/' : 'https://avinashp7509.github.io/archi-made-easy/'}${lang === 'zh' ? 'zh/' : ''}${target}${cloudflare ? '' : '.html'}`),
+      'https://github.com/Avinashp7509/archi-made-easy',
     ], `${file}: routes resolved against the actual document base`);
     const canonical = all.filter(node => node.tagName === 'link' && attr(node, 'rel') === 'canonical');
     assert.equal(canonical.length, 1, file);

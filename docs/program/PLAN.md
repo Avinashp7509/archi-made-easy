@@ -6,7 +6,7 @@ Status: approved 2026-11-10, with the product-vision amendments below. This file
 
 - **Name.** Archi-Made-Easy. Skill identifier `archi-made-easy`. JavaScript namespace `ArchiMadeEasy`. Files, folders, packages, commands and the release archive use `archi-made-easy`. Environment variables use `ARCHI_MADE_EASY_`. HTML template markers use `ARCHI_MADE_EASY:`.
 - **Origin.** The product is derived from an Apache-2.0 project (upstream repository and commit are recorded in `NOTICE`, `ATTRIBUTION.md` and the import commit). Upstream copyright lines, licence texts and third-party notices are kept verbatim. The upstream name appears only in those attribution files.
-- **Ownership.** Copyright for new work: Avinash Roy. The GitHub owner is a single placeholder (`OWNER`) held in `archi-made-easy/skill-release.json`. The release check fails while it is unset; ordinary tests do not.
+- **Ownership.** Copyright for new work: Avinash Roy. The GitHub owner was a single placeholder (`OWNER`) held in `archi-made-easy/skill-release.json` until Phase 7, when the owner `Avinashp7509` replaced it everywhere (see BRANDING-AUDIT.md). The release check fails while it is unset; ordinary tests do not.
 - **History.** The repository starts fresh with one import commit of upstream `11b0d60`. Upstream history is not carried.
 - **Method.** The migration is dependency-aware, not blind text replacement:
   - A reviewed mapping table and a migration script rename paths with `git mv` and rewrite identifiers by context: JS identifier, prose, environment variable, marker, URL.

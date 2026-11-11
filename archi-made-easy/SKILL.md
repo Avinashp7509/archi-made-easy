@@ -1,9 +1,9 @@
 ---
 name: archi-made-easy
-description: "Create validated architecture, workflow, sequence, data-flow, lifecycle/state, ERD, class, tree, timeline, and waterfall diagrams as explorable standalone HTML with dark/light themes, motion and image/SVG/WebM export. Accept requirements or Mermaid; inspect repository evidence for code-backed diagrams. Use when visualizing systems, API calls, pipelines, schemas, histories, timings, or everyday steps, parts, relationships and states, including plain-language architecture requests such as 'design a highly available e-commerce architecture on Azure' or 'turn my repository into an architecture diagram'. Also turn an answer into a one-page explainer, with the conclusion first, structured panels, native diagrams and charts, when the user asks for a page, an explainer or an answer to share (做成一页, 用页面讲), or proactively when the user's rules opt in with an [archi-made-easy explainer: ...] line. Not for dashboards."
+description: "Design, review and simulate software architectures, and create validated architecture, workflow, sequence, data-flow, lifecycle/state, ERD, class, tree, timeline and waterfall diagrams as explorable standalone HTML. Accept plain language, requirements documents, Mermaid or a repository. Use when the user asks to design, draw or explain a system ('highly available e-commerce on Azure', 'diagram my repository'), or asks about an existing architecture: review it for risks, what happens if a database, zone or provider fails, simulate a traffic surge, estimate or lower its cost, compare options. Answer those by running this skill's model, never by estimating. Also for everyday steps, parts and states. Also turn an answer into a one-page explainer with the conclusion first and native diagrams when the user asks for a page or something to share (做成一页, 用页面讲), or proactively when the user's rules opt in with an [archi-made-easy explainer: ...] line. Not for dashboards."
 license: Apache-2.0
 metadata:
-  version: "0.1"
+  version: "1.0"
   author: Avinash Roy
 ---
 

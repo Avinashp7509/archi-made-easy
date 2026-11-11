@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..', 'archi-made-easy');
 const repoRoot = path.resolve(skillRoot, '..');
-const cursorCommand = 'npx -y skills@latest add https://archi-made-easy.example --skill archi-made-easy --agent cursor --global --copy --yes';
+const cursorCommand = 'npx -y skills@latest add Avinashp7509/archi-made-easy --skill archi-made-easy --agent cursor --global --copy --yes';
 
 test('Cursor onboarding stays explicit, bilingual, and backed by the same Skill', () => {
   const english = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
@@ -22,7 +22,7 @@ test('Cursor onboarding stays explicit, bilingual, and backed by the same Skill'
   // until then the README states that installation instructions ship with the first release.
   assert.ok(cursorCommand.includes('--agent cursor'));
   // The legacy static landing page keeps its original GitHub install source.
-  assert.ok(landing.includes('npx -y skills add OWNER/archi-made-easy --skill archi-made-easy --agent cursor --global --copy --yes'));
+  assert.ok(landing.includes('npx -y skills add Avinashp7509/archi-made-easy --skill archi-made-easy --agent cursor --global --copy --yes'));
   for (const surface of [english, start, landing]) {
     assert.doesNotMatch(surface, /skills use[^\n<]*--agent cursor/);
     assert.doesNotMatch(surface, /~\/\.cursor\/skills\/archi-made-easy/);

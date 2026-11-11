@@ -11,6 +11,7 @@ Archi-Made-Easy is built on an open-source foundation. This file records where t
 | Licence | Apache License 2.0. Contributions before commit `25cf370` are also available under MIT; see `LICENSE-MIT`. |
 | Original copyright | Copyright (c) 2026 tt-a1i (Archify); Copyright (c) 2025 Cocoon AI |
 | Earlier origin | https://github.com/Cocoon-AI/architecture-diagram-generator |
+| Contributors to the original work | https://github.com/tt-a1i/archify/graphs/contributors |
 
 The first commit of this repository is an unmodified import of that revision. Every later commit is a change made for Archi-Made-Easy.
 

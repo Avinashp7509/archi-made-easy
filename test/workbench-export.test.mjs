@@ -214,6 +214,26 @@ test('export command writes each format and protects existing files', (t) => {
   assert.equal(again.status, 2);
   assert.match(again.stderr, /already exists/);
   assert.equal(run('export', 'rfc', 'a.json', 'a.rfc.md', '--force').status, 0);
+  // A directory at the output path is refused with a diagnostic, not an exception, even with --force.
+  fs.mkdirSync(path.join(dir, 'adir'));
+  const onDirectory = run('export', 'rfc', 'a.json', 'adir', '--force', '--json');
+  assert.equal(onDirectory.status, 2, onDirectory.stderr);
+  assert.equal(JSON.parse(onDirectory.stdout).diagnostics[0].code, 'export/output-type');
+  assert.doesNotMatch(onDirectory.stderr, /EISDIR|at .*\.mjs:\d+/);
+  assert.ok(fs.statSync(path.join(dir, 'adir')).isDirectory());
+  // A link at the output path is never written through, even with --force. Creating a link
+  // needs a privilege on Windows; without it this part cannot run and is reported as skipped.
+  fs.writeFileSync(path.join(dir, 'target.md'), 'keep me\n');
+  let linked = true;
+  try { fs.symlinkSync(path.join(dir, 'target.md'), path.join(dir, 'link.md')); } catch { linked = false; }
+  if (linked) {
+    const onLink = run('export', 'rfc', 'a.json', 'link.md', '--force', '--json');
+    assert.equal(onLink.status, 2, onLink.stderr);
+    assert.equal(JSON.parse(onLink.stdout).diagnostics[0].code, 'export/output-type');
+    assert.equal(fs.readFileSync(path.join(dir, 'target.md'), 'utf8'), 'keep me\n');
+  } else {
+    t.diagnostic('symbolic link not created (no privilege); the link case was not exercised');
+  }
   assert.equal(run('export', 'pdf', 'a.json', 'a.pdf').status, 2);
   assert.match(run('export', 'png', 'a.json', 'a.png').stderr, /Image export is done in the viewer/);
   assert.equal(run('export', 'rfc', 'missing.json', 'x.md').status, 2);

@@ -15,7 +15,7 @@ node bin/archi-made-easy.mjs doctor
 如果通过兼容 npm 的 Skill 工具安装，可以执行：
 
 ```bash
-npx skills add OWNER/archi-made-easy -g
+npx skills add Avinashp7509/archi-made-easy -g
 ```
 
 ## 2. 选择图表类型

@@ -37,13 +37,13 @@ export async function verifyPackagedUpdateChecker(skillRoot, cacheDirectory) {
     version: candidateVersion,
     publishedAt: '2026-08-28T00:00:00Z',
     source: {
-      repository: 'https://github.com/OWNER/archi-made-easy',
+      repository: 'https://github.com/Avinashp7509/archi-made-easy',
       ref: `v${candidateVersion}`,
       treeSha: 'a'.repeat(40),
     },
     artifact: { sha256: 'b'.repeat(64) },
     summary: 'Package smoke candidate.',
-    releaseNotes: `https://github.com/OWNER/archi-made-easy/releases/tag/v${candidateVersion}`,
+    releaseNotes: `https://github.com/Avinashp7509/archi-made-easy/releases/tag/v${candidateVersion}`,
     severity: 'normal',
   };
   const fetchImpl = async () => new Response(JSON.stringify(candidate), {

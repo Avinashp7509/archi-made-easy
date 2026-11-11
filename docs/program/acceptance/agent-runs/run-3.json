@@ -1,0 +1,63 @@
+{
+  "run": "3",
+  "prompt": "Design a multi-region AWS architecture for 10 million users.",
+  "candidate": "A",
+  "candidateArchive": "release-candidate.zip",
+  "outcome": "pass",
+  "fixture": null,
+  "turns": [
+    {
+      "prompt": "Design a multi-region AWS architecture for 10 million users.",
+      "exit": 0,
+      "timedOut": false,
+      "ms": 541440,
+      "subtype": "success",
+      "isError": false,
+      "numTurns": 23,
+      "costUsd": 1.9932969999999999,
+      "models": [
+        "claude-haiku-4-5-20251001",
+        "claude-opus-5[1m]"
+      ]
+    }
+  ],
+  "durationSeconds": 541,
+  "costUsd": 1.9933,
+  "costNote": "total_cost_usd reported by Claude Code",
+  "usage": {
+    "input_tokens": 34,
+    "output_tokens": 34205,
+    "cache_creation_input_tokens": 76869,
+    "cache_read_input_tokens": 737374
+  },
+  "models": [
+    "claude-haiku-4-5-20251001",
+    "claude-opus-5[1m]"
+  ],
+  "skillUsed": true,
+  "archiMadeEasyCommands": [
+    "scaffold",
+    "scaffold",
+    "scaffold",
+    "finalize",
+    "finalize"
+  ],
+  "toolCalls": 21,
+  "pages": [
+    {
+      "page": ".archi-made-easy/architecture-multi-region-aws-20261110-222519/multi-region-aws.html",
+      "title": "Multi-Region Active-Active Platform on AWS (10M Users)",
+      "bytes": 1153080,
+      "checks": "9/9",
+      "layoutGate": "pass (4 viewports)",
+      "agentFinalize": "pass at showcase",
+      "workbench": true,
+      "components": 14,
+      "componentsWithOperationalData": 14,
+      "assumptionsCard": true,
+      "levels": false,
+      "published": "pages/run-3-multi-region-aws.html"
+    }
+  ],
+  "finalAnswer": "[Multi-region active-active platform on AWS](<temp>\\project\\.archi-made-easy\\architecture-multi-region-aws-20261110-222519\\multi-region-aws.html)\n\nTwo full-stack regions behind Route 53 latency routing and CloudFront, with DynamoDB global tables as the bidirectional store — so a regional loss is a routing event, not a failover procedure. The hard parts are in the cards: write-conflict resolution, regional Cognito user pools, and each region carrying 100% of load alone.\n\nWhat I assumed (you gave only \"AWS\", \"multi-region\", \"10 million users\"):\n- us-east-1 / eu-west-1 as example regions — pick from your real user geography and residency rules.\n- Key-value primary store; relational workloads would need Aurora Global Database (one writer region) instead, noted on the page.\n- No peak RPS, latency, availability or budget targets, so no traffic/latency/cost figures are authored anywhere.\n\nRead it as a system overview: S3 with cross-region replication, observability and CI/CD are described in the notes rather than drawn, and WAF/Shield appear as a tag on CloudFront instead of a separate box.\n\nThe page's Workbench button (and the Review/Simulate/Optimize rail on the left) lets you try region failures, traffic multipliers and variants yourself. Its built-in review scores this design 94 with one medium finding — the synchronous read path user → DNS → edge → ALB → services → DynamoDB — plus missing RPO/RTO on DynamoDB, which needs your numbers. Those results are an analytical model of the declared design, not measurements."
+}

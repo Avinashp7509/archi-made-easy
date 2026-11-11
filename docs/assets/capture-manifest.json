@@ -1,0 +1,246 @@
+{
+  "note": "Images captured by scripts/capture-docs-assets.mjs from pages this repository renders. Nothing is drawn or edited by hand.",
+  "captured": "2026-11-10",
+  "images": {
+    "archi-made-easy-architecture.png": {
+      "source": "archi-made-easy/examples/global-fintech-payment-mesh.html",
+      "theme": "light",
+      "viewport": "1376x772",
+      "deviceScaleFactor": 2,
+      "capture": "viewport",
+      "state": "workbench on",
+      "bytes": 297093
+    },
+    "archi-made-easy-class.png": {
+      "source": "archi-made-easy/examples/class-payments-rendered.html",
+      "theme": "light",
+      "viewport": "1280x800",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 184565
+    },
+    "archi-made-easy-dark.png": {
+      "source": "archi-made-easy/examples/cloud-native-ecommerce-c4.html",
+      "theme": "dark",
+      "viewport": "1400x1100",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "bytes": 148902
+    },
+    "archi-made-easy-dataflow.png": {
+      "source": "archi-made-easy/examples/dataflow-product-analytics.html",
+      "theme": "light",
+      "viewport": "1280x800",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 186348
+    },
+    "archi-made-easy-demo.gif": {
+      "source": "scripts/capture-demo-gif.mjs",
+      "theme": "light, dark for the last step",
+      "viewport": "1280x800",
+      "deviceScaleFactor": 0.75,
+      "capture": "animated GIF of viewport screenshots",
+      "state": "A generated architecture, with the workbench frame | Explore: a component, its inputs tagged authored or assumed | Review: a finding, the components it affects and the fix | Simulate: choose a scenario | Run: region A lost, the failure and the healthy figures side by side | Recovery options, previewed | Performance at ten times the load | FinOps: modelled monthly cost by component | C4: containers that open into component diagrams | One level down: the checkout service | Hand off: Mermaid, draw.io, Structurizr, a design document",
+      "seconds": 37.5,
+      "bytes": 674306
+    },
+    "archi-made-easy-erd.png": {
+      "source": "archi-made-easy/examples/erd-orders-rendered.html",
+      "theme": "light",
+      "viewport": "1280x800",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 295566
+    },
+    "archi-made-easy-lifecycle.png": {
+      "source": "archi-made-easy/examples/lifecycle-agent-run.html",
+      "theme": "light",
+      "viewport": "1280x800",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 163242
+    },
+    "archi-made-easy-light.png": {
+      "source": "archi-made-easy/examples/cloud-native-ecommerce-c4.html",
+      "theme": "light",
+      "viewport": "1400x1100",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "bytes": 143869
+    },
+    "archi-made-easy-menu.png": {
+      "source": "archi-made-easy/examples/cloud-native-ecommerce-c4.html",
+      "theme": "light",
+      "viewport": "1400x1100",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "export menu open",
+      "bytes": 162190
+    },
+    "archi-made-easy-route-share-card.png": {
+      "source": "docs/gallery/artifacts/agent-tool-call.workflow.html",
+      "hash": "route=user~external",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 1,
+      "capture": "share-card",
+      "state": "route user to external",
+      "bytes": 101093
+    },
+    "archi-made-easy-sequence.png": {
+      "source": "archi-made-easy/examples/sequence-cache-miss-request.html",
+      "theme": "light",
+      "viewport": "1280x800",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 181112
+    },
+    "archi-made-easy-social-preview.png": {
+      "source": "scripts/social-card-template.html",
+      "theme": "page default",
+      "viewport": "1200x630",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "scripts/social-card-template.html around archi-made-easy-workbench.png",
+      "bytes": 143585
+    },
+    "archi-made-easy-timeline.png": {
+      "source": "archi-made-easy/examples/timeline-payment-incident-rendered.html",
+      "theme": "light",
+      "viewport": "1280x800",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 124111
+    },
+    "archi-made-easy-tree.png": {
+      "source": "archi-made-easy/examples/tree-payment-platform-rendered.html",
+      "theme": "light",
+      "viewport": "1280x800",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 131623
+    },
+    "archi-made-easy-waterfall.png": {
+      "source": "archi-made-easy/examples/waterfall-checkout-request-rendered.html",
+      "theme": "light",
+      "viewport": "1280x800",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 110144
+    },
+    "archi-made-easy-workbench.png": {
+      "source": "archi-made-easy/examples/global-fintech-payment-mesh.html",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "Simulate: region A blackout, run",
+      "bytes": 192404
+    },
+    "archi-made-easy-workflow.png": {
+      "source": "archi-made-easy/examples/workflow-agent-tool-call-rendered.html",
+      "theme": "light",
+      "viewport": "1280x800",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 358246
+    },
+    "explainer/finalize-delivery.webp": {
+      "source": "docs/cases/explainer/finalize-delivery.html",
+      "theme": "page default",
+      "viewport": "640x1152",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "top of the page",
+      "bytes": 99448
+    },
+    "explainer/first-rental.webp": {
+      "source": "docs/cases/explainer/first-rental.html",
+      "theme": "page default",
+      "viewport": "640x912",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "top of the page",
+      "bytes": 54356
+    },
+    "explainer/p99-tail-latency.webp": {
+      "source": "docs/cases/explainer/p99-tail-latency.html",
+      "theme": "page default",
+      "viewport": "640x882",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "top of the page",
+      "bytes": 62664
+    },
+    "explainer/tls-first-visit.webp": {
+      "source": "docs/cases/explainer/tls-first-visit.html",
+      "theme": "page default",
+      "viewport": "640x1124",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "top of the page",
+      "bytes": 72902
+    },
+    "github-social-preview.png": {
+      "source": "scripts/social-card-template.html",
+      "theme": "page default",
+      "viewport": "1280x640",
+      "deviceScaleFactor": 1,
+      "capture": "viewport",
+      "state": "scripts/social-card-template.html around archi-made-easy-workbench.png",
+      "bytes": 153271
+    },
+    "life/job-search.lifecycle.webp": {
+      "source": "docs/cases/life/job-search.lifecycle.html",
+      "theme": "light",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 87220
+    },
+    "life/leave-plan.workflow.webp": {
+      "source": "docs/cases/life/leave-plan.workflow.html",
+      "theme": "light",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 122830
+    },
+    "life/monthly-money.dataflow.webp": {
+      "source": "docs/cases/life/monthly-money.dataflow.html",
+      "theme": "light",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 117394
+    },
+    "life/renting.sequence.webp": {
+      "source": "docs/cases/life/renting.sequence.html",
+      "theme": "light",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 2,
+      "capture": "element",
+      "bytes": 147076
+    },
+    "mco-runtime-reach-share-card.png": {
+      "source": "docs/cases/mco-runtime.architecture.html",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 1,
+      "capture": "share-card",
+      "state": "downstream of the command router",
+      "bytes": 111543
+    },
+    "mco-runtime-share-card.png": {
+      "source": "docs/cases/mco-runtime.architecture.html",
+      "hash": "route=callers~consumers",
+      "theme": "dark",
+      "viewport": "1440x900",
+      "deviceScaleFactor": 1,
+      "capture": "share-card",
+      "state": "route callers to consumers",
+      "bytes": 109225
+    }
+  }
+}

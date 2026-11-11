@@ -19,8 +19,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(here, '..', 'archi-made-easy');
 const checkerPath = path.join(skillRoot, 'scripts', 'check-update.mjs');
 const contractPath = path.join(skillRoot, 'scripts', 'update-contract.mjs');
-const expectedRepository = 'https://github.com/OWNER/archi-made-easy';
-const expectedManifestUrl = 'https://OWNER.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json';
+const expectedRepository = 'https://github.com/Avinashp7509/archi-made-easy';
+const expectedManifestUrl = 'https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json';
 const baseTime = Date.parse('2026-08-28T08:00:00Z');
 const childCheckTimeoutMs = 2_000;
 const parentCheckTimeoutMs = 5_000;
@@ -97,7 +97,7 @@ function remoteRelease(overrides = {}) {
       sha256: 'b'.repeat(64),
     },
     summary: 'Improve large-repository scanning and diagram layout.',
-    releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.16.0',
+    releaseNotes: 'https://github.com/Avinashp7509/archi-made-easy/releases/tag/v2.16.0',
     severity: 'normal',
     ...overrides,
   };
@@ -110,7 +110,7 @@ function remoteReleaseForVersion(version, digest = 'b'.repeat(64)) {
     version,
     source: { ...release.source, ref: `v${version}` },
     artifact: { sha256: digest },
-    releaseNotes: `https://github.com/OWNER/archi-made-easy/releases/tag/v${version}`,
+    releaseNotes: `https://github.com/Avinashp7509/archi-made-easy/releases/tag/v${version}`,
   };
 }
 
@@ -380,7 +380,7 @@ function cachedUpdateState() {
       version: '2.16.0',
       targetDigest: `sha256:${'b'.repeat(64)}`,
       severity: 'normal',
-      releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.16.0',
+      releaseNotes: 'https://github.com/Avinashp7509/archi-made-easy/releases/tag/v2.16.0',
       checkedAt: new Date(baseTime).toISOString(),
     },
   };
@@ -527,7 +527,7 @@ test('development installs never treat the older stable release as an update', a
         treeSha: 'c'.repeat(40),
       },
       artifact: { sha256: 'd'.repeat(64) },
-      releaseNotes: 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.15.0',
+      releaseNotes: 'https://github.com/Avinashp7509/archi-made-easy/releases/tag/v2.15.0',
     })),
   ));
 
@@ -2729,14 +2729,14 @@ test('an identity mismatch is rejected silently and never cached as a candidate'
 });
 
 test('release notes must byte-match the exact trusted GitHub URL', async () => {
-  const base = 'https://github.com/OWNER/archi-made-easy/releases/tag/v2.16.0';
+  const base = 'https://github.com/Avinashp7509/archi-made-easy/releases/tag/v2.16.0';
   for (const releaseNotes of [
-    'https://github.com:443/OWNER/archi-made-easy/releases/tag/v2.16.0',
-    'https://github.com:444/OWNER/archi-made-easy/releases/tag/v2.16.0',
+    'https://github.com:443/Avinashp7509/archi-made-easy/releases/tag/v2.16.0',
+    'https://github.com:444/Avinashp7509/archi-made-easy/releases/tag/v2.16.0',
     `${base}?`,
     `${base}#`,
     `${base}?source=manifest`,
-    'https://GITHUB.COM/OWNER/archi-made-easy/releases/tag/v2.16.0',
+    'https://GITHUB.COM/Avinashp7509/archi-made-easy/releases/tag/v2.16.0',
   ]) {
     const testFixture = fixture();
     try {
