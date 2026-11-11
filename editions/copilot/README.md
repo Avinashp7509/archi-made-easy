@@ -69,6 +69,16 @@ Contents: [Agent Builder test log](#agent-builder-test-log) · [Install in Agent
   - its browser interactions, including the Simulate panel's failure and load controls;
   - the commands, output folder and delivery path that run 2 used.
 
+### Next release (in development): step checks
+
+On `main`, not published, and not in rc1. In response to run 1, the edition's `SKILL.md` now gates every step on its result:
+- **`check` only after success.** `check` runs only after `validate` and `export html` both return exit 0 with `"ok": true`, and the page file exists.
+- **The real error is reported.** If a step fails, the agent reports that step's own validation or rendering error (`code` and `message`), never a later missing-file or `input/artifact-unreadable` message.
+- **A safe correction is attempted.** The agent makes the smallest change the diagnostic names: shortening a label, widening a box or fixing a connection. It never removes what the user asked for and never weakens a check. It tries at most three rounds, then may fall back to standard layout quality, and says so. If the step still fails, it stops and gives the text outputs.
+- **The adapter is a fallback only.** The delivery adapter is used only when the engine reports an `output/…` folder error.
+
+These are instructions to the agent. `test/copilot-edition.test.mjs` checks that they are present and in order. Whether Copilot's model follows them is verified only in Agent Builder.
+
 ### Evidence still needed
 
 1. **Run 2's commands and receipts:**
@@ -160,9 +170,9 @@ The edition's `SKILL.md` first runs `node --version`.
 
 ## Compatibility with Agent Builder's rules
 
-The rules are from Microsoft Learn, *Add skills to agents in Agent Builder* (updated 2026-11-06). The measurements are from the 1.0.1 `archi-made-easy-copilot.zip` (SHA-256 `23a81c9d45520830ceeced0e72225ed330eaf10916d779a01ce2789d6723f3c1`) and are checked by `scripts/build-copilot-skill.mjs --verify` and `test/copilot-edition.test.mjs`. The released 1.0.0 had 213 files, 1,731,067 bytes and an 11,496-character `SKILL.md`.
+The rules are from Microsoft Learn, *Add skills to agents in Agent Builder* (updated 2026-11-06). The measurements are from the pre-release copilot-v1.0.1-rc1 `archi-made-easy-copilot.zip` (SHA-256 `23a81c9d45520830ceeced0e72225ed330eaf10916d779a01ce2789d6723f3c1`). The unreleased development ZIP on `main` differs only in its `SKILL.md` (15,623 characters, with the [step checks](#next-release-in-development-step-checks)). The measurements are checked by `scripts/build-copilot-skill.mjs --verify` and `test/copilot-edition.test.mjs`. The released 1.0.0 had 213 files, 1,731,067 bytes and an 11,496-character `SKILL.md`.
 
-| Rule | Limit | Copilot Edition 1.0.1 | Full Edition ZIP (for comparison) |
+| Rule | Limit | Copilot Edition 1.0.1-rc1 | Full Edition ZIP (for comparison) |
 |---|---|---|---|
 | `SKILL.md` at the root of the ZIP | Required | Yes | No: inside an `archi-made-easy/` folder |
 | `name` and `description` in the front matter | Required | Yes: `archi-made-easy`, 731-character description | Yes (974-character description) |

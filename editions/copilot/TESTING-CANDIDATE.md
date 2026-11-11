@@ -1,16 +1,20 @@
 > [!WARNING]
 > **Testing candidate. Not validated in Microsoft's sandbox.** Copilot Edition 1.0.1 has passed local restricted-folder tests and CI, but it has not yet been run inside Microsoft 365 Copilot Agent Builder. It is a pre-release, published only so that it can be tested there. The stable Copilot release remains [copilot-v1.0.0](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0), which has a known artifact-delivery failure in Agent Builder. 1.0.1 becomes stable only after a successful Agent Builder test.
 
-**What this candidate fixes**
+**Background**
 
-In its first real Agent Builder run, Copilot Edition v1.0.0 ran but failed to generate an HTML workbench. `check` reported "The artifact is not a stable regular file (delivery-artifact-inspection-failed)" for `/mnt/data/gcp-million-users.html`.
+In its first real Agent Builder run (2026-11-11), Copilot Edition v1.0.0 ran but did not deliver an HTML workbench. `check` reported "The artifact is not a stable regular file (delivery-artifact-inspection-failed)" for `/mnt/data/gcp-million-users.html`. That message only shows that the page file did not exist when `check` ran. In a later Agent Builder run (2026-11-12), the same v1.0.0 did generate and deliver the HTML workbench.
 
-- **Cause: not established.** `check` found no file, because the page step before it had failed. Two causes reproduce this locally:
-  - an error in the generated architecture document, which makes `export html` refuse to write;
-  - an output folder that refuses the engine's hard-link page writer.
+**The cause of the first failure has not been established.** There are two hypotheses, and both reproduce the message locally:
 
-  A later run of v1.0.0 in Agent Builder (2026-11-12) did generate and deliver the HTML workbench, which makes the document error the more likely cause. This candidate addresses both causes. Whether it is needed is still being established.
-- **Fix:** 1.0.1 adds `bin/copilot-deliver.mjs`. It renders and checks the page where the writer works, then delivers the checked bytes to the output folder and proves them by SHA-256. If no folder works, it delivers nothing and returns a Mermaid fallback labelled as not interactive.
+- **The more likely one:** an error in the architecture document the agent generated. `export html` refuses to write a page for an invalid document, and the agent then ran `check` anyway. The agent writes a different document on every run, which fits one failed run followed by one successful run.
+- **A hypothesis that has not been established:** an output folder that refuses the engine's hard-link page writer. This was reproduced only with an emulated folder. It has never been observed in Agent Builder, and the later successful run makes it less likely.
+
+**What this candidate contains**
+
+`bin/copilot-deliver.mjs`, a delivery adapter. It renders and checks the page in a folder where the engine's writer works, then copies the checked bytes to the output folder and proves them by SHA-256. If no folder works, it delivers nothing and returns a Mermaid fallback labelled as not interactive. This candidate's instructions send every page through the adapter. Whether the adapter is needed at all has not been established.
+
+**Not in this candidate:** the step-by-step result checks now being prepared for the next release are not included. With those checks, `check` runs only after `validate` and `export html` succeed, and the actual error is reported and corrected. They are on `main` and not published.
 
 Details are in the [edition guide's test log](https://github.com/Avinashp7509/archi-made-easy/blob/main/editions/copilot/README.md#agent-builder-test-log).
 

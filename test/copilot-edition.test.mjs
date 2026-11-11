@@ -105,6 +105,21 @@ describe('Copilot Edition package', () => {
     assert.equal(fs.readFileSync(path.join(edition, 'SKILL.md'), 'utf8'), fs.readFileSync(path.join(repoRoot, 'editions', 'copilot', 'SKILL.md'), 'utf8'));
   });
 
+  it('gates the page steps: check runs only after validate and export html succeed, and failures are reported and corrected', () => {
+    const skill = fs.readFileSync(path.join(edition, 'SKILL.md'), 'utf8');
+    const at = (text) => { const index = skill.indexOf(text); assert.ok(index >= 0, `SKILL.md must contain: ${text}`); return index; };
+    // Order of the architecture flow: validate, then export html, then check.
+    assert.ok(at('validate architecture candidate.json') < at('export html candidate.json OUT_DIR') && at('export html candidate.json OUT_DIR') < at('check OUT_DIR/<slug>.html'));
+    at('Gate every step on its result');
+    at('Never run `check` or any later step on a file from a failed step');
+    at('Never report a later "missing file" or `input/artifact-unreadable` message as the problem');
+    at('Report the failed step\'s own diagnostics');
+    at('### Correcting a failed step');
+    at('Never remove a requested component, boundary or requirement to silence an error');
+    at('at most three rounds');
+    at('If it fails with `output/…` diagnostics');
+  });
+
   it('keeps the licence and notices under accepted file names, with the Full Edition text', () => {
     for (const [full, copilot] of [['NOTICE', 'NOTICE.txt'], ['LICENSE', 'LICENSE.txt'], ['LICENSE-MIT', 'LICENSE-MIT.txt'], ['THIRD_PARTY_NOTICES.md', 'THIRD_PARTY_NOTICES.md']]) {
       assert.equal(fs.readFileSync(path.join(edition, copilot), 'utf8'), fs.readFileSync(path.join(repoRoot, 'archi-made-easy', full), 'utf8'), copilot);
@@ -128,12 +143,11 @@ describe('Copilot Edition engine, offline from the unpacked ZIP', () => {
     okJson(run(['scaffold', '--list', '--json'], cwd), 'scaffold --list');
     okJson(run(['scaffold', 'web-ha', '--provider', 'azure', '--title', 'Highly available shop on Azure', '--output', 'shop.html', '--out', 'candidate.json', '--json'], cwd), 'scaffold');
     okJson(run(['validate', 'architecture', 'candidate.json', '--quality', 'showcase', '--json'], cwd), 'validate');
-    // SKILL.md step 4: the delivery adapter validates, renders, checks and delivers the page.
-    const deliver = path.join(edition, 'bin', 'copilot-deliver.mjs');
+    // SKILL.md steps 4 and 5: export the page into the output folder, gate on the result, then check it.
     const out = fs.mkdtempSync(path.join(work, 'out-'));
-    const delivered = okJson(run(['html', 'candidate.json', path.join(out, 'shop.html'), '--quality', 'showcase', '--force', '--json'], cwd, deliver), 'copilot-deliver html');
-    assert.equal(delivered.checks.check, 'passed');
-    okJson(run(['check', path.join(out, 'shop.html'), '--json'], cwd), 'check on the delivered page');
+    okJson(run(['export', 'html', 'candidate.json', path.join(out, 'shop.html'), '--force', '--json'], cwd), 'export html');
+    assert.ok(fs.statSync(path.join(out, 'shop.html')).isFile(), 'step 4 gate: the page exists');
+    okJson(run(['check', path.join(out, 'shop.html'), '--json'], cwd), 'check');
     const page = fs.readFileSync(path.join(out, 'shop.html'), 'utf8');
     assert.match(page, /archi-made-easy-workbench-data/, 'the page carries the workbench model');
     const review = okJson(run(['review', 'candidate.json', '--json'], cwd), 'review');
@@ -143,7 +157,7 @@ describe('Copilot Edition engine, offline from the unpacked ZIP', () => {
     okJson(run(['simulate', 'candidate.json', '--fmea', '--json'], cwd), 'fmea');
     okJson(run(['simulate', 'candidate.json', '--cost', '--json'], cwd), 'cost');
     for (const format of ['mermaid', 'drawio', 'structurizr', 'rfc']) {
-      okJson(run(['export', format, 'candidate.json', path.join(out, `out.${format}`), '--force', '--json'], cwd, deliver), `copilot-deliver export ${format}`);
+      okJson(run(['export', format, 'candidate.json', path.join(out, `out.${format}`), '--force', '--json'], cwd), `export ${format}`);
       assert.ok(fs.statSync(path.join(out, `out.${format}`)).size > 100, `${format} export is empty`);
     }
     okJson(run(['guide', 'what happens if our payment database fails', '--json'], cwd), 'guide');
