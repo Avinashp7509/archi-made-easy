@@ -17,7 +17,7 @@ Before you start:
 - Your administrator must allow skills in Agent Builder.
 - Tenants that use Microsoft Purview Information Barriers cannot add skills.
 
-1. Download `archi-made-easy-copilot.zip` from the release and check its SHA-256 against the `.sha256` file published beside it.
+1. Download [`archi-made-easy-copilot.zip`](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip) from the [copilot-v1.0.0 release](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0) and check its SHA-256 against the [`.sha256` file](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip.sha256) published beside it.
 2. In Microsoft 365 Copilot, open **Agents**, choose **New agent**, then **Configure**.
 3. Under **Skills**, choose **Add skill** and upload the ZIP. Do not unpack it. `SKILL.md` is at the ZIP's root, which is where Agent Builder looks for it.
 4. Give the agent a name, for example *Architecture Workbench*. Add an instruction such as: "Use the archi-made-easy skill for every architecture, diagram, review, failure, load or cost question."

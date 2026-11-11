@@ -72,6 +72,12 @@ describe('Copilot Edition package', () => {
     assert.ok(readme.includes(`| ZIP size | ${report.bytes.toLocaleString('en-US')} bytes`), 'README ZIP size does not match');
     assert.ok(readme.includes(`| Files | ${report.rules.facts.files} (limit`), 'README file count does not match');
     assert.ok(readme.includes(`${report.rules.facts.skillMdChars.toLocaleString('en-US')} characters`), 'README SKILL.md length does not match');
+    // Downloads point at the release asset of this edition version, never at a repository file.
+    const version = fs.readFileSync(path.join(repoRoot, 'editions', 'copilot', 'SKILL.md'), 'utf8').match(/^ {2}version: "([^"]+)"$/m)?.[1];
+    const asset = `https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v${version}/${COPILOT_ZIP}`;
+    const downloads = [...readme.matchAll(/(?:\]\(|href=")([^)"\s]*archi-made-easy-copilot\.zip)(?=[)"])/g)].map((match) => match[1]);
+    assert.ok(downloads.length >= 2, 'README should offer the Copilot download near the top and in its section');
+    assert.deepEqual([...new Set(downloads)], [asset], 'README Copilot download links must point at the matching release asset');
   });
 
   it('has SKILL.md at the root with Agent Builder metadata and no link to a missing file', () => {

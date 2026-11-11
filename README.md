@@ -28,7 +28,10 @@
 
 Current stable version: `v1.0.0` · Apache-2.0 · Node.js 18 or newer · no runtime npm dependencies
 
-Using Microsoft 365 Copilot or a locked-down corporate laptop? See the [Microsoft Copilot Edition](#microsoft-copilot-edition--enterprise--restricted-environments): one ZIP to upload in Agent Builder, nothing to install.
+> [!TIP]
+> **Microsoft Copilot Edition: for Microsoft 365 Copilot Agent Builder and locked-down corporate laptops.** One ZIP to upload as an agent skill, with nothing to install.<br>
+> **[⬇ Download Microsoft Copilot Skill (.zip)](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip)** · [SHA-256](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip.sha256) · [Release notes](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0) · [How to add it to an agent](#microsoft-copilot-edition--enterprise--restricted-environments)<br>
+> Tested locally offline. Running inside Microsoft's Agent Builder sandbox is **unverified**.
 
 <p align="center"><img src="docs/assets/archi-made-easy-demo.gif" alt="A 37-second walkthrough of the workbench: a bundled example architecture, a component and its inputs, a review finding and its fix, a region failure and its impact, recovery options, ten times the load, monthly cost, a C4 level opened, and the exports" width="900"></p>
 
@@ -386,7 +389,7 @@ node archi-made-easy/install.mjs --agent claude-code --uninstall
 
 For Microsoft 365 Copilot Agent Builder and other locked-down environments where people cannot install Node.js, npm or Git. It is the same engine, repackaged as one ZIP that meets Agent Builder's skill rules. The Full Edition above is unchanged.
 
-<p><a href="archi-made-easy-copilot.zip"><strong>⬇ Download Microsoft Copilot Skill (.zip)</strong></a> · <a href="editions/copilot/README.md">Edition guide</a> · <a href="editions/copilot/README.md#validation-report">Validation report</a></p>
+<p><a href="https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip"><strong>⬇ Download Microsoft Copilot Skill (.zip)</strong></a> · <a href="https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip.sha256">SHA-256</a> · <a href="https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0">Release notes (copilot-v1.0.0)</a> · <a href="editions/copilot/README.md">Edition guide</a> · <a href="editions/copilot/README.md#validation-report">Validation report</a></p>
 
 | | Full Edition | Microsoft Copilot Edition |
 |---|---|---|
