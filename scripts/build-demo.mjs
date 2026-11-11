@@ -12,6 +12,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { sameEntry } from '../archi-made-easy/renderers/shared/path-semantics.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = path.join(repoRoot, 'scripts', 'demo');
@@ -72,7 +73,7 @@ export function buildDemo() {
   }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (process.argv[1] && sameEntry(process.argv[1], fileURLToPath(import.meta.url)).status === 'match') {
   const files = buildDemo();
   if (process.argv.includes('--check')) {
     const stale = Object.entries(files).filter(([name, text]) => {

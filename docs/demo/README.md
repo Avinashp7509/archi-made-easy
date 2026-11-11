@@ -32,6 +32,17 @@ Shareable states: [`#database-fails`](https://avinashp7509.github.io/archi-made-
 | Press "What happens…" to next frame | 29 to 33 ms | 158 to 306 ms |
 | Press "Compare…" to next frame | 41 to 45 ms | 211 to 351 ms |
 
-Three runs each, with the page sent uncompressed (1.16 MB). GitHub Pages sends it compressed: 0.29 MB with gzip. The phone figures are an emulation, not a real device.
+Three runs each, with the page sent uncompressed (1.16 MB). The phone figures are an emulation, not a real device.
+
+Against the published site (GitHub Pages sends the page gzip-compressed, 299 KB), same phone emulation, three fresh visits:
+
+| | Phone 390 × 844, 4× CPU slowdown, 10 Mbit/s |
+|---|---|
+| First contentful paint | 0.43 to 0.76 s |
+| Ready to use | 2.3 to 3.3 s |
+| Press "What happens…" to next frame | 148 to 194 ms |
+| Press "Compare…" to next frame | 249 to 349 ms |
+
+The same run checked the whole journey on the live site: the failure, the comparison, start again, fresh visits to both shared links and `?full`, with no console errors and no sideways scrolling on the phone.
 
 The goal that a first-time visitor understands the architecture, the failure and the trade-off within 60 seconds has not been tested with people; these checks show only that the journey works and is fast.
