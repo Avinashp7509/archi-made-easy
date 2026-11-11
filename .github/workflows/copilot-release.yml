@@ -1,0 +1,59 @@
+name: Copilot Edition release
+
+# The Microsoft 365 Copilot Edition is released on its own tags (copilot-v<version>), so the Full
+# Edition's release workflow (tags v*), its releases and its archive are never touched. The
+# edition's version is the Full Edition version it repackages.
+on:
+  push:
+    tags: ['copilot-v*']
+
+# Read-only by default; only the job that creates the GitHub Release may write.
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - name: Fetch exact tag object
+        shell: bash
+        run: git fetch --force --no-tags origin "+refs/tags/${GITHUB_REF_NAME}:refs/tags/${GITHUB_REF_NAME}"
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 22
+      - name: Tag must be annotated and match the edition and Full Edition versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$(git cat-file -t "refs/tags/${GITHUB_REF_NAME}" 2>/dev/null || true)" != "tag" ]]; then
+            echo "::error::Copilot Edition releases require an annotated tag: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+          version="${GITHUB_REF_NAME#copilot-v}"
+          full="$(node -p "require('./archi-made-easy/package.json').version")"
+          edition="$(sed -n 's/^  version: "\(.*\)"$/\1/p' editions/copilot/SKILL.md)"
+          if [ "$version" != "$full" ] || [ "$version" != "$edition" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} must match archi-made-easy/package.json ($full) and editions/copilot/SKILL.md metadata ($edition)"
+            exit 1
+          fi
+      - name: Copilot Edition tests (package rules, offline engine, Full Edition parity)
+        run: node --test test/copilot-edition.test.mjs
+      - name: Build the Copilot Edition archive
+        run: node scripts/build-copilot-skill.mjs /tmp/archi-made-easy-copilot-built.zip
+      - name: Committed archive must match the build
+        run: cmp -s /tmp/archi-made-easy-copilot-built.zip archi-made-easy-copilot.zip
+      - name: Write the checksum file
+        run: sha256sum archi-made-easy-copilot.zip > archi-made-easy-copilot.zip.sha256
+      - name: Create the GitHub Release (never marked latest)
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          name: Archi-Made-Easy Copilot Edition ${{ github.ref_name }}
+          files: |
+            archi-made-easy-copilot.zip
+            archi-made-easy-copilot.zip.sha256
+          body_path: editions/copilot/RELEASE-NOTES.md
+          prerelease: false
+          make_latest: false

@@ -28,6 +28,8 @@
 
 Current stable version: `v1.0.0` · Apache-2.0 · Node.js 18 or newer · no runtime npm dependencies
 
+Using Microsoft 365 Copilot or a locked-down corporate laptop? See the [Microsoft Copilot Edition](#microsoft-copilot-edition--enterprise--restricted-environments): one ZIP to upload in Agent Builder, nothing to install.
+
 <p align="center"><img src="docs/assets/archi-made-easy-demo.gif" alt="A 37-second walkthrough of the workbench: a bundled example architecture, a component and its inputs, a review finding and its fix, a region failure and its impact, recovery options, ten times the load, monthly cost, a C4 level opened, and the exports" width="900"></p>
 
 <p align="center"><sub>Every frame is a screenshot of the running example pages in <a href="archi-made-easy/examples/">archi-made-easy/examples/</a>, taken by <a href="scripts/capture-demo-gif.mjs">scripts/capture-demo-gif.mjs</a>. Workbench figures are modelled, not measured.</sub></p>
@@ -379,6 +381,48 @@ node archi-made-easy/install.mjs --agent claude-code --uninstall
 <sub>Recorded on 2026-11-11 on Windows 11 with Node.js 24.18.0, in a new empty folder. The image renders <a href="docs/assets/install-demo/transcript.txt">transcript.txt</a>: the commands as run and their standard output, with the folder path shown as <code>~/demo</code> and the <code>finalize</code> receipt shortened to its status and gates. Every command exited 0. The image is not a product screenshot and was not made by the capture script: a one-off page, not kept in the repository, rendered the transcript. Besides colour, it adds a title bar and wraps long lines, although its footer mentions only colour.</sub>
 
 </details>
+
+## Microsoft Copilot Edition — Enterprise & Restricted Environments
+
+For Microsoft 365 Copilot Agent Builder and other locked-down environments where people cannot install Node.js, npm or Git. It is the same engine, repackaged as one ZIP that meets Agent Builder's skill rules. The Full Edition above is unchanged.
+
+<p><a href="archi-made-easy-copilot.zip"><strong>⬇ Download Microsoft Copilot Skill (.zip)</strong></a> · <a href="editions/copilot/README.md">Edition guide</a> · <a href="editions/copilot/README.md#validation-report">Validation report</a></p>
+
+| | Full Edition | Microsoft Copilot Edition |
+|---|---|---|
+| For | Coding agents on your computer (Claude Code, Codex, Cursor and others) | Microsoft 365 Copilot Agent Builder (upload under **Skills**) |
+| You install | Node.js 18+ and the skill | Nothing |
+| Engine: validation, review, failure, load and cost simulation | Yes | Yes, the same files. Pages are byte-identical (tested). |
+| Interactive HTML workbench page | Yes | Yes, when the platform returns files |
+| Mermaid, draw.io, Structurizr, RFC exports; all ten diagram types | Yes | Yes |
+| Real-browser layout check, one-page explainers, web brand logos | Yes | No (no browser or network in the sandbox) |
+| Without Node.js | Not supported | Labelled fallback: Mermaid, architecture JSON, rule-based review, failure reasoning. Not computed by the engine. |
+
+**Add it to an agent:**
+
+1. Download the ZIP and check its SHA-256.
+2. In Microsoft 365 Copilot, go to **Agents** → **New agent** → **Configure** → **Skills** → **Add skill**, and upload the ZIP without unpacking it.
+3. Add an instruction such as "Use the archi-made-easy skill for every architecture question", test it in the preview, then publish.
+
+You need a Microsoft 365 Copilot licence (or pay-as-you-go), and your administrator must allow skills. Full steps: [install in Agent Builder](editions/copilot/README.md#install-in-agent-builder).
+
+**Try:**
+
+- "Design a highly available e-commerce platform on Azure."
+- "What happens if the primary database fails?"
+- "We expect twenty times the traffic on Black Friday. What breaks first?"
+- "Export this as Mermaid for our wiki."
+
+| Package | Value |
+|---|---|
+| ZIP size | 1,731,067 bytes (1.7 MB; limit 50 MB) |
+| Files | 213 (limit 350 per agent) |
+| Deepest folder | 2 levels (limit 3) |
+| `SKILL.md` | At the root, 11,496 characters (limit 20,000) |
+| SHA-256 | `95ed9aad76280c00c8b6a91e5d34739268d614f4f170926ed7d174678a3df4fc` |
+| Sandbox validation | **UNVERIFIED.** Tested locally from the unpacked ZIP with the network blocked. Not yet run inside Microsoft's sandbox, which does not document whether it provides Node.js. |
+
+Figures are modelled from the declared design, not measured, in both editions.
 
 ## Prompt gallery
 
