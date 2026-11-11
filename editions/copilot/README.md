@@ -5,10 +5,17 @@ The Copilot Edition is the Archi-Made-Easy skill repackaged for [skills in Micro
 - **Full Edition.** For coding agents such as Claude Code, Codex and Cursor. Unchanged by this edition: same files, same `archi-made-easy.zip`, same v1.0.0 release.
 - **Copilot Edition.** For Agent Builder and other locked-down environments where users cannot install tools.
 
-> **Agent Builder status.**
-> - **copilot-v1.0.0 failed its first real Agent Builder run (2026-11-11).** It uploaded and ran, but delivered no page (see [Agent Builder test log](#agent-builder-test-log)).
-> - **1.0.1 contains the fix.** It has passed local restricted-filesystem tests. It has **not yet been run in Agent Builder**, so the fix is unverified there and 1.0.1 is not released.
-> - Everything in the [validation report](#validation-report) was produced on a local computer, from the unpacked ZIP, with network access blocked.
+> **Agent Builder status** (see the [test log](#agent-builder-test-log)):
+>
+> | What | Status in Microsoft Agent Builder |
+> |---|---|
+> | Upload, and running the skill's scripts under Node.js | **Confirmed** (copilot-v1.0.0, runs 1 and 2) |
+> | Generating and delivering the HTML workbench file | **Confirmed once** (copilot-v1.0.0, run 2). Run 1 delivered no file. |
+> | The delivered page's interactions in a browser (Explore, Review, Simulate controls) | **Not yet verified** |
+> | Why run 1 failed | **Not established.** Two causes are possible; see run 1. |
+> | 1.0.1 (pre-release [copilot-v1.0.1-rc1](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1-rc1)) | **Not tested in Agent Builder.** Whether it is needed is not established. |
+>
+> Everything in the [validation report](#validation-report) was produced on a local computer, from the unpacked ZIP, with network access blocked.
 
 Contents: [Agent Builder test log](#agent-builder-test-log) · [Install in Agent Builder](#install-in-agent-builder) · [Example prompts](#example-prompts) · [Full and Copilot Editions compared](#full-and-copilot-editions-compared) · [Compatibility with Agent Builder's rules](#compatibility-with-agent-builders-rules) · [Validation report](#validation-report) · [Limitations](#limitations) · [How the ZIP is built](#how-the-zip-is-built)
 
@@ -23,15 +30,22 @@ Contents: [Agent Builder test log](#agent-builder-test-log) · [Install in Agent
   - The diagnostic was `input/artifact-unreadable`: "The artifact is not a stable regular file (delivery-artifact-inspection-failed)."
   - No HTML file was offered for download.
 
-**Root cause.** It was reproduced locally (`test/copilot-delivery.test.mjs`). It is not certain until the 1.0.1 probe runs in Agent Builder.
+**What is established.** `check` was looking at a file that did not exist. The reason code `delivery-artifact-inspection-failed` comes from the very first `lstat` of the path, before any stability check. A missing file produces exactly this message; a directory or a symbolic link produces a different code. So the page step before `check` had failed, or wrote somewhere else, or never ran. The run 1 transcript of the steps before `check` is not available.
 
-1. **`check` was looking at a file that did not exist.** The reason code `delivery-artifact-inspection-failed` comes from the very first `lstat` of the path, before any stability check. A missing file produces exactly this message. A directory or a symbolic link produces a different code.
-2. **The page was never written to `/mnt/data`.** The engine publishes each page through a no-clobber hard link and verifies its inode number and link count. This is a safety design that never leaves a half-written or swapped page. In a folder that refuses hard links, or reports no inode numbers, `render` and `export html` stop with `output/target-indeterminate` and write nothing. Mounted volumes such as a sandbox's `/mnt/data` commonly behave this way. Locally, rendering into such a folder reproduces the full chain, ending in the identical `check` message.
-3. **The 1.0.0 instructions allowed the failure to cascade.** They told the agent to write the page straight into the output folder, and did not forbid running `check` after a failed render.
+**Possible causes.** Both reproduce run 1's message exactly on a local computer, using the released copilot-v1.0.0 ZIP.
 
-**What is still unknown.** Which property of `/mnt/data` refused the writer: hard links, inode numbers, rename or directory sync. The 1.0.1 probe (`copilot-deliver.mjs probe /mnt/data --json`) answers this in the next run.
+1. **A problem in the generated architecture document.** `export html` validates the document and refuses to write a page with errors. Locally, two such errors each made `export html` exit 1 and write nothing, and `check` then printed run 1's message:
+   - a component label too wide for its box;
+   - a connection to a component that does not exist.
 
-**Fix in 1.0.1.** The fix is in the Copilot Edition only; the Full Edition is unchanged.
+   A large design such as a multi-region GCP platform makes such errors likely. Because the agent writes a different document each time, this would explain why run 2 of the same version succeeded. This is the **more likely** cause given run 2. Nothing in the 1.0.0 instructions stopped the agent from running `check` after a failed export.
+2. **An output folder that refuses the engine's page writer.** The engine publishes each page through a no-clobber hard link and verifies its inode number and link count. In a folder that refuses hard links or reports no inode numbers, `export html` stops with `output/target-indeterminate` and writes nothing. This is reproduced with an emulated folder in `test/copilot-delivery.test.mjs`. It was **never observed** in Agent Builder. Run 2 makes it less likely, unless run 2 wrote its page somewhere other than `/mnt/data`.
+
+**How to tell them apart.**
+- **Run 2's transcript:** the `export html` (or `render`) command, its output path, and its JSON receipt.
+- **A one-line probe of `/mnt/data` in the v1.0.0 agent** (see [Evidence still needed](#evidence-still-needed)). If it reports `hardLink: true` and a non-zero inode number, cause 2 is ruled out for `/mnt/data`.
+
+**The 1.0.1 candidate** addresses both causes, in the Copilot Edition only, with the Full Edition unchanged. Whether it is needed depends on the evidence above.
 - **`bin/copilot-deliver.mjs`:**
   1. Probes for a folder where the engine's unchanged writer works.
   2. Runs `validate`, `render` and `check` there.
@@ -44,13 +58,36 @@ Contents: [Agent Builder test log](#agent-builder-test-log) · [Install in Agent
   - a non-zero exit means no file was produced;
   - `check` is never run on a file that a failed command should have produced.
 
-### Run 2: 1.0.1. Pending
+  This addresses cause 1: validation errors come back in one receipt (`stage: "validate"`), and the run stops instead of cascading.
 
-See [Retest procedure](#retest-procedure-for-101).
+### Run 2: copilot-v1.0.0, reported 2026-11-12. HTML workbench generated and delivered
 
-### Retest procedure for 1.0.1
+- **Observed (reported by the project owner):** the original copilot-v1.0.0, run inside Microsoft Agent Builder, generated an HTML Architecture Workbench, and it was received as a file.
+- **Confirmed:** in Agent Builder, v1.0.0 can generate and deliver the HTML page.
+- **Not yet verified:**
+  - that the delivered file is the engine's checked page and not a page written by the agent itself (checkable by running `check` on the file);
+  - its browser interactions, including the Simulate panel's failure and load controls;
+  - the commands, output folder and delivery path that run 2 used.
 
-1. Remove the old `archi-made-easy` skill from the agent, then upload the 1.0.1 `archi-made-easy-copilot.zip`. Check its SHA-256 first.
+### Evidence still needed
+
+1. **Run 2's commands and receipts:**
+   - the `scaffold`, `validate`, `export html` or `render` and `check` commands, with their output paths and JSON results;
+   - where the delivered file was written.
+2. **The delivered HTML file from run 2.** `node bin/archi-made-easy.mjs check <file> --json` confirms whether it is an engine page. Opening it in a browser and running a failure in Simulate verifies the interactions.
+3. **A probe of `/mnt/data` with v1.0.0.** No new ZIP is needed; ask the agent to run this and show the output:
+
+   ```text
+   node -e "const fs=require('fs'),path=require('path'),d=process.argv[1],t=path.join(d,'.ame-probe-'+process.pid+'-'),r={folder:d,node:process.version};const s=(k,f)=>{try{const v=f();r[k]=v===undefined?true:v}catch(e){r[k]='FAIL '+(e.code||e.message)}};s('create',()=>fs.writeFileSync(t+'a','x',{flag:'wx'}));s('inode',()=>String(fs.lstatSync(t+'a',{bigint:true}).ino));s('hardLink',()=>fs.linkSync(t+'a',t+'b'));s('linkCount',()=>fs.lstatSync(t+'a').nlink);s('rename',()=>fs.renameSync(t+'a',t+'c'));s('directorySync',()=>{const f=fs.openSync(d,'r');try{fs.fsyncSync(f)}finally{fs.closeSync(f)}});for(const x of 'abc'){try{fs.unlinkSync(t+x)}catch{}}console.log(JSON.stringify(r))" /mnt/data
+   ```
+
+   It creates and removes three hidden test files and changes nothing else. If every field is `true` (or a number), `/mnt/data` supports the engine's page writer.
+
+### Retest procedure for the 1.0.1 candidate
+
+Use this only if the evidence above shows that 1.0.1 is needed.
+
+1. Remove the old `archi-made-easy` skill from the agent, then upload the 1.0.1 `archi-made-easy-copilot.zip` from the pre-release [copilot-v1.0.1-rc1](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1-rc1). Check its SHA-256 first: `23a81c9d45520830ceeced0e72225ed330eaf10916d779a01ce2789d6723f3c1`.
 2. In the agent's test pane, send: *"Using the archi-made-easy skill, run `node SKILL_DIR/bin/copilot-deliver.mjs probe /mnt/data --json` and show me the complete JSON output."* Keep the output. It records which folders support the engine's writer, and the exact error from each step in `/mnt/data`.
 3. Send the original prompt: *"Design a multi-region GCP architecture supporting 1 million users and generate an interactive architecture workbench."*
 4. **Pass** requires all three of these:
@@ -68,7 +105,7 @@ Before you start:
 - Your administrator must allow skills in Agent Builder.
 - Tenants that use Microsoft Purview Information Barriers cannot add skills.
 
-1. Download `archi-made-easy-copilot.zip` from the newest `copilot-v*` release on the [releases page](https://github.com/Avinashp7509/archi-made-easy/releases). Check its SHA-256 against the `.sha256` file published beside it. The released [copilot-v1.0.0](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0) has a known Agent Builder failure: it delivers no page (see the [test log](#agent-builder-test-log)).
+1. Download `archi-made-easy-copilot.zip` from the newest `copilot-v*` release on the [releases page](https://github.com/Avinashp7509/archi-made-easy/releases). Check its SHA-256 against the `.sha256` file published beside it. The stable release is [copilot-v1.0.0](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0). In Agent Builder it has delivered the HTML workbench once and failed once (see the [test log](#agent-builder-test-log)).
 2. In Microsoft 365 Copilot, open **Agents**, choose **New agent**, then **Configure**.
 3. Under **Skills**, choose **Add skill** and upload the ZIP. Do not unpack it. `SKILL.md` is at the ZIP's root, which is where Agent Builder looks for it.
 4. Give the agent a name, for example *Architecture Workbench*. Add an instruction such as: "Use the archi-made-easy skill for every architecture, diagram, review, failure, load or cost question."
@@ -93,7 +130,7 @@ These steps follow Microsoft's documentation as of 2026-11-06. Microsoft's own l
 
 | | Full Edition | Copilot Edition |
 |---|---|---|
-| Where it runs | Coding agents (Claude Code, Codex, Cursor and others) on the user's computer | Microsoft 365 Copilot Agent Builder's script sandbox (1.0.0 failed there; the 1.0.1 fix is not yet verified there), or any agent that accepts a skill ZIP |
+| Where it runs | Coding agents (Claude Code, Codex, Cursor and others) on the user's computer | Microsoft 365 Copilot Agent Builder's script sandbox (1.0.0: one run delivered the HTML page, one did not; browser interactions not yet verified), or any agent that accepts a skill ZIP |
 | What the user installs | Node.js 18 or newer, then the skill | Nothing |
 | Architecture engine (validation, layout, review, simulation, capacity, cost) | Yes | Yes, the same files. Pages are byte-identical to the Full Edition's (tested). |
 | Interactive HTML page with the workbench | Yes | Yes, if the platform returns files to the user |
@@ -181,14 +218,16 @@ Restricted folders are emulated by a preloaded module, `test/helpers/copilot-res
 | Hostile text is escaped in the page | Pass: `</script><img …>` in the title and `<img …>` in a label appear only as text | Test |
 | The generated page in a real browser | Pass. The page opened in Chromium at 1440×900 and 390×844, with no page errors. With the database marked down, it showed the same failure set as `simulate --fault db=down` from the CLI (five components; availability 0% modelled). | Manual Playwright session |
 | `doctor` | Reports "Explainer runtime and reader assets" missing and exits 1. This is expected, and `SKILL.md` tells the agent so. | Manual run |
-| Inside Microsoft's sandbox | 1.0.0: **failed** (upload and script execution worked; no page delivered). 1.0.1: **not yet run** | [Agent Builder test log](#agent-builder-test-log) |
+| Inside Microsoft's sandbox | 1.0.0: run 1 **failed** (scripts ran; no page delivered). Run 2 **generated and delivered** the HTML workbench. Browser interactions **not yet verified**. 1.0.1: **not yet run** | [Agent Builder test log](#agent-builder-test-log) |
 
 ### Not tested
 
-- 1.0.1 inside Agent Builder: whether the delivery adapter finds a working folder there, and whether the page reaches the user.
-- Which property of `/mnt/data` refused the engine's writer. The 1.0.1 probe reports it.
-- The Node.js version in the sandbox. Run 1 showed that Node.js runs, but not which version.
-- How generated files reach the user. Run 1 suggests `/mnt/data`; that is not confirmed.
+- The interactions of a page delivered in Agent Builder: Explore, Review, and the Simulate failure and load controls.
+- Whether run 2's file is the engine's checked page.
+- Why run 1 failed: a document error, or the output folder. See [Evidence still needed](#evidence-still-needed).
+- 1.0.1 inside Agent Builder.
+- The Node.js version in the sandbox. The runs showed that Node.js runs, but not which version.
+- The exact folder and path through which files reach the user.
 - A real restricted mount, such as a network or FUSE volume. The local tests emulate one.
 - Fallback mode as carried out by Copilot's model. It is written into `SKILL.md`, but no Copilot run exercised it.
 - Performance under the sandbox's time and memory limits. Locally, the slowest step, `validate --quality showcase` on a scaffold, takes a few seconds.

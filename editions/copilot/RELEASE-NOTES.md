@@ -2,7 +2,11 @@
 
 In its first real Agent Builder run, copilot-v1.0.0 delivered no page. `check` reported "The artifact is not a stable regular file (delivery-artifact-inspection-failed)" for `/mnt/data/gcp-million-users.html`.
 
-**Cause.** The engine publishes pages through a no-clobber hard link and verifies inode identity. Sandbox output folders that refuse hard links, or report no inode numbers, make the safe writer stop without writing anything. A later `check` then found no file at that path.
+**Cause.** `check` found no file because the page step before it had failed. Two causes reproduce this locally:
+- an error in the generated architecture document, which makes `export html` refuse to write;
+- an output folder that refuses the engine's hard-link page writer.
+
+A later v1.0.0 run in Agent Builder delivered the page, which makes the document error the more likely cause. This draft must be revised with the established cause before any 1.0.1 release.
 
 **Fix:** this release adds `bin/copilot-deliver.mjs`.
 1. It renders and checks the page in a folder where the engine's unchanged writer works.

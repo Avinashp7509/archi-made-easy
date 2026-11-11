@@ -5,7 +5,11 @@
 
 In its first real Agent Builder run, Copilot Edition v1.0.0 ran but failed to generate an HTML workbench. `check` reported "The artifact is not a stable regular file (delivery-artifact-inspection-failed)" for `/mnt/data/gcp-million-users.html`.
 
-- **Cause:** the engine's page writer publishes through hard links and checks inode identity. The sandbox output folder refused it, so no page was written, and `check` found no file.
+- **Cause: not established.** `check` found no file, because the page step before it had failed. Two causes reproduce this locally:
+  - an error in the generated architecture document, which makes `export html` refuse to write;
+  - an output folder that refuses the engine's hard-link page writer.
+
+  A later run of v1.0.0 in Agent Builder (2026-11-12) did generate and deliver the HTML workbench, which makes the document error the more likely cause. This candidate addresses both causes. Whether it is needed is still being established.
 - **Fix:** 1.0.1 adds `bin/copilot-deliver.mjs`. It renders and checks the page where the writer works, then delivers the checked bytes to the output folder and proves them by SHA-256. If no folder works, it delivers nothing and returns a Mermaid fallback labelled as not interactive.
 
 Details are in the [edition guide's test log](https://github.com/Avinashp7509/archi-made-easy/blob/main/editions/copilot/README.md#agent-builder-test-log).

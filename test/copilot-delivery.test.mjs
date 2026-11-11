@@ -2,10 +2,11 @@
 // `check /mnt/data/gcp-million-users.html` returned input/artifact-unreadable, "The artifact is
 // not a stable regular file (delivery-artifact-inspection-failed)", and no page was delivered.
 //
-// Root cause reproduced here: the engine's page writer publishes through a no-clobber hard link
-// and verifies inode identity and link counts. In a folder that refuses hard links or reports no
-// inode numbers (typical of mounted sandbox volumes), `render`/`export html` fail safely and write
-// nothing; `check` on that path then fails exactly as reported, because the file does not exist.
+// The message means the file did not exist. Two causes reproduce it here, and which one occurred
+// in Agent Builder is not established (a later v1.0.0 run there did deliver the page):
+//   - an error in the generated document: `export html` refuses to write;
+//   - an output folder that refuses the engine's hard-link page writer (emulated): `render` and
+//     `export html` stop safely and write nothing.
 //
 // The Copilot Edition's bin/copilot-deliver.mjs renders and checks in a folder where the writer
 // works, then delivers the checked bytes with an exclusive create and proves them by SHA-256.
@@ -76,6 +77,20 @@ describe('the Agent Builder failure, reproduced', () => {
     const check = run(cli, ['check', target, '--json'], { restricted: mnt });
     assert.equal(check.body.ok, false);
     assert.equal(check.body.diagnostics[0].code, 'input/artifact-unreadable');
+    assert.equal(check.body.diagnostics[0].message, REPORTED);
+  });
+
+  it('an error in the generated document makes export html write nothing on an ordinary folder, and check then reports the same error', () => {
+    const out = folder('plain-repro');
+    const parsed = JSON.parse(fs.readFileSync(doc, 'utf8'));
+    parsed.connections.push({ from: parsed.components[0].id, to: 'no-such-component' });
+    const bad = path.join(out, 'candidate.json');
+    fs.writeFileSync(bad, JSON.stringify(parsed));
+    const target = path.join(out, 'gcp-million-users.html');
+    const exported = run(cli, ['export', 'html', bad, target, '--force', '--json']);
+    assert.equal(exported.status, 1);
+    assert.equal(fs.existsSync(target), false);
+    const check = run(cli, ['check', target, '--json']);
     assert.equal(check.body.diagnostics[0].message, REPORTED);
   });
 });

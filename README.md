@@ -31,7 +31,7 @@ Current stable version: `v1.0.0` · Apache-2.0 · Node.js 18 or newer · no runt
 > [!TIP]
 > **Microsoft Copilot Edition: for Microsoft 365 Copilot Agent Builder and locked-down corporate laptops.** One ZIP to upload as an agent skill, with nothing to install.<br>
 > **[⬇ Download Microsoft Copilot Skill (.zip)](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip)** · [SHA-256](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip.sha256) · [Release notes](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0) · [How to add it to an agent](#microsoft-copilot-edition--enterprise--restricted-environments)<br>
-> **Known issue:** Copilot Edition v1.0.0 was tested in Microsoft Agent Builder and failed to generate an HTML workbench, because of an artifact-delivery issue. A proposed fix (1.0.1) is **unverified** in Microsoft's sandbox until a retest succeeds. See the [test log](editions/copilot/README.md#agent-builder-test-log).
+> **Tested in Microsoft Agent Builder (v1.0.0):** in one run it generated and delivered the HTML workbench; in an earlier run it delivered no page, for a reason still under investigation. Interactive behaviour in the browser, including the Simulate controls, is **not yet verified**. See the [test log](editions/copilot/README.md#agent-builder-test-log).
 
 <p align="center"><img src="docs/assets/archi-made-easy-demo.gif" alt="A 37-second walkthrough of the workbench: a bundled example architecture, a component and its inputs, a review finding and its fix, a region failure and its impact, recovery options, ten times the load, monthly cost, a C4 level opened, and the exports" width="900"></p>
 
@@ -423,7 +423,7 @@ You need a Microsoft 365 Copilot licence (or pay-as-you-go), and your administra
 | Deepest folder | 2 levels (limit 3) |
 | `SKILL.md` | At the root, 11,496 characters (limit 20,000) |
 | SHA-256 | `95ed9aad76280c00c8b6a91e5d34739268d614f4f170926ed7d174678a3df4fc` |
-| Sandbox validation | **v1.0.0 failed in Microsoft Agent Builder (2026-11-11).** It uploaded and its scripts ran, but it failed to generate an HTML workbench because of an artifact-delivery issue: no page reached the sandbox's output folder. The proposed fix, 1.0.1, passes local restricted-folder tests and is **unverified** in Microsoft's sandbox. See the [test log](editions/copilot/README.md#agent-builder-test-log). |
+| Sandbox validation | **Partly confirmed in Microsoft Agent Builder (v1.0.0).** Upload and script execution: confirmed. Generating and delivering the HTML workbench: confirmed in one run (2026-11-12); an earlier run (2026-11-11) delivered no page, cause under investigation. Browser interactions and Simulate controls of a delivered page: **not yet verified**. See the [test log](editions/copilot/README.md#agent-builder-test-log). |
 
 Figures are modelled from the declared design, not measured, in both editions.
 
