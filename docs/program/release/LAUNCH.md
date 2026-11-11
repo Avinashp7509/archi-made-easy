@@ -1,6 +1,6 @@
 # Launch preparation for 1.0.0
 
-Everything here is prepared locally. Nothing has been pushed, published or made public; each step below runs only with the owner's explicit approval. The record of what was tested is [RELEASE-ACCEPTANCE.md](../RELEASE-ACCEPTANCE.md).
+Published on 2026-11-11 with the owner's approval: [https://github.com/Avinashp7509/archi-made-easy](https://github.com/Avinashp7509/archi-made-easy), release [v1.0.0](https://github.com/Avinashp7509/archi-made-easy/releases/tag/v1.0.0). The record of the publication is section 12 of the acceptance report; the steps below are kept as the procedure for later releases. The record of what was tested is [RELEASE-ACCEPTANCE.md](../RELEASE-ACCEPTANCE.md).
 
 ## Repository
 
@@ -99,7 +99,7 @@ npx skills add Avinashp7509/archi-made-easy
 |---|---|---|
 | 1 | Scope and revision | Version 1.0.0, stable channel. Release commit `9802361` (tree `105a7c2`); the documentation-only commit after it records the results (RELEASE-ACCEPTANCE.md section 11). Comparison base: `964b571`, the import of upstream tt-a1i/archify `11b0d60`. Release notes and known issues: this folder. Tag the latest commit on `main`. |
 | 2 | Identity and build | `node scripts/check-release-identity.mjs` passes for 1.0.0; `archi-made-easy.zip` built with Node 22, outside OneDrive, from a checkout of a snapshot whose tree equals the release commit's apart from the archive, then committed in the release commit; SHA-256 `ca480ef8…62ef` (RELEASE-ACCEPTANCE.md section 8), rebuilt from the tested tree with the same bytes. |
-| 3 | Final-head validation | Local, on the release tree: full suite outside OneDrive (only the 43 baseline failures), serial browser suite (0 failures), visual matrix (0 critical, 0 high), clean install from the committed archive (23 of 23); agent runs on the candidates and run 9c on the final archive (RELEASE-ACCEPTANCE.md sections 2 to 5). CI run URLs: **pending the first push.** Linux and macOS: **pending the first push.** |
-| 4 | Authorized publication | **Waiting for the owner's approval.** Nothing pushed. |
+| 3 | Final-head validation | Local, on the release tree (RELEASE-ACCEPTANCE.md sections 2 to 5). CI on the tagged commit: [run 42988390268](https://github.com/Avinashp7509/archi-made-easy/actions/runs/42988390268), success on Linux, macOS and Windows. **Done.** |
+| 4 | Authorized publication | Approved by the owner. Tag `v1.0.0` (annotated) on `9ab29de`; [release workflow](https://github.com/Avinashp7509/archi-made-easy/actions/runs/42991933466) success; [Release](https://github.com/Avinashp7509/archi-made-easy/releases/tag/v1.0.0) with `archi-made-easy.zip` (sha256 `ca480ef8…b162ef`). **Done.** |
 | 5 | Manifest, website and integrations | After the Release: publish `stable.json`. The website and its Pages deployment are **deferred** (not part of 1.0.0: placeholder domain in `website/src`, open toolchain advisories S-07); the `deploy-pages` job is switched off by the `ARCHI_MADE_EASY_PAGES_DEPLOY` variable until then, and update notices stay silent. |
-| 6 | Public acceptance and closure | After publication: Skills CLI discovery from a clean machine, Pages version, download digest. |
+| 6 | Public acceptance and closure | Public download verified against its checksum; `npx skills add Avinashp7509/archi-made-easy` from a clean project installs the skill and Claude Code lists it; README, images and release page load publicly (RELEASE-ACCEPTANCE.md section 12). Open: the social preview upload (Settings), and the stable manifest with Pages (row 5). |

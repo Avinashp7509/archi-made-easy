@@ -9,11 +9,11 @@ Sections marked **(final tree)** are filled from the last regression cycle on th
 | | |
 |---|---|
 | Version | 1.0.0, stable channel |
-| Repository | `https://github.com/Avinashp7509/archi-made-easy` (not yet created or pushed) |
+| Repository | [https://github.com/Avinashp7509/archi-made-easy](https://github.com/Avinashp7509/archi-made-easy), public since 2026-11-11 |
 | Fully tested | the skill's command line and pages on Windows 11 with Chrome, on the release tree; the workbench interface across six viewports and two themes; a clean install from the release archive; Claude Code as the agent |
-| Partially tested | Linux and macOS (continuous-integration workflows exist and ran upstream, but they have not run on this repository: no push yet); six other agents (installation placement only) |
+| Partially tested | Linux and macOS through continuous integration only (all jobs pass on the release commit, section 12); six other agents (installation placement only) |
 | Not tested | use by Codex, Copilot, Cursor, OpenCode, Windsurf or Gemini CLI; the website build; the draw.io and Structurizr exports opened in their own tools; discovery through skills.sh |
-| Release blockers remaining | none in the product. Publication waits for the owner's approval; CI on the real repository and Skills CLI discovery can only be verified after the first push |
+| Release blockers remaining | none. Published on 2026-11-11 with the owner's approval (section 12) |
 
 ## 2. Regression suites (final tree)
 
@@ -93,10 +93,10 @@ Difference from the archives the agent runs used: besides identity strings, the 
 | Platform or agent | Status | Evidence |
 |---|---|---|
 | Windows 11, Node 24, Chrome | tested | this report |
-| Node 18 and 20 | not run here; CI matrix | `.github/workflows/ci.yml` |
-| Linux | not run here; CI (compatibility suite on Node 18, 20 and 24, the canonical suite on Node 22, full regression, browser gate, package smoke) | runs after the first push |
-| macOS | not run here; CI (package smoke from the archive, with the delivery-lock tests) | runs after the first push |
-| Windows in CI | not run there yet; CI (package smoke, delivery-lock tests, Windows path contracts on Node 22 and 24) | runs after the first push |
+| Node 18 and 20 | CI compatibility suite on Linux | pass (section 12) |
+| Linux | CI: compatibility suite on Node 18, 20 and 24, the canonical suite on Node 22, full regression, browser gate, package smoke | pass (section 12) |
+| macOS | CI: package smoke from the archive, with the delivery-lock tests | pass (section 12) |
+| Windows in CI | CI: package smoke, delivery-lock tests, Windows path contracts on Node 22 and 24 | pass (section 12) |
 | Claude Code | exercised, nine prompts | section 5 |
 | Codex, GitHub Copilot, Cursor, OpenCode, Windsurf, Gemini CLI | installation placement verified; not exercised | `test/installer.test.mjs`, clean-install evidence |
 | Other Agent Skills clients | documented only | |
@@ -119,3 +119,27 @@ Difference from the archives the agent runs used: besides identity strings, the 
 | Agent run 9c and clean install | on the archive committed in the release commit |
 | Documentation commit | the commit that follows the release commit and adds this record: it changes documentation, the README and the visual-QA screenshots and report only; no file under `archi-made-easy/` and not the archive. Tag `v1.0.0` on it (LAUNCH.md) |
 | History | rewritten twice before any push: once to remove a local path, once to replace the personal e-mail address in commit metadata with the owner's GitHub no-reply address (trees unchanged); the identifiers above are those after both rewrites. First rewrite: to remove a local path (LAUNCH.md, "Before the first push"); commit identifiers before `9802361` changed then; in three files the path line was replaced in every commit that held it, and every other file is unchanged |
+
+## 12. Publication (2026-11-11)
+
+Published by the owner's GitHub account `Avinashp7509` (verified with `gh api user` before any change), with the owner's approval of the public launch.
+
+| | |
+|---|---|
+| Repository | [https://github.com/Avinashp7509/archi-made-easy](https://github.com/Avinashp7509/archi-made-easy): created public and empty, then `main` pushed (no force, no other refs); description and 15 topics set; private vulnerability reporting enabled; wiki off |
+| History | 15 commits, every one authored and committed with the owner's GitHub no-reply address (section 11); audited before the push for personal e-mail, secrets, machine paths, session identifiers and sensitive files. One accepted item: the upstream project's own public sponsor contact address inside the unmodified upstream import (the first two commits) |
+| First CI run | [run 42987230267](https://github.com/Avinashp7509/archi-made-easy/actions/runs/42987230267) on `35be5ba`: 14 jobs passed, 4 failed. Causes: `scripts/build-zip.sh` had lost its executable bit in the import; the Windows path contract test read the stable update manifest, which exists only after a Release; the website sources still had an identifier broken by the identity rename. Fixed in `9ab29de` (nothing that ships changed); the website job is switched off with the website (LAUNCH.md) |
+| CI on the tagged commit | [run 42988390268](https://github.com/Avinashp7509/archi-made-easy/actions/runs/42988390268) on `9ab29de`: **success**. Full regression (2 shards), browser regression (2 shards), compatibility on Node 18, 20, 22 and 24, package smoke on Linux, macOS and Windows, Windows path contracts on Node 22 and 24, WebM decode and artifact, zip freshness (the archive rebuilt byte for byte), update manifest gate; website and deployments skipped by design |
+| Tag | `v1.0.0`, annotated, on `9ab29de` |
+| Release workflow | [run 42991933466](https://github.com/Avinashp7509/archi-made-easy/actions/runs/42991933466): **success**. Windows path contracts on Node 22 and 24; archive rebuilt with Node 22 and compared byte for byte with the tagged archive; Release created |
+| Release | [Archi-Made-Easy 1.0.0](https://github.com/Avinashp7509/archi-made-easy/releases/tag/v1.0.0), latest, not a pre-release. Assets: `archi-made-easy.zip` (6,951,339 bytes; GitHub's digest `sha256:ca480ef81f1c65751538b0ac69fa0fea01c774153a7a22995b577d4bb4b162ef`, the archive tested in sections 4 and 5) and `archi-made-easy.zip.sha256` |
+
+Public acceptance after the release, from this machine without GitHub credentials unless stated:
+
+- The repository page, the README with all 28 images (none broken), the release page and the acceptance report load publicly; the README badges read "release: v1.0.0" and "CI - passing".
+- The release archive downloaded anonymously matches its published checksum.
+- `npx skills add Avinashp7509/archi-made-easy` (Skills CLI 1.8.1, the current release), run in an empty project with a scratch home: discovery finds exactly one skill, `archi-made-easy`; the install copies it to the project's `.claude/skills/archi-made-easy` and writes nothing outside the project. `doctor` passes from that copy; every runtime file equals the release archive byte for byte, apart from the repository-only `package.json` scripts, lockfile and two generators that the archive leaves out. `scaffold` and `finalize` from that copy produce a page that passes every gate at showcase quality.
+- Claude Code 2.1.219, started in that project, lists `archi-made-easy` among its skills (one minimal turn, $0.05). No further agent run was made: the agent run on this exact archive is run 9c (section 5).
+- skills.sh serves a page for the skill with its install command and SKILL.md. Its directory ranking or search placement was not checked.
+
+Not done: the social preview image cannot be set through GitHub's API; the owner uploads `docs/assets/github-social-preview.png` in Settings → Social preview. GitHub Pages, the update manifest and the website stay off (LAUNCH.md).
