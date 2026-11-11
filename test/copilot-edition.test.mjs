@@ -66,18 +66,25 @@ describe('Copilot Edition package', () => {
     assert.ok(report.bytes < AGENT_BUILDER_RULES.maxZipBytes);
     assert.ok(report.rules.facts.maxDepth <= AGENT_BUILDER_RULES.maxDepth);
     assert.ok(report.rules.facts.files <= AGENT_BUILDER_RULES.maxFiles);
-    // The README publishes the package facts; they must describe this exact ZIP.
+    // Downloads point at one published release asset, never at a repository file. The README moves
+    // to a new edition version only after that release is verified; until then it describes the
+    // previous release, so its package facts are checked only when it names this edition version.
     const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
-    assert.ok(readme.includes(`\`${report.sha256}\``), 'README SHA-256 does not match the committed ZIP');
-    assert.ok(readme.includes(`| ZIP size | ${report.bytes.toLocaleString('en-US')} bytes`), 'README ZIP size does not match');
-    assert.ok(readme.includes(`| Files | ${report.rules.facts.files} (limit`), 'README file count does not match');
-    assert.ok(readme.includes(`${report.rules.facts.skillMdChars.toLocaleString('en-US')} characters`), 'README SKILL.md length does not match');
-    // Downloads point at the release asset of this edition version, never at a repository file.
     const version = fs.readFileSync(path.join(repoRoot, 'editions', 'copilot', 'SKILL.md'), 'utf8').match(/^ {2}version: "([^"]+)"$/m)?.[1];
-    const asset = `https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v${version}/${COPILOT_ZIP}`;
     const downloads = [...readme.matchAll(/(?:\]\(|href=")([^)"\s]*archi-made-easy-copilot\.zip)(?=[)"])/g)].map((match) => match[1]);
     assert.ok(downloads.length >= 2, 'README should offer the Copilot download near the top and in its section');
-    assert.deepEqual([...new Set(downloads)], [asset], 'README Copilot download links must point at the matching release asset');
+    const linked = [...new Set(downloads)];
+    assert.equal(linked.length, 1, 'README Copilot download links must all name one release');
+    const linkedVersion = linked[0].match(/^https:\/\/github\.com\/Avinashp7509\/archi-made-easy\/releases\/download\/copilot-v(\d+\.\d+\.\d+)\/archi-made-easy-copilot\.zip$/)?.[1];
+    assert.ok(linkedVersion, `README Copilot download must be a release asset URL: ${linked[0]}`);
+    const order = (v) => v.split('.').map(Number).reduce((total, part) => total * 1000 + part, 0);
+    assert.ok(order(linkedVersion) <= order(version), 'README cannot link a release newer than the edition');
+    if (linkedVersion === version) {
+      assert.ok(readme.includes(`\`${report.sha256}\``), 'README SHA-256 does not match the committed ZIP');
+      assert.ok(readme.includes(`| ZIP size | ${report.bytes.toLocaleString('en-US')} bytes`), 'README ZIP size does not match');
+      assert.ok(readme.includes(`| Files | ${report.rules.facts.files} (limit`), 'README file count does not match');
+      assert.ok(readme.includes(`${report.rules.facts.skillMdChars.toLocaleString('en-US')} characters`), 'README SKILL.md length does not match');
+    }
   });
 
   it('has SKILL.md at the root with Agent Builder metadata and no link to a missing file', () => {
@@ -113,9 +120,13 @@ describe('Copilot Edition engine, offline from the unpacked ZIP', () => {
     okJson(run(['scaffold', '--list', '--json'], cwd), 'scaffold --list');
     okJson(run(['scaffold', 'web-ha', '--provider', 'azure', '--title', 'Highly available shop on Azure', '--output', 'shop.html', '--out', 'candidate.json', '--json'], cwd), 'scaffold');
     okJson(run(['validate', 'architecture', 'candidate.json', '--quality', 'showcase', '--json'], cwd), 'validate');
-    okJson(run(['export', 'html', 'candidate.json', 'shop.html', '--force', '--json'], cwd), 'export html');
-    okJson(run(['check', 'shop.html', '--json'], cwd), 'check');
-    const page = fs.readFileSync(path.join(cwd, 'shop.html'), 'utf8');
+    // SKILL.md step 4: the delivery adapter validates, renders, checks and delivers the page.
+    const deliver = path.join(edition, 'bin', 'copilot-deliver.mjs');
+    const out = fs.mkdtempSync(path.join(work, 'out-'));
+    const delivered = okJson(run(['html', 'candidate.json', path.join(out, 'shop.html'), '--quality', 'showcase', '--force', '--json'], cwd, deliver), 'copilot-deliver html');
+    assert.equal(delivered.checks.check, 'passed');
+    okJson(run(['check', path.join(out, 'shop.html'), '--json'], cwd), 'check on the delivered page');
+    const page = fs.readFileSync(path.join(out, 'shop.html'), 'utf8');
     assert.match(page, /archi-made-easy-workbench-data/, 'the page carries the workbench model');
     const review = okJson(run(['review', 'candidate.json', '--json'], cwd), 'review');
     assert.ok(JSON.stringify(review).length > 200);
@@ -124,8 +135,8 @@ describe('Copilot Edition engine, offline from the unpacked ZIP', () => {
     okJson(run(['simulate', 'candidate.json', '--fmea', '--json'], cwd), 'fmea');
     okJson(run(['simulate', 'candidate.json', '--cost', '--json'], cwd), 'cost');
     for (const format of ['mermaid', 'drawio', 'structurizr', 'rfc']) {
-      okJson(run(['export', format, 'candidate.json', `out.${format}`, '--force', '--json'], cwd), `export ${format}`);
-      assert.ok(fs.statSync(path.join(cwd, `out.${format}`)).size > 100, `${format} export is empty`);
+      okJson(run(['export', format, 'candidate.json', path.join(out, `out.${format}`), '--force', '--json'], cwd, deliver), `copilot-deliver export ${format}`);
+      assert.ok(fs.statSync(path.join(out, `out.${format}`)).size > 100, `${format} export is empty`);
     }
     okJson(run(['guide', 'what happens if our payment database fails', '--json'], cwd), 'guide');
   });

@@ -3,7 +3,8 @@ name: archi-made-easy
 description: "Design, review and simulate software architectures from plain language, and produce a checked, interactive architecture page (standalone HTML workbench), Mermaid, draw.io and Structurizr exports, and review, failure, traffic and cost reports. Also workflow, sequence, data-flow, lifecycle, ERD, class, tree, timeline and waterfall diagrams. Use when the user asks to design, draw or explain a system ('highly available e-commerce on Azure'), turn a requirements document into an architecture, review a design for risks, ask what happens if a database, zone or provider fails, simulate a traffic surge, estimate or lower cost, or compare options. Run this skill's scripts for those answers; never estimate modelled figures yourself."
 license: Apache-2.0
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
+  engine-version: "1.0.0"
   edition: "Microsoft 365 Copilot"
   author: Avinash Roy
 ---
@@ -12,7 +13,13 @@ metadata:
 
 Turn a plain-language request into an architecture the user can explore: a checked, standalone HTML page with an interactive workbench (inspect components, review risks, simulate failures and load, read modelled cost), plus text exports and reports. The engine is the skill's own JavaScript, run in the script sandbox. It needs no network and installs nothing.
 
-`SKILL_DIR` below is the folder that contains this file. Run every command with Node.js as `node SKILL_DIR/bin/archi-made-easy.mjs <command> …`. If you run code through Python, call the same command with `subprocess.run(["node", …], capture_output=True, text=True)`. Write your working files (the architecture document, the page, exports) in a writable working folder, not in `SKILL_DIR`.
+`SKILL_DIR` below is the folder that contains this file. Run every command with Node.js as `node SKILL_DIR/bin/archi-made-easy.mjs <command> …` (the engine) or `node SKILL_DIR/bin/copilot-deliver.mjs <command> …` (file delivery). If you run code through Python, call the same command with `subprocess.run(["node", …], capture_output=True, text=True)` and read both the exit code and stdout. Keep your working files (such as `candidate.json`) in a writable working folder, not in `SKILL_DIR`.
+
+`OUT_DIR` below is the folder your environment returns files to the user from: `/mnt/data` when it exists, otherwise the working folder.
+
+**Files for the user are always produced with `copilot-deliver.mjs`, never by writing the page or an export straight into `OUT_DIR` with the engine.** The engine's page writer needs hard links and stable file identities, which output folders such as `/mnt/data` may not support. `copilot-deliver.mjs` renders and checks in a folder where the writer works, then copies the checked bytes to `OUT_DIR` and proves them by SHA-256.
+
+**A non-zero exit code means the file was not produced.** Read the JSON diagnostics, fix the cause, and never run `check` or any later step on a file that a failed command should have produced.
 
 Always set these two environment variables for every command, because the sandbox has no network: `ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED=1` and `ARCHI_MADE_EASY_BRAND_CAPTURE_DISABLED=1`.
 
@@ -45,14 +52,14 @@ Read [Intents](references/intents.md) for the playbook of each kind of request. 
 2. Edit `candidate.json` so it matches the request: rename, add or remove components and connections, keep the `row`/`col` grid tidy, record the user's facts, keep an `Assumptions` card for the rest. Set `meta.quality_profile` to `"showcase"`.
 3. Validate (schema, layout and the nine artifact checks):
    `node SKILL_DIR/bin/archi-made-easy.mjs validate architecture candidate.json --quality showcase --json`
-   A non-zero exit is never success: read the diagnostics, fix the named field or layout problem, and validate again (at most three rounds; for tangled routes read [Architecture layout repair](references/architecture-layout-repair.md)).
-4. Produce the interactive page and check it:
-   `node SKILL_DIR/bin/archi-made-easy.mjs export html candidate.json <slug>.html --force --json`
-   `node SKILL_DIR/bin/archi-made-easy.mjs check <slug>.html --json`
+   A non-zero exit is never success: read the diagnostics, fix the named field or layout problem, and validate again (at most three rounds; for tangled routes read [Architecture layout repair](references/architecture-layout-repair.md)). If the only errors are `output/…` diagnostics (the temporary folder refused the page writer), go on to step 4, which validates in a folder where the writer works.
+4. Produce, check and deliver the interactive page in one step:
+   `node SKILL_DIR/bin/copilot-deliver.mjs html candidate.json OUT_DIR/<slug>.html --quality showcase --force --json`
+   It validates again, renders, runs `check` on the page, and delivers it. Success is exit 0 with `"ok": true`; `artifact.path` is the file to return and `artifact.sha256` its proof. On `stage: "validate"`, fix the listed fields and rerun. On `copilot/html-unsupported` or a `stage: "deliver"` failure, no page exists: say so plainly, give the receipt's `fallback.mermaidMarkdown`, and continue with the text outputs below.
 5. Summarise with the engine, not from your own estimate:
    `node SKILL_DIR/bin/archi-made-easy.mjs review candidate.json --json`
    `node SKILL_DIR/bin/archi-made-easy.mjs simulate candidate.json --scenario all --json`
-6. Return the page `<slug>.html` to the user as a file (and `candidate.json` if they may want to edit it later). The page works offline in any modern browser: the user opens it to explore the workbench (Explore, Review, Simulate, Security, Performance, FinOps, Optimize, Decide, Handoff). If the platform cannot return files, say so and use the fallback outputs for this answer.
+6. Return the delivered page (`artifact.path`) to the user as a file, and `candidate.json` if they may want to edit it later. The page works offline in any modern browser: the user opens it to explore the workbench (Explore, Review, Simulate, Security, Performance, FinOps, Optimize, Decide, Handoff). Never offer a page that was not delivered with `"ok": true`. If the platform cannot return files, say so and use the fallback outputs for this answer.
 
 ### Review, failure, traffic and cost questions
 
@@ -64,13 +71,13 @@ Run the model on the architecture document (the one you made, or one the user pr
 - Failure modes table: `simulate candidate.json --fmea --json`
 - Cost (only figures the document states; nothing is invented): `simulate candidate.json --cost --json`
 - Lower cost or improve it: change the document, run `review` and `simulate` again, and report before and after.
-- Compare two designs: `compare architecture base.json head.json compare.html --json`
+- Compare two designs: `compare architecture base.json head.json compare.html --json`, run with the working folder as the current folder (it writes a page with the engine's writer); if it fails with an `output/` diagnostic, describe the comparison in text instead.
 
 Details: [Failure and what-if simulation](references/chaos-and-failure-simulation.md), [Capacity, latency, availability and cost](references/capacity-latency-and-finops.md), [Review rules](references/arb-well-architected-rules.md).
 
 ### Exports
 
-`node SKILL_DIR/bin/archi-made-easy.mjs export mermaid|drawio|structurizr|rfc candidate.json <file> --force --json`
+`node SKILL_DIR/bin/copilot-deliver.mjs export mermaid|drawio|structurizr|rfc candidate.json OUT_DIR/<file> --force --json`
 
 - `mermaid`: Markdown with Mermaid flowchart, C4 and sequence diagrams (renders in Microsoft Loop, Azure DevOps wikis, GitHub and many editors);
 - `drawio`: a diagrams.net file;
@@ -83,7 +90,7 @@ Image export (SVG, PNG) is done by the user in the page's own Export menu; there
 
 For a process, an API call chain, a pipeline, a state machine, a database schema, a class model, a hierarchy, a timeline or a request's timing, choose `workflow`, `sequence`, `dataflow`, `lifecycle`, `erd`, `class`, `tree`, `timeline` or `waterfall`. Read the schema `SKILL_DIR/schemas/<type>.schema.json`, the matching example in `SKILL_DIR/examples/`, and [Authoring defaults](references/authoring-defaults.md); then:
 
-`validate <type> candidate.json --quality showcase --json` → `render <type> candidate.json <slug>.html` → `check <slug>.html --json`.
+`node SKILL_DIR/bin/copilot-deliver.mjs html candidate.json OUT_DIR/<slug>.html --type <type> --force --json` (it validates, renders, checks and delivers).
 
 When the right type is unclear: `node SKILL_DIR/bin/archi-made-easy.mjs guide "<the user's question>" --json`.
 
@@ -93,6 +100,7 @@ When the right type is unclear: `node SKILL_DIR/bin/archi-made-easy.mjs guide "<
 - One-page explainer pages are not included in this edition (their renderer exceeds Microsoft's package rules). Answer such requests in text, or with a diagram.
 - Brand logos fetched from a website need network access; built-in marks work.
 - `doctor` reports the explainer runtime as missing in this edition; that is expected.
+- If a delivery fails, run `node SKILL_DIR/bin/copilot-deliver.mjs probe OUT_DIR --json` once and include its `probes` summary in your reply, so the failure can be diagnosed.
 
 ## Fallback mode (scripts cannot run)
 

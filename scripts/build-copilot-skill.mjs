@@ -6,7 +6,9 @@
 // edition transforms, each asserted so that a change in the source makes the build fail:
 //
 //   1. SKILL.md is replaced by editions/copilot/SKILL.md (Agent Builder: SKILL.md at the ZIP
-//      root, instructions under 20,000 characters, browser-free commands, explicit fallback).
+//      root, instructions under 20,000 characters, browser-free commands, explicit fallback), and
+//      editions/copilot/bin/* is added to bin/ (copilot-deliver.mjs: renders and checks where the
+//      engine's page writer works, then delivers the checked bytes to the sandbox's output folder).
 //   2. NOTICE, LICENSE and LICENSE-MIT become NOTICE.txt, LICENSE.txt, LICENSE-MIT.txt
 //      (Agent Builder accepts listed file types only), and the one module that embeds them in
 //      every page reads the new names. The notice text in pages is unchanged.
@@ -77,8 +79,15 @@ export function stageCopilotEdition(destination) {
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
   }
-  // 1. Copilot instructions at the root.
+  // 1. Copilot instructions at the root, and the edition's own scripts in bin/ (the delivery
+  //    adapter for sandboxes whose output folder cannot host the engine's atomic writer).
   fs.copyFileSync(path.join(repoRoot, 'editions', 'copilot', 'SKILL.md'), path.join(destination, 'SKILL.md'));
+  const editionBin = path.join(repoRoot, 'editions', 'copilot', 'bin');
+  for (const name of fs.readdirSync(editionBin).sort()) {
+    const target = path.join(destination, 'bin', name);
+    if (fs.existsSync(target)) throw new Error(`edition script bin/${name} would replace a Full Edition file`);
+    fs.copyFileSync(path.join(editionBin, name), target);
+  }
   // 2. Notices under accepted file names, read by the module that embeds them.
   const notices = path.join(destination, NOTICES_MODULE);
   const source = fs.readFileSync(notices, 'utf8');

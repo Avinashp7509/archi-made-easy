@@ -1,31 +1,25 @@
-**Archi-Made-Easy for Microsoft 365 Copilot Agent Builder and other locked-down environments.**
+**Archi-Made-Easy Copilot Edition 1.0.1: fixes page delivery in Microsoft 365 Copilot Agent Builder.**
 
-This release adds one file, `archi-made-easy-copilot.zip`, with its SHA-256 checksum. It is the Archi-Made-Easy 1.0.0 engine, unchanged, repackaged to meet Agent Builder's skill package rules:
+In its first real Agent Builder run, copilot-v1.0.0 delivered no page. `check` reported "The artifact is not a stable regular file (delivery-artifact-inspection-failed)" for `/mnt/data/gcp-million-users.html`.
 
-- `SKILL.md` at the root, 11,496 characters;
-- 213 files, two folders deep at most;
-- 1.7 MB;
-- accepted file types only.
+**Cause.** The engine publishes pages through a no-clobber hard link and verifies inode identity. Sandbox output folders that refuse hard links, or report no inode numbers, make the safe writer stop without writing anything. A later `check` then found no file at that path.
 
-Users install nothing.
+**Fix:** this release adds `bin/copilot-deliver.mjs`.
+1. It renders and checks the page in a folder where the engine's unchanged writer works.
+2. It delivers the checked bytes to the output folder with an exclusive, no-follow create.
+3. It proves the delivered file by SHA-256.
+4. It never writes through a symbolic link, and never replaces a file without `--force`.
+5. If no folder can host the writer, it delivers nothing and returns a Mermaid fallback labelled as not interactive.
 
-- **Install:** upload the ZIP under **Skills** in Agent Builder. Step-by-step instructions are in the [edition guide](https://github.com/Avinashp7509/archi-made-easy/blob/main/editions/copilot/README.md#install-in-agent-builder).
-- **What works:**
-  - architecture design from plain language;
-  - validation and the nine artifact checks;
-  - the interactive HTML workbench page;
-  - review;
-  - failure, load and cost simulation;
-  - Mermaid, draw.io, Structurizr and RFC exports;
-  - all ten diagram types.
-- **Left out:**
-  - the real-browser layout check;
-  - one-page explainers;
-  - brand logos fetched from the web;
-  - update notices.
-- **Without Node.js** the skill switches to a clearly labelled fallback: a Mermaid diagram, the architecture JSON, a rule-based review and failure reasoning. It says this is not computed by the engine.
-- **Sandbox status: UNVERIFIED.** Validation ran locally from the unpacked ZIP with the network blocked. Upload and execution inside Microsoft's sandbox have not been tested. The [validation report](https://github.com/Avinashp7509/archi-made-easy/blob/main/editions/copilot/README.md#validation-report) lists what was and was not tested.
+The edition's `SKILL.md` now sends every user file through this adapter, and forbids checking a file that a failed command should have produced.
+
+- **Unchanged:** the engine, which is still Full Edition 1.0.0 (pages are byte-identical), the Full Edition and its v1.0.0 release, and copilot-v1.0.0.
+- **Package:**
+  - 214 files, at most two folders deep;
+  - 1.7 MB;
+  - `SKILL.md` at the root, 13,400 characters.
+- **Verification:**
+  - restricted-folder regression tests (emulated) and the offline engine tests;
+  - the result of the Agent Builder retest is recorded in the [edition guide's test log](https://github.com/Avinashp7509/archi-made-easy/blob/main/editions/copilot/README.md#agent-builder-test-log).
 
 All figures the engine produces are modelled from the declared design, not measured.
-
-The Full Edition's [v1.0.0 release](https://github.com/Avinashp7509/archi-made-easy/releases/tag/v1.0.0) is unchanged and remains the latest release.

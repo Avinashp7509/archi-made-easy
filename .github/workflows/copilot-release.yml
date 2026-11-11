@@ -2,7 +2,8 @@ name: Copilot Edition release
 
 # The Microsoft 365 Copilot Edition is released on its own tags (copilot-v<version>), so the Full
 # Edition's release workflow (tags v*), its releases and its archive are never touched. The
-# edition's version is the Full Edition version it repackages.
+# edition has its own version (SKILL.md metadata `version`) and records the Full Edition version
+# it repackages (`engine-version`).
 on:
   push:
     tags: ['copilot-v*']
@@ -35,12 +36,13 @@ jobs:
           version="${GITHUB_REF_NAME#copilot-v}"
           full="$(node -p "require('./archi-made-easy/package.json').version")"
           edition="$(sed -n 's/^  version: "\(.*\)"$/\1/p' editions/copilot/SKILL.md)"
-          if [ "$version" != "$full" ] || [ "$version" != "$edition" ]; then
-            echo "::error::tag ${GITHUB_REF_NAME} must match archi-made-easy/package.json ($full) and editions/copilot/SKILL.md metadata ($edition)"
+          engine="$(sed -n 's/^  engine-version: "\(.*\)"$/\1/p' editions/copilot/SKILL.md)"
+          if [ "$version" != "$edition" ] || [ "$engine" != "$full" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} must match the editions/copilot/SKILL.md version ($edition), and its engine-version ($engine) must match archi-made-easy/package.json ($full)"
             exit 1
           fi
-      - name: Copilot Edition tests (package rules, offline engine, Full Edition parity)
-        run: node --test test/copilot-edition.test.mjs
+      - name: Copilot Edition tests (package rules, offline engine, Full Edition parity, restricted-folder delivery)
+        run: node --test test/copilot-edition.test.mjs test/copilot-delivery.test.mjs
       - name: Build the Copilot Edition archive
         run: node scripts/build-copilot-skill.mjs /tmp/archi-made-easy-copilot-built.zip
       - name: Committed archive must match the build
