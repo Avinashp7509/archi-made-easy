@@ -79,7 +79,7 @@ Every rendered architecture page carries a workbench. It runs in the page, offli
 |---|---|---|
 | Title strip and toolbar | top | title, and the tools: style, theme, present, **Workbench**, Export |
 | Mode rail | left (a tab bar at the bottom on a phone or tablet) | one button per mode |
-| Vitals bar | along the bottom | six modelled figures and how many inputs are authored and assumed |
+| Vitals bar | along the bottom | six modelled figures, each with its completeness when it is not complete, and how many inputs are authored and assumed |
 | Inspector | right, docked; the diagram refits beside it (a sheet on a phone or tablet) | the current mode's controls and results |
 
 With the workbench off, the page is the plain diagram page, with the mode rail reduced to a column of icons in the left margin.
@@ -91,23 +91,25 @@ With the workbench off, the page is the plain diagram page, with the mode rail r
 | Mode | The reader's question | What they get |
 |---|---|---|
 | `explore` | What is this component? | Properties with each input tagged authored or assumed, what it depends on, what calls it |
-| `review` | What is wrong with this design? | Score by pillar and the findings. Selecting a finding spotlights the affected components and shows problem, evidence, consequence and recommended change, with a preview of the figures after the change where the model can make it |
+| `review` | What is wrong with this design? | Score with its coverage and lowest possible value, score by pillar ("not assessed" where nothing could be checked), the findings, and the checks that could not be run. Selecting a finding spotlights the affected components and shows problem, evidence, consequence and recommended change, with a preview of the figures after the change where the model can make it |
 | `simulate` | What happens when something fails? | See below |
 | `security` | What is exposed? | Entry points and what each reaches without authentication, declared protection per component, security findings |
-| `performance` | Where does it saturate? | Live load and cache sliders, the critical path, utilisation per component, headroom |
-| `finops` | What does it cost? | Monthly total, cost by component, and which components carry no cost data |
+| `performance` | Where does it saturate? | Live load and cache sliders, the critical path, utilisation per component, the capacity ceiling. With no load stated, a change in load is shown as inconclusive |
+| `finops` | What does it cost? | The total, or a partial subtotal labelled as such, or "not calculated"; why it is not complete; cost by component; every meter with its quantity, price, source and equation; and which components carry no cost data |
 | `optimize` | What should change first? | The previewable changes ranked by how much each raises the review score, and all of them together |
 | `decide` | Why is it built this way? | Authored decision records, alternatives compared, request traces stepped on the diagram |
 | `handoff` | How do I take it elsewhere? | Downloads of the Mermaid, draw.io, Structurizr and design-document files that `export` writes |
 
 **Simulate, step by step.**
 
-1. Choose one of the six preset scenarios, or mark components on the diagram (each click cycles healthy, degraded, down, partitioned), and set load and cache.
+1. Choose one of the seven preset scenarios, or mark components on the diagram (each click cycles healthy, degraded, down, partitioned), and set load and cache. Each scenario card says exactly what it fails, and says beforehand when it will be inconclusive.
 2. Press **Run scenario**. Nothing is shown as failing before this.
 3. The failure is drawn outward from its origin one ring of callers at a time.
-4. Impact: which components are affected and why, and how much entry traffic is not served.
-5. Before and after: the healthy figures beside the figures under the scenario.
+4. Impact: the result's status, which components are affected and why, and how much entry traffic is not served.
+5. Before and after: the healthy figures beside the figures under the scenario. Figures that could not be calculated are left out.
 6. Recovery options: changes that would reduce this failure (a standby, redundancy, circuit breakers), each with a preview under the same failure, and a switch to show the diagram with the change applied.
+
+An inconclusive run stops at step 4. It shows why no conclusion is drawn and what to supply, and shows no before-and-after table and no recovery options, because both would imply an impact was calculated. For a zone loss with unknown placement it shows the best and the worst case, and draws the worst.
 
 **Levels (C4 drill-down).** A component can open into a diagram of its own, one level down: a C4 container into its component diagram, for example. Author the child as a complete architecture document in `workbench.drilldowns` (`id`, optional `title`, `spec`) and name it from the component with `operational.drilldown_diagram_id`; `operational.c4_level` states the level a component belongs to (`context`, `container`, `component`, `code`).
 
@@ -117,7 +119,7 @@ With the workbench off, the page is the plain diagram page, with the mode rail r
 - A child goes through the same renderer and the same artifact checks as its parent: a child that fails them fails the parent, and the diagnostic names the child. A document may hold four children, and levels nest three deep at most.
 - `review` and `simulate` on the command line read the document you give them. To analyse a child there, save its `spec` as a file of its own.
 
-**How figures are labelled.** Every figure is tagged `MODELLED`. Inputs are tagged `AUTHORED` or `ASSUMED`. The page states that it contains no measurements. Under a scenario or changed load, the vitals bar names the condition and each changed figure shows its healthy value. Say the same when you relay a figure to the user.
+**How figures are labelled.** Every figure is tagged `MODELLED`. Inputs are tagged `AUTHORED` or `ASSUMED`. The page states that it contains no measurements. Under a scenario or changed load, the vitals bar names the condition and each changed figure shows its healthy value. A figure that is not complete carries its status in words: `PARTIAL`, `INCONCLUSIVE`, `UNKNOWN`. A cost that is not complete reads "at least $…", "not calculated" or "no data", never a bare amount. Say the same when you relay a figure to the user: see [truth-and-evidence-contract.md](truth-and-evidence-contract.md).
 
 **What stays out of exports.** Fault states, badges, spotlights and trace marks are exploration state. Image exports and printing never include them.
 
@@ -138,7 +140,7 @@ Read one of these documents when you need a worked example of authored operation
 |---|---|
 | `global-fintech-payment-mesh.architecture.json` | Two active regions, fallback routes between them, circuit breakers on fraud scoring and identity, requirements, decision records, traces and an alternative. Losing a region leaves it answering. Its review holds one finding. |
 | `enterprise-agentic-ai-platform.architecture.json` | An agent runtime behind a gateway, with retrieval, tools, a semantic cache and a second model provider behind a router. Its review holds one finding, a timeout hierarchy, with a previewable fix. |
-| `cloud-native-ecommerce-c4.architecture.json` | A C4 container diagram whose three services each open into a component diagram (`workbench.drilldowns`). One region: the region scenario stops it, and a decision record says why that was accepted. |
+| `cloud-native-ecommerce-c4.architecture.json` | A C4 container diagram whose three services each open into a component diagram (`workbench.drilldowns`). One region: the region scenario stops it, and a decision record says why that was accepted. Its prices are illustrative, in the earlier cost fields with no source, so its cost reads as a partial subtotal with unsourced prices. |
 | `providers/azure-zero-trust.architecture.json`, `providers/aws-event-driven.architecture.json`, `providers/gcp-microservices.architecture.json`, `providers/onprem-hybrid.architecture.json` | What `scaffold <pattern> --provider <provider>` writes: a starting point with provider service names, to adapt to the request. Their reviews hold findings: a starting point is not a finished design. |
 
 The first three are also delivered rendered (`examples/<name>.html`).

@@ -83,10 +83,11 @@ These questions are answered by running the model on an architecture document, n
 1. Get the document. Use the one already made in this conversation or supplied by the user. If there is only a description, create the architecture first (above), then analyse it.
 2. Run the command. Read the matching reference for options and for how to explain the result:
    - review, risks, scorecard: `review <architecture.json>` and [Architecture review rules](arb-well-architected-rules.md);
-   - failures, blast radius, traffic spikes: `simulate <architecture.json> --scenario <a-f>`, `--fault <id>=<state>` or `--multiplier <n>`, and [Failure and what-if simulation](chaos-and-failure-simulation.md);
+   - failures, blast radius, traffic spikes: `simulate <architecture.json> --scenario <a-g>`, `--fault <id>=<state>` or `--multiplier <n>`, and [Failure and what-if simulation](chaos-and-failure-simulation.md);
    - capacity, latency, availability, cost: `simulate … --cost` and [Capacity, latency, availability and cost](capacity-latency-and-finops.md);
    - failure modes table: `simulate … --fmea`.
 3. Answer from the output. Every result is an analytical model of the declared design. Say so, and say which inputs were assumed when they affect the conclusion.
+4. Read the result's `status` and `reasons` before its figures, and report them: [Truth, completeness and evidence contract](truth-and-evidence-contract.md). A result that is not `complete` is not a conclusion. When the user gave no load, a traffic question is answered with "inconclusive, I need the current requests per second", not with an outcome.
 4. For "fix it" or "optimise it": change the document (add redundancy, a circuit breaker, a fallback, a cheaper tier), rerun, and report the before and after.
 
 Never present a modelled number as measured, guaranteed, or a provider commitment. If the user gives real figures, record them in the document and rerun.

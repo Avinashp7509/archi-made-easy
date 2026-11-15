@@ -90,8 +90,19 @@ Read [Intents](references/intents.md) for the playbook of each kind of request. 
 
 Run the model on the architecture document (the one you made, or one the user provides) and answer from its output. Say the results are modelled from the declared design and name the assumed inputs that matter.
 
+**Read `status` and `reasons` before any figure, and pass them on.** Details: [Truth and evidence contract](references/truth-and-evidence-contract.md).
+
+- Only `complete` is a result. `partial` is a subset or a lower bound: say "at least" and what is missing. `inconclusive` draws no conclusion: say what to supply and give no outcome. `unknown` is no data, never zero.
+- Never invent a load, a price, an SLA or a recovery objective. Leave it out; the model reports what is missing.
+- A surge with no stated baseline load is `inconclusive`. Ask for the current requests per second. Never say that nothing is affected, that no traffic is lost, or that there is nothing to recover.
+- A cost is a total only when `cost.status` is `complete`. Otherwise report `subtotal_usd` as "at least", partial, with what is left out. A meter with no usage is never $0.
+- Give a review score with its coverage and `score_floor`. Checks under `gaps` could not run; they are not passes.
+- Name exactly what a scenario fails (its `fails` text): one availability zone (`b`) is not the region (`g`).
+
+Commands:
+
 - Risks and a review score: `review candidate.json --json`
-- What if something fails: `simulate candidate.json --scenario a..f --json` (list them with `--list-scenarios`), or a specific component: `--fault <component-id>=down|degraded|brownout|partitioned`
+- What if something fails: `simulate candidate.json --scenario a..g --json` (list them with `--list-scenarios`), or a specific component: `--fault <component-id>=down|degraded|brownout|partitioned`
 - A traffic surge: `simulate candidate.json --multiplier 20 --json`; a colder cache: `--cache-hit 0`
 - Failure modes table: `simulate candidate.json --fmea --json`
 - Cost (only figures the document states; nothing is invented): `simulate candidate.json --cost --json`
@@ -151,6 +162,7 @@ Read only what the request needs:
 | Request playbooks, ask-versus-assume | [references/intents.md](references/intents.md) |
 | Starting patterns, operational fields, requirements | [references/operational-model.md](references/operational-model.md) |
 | Layout and authoring rules | [references/authoring-defaults.md](references/authoring-defaults.md), [references/authoring-contract.md](references/authoring-contract.md) |
+| Reporting any modelled figure | [references/truth-and-evidence-contract.md](references/truth-and-evidence-contract.md) |
 | Review rules | [references/arb-well-architected-rules.md](references/arb-well-architected-rules.md) |
 | Simulation | [references/chaos-and-failure-simulation.md](references/chaos-and-failure-simulation.md) |
 | Capacity, latency, availability, cost | [references/capacity-latency-and-finops.md](references/capacity-latency-and-finops.md) |

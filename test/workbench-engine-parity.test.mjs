@@ -23,6 +23,10 @@ import { toMermaidMarkdown } from '../archi-made-easy/workbench/exporters/mermai
 import { toDrawio } from '../archi-made-easy/workbench/exporters/drawio.mjs';
 import { toStructurizr } from '../archi-made-easy/workbench/exporters/structurizr.mjs';
 import { toRfc } from '../archi-made-easy/workbench/exporters/rfc.mjs';
+import { STATUSES, ORIGINS, REASONS } from '../archi-made-easy/workbench/evidence.mjs';
+import { CALCULATIONS } from '../archi-made-easy/workbench/requirements.mjs';
+import { DIMENSIONS, PRICING_MODELS } from '../archi-made-easy/workbench/billing.mjs';
+import { formatUsd, formatPrice, formatQuantity, costText, formatCost, formatNodeCost, costLines, simulationHeadline, reviewHeadline, gapLines, noFindingsText, statusLabel } from '../archi-made-easy/workbench/present.mjs';
 import { buildEngine, generateWorkbenchEngine, ENGINE_API, ENGINE_MODULES } from '../scripts/generate-workbench-engine.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -31,6 +35,8 @@ const source = {
   buildModel, applyAlternative, simulate, FAULT_STATES, estimateCost, buildScenarios, runScenario, breachReach,
   buildFmea, review, RULES, PILLARS, compareDesigns, compareAlternatives, toMermaidMarkdown, toDrawio, toStructurizr, toRfc,
   applyPatches, figures, compareFigures, previewPatches, recoveryOptions, recoveryPlan,
+  STATUSES, ORIGINS, REASONS, CALCULATIONS, DIMENSIONS, PRICING_MODELS,
+  formatUsd, formatPrice, formatQuantity, costText, formatCost, formatNodeCost, costLines, simulationHeadline, reviewHeadline, gapLines, noFindingsText, statusLabel,
 };
 
 function loadFragment() {

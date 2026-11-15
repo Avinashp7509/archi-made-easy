@@ -9,6 +9,12 @@
        analytical model the command line runs. Nothing here is measured;
        the interface says so wherever a figure is shown.
 
+       Every figure also carries its completeness (complete, partial,
+       inconclusive, unknown). This file never decides that: it prints
+       the status and the words the engine gives (formatCost,
+       simulationHeadline, reviewHeadline, noFindingsText). A figure
+       that is not complete is never shown as a definitive result.
+
        Fault states, badges and spotlights are exploration state: export
        cleanup removes them. Design: docs/visual-qa/DESIGN-SYSTEM.md.
        ============================================================ */
@@ -86,7 +92,10 @@
         return node;
       }
       function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
-      function label(id) { return nodeById[id] ? nodeById[id].label : id; }
+      /** A unique name per component: two components with one label stay distinct. */
+      function label(id) { return (model.display && model.display[id]) || (nodeById[id] ? nodeById[id].label : id); }
+      /** The completeness of a figure, as a tag. */
+      function statusTag(status) { return el('span', { className: 'ame-tag ame-tag--status', 'data-status': status, text: engine.statusLabel(status) }); }
       function number(value, digits) {
         if (value == null) return 'n/a';
         var factor = Math.pow(10, digits == null ? 0 : digits);
@@ -111,8 +120,12 @@
         return Array.prototype.slice.call(svg.querySelectorAll('path' + query));
       }
       function frameElements(id) { return Array.prototype.slice.call(svg.querySelectorAll(selector('data-composition-frame-id', boundaryIndex[id]))); }
-      function copyFaults(faults) { return { nodes: Object.assign({}, faults.nodes), edges: Object.assign({}, faults.edges), boundaries: Object.assign({}, faults.boundaries) }; }
-      function faultCount(faults) { return Object.keys(faults.nodes).length + Object.keys(faults.edges).length + Object.keys(faults.boundaries).length; }
+      function copyFaults(faults) {
+        var copy = { nodes: Object.assign({}, faults.nodes), edges: Object.assign({}, faults.edges), boundaries: Object.assign({}, faults.boundaries) };
+        if (faults.zone) copy.zone = faults.zone;
+        return copy;
+      }
+      function faultCount(faults) { return Object.keys(faults.nodes).length + Object.keys(faults.edges).length + Object.keys(faults.boundaries).length + (faults.zone ? 1 : 0); }
       function reducedMotion() { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (error) { return false; } }
       function simInputs() { return { multiplier: state.sim.multiplier, cacheHit: state.sim.cacheHit, faults: copyFaults(state.sim.faults) }; }
       function simIsSet() { return faultCount(state.sim.faults) > 0 || state.sim.multiplier !== 1 || state.sim.cacheHit !== 0; }
@@ -132,6 +145,7 @@
           Object.keys(inputs.faults.nodes).forEach(function (id) { parts.push(label(id) + ' ' + inputs.faults.nodes[id]); });
           Object.keys(inputs.faults.edges).forEach(function (id) { parts.push(id + ' ' + inputs.faults.edges[id]); });
           Object.keys(inputs.faults.boundaries).forEach(function (id) { var b = model.boundaries[boundaryIndex[id]]; parts.push((b ? b.label : id) + ' ' + inputs.faults.boundaries[id]); });
+          if (inputs.faults.zone) parts.push('one availability zone ' + inputs.faults.zone);
           if (inputs.multiplier !== 1) parts.push(inputs.multiplier + 'x load');
           if (inputs.cacheHit !== 0) parts.push(Math.round(inputs.cacheHit * 100) + '% cache hits');
         }
@@ -245,8 +259,9 @@
           return node.security.trust_zone ? [node.security.trust_zone, 'info'] : null;
         }
         if (state.mode === 'finops') {
-          var priced = current.cost.nodes[node.id];
-          return priced && priced.priced ? ['$' + number(priced.total_usd) + '/mo', 'info'] : (node.actor ? null : ['no cost data', 'muted']);
+          // The engine decides the words: a partial or unknown cost is never shown as a price.
+          var costBadge = engine.formatNodeCost(current.cost.nodes[node.id]);
+          return costBadge ? [costBadge.text, costBadge.tone] : null;
         }
         return null;
       }
@@ -267,10 +282,21 @@
             var showOption = state.sim.view === 'option' && current.optionResult;
             var result = showOption ? current.optionResult : current.result;
             var waves = current.waves || { of: {}, last: 0 };
+            // When the outcome is a best and a worst case, the diagram must not paint the worst
+            // case as what happens: a component that fails only in the worst case is "at risk".
+            var atRisk = {};
+            if (!showOption && result.bounds && !result.bounds.agree) {
+              result.bounds.worst.failing.forEach(function (id) { if (result.bounds.best.failing.indexOf(id) === -1) atRisk[id] = true; });
+            }
             model.nodes.forEach(function (node) {
               var element = nodeElement(node.id); if (!element) return;
               var r = result.nodes[node.id];
               var before = current.result.nodes[node.id];
+              if (atRisk[node.id]) {
+                element.setAttribute('data-wb-state', 'at-risk');
+                badge(layer, element, 'AT RISK', 'warn');
+                return;
+              }
               if (!showOption && waves.of[node.id] != null && waves.of[node.id] > state.sim.wave) return; // not reached yet
               if (showOption && before.state !== 'ok' && r.state === 'ok' && !r.saturated) {
                 element.setAttribute('data-wb-state', 'recovered');
@@ -285,6 +311,7 @@
             model.edges.forEach(function (edge) {
               var status = result.edges[edge.id].state;
               if (status === 'ok') return;
+              if (atRisk[edge.to] || atRisk[edge.from]) return;
               if (!showOption && waves.of[edge.to] != null && waves.of[edge.to] > state.sim.wave) return;
               edgeElements(edge.id).forEach(function (element) { element.setAttribute('data-wb-edge', status); });
             });
@@ -331,11 +358,16 @@
       }
 
       // ---- vitals ----------------------------------------------------------------------
-      function readout(name, value, was, tone, title) {
-        var valueNode = el('strong', { className: 'ame-readout-value', text: value });
-        return el('div', { className: 'ame-readout', 'data-tone': tone || null, 'data-readout': name[0], title: title || null }, [
-          el('span', { className: 'ame-readout-label', text: name[1] }), valueNode,
-          was != null ? el('span', { className: 'ame-readout-was', text: 'healthy: ' + was }) : null,
+      function readout(name, value, was, tone, title, status) {
+        // A status word ("inconclusive", "not calculated") is wider than a figure: it is set
+        // smaller so it is never cut off, which would make it unreadable.
+        var valueNode = el('strong', { className: 'ame-readout-value' + (/\d/.test(value) ? '' : ' ame-readout-value--word'), text: value });
+        // A figure that is not complete says so under its value, and is toned as a caution.
+        var open = status && status !== 'complete' && status !== 'not_applicable';
+        var note = open && value !== engine.statusLabel(status) ? el('span', { className: 'ame-readout-status', text: engine.statusLabel(status) }) : null;
+        return el('div', { className: 'ame-readout', 'data-tone': tone || (open ? 'caution' : null), 'data-readout': name[0], 'data-status': status || null, title: title || null }, [
+          el('span', { className: 'ame-readout-label', text: name[1] }), valueNode, note,
+          was != null && !note ? el('span', { className: 'ame-readout-was', text: 'healthy: ' + was }) : null,
         ]);
       }
       function drawVitals() {
@@ -351,21 +383,32 @@
         basisBlock.appendChild(el('span', { className: 'ame-basis-line', 'data-workbench-basis': '', text: basis.authored_inputs + ' authored, ' + basis.assumed_inputs + ' assumed inputs' }));
         basisBlock.title = 'Every figure here is computed by an analytical model from the declared design. ' + basis.authored_inputs + ' inputs are stated in the document; ' + basis.assumed_inputs + ' are defaults assumed from each component\'s role. This page contains no measurements.';
         clear(readouts);
-        var was = function (key, format) { return changed && b[key] !== f[key] ? format(b[key]) : null; };
+        // A comparison with the healthy state is shown only between two calculated figures.
+        var was = function (key, format) { return changed && f[key] != null && b[key] != null && b[key] !== f[key] ? format(b[key]) : null; };
         var pct = percent;
+        var s = f.statuses; var assessments = (shownOption ? current.optionResult : current.result).assessments;
+        var unsettled = function (key) { return s[key] === 'inconclusive'; };
+        var why = function (key) { return assessments[key].reasons.map(function (r) { return r.message; }).join(' '); };
         var ms = function (v) { return v == null ? 'not served' : number(v) + ' ms'; };
         var rps = function (v) { return v == null ? 'n/a' : number(v) + '/s'; };
-        var usd = function (v) { return v == null ? 'no data' : '$' + number(v); };
         var condition = changed ? conditionText(inputs) + (shownOption ? ', with the change: ' + shownOption.title : '') : '';
-        readouts.appendChild(readout(['availability', changed ? 'Answered now' : 'Answered'], pct(f.composite_sla_percent), was('composite_sla_percent', pct),
-          f.composite_sla_percent === 0 ? 'critical' : '', (changed ? 'Modelled share of requests answered while: ' + condition + '. Baseline: ' + pct(b.composite_sla_percent) + '.' : 'Modelled composite availability of the request path.')
-            + (current.result.warnings.length ? ' ' + current.result.warnings.join(' ') : '')));
-        readouts.appendChild(readout(['latency', 'Path P99'], ms(f.critical_path_p99_ms), was('critical_path_p99_ms', ms), f.critical_path_p99_ms == null ? 'critical' : '', k.critical_path ? k.critical_path.nodes.map(label).join(' to ') : 'No entry is served.'));
-        readouts.appendChild(readout(['load', 'Max load'], rps(f.max_sustainable_rps), was('max_sustainable_rps', rps), k.headroom != null && k.headroom < 1 ? 'critical' : '',
-          k.limiting_node ? 'First to reach its capacity: ' + label(k.limiting_node) + (k.ingress_rps != null ? '. Entry load now: ' + number(k.ingress_rps) + '/s.' : '.') : ''));
+        readouts.appendChild(readout(['availability', changed ? 'Answered now' : 'Answered'], unsettled('availability') ? 'inconclusive' : pct(f.composite_sla_percent), was('composite_sla_percent', pct),
+          !unsettled('availability') && f.composite_sla_percent === 0 ? 'critical' : '', (changed ? 'Modelled share of requests answered while: ' + condition + '. Baseline: ' + pct(b.composite_sla_percent) + '.' : 'Modelled composite availability of the request path.')
+            + ' Counts any answer, including a degraded one. ' + why('availability'), s.availability));
+        readouts.appendChild(readout(['latency', 'Path P99'], unsettled('latency') ? 'inconclusive' : ms(f.critical_path_p99_ms), was('critical_path_p99_ms', ms), !unsettled('latency') && f.critical_path_p99_ms == null ? 'critical' : '',
+          (k.critical_path ? k.critical_path.nodes.map(label).join(' to ') + '. ' : 'No entry is served. ') + why('latency'), s.latency));
+        readouts.appendChild(readout(['load', 'Max load'], unsettled('capacity') ? 'inconclusive' : rps(f.max_sustainable_rps), was('max_sustainable_rps', rps), k.headroom != null && k.headroom < 1 ? 'critical' : '',
+          'Capacity ceiling of the request path, from authored and assumed capacities. A ceiling, not evidence that a given load is safe. '
+            + (k.limiting_node ? 'First to reach its capacity: ' + label(k.limiting_node) + (k.ingress_rps != null ? '. Entry load now: ' + number(k.ingress_rps) + '/s.' : '.') : '')
+            + (k.async_drain_ceiling_rps != null ? ' Asynchronous work drains up to ' + number(k.async_drain_ceiling_rps) + '/s (' + label(k.async_limiting_node) + '); above that a backlog grows.' : ''), s.capacity));
         readouts.appendChild(readout(['spof', 'Single points'], String(f.single_points_of_failure), was('single_points_of_failure', String), f.single_points_of_failure ? 'warning' : '', k.active_spofs.map(label).join(', ')));
-        readouts.appendChild(readout(['cost', 'Cost / month'], usd(f.monthly_cost_usd), was('monthly_cost_usd', usd), '', current.cost.coverage.priced_components + ' of ' + current.cost.coverage.components + ' components carry cost data.'));
-        readouts.appendChild(readout(['score', 'Review'], number(f.review_score, 1) + ' / 100', null, current.review.counts.critical ? 'critical' : current.review.counts.high ? 'warning' : '', plural(current.review.findings.length, 'finding')));
+        // Cost: the engine's words. A partial estimate reads "at least", never as the total.
+        var costHead = engine.formatCost(current.cost);
+        readouts.appendChild(readout(['cost', 'Cost / month'], shownOption ? engine.costText(s.cost, f.monthly_cost_usd, f.monthly_cost_subtotal_usd, true) : costHead.short, null, '',
+          costHead.label + ': ' + costHead.coverage + '. ' + engine.costLines(current.cost, label).join(' '), s.cost));
+        var reviewHead = engine.reviewHeadline(current.review);
+        readouts.appendChild(readout(['score', 'Review'], f.review_score == null ? 'not scored' : number(f.review_score, 1) + ' / 100', null, current.review.counts.critical ? 'critical' : current.review.counts.high ? 'warning' : '',
+          plural(current.review.findings.length, 'finding') + '. ' + reviewHead.qualifier + '.', s.review));
         if (changed) {
           basisBlock.appendChild(el('span', { className: 'ame-basis-line', 'data-workbench-condition': '', title: 'Condition: ' + condition, style: 'color:var(' + (shownOption ? '--ame-ok' : '--ame-critical') + ')', text: 'Condition: ' + condition }));
         }
@@ -389,7 +432,7 @@
       function metricValue(value, unit) {
         if (value == null) return 'n/a';
         if (unit === '%') return percent(value);
-        if (unit === 'USD') return '$' + number(value);
+        if (unit === 'USD') return engine.formatUsd(value);
         if (unit === 'ms') return number(value) + ' ms';
         if (unit === 'requests/s') return number(value) + '/s';
         return number(value, 1) + (unit ? ' ' + unit : '');
@@ -436,11 +479,24 @@
         return item;
       }
       function selectedFinding() { return current.review ? current.review.findings.filter(function (f) { return f.id === state.finding; })[0] : null; }
-      function findingList(findings) {
-        if (!findings.length) return el('p', { className: 'ame-muted', text: 'No rule fired here. That means none of the checked rules found a problem, not that this aspect is complete.' });
-        return el('ul', { className: 'ame-cards' }, findings.map(function (finding) {
+      /** Checks that apply but could not be run: shown wherever findings are, so "no finding" is never read as a pass. */
+      function gapList(gaps) {
+        return el('div', { className: 'ame-gaps', 'data-workbench-gaps': '' }, [
+          el('p', { className: 'ame-gaps-title' }, [statusTag('inconclusive'), ' Not evaluated (' + gaps.length + '). These checks apply but could not be run; they are not passes.']),
+          el('ul', { className: 'ame-list' }, gaps.map(function (gap) {
+            return el('li', { 'data-workbench-gap': gap.code }, [el('strong', { text: gap.title + '. ' }), gap.message, gap.ask ? ' ' + gap.ask : '']);
+          })),
+        ]);
+      }
+      function findingList(findings, pillar) {
+        var gaps = current.review.gaps.filter(function (gap) { return !pillar || gap.pillars.indexOf(pillar) !== -1; });
+        var parts = [];
+        if (!findings.length) parts.push(el('p', { className: 'ame-muted', 'data-workbench-nofindings': '', text: engine.noFindingsText(current.review, pillar) }));
+        else parts.push(el('ul', { className: 'ame-cards' }, findings.map(function (finding) {
           return findingCard(finding, state.finding, function (id) { state.finding = id; drawInspector(); drawOverlays(); });
-        }));
+        })));
+        if (gaps.length) parts.push(gapList(gaps));
+        return el('div', {}, parts);
       }
 
       // ---- inspector: modes ----------------------------------------------------------
@@ -463,8 +519,9 @@
             el('p', {}, [tag('authored', 'authored'), ' ' + basis.authored_inputs + ' inputs are stated in the document.']),
             el('p', {}, [tag('assumed', 'assumed'), ' ' + basis.assumed_inputs + ' inputs are not stated; a default for the component\'s role is used and marked wherever it appears.']),
             el('p', {}, [tag('measured', 'measured'), ' None. This page contains no measurements from a running system.']),
+            el('p', { 'data-workbench-model-status': baseline.status }, [statusTag(baseline.status), ' How complete the model of this design is. Evidence confidence: ' + baseline.confidence.level + ' (' + Math.round((baseline.confidence.grounded_share || 0) * 100) + '% of inputs are stated).']),
           ]));
-          if (baseline.warnings.length) body.appendChild(section('Limits of this model', [el('ul', { className: 'ame-list' }, baseline.warnings.map(function (warning) { return el('li', { text: warning }); }))]));
+          if (baseline.reasons.length) body.appendChild(section('Limits of this model', [el('ul', { className: 'ame-list' }, baseline.reasons.map(function (item) { return el('li', { 'data-workbench-reason': item.code, text: item.message + (item.ask ? ' ' + item.ask : '') }); }))]));
           return;
         }
         var r = current.result.nodes[node.id];
@@ -486,7 +543,7 @@
         body.appendChild(section('Modelled now', [kv([
           ['State', r.state + (r.cause.length ? ': ' + r.cause[r.cause.length - 1] : '')],
           ['Load', r.load_rps == null ? 'no entry load is stated' : number(r.load_rps) + ' /s' + (r.utilisation != null ? ' (' + Math.round(r.utilisation * 100) + '% of capacity)' : '')],
-          ['Cost per month', current.cost.nodes[node.id] && current.cost.nodes[node.id].priced ? '$' + number(current.cost.nodes[node.id].total_usd) : 'no cost data'],
+          ['Cost per month', (engine.formatNodeCost(current.cost.nodes[node.id]) || { text: 'not a priced resource' }).text],
         ])]));
         var edgeRow = function (edge, other) { return [nodeLink(other), edge.call_semantics, edge.label || '']; };
         var out = model.edges.filter(function (e) { return e.from === node.id; }); var into = model.edges.filter(function (e) { return e.to === node.id; });
@@ -503,12 +560,20 @@
       function drawReview() {
         var review = current.review;
         body.appendChild(el('p', { className: 'ame-lede', text: 'The design checked against ' + review.rules_checked.length + ' rules. Select a finding to see what it affects and what changing it would do.' }));
+        // Quality, and next to it how much of the design the rules could actually check.
+        var head = engine.reviewHeadline(review);
         body.appendChild(section('Score', [
-          el('div', { className: 'ame-score' }, [el('strong', { text: number(review.score, 1) }), el('span', { className: 'ame-muted', text: '/ 100, from ' + plural(review.findings.length, 'finding') })]),
-          table(['Pillar', 'Score', ''], Object.keys(review.pillars).map(function (pillar) {
+          el('div', { className: 'ame-score', 'data-workbench-score': '', 'data-status': review.status }, [el('strong', { text: review.score == null ? 'not scored' : number(review.score, 1) }), el('span', { className: 'ame-muted', text: '/ 100, from ' + plural(review.findings.length, 'finding') }), statusTag(review.status)]),
+          el('p', { className: 'ame-muted', 'data-workbench-coverage': '', text: head.qualifier.charAt(0).toUpperCase() + head.qualifier.slice(1) + '. Evidence confidence: ' + review.confidence.level + '.' }),
+          table(['Pillar', 'Score', 'Rules run'], Object.keys(review.pillars).map(function (pillar) {
             var p = review.pillars[pillar];
-            return [pillar, number(p.score, 1), el('div', { className: 'ame-bar', 'data-tone': p.score < 85 ? 'critical' : p.score < 95 ? 'warning' : null }, [el('span', { style: 'width:' + Math.max(2, p.score) + '%' })])];
-          }), [1]),
+            // Name, then the status when it is not complete, then the bar: three narrow columns
+            // fit the docked inspector at every width.
+            var named = el('span', { className: 'ame-pillar', 'data-status': p.status }, [el('span', { text: pillar }),
+              p.status === 'complete' ? null : statusTag(p.status),
+              p.score == null ? null : el('div', { className: 'ame-bar', 'data-tone': p.score < 85 ? 'critical' : p.score < 95 ? 'warning' : null }, [el('span', { style: 'width:' + Math.max(2, p.score) + '%' })])]);
+            return [named, p.score == null ? 'not assessed' : number(p.score, 1), p.rules.evaluated + ' of ' + p.rules.applicable];
+          }), [1, 2]),
         ]));
         body.appendChild(section('Findings', [findingList(review.findings)]));
         body.appendChild(el('p', { className: 'ame-muted', text: 'A finding tagged assumed rests on inputs the document does not state.' }));
@@ -520,7 +585,9 @@
         body.appendChild(el('p', { className: 'ame-lede', text: 'Choose what goes wrong, run the model, then read the impact and try recovery options.' }));
         // 1. Scenario
         var cards = el('ul', { className: 'ame-cards' }, scenarios.map(function (scenario) {
-          var note = scenario.applicable ? (scenario.targets.length ? 'Affects: ' + scenario.targets.map(function (id) { var bd = model.boundaries[boundaryIndex[id]]; return bd ? bd.label : label(id); }).join(', ') : (scenario.inputs.multiplier > 1 ? 'Entry load times ' + scenario.inputs.multiplier : '')) : scenario.reason;
+          // Each scenario names exactly what it takes away, and says before it is run when the
+          // model lacks an input it needs.
+          var note = scenario.applicable ? 'Fails: ' + scenario.fails + '.' + (scenario.readiness.status === 'ready' ? '' : ' Will be inconclusive: ' + scenario.readiness.reasons[0].ask) : scenario.reason;
           return el('li', {}, [el('button', { type: 'button', className: 'ame-card', 'data-workbench-scenario': scenario.id, 'aria-pressed': String(sim.scenario === scenario.id), disabled: !scenario.applicable, onclick: function () { chooseScenario(sim.scenario === scenario.id ? '' : scenario.id); } }, [
             el('span', { className: 'ame-card-title' }, [el('span', { className: 'ame-num', text: scenario.id.toUpperCase() }), el('span', { text: scenario.title })]),
             el('span', { className: 'ame-card-note', text: scenario.applicable ? note : 'Not applicable: ' + note }),
@@ -553,12 +620,14 @@
         if (!sim.ran) return;
 
         // 4. Impact
+        // The headline comes from the engine: the same words as the command line and the design
+        // document. An inconclusive run is never summarised as "no component is affected".
         var result = current.result; var k = result.kpis; var affected = k.blast_radius.nodes;
-        var summary = affected.length
-          ? plural(affected.length, 'component') + ' of ' + model.nodes.length + ' affected.' + (k.blast_radius.ingress_share != null ? ' ' + Math.round(k.blast_radius.ingress_share * 100) + '% of entry traffic is not served.' : '')
-          : 'No component is affected under these conditions.';
-        var impact = [el('p', { className: 'ame-callout', 'data-tone': affected.length ? 'critical' : 'ok', 'data-workbench-impact': '' }, [tag('modelled', 'modelled'), ' ' + summary])];
-        if (affected.length) {
+        var head = engine.simulationHeadline(model, result);
+        var split = result.bounds && !result.bounds.agree;
+        var impact = [el('p', { className: 'ame-callout', 'data-tone': head.tone === 'critical' ? 'critical' : head.tone === 'ok' ? 'ok' : 'caution', 'data-status': head.status, 'data-workbench-impact': '' }, [tag('modelled', 'modelled'), ' ', statusTag(head.status), ' ' + head.text])];
+        head.lines.forEach(function (line) { impact.push(el('p', { className: 'ame-muted', 'data-workbench-impact-line': '', text: line })); });
+        if (affected.length && (head.show_comparison || split)) {
           var waves = current.waves; var ordered = affected.slice().sort(function (a, b2) { return (waves.of[a] - waves.of[b2]) || (a < b2 ? -1 : 1); });
           impact.push(el('ol', { className: 'ame-steps', 'data-workbench-propagation': '' }, ordered.map(function (id) {
             var r = result.nodes[id];
@@ -580,18 +649,32 @@
           events.push('Stopped by authentication at: ' + (scenario.analysis.stopped_by_authentication.map(label).join(', ') || 'nothing'));
         }
         if (events.length) impact.push(el('ul', { className: 'ame-list' }, events.map(function (text) { return el('li', { text: text }); })));
-        result.warnings.forEach(function (warning) { impact.push(el('p', { className: 'ame-muted', text: 'Model limit: ' + warning })); });
+        result.reasons.forEach(function (item) {
+          var stated = head.text.indexOf(item.message) !== -1;
+          impact.push(el('p', { className: 'ame-muted', 'data-workbench-reason': item.code, hidden: stated, text: 'Model limit: ' + item.message }));
+        });
         body.appendChild(section('4. Impact', impact));
+
+        // An inconclusive run has no calculated impact: a before/after table or a recovery
+        // list would imply one. Say what is needed instead.
+        if (!head.show_comparison) {
+          body.appendChild(section('5. What is needed', [
+            el('p', { 'data-workbench-needed': '', text: 'No before and after comparison and no recovery options are shown, because the impact was not calculated. To get a result, supply:' }),
+            el('ul', { className: 'ame-list' }, head.asks.map(function (ask) { return el('li', { text: ask }); })),
+          ]));
+          return;
+        }
 
         // 5. Before and after
         body.appendChild(section('5. Before and after', [
-          compareTable(engine.compareFigures(baselineFigures, current.figures), 'Healthy', 'Scenario', function (m) { return m.metric !== 'review_score' && m.metric !== 'single_points_of_failure'; }),
-          el('p', { className: 'ame-muted', text: '"Answered" counts requests that get any answer, including a degraded one.' }),
+          compareTable(engine.compareFigures(baselineFigures, current.figures), 'Healthy', 'Scenario', function (m) { return m.metric !== 'review_score' && m.metric !== 'single_points_of_failure' && m.verdict !== 'not comparable'; }),
+          el('p', { className: 'ame-muted', text: '"Answered" counts requests that get any answer, including a degraded one. Figures that could not be calculated are left out of this table.' }),
         ]));
 
         // 6. Recovery options
         var plan = current.plan; var options = [];
-        if (!plan.options.length) options.push(el('p', { className: 'ame-muted', text: affected.length ? 'The model has no change to suggest for this failure.' : 'Nothing to recover from.' }));
+        if (!plan.options.length) options.push(el('p', { className: 'ame-muted', text: affected.length ? 'The model has no change to suggest for this failure.'
+          : k.blast_radius.status === 'complete' ? 'Nothing to recover from.' : 'No component fails under these conditions. Load-dependent effects were not evaluated, so this is not evidence that nothing needs to change.' }));
         else options.push(el('ul', { className: 'ame-cards' }, plan.options.map(function (option) {
           var open = sim.option === option.id;
           var lead = option.previewable ? option.preview.metrics.filter(function (m) { return m.metric === 'affected_components'; })[0] : null;
@@ -634,7 +717,7 @@
         body.appendChild(section('Protection declared', [table(['Component', 'Sign-in', 'At rest', 'In transit'], model.nodes.filter(function (n) { return !n.actor; }).map(function (n) {
           return [nodeLink(n.id), n.security.auth_method || 'not stated', stated(n.security.encryption_at_rest), stated(n.security.encryption_in_transit)];
         }))]));
-        body.appendChild(section('Security findings', [findingList(findings)]));
+        body.appendChild(section('Security findings', [findingList(findings, 'Security')]));
         body.appendChild(el('p', { className: 'ame-muted', text: '"Not stated" means the document says nothing; it is not evidence that the protection is missing or present.' }));
       }
 
@@ -655,42 +738,92 @@
         var results = el('div', { 'data-workbench-performance': '' });
         body.appendChild(results);
         drawPerformanceResults(results);
-        if (!result.basis.load_known && k) body.appendChild(el('p', { className: 'ame-callout', text: 'No entry load is stated in this document, so load and utilisation cannot be shown. State capacity.baseline_rps on an entry component to see them.' }));
       }
       function drawPerformanceResults(target) {
         clear(target);
         var result = current.result; var k = result.kpis;
         var path = k.critical_path;
+        // Load changed with no baseline: the run is inconclusive, and the page says so in the
+        // engine's words before any figure.
+        if (result.status === 'inconclusive') {
+          var head = engine.simulationHeadline(model, result);
+          target.appendChild(el('p', { className: 'ame-callout', 'data-tone': 'caution', 'data-status': 'inconclusive', 'data-workbench-performance-status': '' }, [statusTag('inconclusive'), ' ' + head.text]));
+          head.lines.forEach(function (line) { target.appendChild(el('p', { className: 'ame-muted', text: line })); });
+        } else if (!result.basis.load_known) {
+          target.appendChild(el('p', { className: 'ame-callout', 'data-workbench-performance-status': '', text: 'No entry load is stated in this document, so load and utilisation cannot be shown. State capacity.baseline_rps on an entry component to see them.' }));
+        }
         target.appendChild(section('Critical path', [path ? table(['Step', 'Component', 'P99 alone'], path.nodes.map(function (id, index) {
           return [String(index + 1), nodeLink(id), nodeById[id] && nodeById[id].latency.p99_ms != null ? number(nodeById[id].latency.p99_ms) + ' ms' : ''];
         }), [2]) : el('p', { className: 'ame-muted', text: 'No entry is served under these conditions.' }),
-        path ? el('p', {}, ['End to end: ', el('strong', { className: 'ame-num', text: 'P50 ' + number(path.p50_ms) + ' ms, P95 ' + number(path.p95_ms) + ' ms, P99 ' + number(path.p99_ms) + ' ms' }), ' ', tag('modelled', 'modelled')]) : null]));
+        path ? (path.p99_ms == null
+          ? el('p', {}, ['End to end: ', statusTag('inconclusive'), ' not calculated at this load.'])
+          : el('p', {}, ['End to end: ', el('strong', { className: 'ame-num', text: 'P50 ' + number(path.p50_ms) + ' ms, P95 ' + number(path.p95_ms) + ' ms, P99 ' + number(path.p99_ms) + ' ms' }), ' ', tag('modelled', 'modelled'),
+            result.assessments.latency.status === 'complete' ? null : statusTag(result.assessments.latency.status)])) : null]));
         var loaded = model.nodes.filter(function (n) { return result.nodes[n.id].utilisation != null; }).sort(function (a, b2) { return result.nodes[b2.id].utilisation - result.nodes[a.id].utilisation; });
         target.appendChild(section('Utilisation', [loaded.length ? table(['Component', 'Load', 'Capacity', 'Used', ''], loaded.map(function (n) {
           var r = result.nodes[n.id]; var used = Math.round(r.utilisation * 100);
           return [n.label, number(r.load_rps) + '/s', number(r.capacity_rps) + '/s', used + '%', el('div', { className: 'ame-bar', 'data-tone': used >= 100 ? 'critical' : used >= 80 ? 'warning' : null }, [el('span', { style: 'width:' + Math.min(100, Math.max(2, used)) + '%' })])];
         }), [1, 2, 3]) : el('p', { className: 'ame-muted', text: 'No utilisation to show without a stated entry load.' })]));
-        target.appendChild(section('Headroom', [el('p', {}, [k.max_sustainable_rps == null ? 'Not available.' : 'The design sustains about ', k.max_sustainable_rps == null ? null : el('strong', { className: 'ame-num', text: number(k.max_sustainable_rps) + ' requests a second' }),
-          k.limiting_node ? '. The first component to reach its capacity is ' + label(k.limiting_node) + (nodeById[k.limiting_node].basis['capacity.max_rps'] === 'assumed' ? ' (its capacity is assumed).' : '.') : ''])]));
-        target.appendChild(section('Performance findings', [findingList(current.review.findings.filter(function (f) { return f.pillars.indexOf('Performance') !== -1; }))]));
+        target.appendChild(section('Capacity ceiling', [el('p', {}, [k.max_sustainable_rps == null ? 'Not available.' : 'The request path reaches its first limit at about ', k.max_sustainable_rps == null ? null : el('strong', { className: 'ame-num', text: number(k.max_sustainable_rps) + ' requests a second' }),
+          k.limiting_node ? '. The first component to reach its capacity is ' + label(k.limiting_node) + (nodeById[k.limiting_node].basis['capacity.max_rps'] === 'assumed' ? ' (its capacity is assumed).' : '.') : '']),
+          k.async_drain_ceiling_rps != null ? el('p', { className: 'ame-muted', text: 'Asynchronous work drains up to ' + number(k.async_drain_ceiling_rps) + ' requests a second (limit: ' + label(k.async_limiting_node) + '). Above that a backlog grows; requests are still answered.' }) : null,
+          el('p', { className: 'ame-muted', text: 'This is a ceiling computed from the capacities above, not evidence that a given load is safe.' })]));
+        target.appendChild(section('Performance findings', [findingList(current.review.findings.filter(function (f) { return f.pillars.indexOf('Performance') !== -1; }), 'Performance')]));
       }
 
       function drawFinops() {
         var cost = current.cost;
-        body.appendChild(el('p', { className: 'ame-lede', text: 'Monthly cost, from the prices the document states. Components without cost data are listed, not estimated.' }));
-        body.appendChild(section('Total', [el('div', { className: 'ame-score' }, [el('strong', { text: cost.monthly_total_usd == null ? 'no data' : '$' + number(cost.monthly_total_usd) }), el('span', { className: 'ame-muted', text: 'a month, covering ' + cost.coverage.priced_components + ' of ' + cost.coverage.components + ' components' })]),
-          cost.coverage.priced_components < cost.coverage.components ? el('p', { className: 'ame-callout', text: 'This total is incomplete: ' + (cost.coverage.components - cost.coverage.priced_components) + ' components carry no cost data.' }) : null]));
-        var priced = model.nodes.filter(function (n) { return cost.nodes[n.id] && cost.nodes[n.id].priced; }).sort(function (a, b2) { return cost.nodes[b2.id].total_usd - cost.nodes[a.id].total_usd; });
-        var total = cost.monthly_total_usd || 1;
-        body.appendChild(section('By component', [priced.length ? table(['Component', 'Per month', 'Share', ''], priced.map(function (n) {
-          var c = cost.nodes[n.id]; var share = Math.round((c.total_usd / total) * 100);
-          return [nodeLink(n.id), '$' + number(c.total_usd), share + '%', el('div', { className: 'ame-bar' }, [el('span', { style: 'width:' + Math.max(2, share) + '%' })])];
-        }), [1, 2]) : el('p', { className: 'ame-muted', text: 'No component carries cost data.' })]));
+        // Every word about the estimate's completeness comes from the engine (formatCost,
+        // costLines, formatNodeCost): a subtotal is never headed "Total" and a missing
+        // quantity is never shown as $0.
+        var head = engine.formatCost(cost);
+        body.appendChild(el('p', { className: 'ame-lede', text: 'Monthly cost, from the prices the document states. Components without cost data are listed, not estimated, and a meter whose usage is unknown is left out, not counted as zero.' }));
+        var lines = engine.costLines(cost, label);
+        body.appendChild(section(head.label, [
+          el('div', { className: 'ame-score', 'data-workbench-cost': '', 'data-status': cost.status }, [el('strong', { text: head.text }), el('span', { className: 'ame-muted', text: head.qualifier }), statusTag(cost.status)]),
+          el('p', { className: 'ame-muted', 'data-workbench-cost-coverage': '', text: head.coverage.charAt(0).toUpperCase() + head.coverage.slice(1) + '.' }),
+          lines.length ? el('ul', { className: 'ame-list ame-callout', 'data-tone': cost.status === 'complete' ? null : 'caution', 'data-workbench-cost-reasons': '' }, lines.map(function (line) { return el('li', { text: line }); })) : null,
+        ]));
+        var priced = model.nodes.filter(function (n) { return cost.nodes[n.id] && cost.nodes[n.id].priced; })
+          .sort(function (a, b2) { return (cost.nodes[b2.id].subtotal_usd || 0) - (cost.nodes[a.id].subtotal_usd || 0) || (a.id < b2.id ? -1 : 1); });
+        // A share of the total is shown only when there is a total.
+        var total = cost.status === 'complete' ? cost.monthly_total_usd : null;
+        body.appendChild(section('By component', [priced.length ? table(total ? ['Component', 'Per month', 'Share', ''] : ['Component', 'Per month', 'Status'], priced.map(function (n) {
+          var c = cost.nodes[n.id]; var shown = engine.formatNodeCost(c);
+          if (!total) return [nodeLink(n.id), shown.amount, statusTag(c.status)];
+          var share = Math.round((c.total_usd / total) * 100);
+          return [nodeLink(n.id), shown.amount, share + '%', el('div', { className: 'ame-bar' }, [el('span', { style: 'width:' + Math.max(2, share) + '%' })])];
+        }), total ? [1, 2] : [1]) : el('p', { className: 'ame-muted', text: 'No component carries cost data.' })]));
+        // Every meter: what is billed, the quantity and where it came from, the price and its source.
+        // One entry per meter, so nothing is cut off in a narrow inspector.
+        var meterItems = [];
+        priced.forEach(function (n) {
+          cost.nodes[n.id].meters.forEach(function (meter) {
+            var source = meter.source ? [meter.source.provider, meter.source.service, meter.source.region, meter.source.plan, meter.source.retrieved_at ? 'retrieved ' + meter.source.retrieved_at : null].filter(Boolean).join(', ') : 'none stated';
+            var price = meter.tiers ? 'tiered prices' : engine.formatPrice(meter.price) + ' per ' + (meter.per === 1 ? meter.unit : engine.formatQuantity(meter.per, meter.unit));
+            var amount = meter.cost_usd == null
+              ? el('span', { 'data-workbench-meter-omitted': meter.reasons[0] ? meter.reasons[0].code : meter.status }, [statusTag(meter.status), ' left out'])
+              : el('strong', { className: 'ame-num', text: engine.formatUsd(meter.cost_usd) + (meter.status === 'complete' ? '' : ' (' + engine.statusLabel(meter.status) + ')') });
+            meterItems.push(el('li', { 'data-workbench-meter': n.id + '/' + meter.id }, [
+              el('span', {}, [el('strong', { text: label(n.id) }), ' · ' + meter.dimension + ': ', amount]),
+              el('span', { className: 'ame-fact-line', text: (meter.quantity == null ? 'Quantity not known' : engine.formatQuantity(meter.quantity, meter.unit) + ' a month') + ', at ' + price
+                + (meter.free_allowance ? ', ' + number(meter.free_allowance) + ' free' : '') + '.' + (meter.missing.length ? ' Missing: ' + meter.missing.map(function (item) { return item.input; }).join('; ') + '.' : '') }),
+              el('span', { className: 'ame-fact-line', 'data-workbench-meter-source': meter.sourced ? 'sourced' : 'unsourced', title: meter.source && meter.source.url ? meter.source.url : null,
+                text: 'Price source: ' + source + (meter.freshness === 'stale' ? ' (stale)' : '') + '.' }),
+              el('span', { className: 'ame-fact-line', 'data-workbench-meter-equation': '', text: 'Equation: ' + meter.equation + '.' }),
+            ]));
+          });
+        });
+        if (meterItems.length) body.appendChild(section('Meters', [el('ul', { className: 'ame-facts' }, meterItems),
+          el('p', { className: 'ame-muted', text: 'A meter is left out, never counted as zero, when its quantity is unknown.' })]));
         var egress = Object.keys(cost.egress || {});
-        if (egress.length) body.appendChild(section('Data transfer', [table(['Connection', 'GB per month', 'Per month'], egress.map(function (id) { return [id, number(cost.egress[id].gb_per_month, 1), '$' + number(cost.egress[id].cost_usd, 2)]; }), [1, 2])]));
-        var unpriced = model.nodes.filter(function (n) { return !n.actor && !(cost.nodes[n.id] && cost.nodes[n.id].priced); });
-        if (unpriced.length) body.appendChild(section('No cost data', [el('p', { className: 'ame-muted', text: unpriced.map(function (n) { return n.label; }).join(', ') + '.' })]));
-        body.appendChild(section('Cost findings', [findingList(current.review.findings.filter(function (f) { return f.pillars.indexOf('Cost') !== -1; }))]));
+        if (egress.length) body.appendChild(section('Data transfer', [table(['Connection', 'GB per month', 'Per month'], egress.map(function (id) {
+          var e = cost.egress[id];
+          return [id, e.gb_per_month == null ? 'not known' : number(e.gb_per_month, 1), e.cost_usd == null ? statusTag(e.status) : engine.formatUsd(e.cost_usd)];
+        }), [1, 2])]));
+        var unpriced = cost.coverage.unpriced;
+        if (unpriced.length) body.appendChild(section('No cost data', [el('p', { className: 'ame-muted', text: unpriced.map(label).join(', ') + '.' })]));
+        body.appendChild(section('Cost findings', [findingList(current.review.findings.filter(function (f) { return f.pillars.indexOf('Cost') !== -1; }), 'Cost')]));
       }
 
       function changes() {
@@ -914,6 +1047,7 @@
         if (scenario) {
           state.sim.multiplier = scenario.inputs.multiplier; state.sim.cacheHit = scenario.inputs.cacheHit;
           ['nodes', 'edges', 'boundaries'].forEach(function (key) { Object.assign(state.sim.faults[key], scenario.inputs.faults[key] || {}); });
+          if (scenario.inputs.faults.zone) state.sim.faults.zone = scenario.inputs.faults.zone;
         }
         state.sim.ran = false; state.sim.option = null; state.sim.view = 'scenario'; current.plan = null; current.optionResult = null;
         refresh();
@@ -952,7 +1086,7 @@
         current.plan = engine.recoveryPlan(doc, simInputs());
         drawRail(); drawVitals();
         playWaves(options && options.instant);
-        announcer.textContent = plural(current.result.kpis.blast_radius.nodes.length, 'component') + ' affected. Modelled result.';
+        announcer.textContent = engine.simulationHeadline(model, current.result).text + ' Modelled result.';
         return true;
       }
       function resetSimulation() {
@@ -1222,6 +1356,7 @@
         figures: function () { return current.figures; },
         baseline: function () { return baselineFigures; },
         review: function () { return current.review; },
+        cost: function () { return current.cost; },
         plan: function () { return current.plan; },
         changes: function () { return changes().map(function (c) { return { id: c.id, title: c.title, gain: c.gain }; }); },
         model: function () { return model; },

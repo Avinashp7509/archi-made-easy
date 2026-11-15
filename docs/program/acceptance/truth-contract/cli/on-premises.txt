@@ -1,0 +1,185 @@
+# on-premises
+
+On-premises, provider-neutral scaffold.
+
+Document: web-onprem.architecture.json
+
+$ archi-made-easy simulate web-onprem.architecture.json --scenario all
+
+Scenario a: Primary database or stateful storage outage. Analytical model of the declared architecture, not a measurement.
+Conditions: 1x traffic, cache hit 0%, faults: db down
+Status: partial
+Result: 5 components of 10 affected. 100% of entry traffic is not served.
+Composite availability (requests answered, including degraded answers): 0%
+Critical path: none served (every entry is failing)
+Capacity ceiling of the request path: 0 requests/s (limit: App servers)
+Single points of failure on the request path: Keycloak
+Affected components (5):
+  App servers: failing (db is failing; app-db is a blocking call with no circuit breaker or fallback)
+  CDN: failing (lb is failing; cdn-lb is a blocking call with no circuit breaker or fallback)
+  PostgreSQL: failing (injected fault: down)
+  HAProxy: failing (app is failing; lb-app is a blocking call with no circuit breaker or fallback)
+  Users: failing (cdn is failing; users-cdn is a blocking call with no circuit breaker or fallback)
+Ingress traffic lost: 100%
+Note: No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.
+Note: A failing blocking call has no timeout_ms: its wait cannot be modelled and is left out of latency.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+Not complete (missing-timeout): A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.
+Not complete (load-dependent-unevaluated): Latency is given without queueing because the load is not stated: it is a lower bound on latency under load.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+To resolve: State resilience.timeout_ms on the blocking calls into failing components.
+Inputs: 16 authored, 39 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+
+Scenario b: Loss of one availability zone. Analytical model of the declared architecture, not a measurement.
+Conditions: 1x traffic, cache hit 0%, faults: one availability zone (not drawn) down
+Status: inconclusive
+Result: Inconclusive. Best case: no component fails (8 run with fewer units). Worst case: 2 components fail and at least 100% of entry traffic is not served. The outcome depends on where Keycloak runs, which the document does not state.
+  At risk (fails only in the worst case): Keycloak, Users.
+Composite availability: inconclusive (worst case 0%, best case 99.68039%)
+Critical path latency: inconclusive
+Capacity ceiling of the request path: inconclusive
+Single points of failure on the request path: Keycloak
+Affected components (10), in the worst case:
+  App servers: degraded (lost one of 2 units with the zone)
+  Redis: degraded (lost one of 2 units with the zone)
+  CDN: degraded (lost one of 2 units with the zone)
+  PostgreSQL: degraded (lost one of 2 units with the zone)
+  Keycloak: failing (runs as one unit; assumed to be in the lost zone (worst case))
+  HAProxy: degraded (lost one of 2 units with the zone)
+  RabbitMQ: degraded (lost one of 2 units with the zone)
+  Object storage: degraded (lost one of 2 units with the zone)
+  Users: failing (identity is failing; users-identity is a blocking call with no circuit breaker or fallback)
+  Job runners: degraded (lost one of 2 units with the zone)
+Ingress traffic lost: between 0% (best case) and 100% (worst case)
+Note: No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.
+Note: A failing blocking call has no timeout_ms: its wait cannot be modelled and is left out of latency.
+Not complete (placement-unknown): Which zone each component runs in is not stated, so the outcome is given as a range: the worst case assumes every component with one unit runs in the lost zone.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+Not complete (missing-timeout): A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.
+Not complete (load-dependent-unevaluated): Latency is given without queueing because the load is not stated: it is a lower bound on latency under load.
+To resolve: Place components in availability-zone boundaries, or state redundancy for each component.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+To resolve: State resilience.timeout_ms on the blocking calls into failing components.
+Inputs: 16 authored, 39 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+
+Scenario c: 10x flash crowd. Analytical model of the declared architecture, not a measurement.
+Conditions: 10x traffic, cache hit 0%, no faults
+Status: inconclusive
+Result: Inconclusive. 10x load was not calculated: there is no baseline load to multiply. No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+  Capacity ceiling: 2000 requests/s on the request path (first limit: PostgreSQL). This is a ceiling computed from authored and assumed limits, not evidence that 10x the current load is below it.
+Composite availability: inconclusive
+Critical path latency: inconclusive
+Capacity ceiling of the request path: 2000 requests/s (limit: PostgreSQL)
+Asynchronous drain ceiling: 1000 requests/s (limit: Job runners); above it a backlog grows, requests are not refused
+Single points of failure on the request path: Keycloak
+Affected components: not calculated
+Note: No entry component has baseline_rps, so 10x load has nothing to multiply: this run is inconclusive. Loads, utilisation, saturation, traffic lost and latency under load were not calculated. The capacity ceiling is still reported; it is not evidence that 10x is safe.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+Inputs: 16 authored, 39 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+
+Scenario d: Third-party API or model provider high-latency brownout
+Not applicable: No external service or model provider in this architecture.
+
+Scenario e: Cache stampede or cold cache. Analytical model of the declared architecture, not a measurement.
+Conditions: 1x traffic, cache hit 0%, faults: cache down
+Status: partial
+Result: 2 components of 10 affected. Traffic lost to overload was not evaluated.
+  Requests are still answered, but operations that need the failed component do not succeed: "answered" is not "successful".
+Composite availability (requests answered, including degraded answers): 99.89985% [partial]
+Critical path: P50 45.259 ms, P95 146.645 ms, P99 238.674 ms (Users → CDN → HAProxy → App servers → PostgreSQL) [partial]
+Capacity ceiling of the request path: 2000 requests/s (limit: PostgreSQL)
+Asynchronous drain ceiling: 1000 requests/s (limit: Job runners); above it a backlog grows, requests are not refused
+Single points of failure on the request path: Keycloak
+Affected components (2):
+  App servers: degraded (cache is failing; circuit breaker on app-cache fails fast)
+  Redis: failing (injected fault: down)
+Ingress traffic lost: no entry fails; loss to overload was not evaluated
+Note: No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.
+Note: A failing blocking call has no timeout_ms: its wait cannot be modelled and is left out of latency.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+Not complete (answered-includes-degraded): Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.
+Not complete (load-dependent-unevaluated): Availability does not include errors from overload because the load is not stated.
+Not complete (missing-timeout): A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+To resolve: Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.
+To resolve: State resilience.timeout_ms on the blocking calls into failing components.
+Inputs: 16 authored, 39 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+
+Scenario f: Compromised edge or zero-trust boundary breach. Analytical model of the declared architecture, not a measurement.
+Conditions: 1x traffic, cache hit 0%, no faults
+Status: partial
+Result: No component fails under these conditions. Load-dependent effects (saturation, queueing) were not evaluated because no entry load is stated.
+Composite availability (requests answered, including degraded answers): 99.89985% [partial]
+Critical path: P50 45.259 ms, P95 146.645 ms, P99 238.674 ms (Users → CDN → HAProxy → App servers → PostgreSQL) [partial]
+Capacity ceiling of the request path: 2000 requests/s (limit: PostgreSQL)
+Asynchronous drain ceiling: 1000 requests/s (limit: Job runners); above it a backlog grows, requests are not refused
+Single points of failure on the request path: Keycloak
+Affected components: none fail; load-dependent effects not evaluated
+Note: No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+Not complete (load-dependent-unevaluated): Availability does not include errors from overload because the load is not stated.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+Inputs: 16 authored, 39 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+Reachable from users without authentication: app, cache, cdn, db, lb, queue, static, worker; stopped at: identity
+
+Scenario g: Region blackout. Analytical model of the declared architecture, not a measurement.
+Conditions: 1x traffic, cache hit 0%, faults: region down
+Status: partial
+Result: 8 components of 10 affected. 100% of entry traffic is not served.
+Composite availability (requests answered, including degraded answers): 0%
+Critical path: none served (every entry is failing)
+Capacity ceiling of the request path: 0 requests/s (limit: CDN)
+Single points of failure on the request path: Keycloak
+Affected components (8):
+  App servers: failing (injected fault: down)
+  Redis: failing (injected fault: down)
+  CDN: failing (lb is failing; cdn-lb is a blocking call with no circuit breaker or fallback)
+  PostgreSQL: failing (injected fault: down)
+  HAProxy: failing (injected fault: down)
+  RabbitMQ: failing (injected fault: down)
+  Users: failing (cdn is failing; users-cdn is a blocking call with no circuit breaker or fallback)
+  Job runners: failing (injected fault: down)
+Ingress traffic lost: 100%
+Note: No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.
+Note: A failing blocking call has no timeout_ms: its wait cannot be modelled and is left out of latency.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+Not complete (missing-timeout): A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.
+Not complete (load-dependent-unevaluated): Latency is given without queueing because the load is not stated: it is a lower bound on latency under load.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+To resolve: State resilience.timeout_ms on the blocking calls into failing components.
+Inputs: 16 authored, 39 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+
+(exit 0)
+
+$ archi-made-easy review web-onprem.architecture.json
+
+Architecture review. Analytical model of the declared architecture, not a measurement.
+Score: 94/100 (partial: 4 of 8 applicable rules fully evaluated; as low as 37/100 if assumed findings count in full and the checks that could not run had found problems; evidence confidence low)
+Pillars: Reliability 96 (partial) · Security 100 (partial) · Performance not assessed (not applicable) · Cost not assessed (unknown) · Operational Excellence 98 · Sustainability not assessed (inconclusive)
+Findings: 1 medium, 2 low
+
+[MEDIUM] Deep synchronous call chain (Reliability; authored)
+  4 blocking hops in a row (users → cdn → lb → app → db) with no circuit breaker or asynchronous step. A slow or failed component at the end stalls every caller.
+  Fix: Add circuit breakers with timeouts along the chain, or move a step behind a queue or event stream.
+
+[LOW] Stateful component without recovery objectives (Operational Excellence; authored)
+  PostgreSQL holds data but has no recovery point (RPO) or recovery time (RTO) objective.
+  Fix: Set dr.rpo_sec and dr.rto_sec for PostgreSQL and confirm the backup strategy meets them.
+
+[LOW] Stateful component without recovery objectives (Operational Excellence; authored)
+  Object storage holds data but has no recovery point (RPO) or recovery time (RTO) objective.
+  Fix: Set dr.rpo_sec and dr.rto_sec for Object storage and confirm the backup strategy meets them.
+
+Not evaluated (4). These checks apply but could not be run; they are not passes:
+  [Sustainability] Idle capacity kept running: App servers keeps at least 2 instances running, but its load is not known, so whether that capacity is idle was not checked. State the current requests per second on at least one entry point (capacity.baseline_rps).
+  [Reliability] Single point of failure on a critical path: Keycloak is a provider-managed service and the document does not state its redundancy, so whether it is a single point of failure is not known. The model assumes one unit. Confirm the provider's availability commitment for Keycloak and state it (sla_percent, redundancy), or give its callers a fallback.
+  [Reliability] Caller timeout shorter than the callee retry budget: 6 chained blocking calls have no timeout_ms, so whether callers give up before callees finish was not checked. State resilience.timeout_ms (and retries) on the blocking calls listed.
+  [Security] Data store not encrypted at rest: Object storage does not state whether data is encrypted at rest, so this was not checked. State security.encryption_at_rest (true or false) on each data store.
+
+Rules: 14, 8 applicable, 4 fully evaluated. Findings come from an analytical model of the declared architecture. Those marked "assumed" rest on inferred roles or default values and count half toward the score. A rule that could not be evaluated is listed under gaps: it is not a pass. The floor is the score if every assumed finding counted in full and every check that could not run had found a problem.
+
+(exit 0)
+
+JSON: result.status=undefined; cost.status=unknown; cost.monthly_total_usd=null; cost.subtotal_usd=null
+

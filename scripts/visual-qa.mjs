@@ -296,7 +296,7 @@ export const ARCHITECTURE_STATES = [
   { id: 'security', workflow: 'H', shot: 'desktop', act: click('[data-workbench-mode="security"]'), expect: `return document.querySelectorAll('.diagram-container .workbench-badge').length ? [] : [{ check: 'mode-content', severity: 'high', detail: 'Security shows no badge on the canvas' }];` },
   { id: 'performance-10x', workflow: 'G', shot: 'desktop', act: `${click('[data-workbench-mode="performance"]')} ${W} w.setLoad(10, 0);`,
     expect: `${W} return w.inputs().multiplier === 10 && /10x load/.test(document.getElementById('workbench-vitals').textContent) ? [] : [{ check: 'mode-content', severity: 'high', detail: 'Performance at 10x does not name its condition' }];` },
-  { id: 'finops', workflow: 'I', shot: 'desktop', act: click('[data-workbench-mode="finops"]'), expect: `return /incomplete|covering/.test(document.getElementById('workbench-body').textContent) ? [] : [{ check: 'mode-content', severity: 'high', detail: 'FinOps does not state cost coverage' }];` },
+  { id: 'finops', workflow: 'I', shot: 'desktop', act: click('[data-workbench-mode="finops"]'), expect: `const body = document.getElementById('workbench-body'); const head = body.querySelector('[data-workbench-cost]'); return head && head.querySelector('.ame-tag--status') && /\\d+ of \\d+ priceable components? priced/.test((body.querySelector('[data-workbench-cost-coverage]') || {}).textContent || '') ? [] : [{ check: 'mode-content', severity: 'high', detail: 'FinOps does not state cost coverage and status' }];` },
   { id: 'optimize-change', workflow: 'J', shot: 'desktop', act: `${click('[data-workbench-mode="optimize"]')} ${click('[data-workbench-change]')}`, expect: `return document.querySelector('[data-workbench-change-detail] table') ? [] : [{ check: 'mode-content', severity: 'high', detail: 'Optimize shows no preview for the selected change' }];` },
   { id: 'decide-trace', workflow: 'K', shot: 'desktop', act: `${click('[data-workbench-mode="decide"]')} ${click('[data-workbench-trace="next"]')}`, expect: `const svg = document.querySelector('.diagram-container > svg'); return svg.querySelector('[data-wb-edge="trace-current"]') ? [] : [{ check: 'mode-content', severity: 'high', detail: 'the trace step is not marked on the canvas' }];` },
   { id: 'handoff', workflow: 'M', act: click('[data-workbench-mode="handoff"]'), expect: `return document.querySelectorAll('[data-workbench-export]').length === 4 ? [] : [{ check: 'mode-content', severity: 'high', detail: 'Handoff does not offer four formats' }];` },
@@ -314,12 +314,12 @@ const flagshipStates = ({ simulate, scenario, finding = true }) => [
   { id: 'initial', workflow: 'A', shot: 'all', act: '', expect: `${W} return w.isOn() && !w.isOpen() ? [] : [{ check: 'initial-state', severity: 'high', detail: 'a flagship example should start with the workbench on and the inspector closed' }];` },
   finding
     ? { id: 'review-finding', workflow: 'J', shot: 'desktop', act: `${click('[data-workbench-mode="review"]')} ${click('[data-workbench-finding]')}`, expect: `return document.querySelector('[data-workbench-finding-detail]') ? [] : [{ check: 'mode-content', severity: 'high', detail: 'no finding detail' }];` }
-    : { id: 'review-clean', workflow: 'J', shot: 'desktop', act: click('[data-workbench-mode="review"]'), expect: `${W} return w.review().findings.length === 0 && /No rule fired/.test(document.getElementById('workbench-body').textContent) ? [] : [{ check: 'mode-content', severity: 'high', detail: 'a review without findings does not say what that means' }];` },
+    : { id: 'review-clean', workflow: 'J', shot: 'desktop', act: click('[data-workbench-mode="review"]'), expect: `${W} return w.review().findings.length === 0 && /No rule fired|not fully checked/.test(document.getElementById('workbench-body').textContent) && document.querySelector('[data-workbench-coverage]') ? [] : [{ check: 'mode-content', severity: 'high', detail: 'a review without findings does not say what that means' }];` },
   { id: simulate, workflow: 'F', shot: 'all', act: `${click('[data-workbench-mode="simulate"]')} ${click(`[data-workbench-scenario="${scenario}"]`)} ${click('[data-workbench-run]')}`, expect: `${W} const k = w.result().kpis; return k.blast_radius.nodes.length ? [] : [{ check: 'simulation-state', severity: 'high', detail: 'the scenario affects no component' }];` },
   { id: 'performance-10x', workflow: 'G', shot: 'desktop', act: `${click('[data-workbench-mode="performance"]')} ${W} w.setLoad(10, 0);`, expect: 'return [];' },
   { id: 'decide-trace', workflow: 'K', shot: 'desktop', act: `${click('[data-workbench-mode="decide"]')} ${click('[data-workbench-trace="next"]')}`, expect: 'return [];' },
 ];
-const FLAGSHIP_STATES = flagshipStates({ simulate: 'simulate-region-loss', scenario: 'b' });
+const FLAGSHIP_STATES = flagshipStates({ simulate: 'simulate-region-loss', scenario: 'g' });
 // Levels: a component opens into its own diagram, carried in the page (workflow L).
 const LEVEL_READY = "await new Promise((resolve, reject) => { const started = Date.now(); (function poll() { const level = ArchiMadeEasy.workbench.level(); if (level && level.ready) resolve(); else if (Date.now() - started > 20000) reject(new Error('the level did not report ready')); else setTimeout(poll, 50); })(); });";
 export const LEVEL_STATES = [
@@ -390,7 +390,7 @@ export async function runVisualQa({ chromePath = findChrome(), viewports = VIEWP
       // Flagship examples: the same states, with the checks that do not depend on one document.
       ['fintech', FLAGSHIP_STATES, viewports],
       ['ai-platform', flagshipStates({ simulate: 'simulate-provider-brownout', scenario: 'd' }), viewports],
-      ['ecommerce-c4', [...flagshipStates({ simulate: 'simulate-region-loss', scenario: 'b', finding: false }), ...LEVEL_STATES], viewports],
+      ['ecommerce-c4', [...flagshipStates({ simulate: 'simulate-region-loss', scenario: 'g', finding: false }), ...LEVEL_STATES], viewports],
       ...['c4-catalog-service', 'c4-checkout-service', 'c4-fulfilment-service'].map((name) => [name, CHILD_STATES, viewports]),
       ['workflow', SIMPLE_STATES, viewports],
       ['sequence', SIMPLE_STATES, viewports],

@@ -7,7 +7,8 @@ Read this when the user asks for a review, a risk assessment, an architecture re
 - [Running a review](#running-a-review)
 - [What a finding contains](#what-a-finding-contains)
 - [Rules implemented in this version](#rules-implemented-in-this-version)
-- [Score](#score)
+- [Score, floor and coverage](#score-floor-and-coverage)
+- [Checks that could not run](#checks-that-could-not-run)
 - [What is not covered](#what-is-not-covered)
 - [Framework alignment](#framework-alignment)
 - [How to report a review](#how-to-report-a-review)
@@ -33,11 +34,13 @@ node bin/archi-made-easy.mjs review <architecture.json> --strict
 
 `basis` is `authored` when the finding rests on values in the document. It is `assumed` when it rests on an inferred role or a default value; confirm an assumed finding with the user before treating it as fact.
 
+A fix is offered only where the design can apply it. A provider-managed service (an identity provider, a CDN, a third-party API, a hosted model) is not told to run across more zones, and a circuit breaker is proposed only on a connection whose caller the design owns, never on a call made by the users or by a provider's service.
+
 ## Rules implemented in this version
 
 | Rule | Pillar | Severity | Fires when |
 |---|---|---|---|
-| `spof` | Reliability | high | A single-instance component is needed by every request through an entry, with no fallback |
+| `spof` | Reliability | high | A single-instance component is needed by every request through an entry, with no fallback. A provider-managed service whose redundancy is not stated is reported as a gap, not a finding |
 | `deep-sync-chain` | Reliability, Performance | medium | More than 3 blocking calls in a row with no circuit breaker or asynchronous step |
 | `timeout-hierarchy` | Reliability | high | A caller's timeout is shorter than its callee's timeout × attempts. Authored timeouts only. |
 | `unprotected-async-consumer` | Reliability, Operational Excellence | medium | An asynchronous connection has neither a dead-letter destination nor an idempotency guarantee |
@@ -47,18 +50,44 @@ node bin/archi-made-easy.mjs review <architecture.json> --strict
 | `idle-over-provisioning` | Sustainability, Cost | low | A component runs below 10% utilisation with more than one minimum instance. Authored load and capacity only. |
 | `unencrypted-data-store` | Security | high or medium | A data store is declared unencrypted (high), or a compliance requirement is stated and encryption is not declared (medium) |
 | `requirement-availability` | Reliability | high | Modelled availability is below `requirements.availability_target_percent` |
-| `requirement-latency` | Performance | high | Modelled critical-path P99 exceeds `requirements.p99_latency_ms` |
+| `requirement-latency` | Performance | high | Modelled critical-path P99 exceeds `requirements.p99_latency_ms`. With no load stated the modelled latency is a lower bound: above the target it is a finding, below it the target is not confirmed (a gap) |
 | `requirement-capacity` | Performance | high | Modelled max sustainable load is below `requirements.peak_rps` |
 | `requirement-recovery` | Reliability | high | A data store's RPO or RTO is weaker than required |
-| `requirement-budget` | Cost | medium | Estimated monthly cost exceeds `requirements.monthly_budget_usd` |
+| `requirement-budget` | Cost | medium | Estimated monthly cost exceeds `requirements.monthly_budget_usd`. A partial estimate is a lower bound: above the budget it is a finding, below it the budget is not confirmed (a gap) |
 
 Each rule has a test with one design that must trigger it and one that must not.
 
-## Score
+## Score, floor and coverage
 
-Score = 100 − the sum of finding weights, not below 0. Weights: critical 15, high 8, medium 4, low 1. An assumed finding counts half. Each pillar has its own score from its own findings.
+A review keeps apart what a single number would blur (`dimensions` in the JSON):
 
-The score summarises the findings above. It is not a certification and says nothing about aspects the rules do not cover.
+| Field | Meaning |
+|---|---|
+| Score (`score`) | 100 − the sum of finding weights, not below 0. Weights: critical 15, high 8, medium 4, low 1. An assumed finding counts half. It covers only the rules that ran. `null` when none could run. |
+| Floor (`score_floor`) | The worst case the evidence allows: every finding counted in full, and every check that could not run counted as a finding. Removing a fact from the document can lower it and never raises it. |
+| Status (`status`) | `complete` when every applicable rule was fully evaluated, otherwise `partial` or `inconclusive`. |
+| Coverage (`coverage`) | How many rules apply to this design and how many were fully evaluated. |
+| Confidence (`confidence`) | How many of the model's inputs are stated rather than assumed: `high`, `medium` or `low`. |
+| Cost and model run (`cost`, `simulation`) | How complete the cost estimate and the model run are. |
+
+Each pillar has `score`, `floor`, `status` and the number of rules run. A pillar in which nothing could be assessed has `score: null` and is shown as "not assessed". It is never 100. The Cost pillar also depends on the cost estimate: with an incomplete estimate it is partial, and with no cost data it is not assessed.
+
+The score summarises the findings of the rules that ran. It is not a certification and says nothing about aspects the rules do not cover. A high score with low coverage says little: always give both.
+
+## Checks that could not run
+
+`gaps` lists every place a rule applies but could not be evaluated, with `rule`, `code`, `subjects`, a `message` saying why, and an `ask` saying what to supply. `rule_results` gives the status of each rule.
+
+| A check cannot run when | Rules affected |
+|---|---|
+| A provider-managed service on the request path does not state its redundancy | `spof` |
+| A chained blocking call has no `timeout_ms` | `timeout-hierarchy` |
+| No entry point states `baseline_rps` | `chatty-cross-boundary-egress`, `idle-over-provisioning` |
+| A data store does not state `encryption_at_rest` | `unencrypted-data-store` |
+| A data store does not state the `rpo_sec` or `rto_sec` being required | `requirement-recovery` |
+| The modelled figure is a lower bound that is still within the target | `requirement-latency`, `requirement-budget` |
+
+A gap is not a pass and not a finding. Where a list of findings is empty and gaps exist, the output says "not fully checked", never "no rule fired".
 
 ## What is not covered
 
@@ -80,7 +109,9 @@ Do not tell a user that a design "complies with" or "passes" any of these framew
 ## How to report a review
 
 - State that it is a model-based review of the declared design.
-- Give the score and the count of findings by severity, then the findings in order, each with its evidence and fix.
+- Give the score with its coverage and its floor: "94/100, partial: 4 of 8 applicable rules evaluated, as low as 37". Then the count of findings by severity, and the findings in order, each with its evidence and fix.
+- List the checks that could not run and what would let them run. Do not describe them as passed.
+- Say "not assessed" for a pillar with no score.
 - Mark assumed findings as needing confirmation.
 - Say what the review does not cover when the user is relying on it for a decision.
 - Offer to apply the fixes and rerun the review to show the change.

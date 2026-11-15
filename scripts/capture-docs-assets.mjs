@@ -57,7 +57,7 @@ export const CAPTURES = [
   { name: 'archi-made-easy-workflow.png', page: examples('workflow-agent-tool-call-rendered.html'), theme: 'light', viewport: [1280, 800], scale: 2, capture: 'element' },
   // The workbench during a failure scenario: shown on its own and inside the social card.
   { name: 'archi-made-easy-workbench.png', page: examples('global-fintech-payment-mesh.html'), theme: 'dark', viewport: [1440, 900], capture: 'viewport', state: 'Simulate: region A blackout, run',
-    act: `${W} w.setMode('simulate'); w.chooseScenario('b'); w.run({ instant: true });` },
+    act: `${W} w.setMode('simulate'); w.chooseScenario('g'); w.run({ instant: true });` },
   // Launch screenshots: one workbench state each, on the three flagship examples.
   { name: 'archi-made-easy-flagship-fintech.png', page: examples('global-fintech-payment-mesh.html'), theme: 'light', viewport: [1440, 900], capture: 'viewport',
     state: 'Explore: Payments A (pay_a) selected, its inspection panel open',

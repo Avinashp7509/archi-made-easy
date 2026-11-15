@@ -102,13 +102,620 @@ function inferRole(component, { inbound = 0, outbound = 0 } = {}) {
   }
 }
 
+/**
+ * Roles that are normally a provider's service rather than something this design deploys:
+ * an identity provider, a CDN, a third-party API, a hosted model. Their redundancy is the
+ * provider's, so a review must not recommend redeploying them. This is an inference,
+ * recorded as such; `operational.managed_by` overrides it.
+ */
+const PROVIDER_MANAGED_ROLES = new Set(['identity', 'cdn', 'external-saas', 'ai-model']);
+function inferManagedBy(role) {
+  return PROVIDER_MANAGED_ROLES.has(role) ? 'provider' : 'customer';
+}
+
 /** Default call semantics for a relationship, from the target's role. */
 function inferCallSemantics(targetRole) {
   if (targetRole === 'message-broker') return 'async-queue';
   if (targetRole === 'stream') return 'event-stream';
   return 'sync-blocking';
 }
-    return { ROLES, REDUNDANCY, CALL_SEMANTICS, ROLE_DEFAULTS, EDGE_DEFAULTS, brandName, inferRole, inferCallSemantics };
+    return { ROLES, REDUNDANCY, CALL_SEMANTICS, ROLE_DEFAULTS, EDGE_DEFAULTS, brandName, inferRole, inferManagedBy, inferCallSemantics };
+  })();
+  // ---- evidence.mjs
+  __modules["evidence.mjs"] = (function () {
+    'use strict';
+// Truth, completeness and evidence contract shared by every workbench output.
+//
+// Every analysis (simulation, cost, review, scenario, comparison) states, next to its
+// figures, how far those figures can be trusted:
+//
+//   status       what was computed: complete, partial, inconclusive, unknown, invalid,
+//                unsupported or not_applicable (see STATUSES);
+//   reasons      machine-readable codes with a sentence each, saying why it is not complete;
+//   missing      the inputs that would make it more complete, with their units;
+//   assumptions  the values the model used that the document does not state;
+//   affects      which outputs a reason touches.
+//
+// Renderers never decide these: they print what the assessment says. A figure whose
+// assessment is not complete must never be shown as a definitive result.
+// Pure: no I/O, no clock, no randomness.
+
+/** Where a decision-relevant value came from. */
+const ORIGINS = Object.freeze([
+  'authored',  // stated explicitly in the document by its author
+  'derived',   // computed deterministically from other values
+  'inferred',  // guessed from names, types or structure (for example a role from a label)
+  'default',   // a documented planning default (defaults.mjs)
+  'measured',  // observed in a running system
+  'imported',  // copied from an external source, such as a price list, with a reference
+  'unknown',   // not available: never silently replaced by zero, false or empty
+]);
+
+/** Completeness of an analysis or of one of its figures. */
+const STATUSES = Object.freeze([
+  'complete',       // every required input was available and the calculation ran
+  'partial',        // some parts were computed; a numeric value is a lower bound or a subset
+  'inconclusive',   // the calculation ran, but an essential input is missing: no conclusion
+  'unknown',        // nothing to evaluate: no input of the kind this analysis needs
+  'unsupported',    // the input exists but the model cannot represent it
+  'invalid',        // the inputs contradict each other or are out of range
+  'not_applicable', // the question does not apply to this design
+]);
+
+/** Statuses under which a figure may be presented as a definitive result. */
+function isDefinitive(status) { return status === 'complete'; }
+
+/** Statuses under which a number exists at all (possibly as a lower bound). */
+function hasValue(status) { return status === 'complete' || status === 'partial'; }
+
+/**
+ * Reason codes. Each is stable and machine-readable; the message is the default sentence,
+ * and `ask` says what the reader can supply to resolve it.
+ */
+const REASONS = Object.freeze({
+  'missing-baseline-load': {
+    message: 'No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.',
+    ask: 'State the current requests per second on at least one entry point (capacity.baseline_rps).',
+  },
+  'load-shedding-not-included': {
+    message: 'A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.',
+    ask: 'Confirm what the saturated component does with excess load (queue, reject, autoscale).',
+  },
+  'missing-timeout': {
+    message: 'A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.',
+    ask: 'State resilience.timeout_ms on the blocking calls into failing components.',
+  },
+  'no-entry-point': {
+    message: 'No component receives external traffic, so nothing can be measured from an entry point.',
+    ask: 'Mark the component where requests enter (workbench.entrypoints or an ingress role).',
+  },
+  'entrypoints-inferred': {
+    message: 'Entry points were inferred from the diagram, not stated.',
+    ask: 'List the entry components in workbench.entrypoints.',
+  },
+  'answered-includes-degraded': {
+    message: 'Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.',
+    ask: 'Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.',
+  },
+  'placement-unknown': {
+    message: 'Which zone each component runs in is not stated, so the outcome is given as a range: the worst case assumes every component with one unit runs in the lost zone.',
+    ask: 'Place components in availability-zone boundaries, or state redundancy for each component.',
+  },
+  'defaults-used': {
+    message: 'Some inputs are planning defaults for the component\'s role, not facts about this system.',
+    ask: 'Replace assumed values with authored figures.',
+  },
+  'independence-assumption': {
+    message: 'Availability this high depends on the assumption that components fail independently.',
+    ask: 'Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled.',
+  },
+  'cycle-excluded': {
+    message: 'A cycle in the request graph was excluded from traffic propagation.',
+    ask: 'Check whether the cycle carries traffic and break it with an asynchronous step if so.',
+  },
+  'no-cost-data': {
+    message: 'No component carries cost data, so no estimate was made.',
+    ask: 'Add finops meters with prices and their source to the components you want priced.',
+  },
+  'unpriced-component': {
+    message: 'Some components carry no cost data, so any total leaves them out.',
+    ask: 'Add finops meters to the components listed, or confirm they cost nothing.',
+  },
+  'missing-usage-baseline': {
+    message: 'A usage-priced meter has a price but no usage to multiply: the load is not stated. It is left out, not counted as zero.',
+    ask: 'State capacity.baseline_rps on an entry point, or finops.usage for the component.',
+  },
+  'missing-meter-quantity': {
+    message: 'A meter needs a usage figure that is not stated (for example duration, memory or concurrency).',
+    ask: 'State the missing finops.usage field named in the meter.',
+  },
+  'billing-model-undeclared': {
+    message: 'Some priced components do not say how their service is billed (finops.pricing_model), so it cannot be told whether every billed dimension is included.',
+    ask: 'Set finops.pricing_model and price every dimension it lists.',
+  },
+  'billing-dimension-missing': {
+    message: 'The declared pricing model bills dimensions that have no meter, so the component total leaves them out.',
+    ask: 'Add a meter for each dimension listed.',
+  },
+  'unsupported-billing-dimension': {
+    message: 'A meter bills a dimension the model cannot calculate, so it is left out.',
+    ask: 'Express the charge with a supported dimension, or keep it outside the estimate.',
+  },
+  'unsupported-currency': {
+    message: 'A price is not in USD; currency conversion is not modelled, so it is left out.',
+    ask: 'State the price in USD with its source and date.',
+  },
+  'unsupported-billing-structure': {
+    message: 'The billing structure cannot be represented by the meter model.',
+    ask: 'Price this component outside the estimate.',
+  },
+  'egress-flow-unknown': {
+    message: 'A connection crossing a region or zone has a transfer price but no traffic flow: the load is not stated. It is left out, not counted as zero.',
+    ask: 'State the current requests per second on at least one entry point (capacity.baseline_rps).',
+  },
+  'price-unsourced': {
+    message: 'Some prices have no source (provider, region, URL, retrieval date), so they cannot be audited.',
+    ask: 'Add a source to each meter: provider, service, region, currency, url and retrieved_at.',
+  },
+  'price-stale': {
+    message: 'Some prices were retrieved longer ago than the freshness limit.',
+    ask: 'Check the prices against the provider\'s current list and update retrieved_at.',
+  },
+  'price-age-unknown': {
+    message: 'Some prices carry a retrieval date, but no reference date was given to judge how old they are.',
+    ask: 'Pass a reference date (--as-of) to check freshness.',
+  },
+  'contradictory-input': {
+    message: 'Two stated values contradict each other.',
+    ask: 'Correct one of the values named.',
+  },
+  'rule-input-missing': {
+    message: 'A review rule could not be evaluated because an input it needs is not stated: no finding is not evidence that the design passes it.',
+    ask: 'State the inputs named so the rule can run.',
+  },
+  'provider-managed-redundancy': {
+    message: 'This is a provider-managed service whose redundancy the document does not state; it is not something the design can deploy differently.',
+    ask: 'Confirm the provider\'s availability commitment and state it as sla_percent and redundancy.',
+  },
+  'cost-estimate-incomplete': {
+    message: 'The cost estimate is not complete, so cost checks cover only the part that was priced.',
+    ask: 'Resolve the cost gaps listed in FinOps.',
+  },
+  'load-dependent-unevaluated': {
+    message: 'Load-dependent effects (saturation, queueing, retry pressure) were not evaluated because the load is not stated.',
+    ask: 'State the current requests per second on at least one entry point (capacity.baseline_rps).',
+  },
+});
+
+/** One reason entry. Extra fields (subjects, inputs) are kept as given. */
+function reason(code, extra = {}) {
+  const known = REASONS[code];
+  return { code, message: extra.message ?? known?.message ?? code, ask: extra.ask ?? known?.ask ?? null, ...Object.fromEntries(Object.entries(extra).filter(([key]) => key !== 'message' && key !== 'ask')) };
+}
+
+/**
+ * An assessment: the completeness record of one calculation.
+ * @param {string} status one of STATUSES
+ * @param {{ reasons?: object[], missing?: object[], assumptions?: object[], affects?: string[], evidence?: object[] }} parts
+ */
+function assessment(status, parts = {}) {
+  if (!STATUSES.includes(status)) throw new Error(`unknown status "${status}"`);
+  return {
+    status,
+    reasons: parts.reasons ?? [],
+    missing: parts.missing ?? [],
+    assumptions: parts.assumptions ?? [],
+    affects: parts.affects ?? [],
+    ...(parts.evidence ? { evidence: parts.evidence } : {}),
+  };
+}
+
+/**
+ * Combine part statuses into the status of the whole.
+ *  - not_applicable parts are ignored (all not_applicable: not_applicable);
+ *  - any invalid part makes the whole invalid;
+ *  - all complete: complete;
+ *  - some complete or partial: partial (a value exists, but not all of it);
+ *  - nothing computed: inconclusive if any part is, else unsupported, else unknown.
+ */
+function combineStatuses(statuses) {
+  const parts = statuses.filter((status) => status !== 'not_applicable');
+  if (parts.length === 0) return 'not_applicable';
+  if (parts.includes('invalid')) return 'invalid';
+  if (parts.every((status) => status === 'complete')) return 'complete';
+  if (parts.some((status) => status === 'complete' || status === 'partial')) return 'partial';
+  if (parts.includes('inconclusive')) return 'inconclusive';
+  if (parts.includes('unsupported')) return 'unsupported';
+  return 'unknown';
+}
+
+/**
+ * The status of a conclusion: essential parts decide whether a conclusion can be drawn at
+ * all; supporting parts only make it partial. A missing essential input never yields a
+ * complete or partial conclusion.
+ */
+function concludeStatus(essential, supporting = []) {
+  const needed = essential.filter((status) => status !== 'not_applicable');
+  if (needed.includes('invalid') || supporting.includes('invalid')) return 'invalid';
+  for (const status of ['unsupported', 'unknown', 'inconclusive']) {
+    if (needed.includes(status)) return status === 'unknown' ? 'inconclusive' : status;
+  }
+  const all = [...needed, ...supporting.filter((status) => status !== 'not_applicable')];
+  if (all.length === 0) return 'not_applicable';
+  return all.every((status) => status === 'complete') ? 'complete' : 'partial';
+}
+
+/** Merge assessments: combined status (or the given one), reasons de-duplicated by code and subject. */
+function mergeAssessments(list, status) {
+  const seen = new Set();
+  const reasons = [];
+  const missing = [];
+  const assumptions = [];
+  const affects = new Set();
+  for (const item of list) {
+    if (!item) continue;
+    for (const entry of item.reasons) {
+      const key = `${entry.code}|${JSON.stringify(entry.subjects ?? [])}`;
+      if (!seen.has(key)) { seen.add(key); reasons.push(entry); }
+    }
+    for (const entry of item.missing) if (!missing.some((m) => m.input === entry.input && m.subject === entry.subject)) missing.push(entry);
+    for (const entry of item.assumptions) if (!assumptions.some((a) => a.input === entry.input && a.subject === entry.subject)) assumptions.push(entry);
+    for (const field of item.affects) affects.add(field);
+  }
+  return assessment(status ?? combineStatuses(list.filter(Boolean).map((item) => item.status)), { reasons, missing, assumptions, affects: [...affects] });
+}
+
+/**
+ * Evidence confidence from the origins of the inputs a result rests on. Separate from
+ * completeness: a complete calculation over defaults is still low-confidence.
+ * Levels: high when at least 80% of inputs are authored, measured or imported; medium
+ * from 40%; otherwise low. No inputs at all: unknown.
+ */
+function confidenceOf(origins) {
+  const counts = Object.fromEntries(ORIGINS.map((origin) => [origin, 0]));
+  for (const origin of origins) counts[origin in counts ? origin : 'unknown'] += 1;
+  const total = origins.length;
+  // Derived values inherit the origin of what they were derived from, so callers pass the
+  // origins of the underlying inputs; a bare "derived" adds no evidence of its own.
+  const grounded = counts.authored + counts.measured + counts.imported;
+  const share = total ? grounded / total : null;
+  const level = share == null ? 'unknown' : share >= 0.8 ? 'high' : share >= 0.4 ? 'medium' : 'low';
+  return { level, grounded_share: share == null ? null : Math.round(share * 1000) / 1000, counts, inputs: total };
+}
+
+/** Status words for people, used by every renderer. */
+const STATUS_LABELS = Object.freeze({
+  complete: 'complete',
+  partial: 'partial',
+  inconclusive: 'inconclusive',
+  unknown: 'unknown',
+  unsupported: 'unsupported',
+  invalid: 'invalid',
+  not_applicable: 'not applicable',
+});
+    return { ORIGINS, STATUSES, isDefinitive, hasValue, REASONS, reason, assessment, combineStatuses, concludeStatus, mergeAssessments, confidenceOf, STATUS_LABELS };
+  })();
+  // ---- requirements.mjs
+  __modules["requirements.mjs"] = (function () {
+    'use strict';
+// Declarative requirements of every calculation the workbench performs.
+//
+// Each entry states, in one place, what a calculation needs, which defaults it may use,
+// its units, when it applies, how it behaves when an input is missing, and what its output
+// means. The engines (sim, cost, review) read this table to decide the status of their
+// results; renderers read it to explain a figure. No requirement lives in a renderer.
+//
+// An input key names a check in INPUTS. `when_missing` is the status the calculation takes
+// when a required input is absent; `essential_when` lists the run conditions under which
+// the calculation decides the conclusion (otherwise it only supports it).
+
+var { assessment, reason } = __modules["evidence.mjs"];
+
+/** Units used by workbench outputs, with the physical dimension each measures. */
+const UNITS = Object.freeze({
+  'requests/s': { dimension: 'rate', description: 'requests per second' },
+  'messages/s': { dimension: 'rate', description: 'messages per second' },
+  ms: { dimension: 'time', description: 'milliseconds' },
+  s: { dimension: 'time', description: 'seconds' },
+  percent: { dimension: 'share', description: 'percent, 0 to 100' },
+  ratio: { dimension: 'share', description: 'fraction, 0 to 1 (utilisation may exceed 1)' },
+  count: { dimension: 'count', description: 'a whole number' },
+  'USD/month': { dimension: 'money-rate', description: 'US dollars per month' },
+  'GB/month': { dimension: 'volume-rate', description: 'gigabytes per month' },
+});
+
+/** Inputs a calculation can require, each with a check over the model and run conditions. */
+const INPUTS = Object.freeze({
+  'topology.entrypoints': {
+    unit: null, subject: 'the design',
+    description: 'at least one entry component where requests arrive',
+    present: (model) => model.entrypoints.length > 0,
+    reasonCode: 'no-entry-point',
+  },
+  'entry.capacity.baseline_rps': {
+    unit: 'requests/s', subject: 'an entry component',
+    description: 'normal offered load on at least one entry component',
+    present: (model) => model.entrypoints.some((id) => model.nodes.find((n) => n.id === id)?.capacity.baseline_rps != null),
+    reasonCode: 'missing-baseline-load',
+  },
+});
+
+/**
+ * The calculations. `requires` must all be present; `defaults` lists inputs the
+ * calculation may take from role defaults (the result then records them as assumptions).
+ */
+const CALCULATIONS = Object.freeze({
+  'structure.propagation': {
+    title: 'Failure propagation over declared connections',
+    requires: [], optional: ['edge.call_semantics', 'edge.resilience.circuit_breaker_enabled', 'edge.resilience.fallback_edge_id', 'node.redundancy'],
+    defaults: ['edge.call_semantics (from the target role)', 'node.redundancy (from the role)'],
+    units: { state: null },
+    applies: 'always',
+    when_missing: 'unknown',
+    uncertainty: 'Deterministic over declared connections; a connection that is not drawn is not modelled.',
+    semantics: 'Which components fail or degrade, and through which connections, when the injected faults hold.',
+    outputs: ['nodes.*.state', 'edges.*.state', 'kpis.blast_radius.nodes', 'events'],
+  },
+  'availability.composite': {
+    title: 'Composite availability (requests answered)',
+    requires: ['topology.entrypoints'], optional: ['node.sla_percent', 'node.redundancy'],
+    defaults: ['node.sla_percent', 'node.redundancy'],
+    // Overload turns into errors, which this model does not derive: under a change in load
+    // with no baseline, availability is not repeated from the healthy state.
+    conditional: [{ when: 'load-scaled', requires: ['entry.capacity.baseline_rps'], status: 'inconclusive' }],
+    units: { composite_sla_percent: 'percent' },
+    applies: 'always',
+    when_missing: 'unknown',
+    uncertainty: 'Assumes independent failures; above 99.99% this assumption dominates and the figure is an upper bound.',
+    semantics: 'Share of requests that receive any answer, including degraded answers. It is not the share of successful business operations.',
+    outputs: ['kpis.composite_sla_percent'],
+  },
+  'latency.critical-path': {
+    title: 'Critical-path latency',
+    requires: ['topology.entrypoints'], optional: ['node.latency.p50_ms', 'node.latency.p99_ms', 'edge.resilience.timeout_ms'],
+    defaults: ['node.latency.p50_ms', 'node.latency.p99_ms'],
+    // Under a load change, queueing depends on load: without a baseline the figure cannot move.
+    conditional: [{ when: 'load-scaled', requires: ['entry.capacity.baseline_rps'], status: 'inconclusive' }],
+    units: { p50_ms: 'ms', p95_ms: 'ms', p99_ms: 'ms' },
+    applies: 'always',
+    when_missing: 'unknown',
+    uncertainty: 'Lognormal hops summed with the Fenton-Wilkinson method; queueing from M/M/1 utilisation when load is known.',
+    semantics: 'Latency percentiles of the slowest synchronous path from an entry point.',
+    outputs: ['kpis.critical_path'],
+  },
+  'traffic.load': {
+    title: 'Offered load, utilisation, saturation and queue lag',
+    requires: ['entry.capacity.baseline_rps'], optional: ['edge.traffic.request_multiplier', 'node.capacity.max_rps', 'node.capacity.autoscale_max'],
+    defaults: ['edge.traffic.request_multiplier = 1', 'node.capacity.max_rps', 'node.capacity.autoscale_max = autoscale_min'],
+    units: { load_rps: 'requests/s', utilisation: 'ratio', queue_lag_rps: 'messages/s', ingress_rps: 'requests/s', headroom: 'ratio' },
+    applies: 'always',
+    // Essential to any conclusion about a change in load: a surge with no baseline is inconclusive.
+    essential_when: ['load-scaled'],
+    conditional: [{ when: 'load-scaled', requires: ['entry.capacity.baseline_rps'], status: 'inconclusive' }],
+    // With no change in load, missing load only means the load figures are not reported.
+    when_missing: 'unknown',
+    uncertainty: 'Linear steady state; retries amplify load through a fixed-point iteration.',
+    semantics: 'Requests per second offered to each component and its share of capacity.',
+    outputs: ['nodes.*.load_rps', 'nodes.*.served_rps', 'nodes.*.utilisation', 'nodes.*.saturated', 'nodes.*.queue_lag_rps', 'edges.*.flow_rps', 'kpis.ingress_rps', 'kpis.headroom'],
+  },
+  'capacity.ceiling': {
+    title: 'Capacity ceiling of the request path',
+    requires: ['topology.entrypoints'], optional: ['node.capacity.max_rps', 'node.capacity.autoscale_max'],
+    defaults: ['node.capacity.max_rps', 'node.capacity.autoscale_max'],
+    units: { max_sustainable_rps: 'requests/s', async_drain_ceiling_rps: 'requests/s' },
+    applies: 'always',
+    when_missing: 'unknown',
+    uncertainty: 'Linear in entry load; the ceiling is only as good as the capacities it is computed from.',
+    semantics: 'The entry load at which the first synchronous component reaches its capacity. A ceiling, not evidence that any given load is safe. Asynchronous consumers are reported separately: they build a backlog, they do not refuse requests.',
+    outputs: ['kpis.max_sustainable_rps', 'kpis.limiting_node', 'kpis.async_drain_ceiling_rps'],
+  },
+  'traffic.ingress-loss': {
+    title: 'Entry traffic lost',
+    requires: ['topology.entrypoints'], optional: ['entry.capacity.baseline_rps'],
+    defaults: [],
+    // When load changes, loss depends on saturation: without load the share is not known.
+    conditional: [{ when: 'load-scaled', requires: ['entry.capacity.baseline_rps'], status: 'inconclusive' }],
+    units: { ingress_share: 'ratio' },
+    applies: 'always',
+    when_missing: 'unknown',
+    uncertainty: 'Counts traffic arriving at entry components that fail. Requests shed by saturated components downstream are not counted, so with saturation the figure is a lower bound.',
+    semantics: 'Share of entry traffic that is not answered because its entry component is failing.',
+    outputs: ['kpis.blast_radius.ingress_share'],
+  },
+  'cost.monthly': {
+    title: 'Monthly cost estimate',
+    requires: [], optional: ['node.finops.meters', 'node.finops.usage', 'entry.capacity.baseline_rps'],
+    defaults: [],
+    units: { monthly_total_usd: 'USD/month', subtotal_usd: 'USD/month' },
+    applies: 'when any component or connection carries a price',
+    when_missing: 'unknown',
+    uncertainty: 'Arithmetic over the stated meters only. Taxes, support, credits, negotiated discounts and currency conversion are outside the model.',
+    semantics: 'A total is given only when every priceable component is priced on every dimension its pricing model bills and every quantity is known. Otherwise a subtotal is given, labelled partial; it is a lower bound.',
+    outputs: ['cost.monthly_total_usd', 'cost.subtotal_usd'],
+  },
+});
+
+/**
+ * Check one calculation's requirements under given run conditions.
+ * @param {string} id key of CALCULATIONS
+ * @param {object} model from buildModel()
+ * @param {{ loadScaled?: boolean }} conditions
+ * @returns {object} an assessment (complete when every requirement is met)
+ */
+function checkCalculation(id, model, conditions = {}) {
+  const calculation = CALCULATIONS[id];
+  if (!calculation) throw new Error(`unknown calculation "${id}"`);
+  const required = [...calculation.requires];
+  let status = calculation.when_missing;
+  for (const rule of calculation.conditional ?? []) {
+    if (rule.when === 'load-scaled' && conditions.loadScaled) required.push(...rule.requires);
+  }
+  const missing = [];
+  const reasons = [];
+  for (const key of new Set(required)) {
+    const input = INPUTS[key];
+    if (input.present(model)) continue;
+    missing.push({ input: key, unit: input.unit, subject: input.subject, description: input.description });
+    if (!reasons.some((r) => r.code === input.reasonCode)) reasons.push(reason(input.reasonCode, { affects: calculation.outputs }));
+    const conditional = (calculation.conditional ?? []).find((rule) => rule.when === 'load-scaled' && conditions.loadScaled && rule.requires.includes(key));
+    if (conditional) status = conditional.status;
+  }
+  if (missing.length === 0) return assessment('complete', { affects: calculation.outputs });
+  return assessment(status, { reasons, missing, affects: calculation.outputs });
+}
+
+/** Whether a calculation decides the conclusion of a run under the given conditions. */
+function isEssential(id, conditions = {}) {
+  const calculation = CALCULATIONS[id];
+  return (calculation.essential_when ?? []).some((when) => when === 'load-scaled' && conditions.loadScaled);
+}
+    return { UNITS, INPUTS, CALCULATIONS, checkCalculation, isEssential };
+  })();
+  // ---- billing.mjs
+  __modules["billing.mjs"] = (function () {
+    'use strict';
+// Billing-dimension model for FinOps estimates. Provider-independent: it knows how cloud
+// services are billed in general (per request, per GB-second of memory, per vCPU-second,
+// per instance-hour, per GB-month stored, per operation, per GB transferred, flat), not
+// any provider's prices. Prices always come from the document, with their source.
+//
+// A meter is one billed dimension of one component:
+//   { id, dimension, unit, price | tiers, per, currency, free_allowance, quantity_basis, source }
+// Its monthly quantity is derived from the document's usage figures or the modelled load;
+// when that quantity cannot be derived the meter is left out with a reason, never zero.
+//
+// The legacy fields monthly_base_cost_usd, cost_per_million_requests_usd and
+// storage_gb + storage_cost_per_gb_usd are read through an adapter into the same meters.
+
+const SECONDS_PER_MONTH = 2_628_000; // 730 hours
+const HOURS_PER_MONTH = 730;
+const GIB_IN_GB = 1.073741824;
+/** A price whose retrieval date is older than this, against the reference date, is stale. */
+const PRICE_MAX_AGE_DAYS = 90;
+
+/**
+ * Billing dimensions. `units` maps each accepted unit to its size in the dimension's base
+ * unit (the first key). `quantity` says how the monthly quantity is obtained.
+ */
+const DIMENSIONS = Object.freeze({
+  requests: { units: { request: 1 }, quantity: 'requests per month: finops.usage.requests_per_month, else modelled load × seconds per month' },
+  'memory-seconds': { units: { 'GB-second': 1, 'GiB-second': GIB_IN_GB }, quantity: 'billed seconds × memory (finops.usage.memory_gb or memory_gib, else capacity.memory_gb)', basis: true },
+  'vcpu-seconds': { units: { 'vCPU-second': 1, 'vCPU-hour': 3600 }, quantity: 'billed seconds × vCPUs (finops.usage.vcpu, else capacity.cpu_cores)', basis: true },
+  'instance-hours': { units: { hour: 1, month: HOURS_PER_MONTH }, quantity: 'instances × 730 hours (finops.usage.instances, else the modelled instance count)' },
+  'storage-gb-month': { units: { 'GB-month': 1, 'GiB-month': GIB_IN_GB, 'TB-month': 1000 }, quantity: 'finops.usage.storage_gb' },
+  operations: { units: { operation: 1 }, quantity: 'finops.usage.operations_per_month' },
+  'data-transfer-gb': { units: { GB: 1, GiB: GIB_IN_GB, TB: 1000 }, quantity: 'finops.usage.transfer_gb_per_month' },
+  flat: { units: { month: 1 }, quantity: 'one per month' },
+  other: { units: {}, quantity: 'not modelled', unsupported: true },
+});
+
+/** How billed seconds are counted for memory and vCPU dimensions. */
+const QUANTITY_BASES = Object.freeze({
+  'request-duration': 'each request is billed for its own duration: requests × average duration',
+  'instance-time': 'instances are billed while serving: requests × average duration ÷ concurrency per instance',
+  provisioned: 'capacity is billed all month while it exists: instances × seconds per month',
+});
+
+/**
+ * Pricing models: the dimensions a service billed this way charges. Each entry of `bills`
+ * is a set of alternatives of which at least one must be priced.
+ */
+const PRICING_MODELS = Object.freeze({
+  'serverless-request': { bills: [['requests'], ['memory-seconds', 'vcpu-seconds']], optional: ['data-transfer-gb'], description: 'function-style: per request and per compute-second of each request' },
+  'serverless-instance': { bills: [['vcpu-seconds'], ['memory-seconds']], optional: ['requests', 'data-transfer-gb'], description: 'container-style: per vCPU- and memory-second while instances serve, often with a request fee' },
+  'provisioned-instance': { bills: [['instance-hours']], optional: ['storage-gb-month', 'data-transfer-gb'], description: 'per instance-hour for capacity that runs all month' },
+  'provisioned-with-storage': { bills: [['instance-hours'], ['storage-gb-month']], optional: ['operations', 'data-transfer-gb'], description: 'managed databases and similar: compute hours plus stored data' },
+  storage: { bills: [['storage-gb-month']], optional: ['operations', 'data-transfer-gb'], description: 'per GB-month stored, often with operation and transfer fees' },
+  'data-transfer': { bills: [['data-transfer-gb']], optional: [], description: 'per GB transferred' },
+  'flat-monthly': { bills: [['flat']], optional: [], description: 'a fixed monthly charge' },
+});
+
+const LEGACY_ID = { base: 'legacy-base', requests: 'legacy-requests', storage: 'legacy-storage' };
+
+/**
+ * Normalise a component's finops object into meters, usage and declarations.
+ * Pure; returns problems for the caller to report as diagnostics.
+ * @returns {{ meters: object[], usage: object, pricing_model: string|null, problems: object[], legacy: boolean }}
+ */
+function normaliseFinops(fin = {}) {
+  const meters = [];
+  const problems = [];
+  const legacy = fin.monthly_base_cost_usd != null || fin.cost_per_million_requests_usd != null || (fin.storage_gb != null && fin.storage_cost_per_gb_usd != null);
+  // Legacy fields: a monthly base for the minimum footprint (scaled with the instance count),
+  // a price per million requests, and storage size × price per GB-month. All USD, no source.
+  if (fin.monthly_base_cost_usd != null) meters.push({ id: LEGACY_ID.base, dimension: 'instance-months-legacy', unit: 'month', price: fin.monthly_base_cost_usd, per: 1, currency: 'USD', free_allowance: 0, tiers: null, quantity_basis: null, source: null, legacy: true });
+  if (fin.cost_per_million_requests_usd != null) meters.push({ id: LEGACY_ID.requests, dimension: 'requests', unit: 'request', price: fin.cost_per_million_requests_usd, per: 1_000_000, currency: 'USD', free_allowance: 0, tiers: null, quantity_basis: null, source: null, legacy: true });
+  if (fin.storage_gb != null && fin.storage_cost_per_gb_usd != null) meters.push({ id: LEGACY_ID.storage, dimension: 'storage-gb-month', unit: 'GB-month', price: fin.storage_cost_per_gb_usd, per: 1, currency: 'USD', free_allowance: 0, tiers: null, quantity_basis: null, source: null, legacy: true, legacy_quantity: fin.storage_gb });
+  else if ((fin.storage_gb != null) !== (fin.storage_cost_per_gb_usd != null)) {
+    problems.push({ code: 'workbench/finops-incomplete-pair', message: 'storage_gb and storage_cost_per_gb_usd must be given together.' });
+  }
+
+  (fin.meters || []).forEach((meter, index) => {
+    const id = meter.id ?? `meter-${index}`;
+    const dimension = DIMENSIONS[meter.dimension];
+    if (!dimension) { problems.push({ code: 'workbench/finops-unknown-dimension', message: `meter ${id}: unknown dimension "${meter.dimension}".` }); return; }
+    if (!dimension.unsupported && !(meter.unit in dimension.units)) {
+      problems.push({ code: 'workbench/finops-unit-mismatch', message: `meter ${id}: unit "${meter.unit}" does not measure ${meter.dimension} (expected one of ${Object.keys(dimension.units).join(', ')}).` });
+    }
+    if (meter.price == null && !meter.tiers?.length) problems.push({ code: 'workbench/finops-no-price', message: `meter ${id}: give price or tiers.` });
+    if (meter.price != null && meter.tiers?.length) problems.push({ code: 'workbench/finops-price-and-tiers', message: `meter ${id}: give price or tiers, not both.` });
+    if (meter.tiers?.length) {
+      const bounds = meter.tiers.map((tier) => tier.up_to);
+      const open = bounds.findIndex((bound) => bound == null);
+      if (open !== -1 && open !== bounds.length - 1) problems.push({ code: 'workbench/finops-tier-order', message: `meter ${id}: only the last tier may be open-ended.` });
+      const closed = bounds.filter((bound) => bound != null);
+      if (closed.some((bound, i) => i > 0 && bound <= closed[i - 1])) problems.push({ code: 'workbench/finops-tier-order', message: `meter ${id}: tier limits must increase.` });
+    }
+    if (dimension.basis && meter.quantity_basis == null) {
+      problems.push({ code: 'workbench/finops-basis-required', message: `meter ${id}: ${meter.dimension} needs quantity_basis (${Object.keys(QUANTITY_BASES).join(', ')}), because providers count billed seconds differently.` });
+    }
+    meters.push({
+      id, dimension: meter.dimension, unit: meter.unit ?? null, price: meter.price ?? null, per: meter.per ?? 1, currency: meter.currency,
+      free_allowance: meter.free_allowance ?? 0, tiers: meter.tiers ? meter.tiers.map((tier) => ({ up_to: tier.up_to ?? null, price: tier.price })) : null,
+      quantity_basis: meter.quantity_basis ?? null, source: meter.source ? { ...meter.source } : null, description: meter.description ?? null, legacy: false,
+    });
+  });
+
+  // The same dimension billed twice on one component would be counted twice.
+  const dims = meters.map((meter) => (meter.dimension === 'instance-months-legacy' ? 'instance-hours' : meter.dimension)).filter((d) => d !== 'other');
+  for (const dimension of new Set(dims.filter((d, i) => dims.indexOf(d) !== i))) {
+    problems.push({ code: 'workbench/finops-double-count', message: `${dimension} is billed by more than one meter (a legacy field and a meter, or two meters): it would be counted twice.` });
+  }
+  if (fin.usage?.memory_gb != null && fin.usage?.memory_gib != null) problems.push({ code: 'workbench/finops-memory-twice', message: 'usage states memory twice (memory_gb and memory_gib): give one.' });
+  if (fin.pricing_model != null && !PRICING_MODELS[fin.pricing_model]) problems.push({ code: 'workbench/finops-unknown-pricing-model', message: `unknown pricing_model "${fin.pricing_model}".` });
+  return { meters, usage: { ...(fin.usage || {}) }, pricing_model: fin.pricing_model ?? null, problems, legacy };
+}
+
+/** Billable cost of a quantity (in meter units) after the free allowance and tiers. */
+function meterCharge(meter, quantity) {
+  const billable = Math.max(0, quantity - (meter.free_allowance ?? 0));
+  if (!meter.tiers?.length) return { billable, cost: (billable / meter.per) * meter.price, steps: [{ units: billable, price: meter.price }] };
+  let remaining = billable; let from = 0; let cost = 0; const steps = [];
+  for (const tier of meter.tiers) {
+    if (remaining <= 0) break;
+    const size = tier.up_to == null ? remaining : Math.max(0, Math.min(remaining, tier.up_to - from));
+    if (size > 0) { cost += (size / meter.per) * tier.price; steps.push({ units: size, price: tier.price }); remaining -= size; }
+    from = tier.up_to ?? from;
+  }
+  // Beyond the last closed tier with no open tier: the rest has no stated price.
+  return { billable, cost, steps, unpriced_units: remaining > 0 ? remaining : 0 };
+}
+
+/** Freshness of a price source against a reference date (ISO yyyy-mm-dd), deterministic. */
+function freshness(source, asOf) {
+  if (!source?.retrieved_at) return 'undated';
+  if (!asOf) return 'unchecked';
+  const days = (Date.parse(asOf) - Date.parse(source.retrieved_at)) / 86_400_000;
+  if (!Number.isFinite(days)) return 'undated';
+  if (days < 0) return 'future';
+  return days > PRICE_MAX_AGE_DAYS ? 'stale' : 'current';
+}
+
+/** Whether a source carries enough to audit a price: provider, region, url and retrieval date. */
+function isSourced(source) {
+  return Boolean(source && source.provider && source.region && source.url && source.retrieved_at);
+}
+    return { SECONDS_PER_MONTH, HOURS_PER_MONTH, GIB_IN_GB, PRICE_MAX_AGE_DAYS, DIMENSIONS, QUANTITY_BASES, PRICING_MODELS, normaliseFinops, meterCharge, freshness, isSourced };
   })();
   // ---- model.mjs
   __modules["model.mjs"] = (function () {
@@ -117,10 +724,14 @@ function inferCallSemantics(targetRole) {
 // workbench. Pure and deterministic (no I/O, no clock, no randomness).
 //
 // Every operational value carries its basis in `basis`: "authored" when it came from the
-// document, "assumed" when it came from defaults.mjs or inference. Outputs built on the
-// model must surface that distinction; nothing assumed may be presented as measured.
+// document, "assumed" when it came from defaults.mjs or inference. `origin` refines it with
+// the evidence.mjs vocabulary: "authored", "default" (a documented planning default),
+// "inferred" (guessed from names, types or structure), "derived" or "unknown". Outputs
+// built on the model must surface that distinction; nothing assumed may be presented as
+// measured, and nothing unknown is replaced by zero, false or empty.
 
-var { EDGE_DEFAULTS, ROLE_DEFAULTS, inferCallSemantics, inferRole } = __modules["defaults.mjs"];
+var { EDGE_DEFAULTS, ROLE_DEFAULTS, inferCallSemantics, inferRole, inferManagedBy } = __modules["defaults.mjs"];
+var { normaliseFinops } = __modules["billing.mjs"];
 
 const MODEL_SCHEMA_VERSION = 1;
 const Z95 = 1.6448536269514722;
@@ -130,16 +741,22 @@ function has(object, key) {
   return object != null && Object.prototype.hasOwnProperty.call(object, key) && object[key] !== undefined && object[key] !== null;
 }
 
-/** Copy `value` (authored) or `fallback` (assumed) into target[key], recording the basis. */
-function pick(target, basis, path, authoredSource, key, fallback) {
+/**
+ * Copy `value` (authored) or `fallback` (assumed) into target[key], recording the basis and
+ * the origin. A missing value with no fallback stays null and its origin is "unknown".
+ */
+function pick(target, basis, path, authoredSource, key, fallback, origin, fallbackOrigin = 'default') {
   if (has(authoredSource, key)) {
     target[key] = authoredSource[key];
     basis[path] = 'authored';
+    if (origin) origin[path] = 'authored';
   } else if (fallback !== undefined && fallback !== null) {
     target[key] = fallback;
     basis[path] = 'assumed';
+    if (origin) origin[path] = fallbackOrigin;
   } else {
     target[key] = null;
+    if (origin) origin[path] = 'unknown';
   }
 }
 
@@ -208,53 +825,67 @@ function buildModel(document) {
   const nodes = components.map((component) => {
     const op = component.operational || {};
     const basis = {};
+    const origin = {};
     const node = { id: component.id, label: component.label, type: component.type, sublabel: component.sublabel ?? null };
-    if (has(op, 'role')) { node.role = op.role; basis.role = 'authored'; }
-    else { node.role = inferRole(component, { inbound: inbound.get(component.id) || 0, outbound: outbound.get(component.id) || 0 }); basis.role = 'assumed'; }
+    if (has(op, 'role')) { node.role = op.role; basis.role = 'authored'; origin.role = 'authored'; }
+    else { node.role = inferRole(component, { inbound: inbound.get(component.id) || 0, outbound: outbound.get(component.id) || 0 }); basis.role = 'assumed'; origin.role = 'inferred'; }
     // An external entry component stands for the people or systems that send traffic. It is an
     // actor, not infrastructure: it has no availability, capacity or latency of its own.
     node.actor = component.type === 'external' && node.role === 'ingress';
     const defaults = node.actor ? { sla_percent: null, max_rps: null, p50_ms: null, p99_ms: null, redundancy: null } : ROLE_DEFAULTS[node.role];
     node.c4_level = op.c4_level ?? null;
     node.drilldown_diagram_id = op.drilldown_diagram_id ?? null;
-    pick(node, basis, 'sla_percent', op, 'sla_percent', defaults.sla_percent);
-    pick(node, basis, 'redundancy', op, 'redundancy', defaults.redundancy);
+    // Who operates the component: a provider-managed service (an identity provider, a CDN,
+    // a third-party API) cannot be redeployed with different redundancy by this design.
+    if (has(op, 'managed_by')) { node.managed_by = op.managed_by; origin.managed_by = 'authored'; }
+    else { node.managed_by = node.actor ? null : inferManagedBy(node.role); origin.managed_by = node.managed_by ? 'inferred' : 'unknown'; }
+    // A role's default inherits the role's origin: a default for an inferred role is inferred.
+    const roleDefault = origin.role === 'inferred' ? 'inferred' : 'default';
+    pick(node, basis, 'sla_percent', op, 'sla_percent', defaults.sla_percent, origin, roleDefault);
+    pick(node, basis, 'redundancy', op, 'redundancy', defaults.redundancy, origin, roleDefault);
 
     const capacity = {}; const cap = op.capacity || {};
-    pick(capacity, basis, 'capacity.max_rps', cap, 'max_rps', defaults.max_rps);
-    pick(capacity, basis, 'capacity.baseline_rps', cap, 'baseline_rps', null);
-    for (const key of ['cpu_cores', 'memory_gb', 'scaling_lag_sec']) pick(capacity, basis, `capacity.${key}`, cap, key, null);
-    pick(capacity, basis, 'capacity.autoscale_min', cap, 'autoscale_min', node.actor ? null : 1);
-    pick(capacity, basis, 'capacity.autoscale_max', cap, 'autoscale_max', has(cap, 'autoscale_min') ? cap.autoscale_min : node.actor ? null : 1);
+    pick(capacity, basis, 'capacity.max_rps', cap, 'max_rps', defaults.max_rps, origin, roleDefault);
+    pick(capacity, basis, 'capacity.baseline_rps', cap, 'baseline_rps', null, origin);
+    for (const key of ['cpu_cores', 'memory_gb', 'scaling_lag_sec']) pick(capacity, basis, `capacity.${key}`, cap, key, null, origin);
+    pick(capacity, basis, 'capacity.autoscale_min', cap, 'autoscale_min', node.actor ? null : 1, origin);
+    pick(capacity, basis, 'capacity.autoscale_max', cap, 'autoscale_max', has(cap, 'autoscale_min') ? cap.autoscale_min : node.actor ? null : 1, origin, has(cap, 'autoscale_min') ? 'derived' : 'default');
     node.capacity = capacity;
 
     const latency = {}; const lat = op.latency || {};
-    pick(latency, basis, 'latency.p50_ms', lat, 'p50_ms', defaults.p50_ms);
-    pick(latency, basis, 'latency.p99_ms', lat, 'p99_ms', defaults.p99_ms);
-    if (has(lat, 'p95_ms')) { latency.p95_ms = lat.p95_ms; basis['latency.p95_ms'] = 'authored'; }
-    else if (latency.p50_ms != null && latency.p99_ms != null) { latency.p95_ms = round(lognormalP95(latency.p50_ms, latency.p99_ms)); basis['latency.p95_ms'] = 'assumed'; }
-    else latency.p95_ms = null;
+    pick(latency, basis, 'latency.p50_ms', lat, 'p50_ms', defaults.p50_ms, origin, roleDefault);
+    pick(latency, basis, 'latency.p99_ms', lat, 'p99_ms', defaults.p99_ms, origin, roleDefault);
+    if (has(lat, 'p95_ms')) { latency.p95_ms = lat.p95_ms; basis['latency.p95_ms'] = 'authored'; origin['latency.p95_ms'] = 'authored'; }
+    else if (latency.p50_ms != null && latency.p99_ms != null) { latency.p95_ms = round(lognormalP95(latency.p50_ms, latency.p99_ms)); basis['latency.p95_ms'] = 'assumed'; origin['latency.p95_ms'] = 'derived'; }
+    else { latency.p95_ms = null; origin['latency.p95_ms'] = 'unknown'; }
     node.latency = latency;
 
     const dr = {}; const drIn = op.dr || {};
-    for (const key of ['rpo_sec', 'rto_sec', 'backup_strategy']) pick(dr, basis, `dr.${key}`, drIn, key, null);
+    for (const key of ['rpo_sec', 'rto_sec', 'backup_strategy']) pick(dr, basis, `dr.${key}`, drIn, key, null, origin);
     node.dr = dr;
 
     const finops = {}; const fin = op.finops || {};
-    for (const key of ['cloud_provider', 'instance_tier', 'monthly_base_cost_usd', 'cost_per_million_requests_usd', 'storage_gb', 'storage_cost_per_gb_usd']) pick(finops, basis, `finops.${key}`, fin, key, null);
+    for (const key of ['cloud_provider', 'instance_tier', 'monthly_base_cost_usd', 'cost_per_million_requests_usd', 'storage_gb', 'storage_cost_per_gb_usd']) pick(finops, basis, `finops.${key}`, fin, key, null, origin);
+    const billing = normaliseFinops(fin);
+    finops.meters = billing.meters;
+    finops.usage = billing.usage;
+    finops.pricing_model = billing.pricing_model;
+    finops.legacy = billing.legacy;
+    for (const problem of billing.problems) report(problem.code, `${component.id}: ${problem.message}`, { node: component.id });
     node.finops = finops;
 
     const security = {}; const sec = op.security || {};
     const inheritedZone = (memberOf.get(component.id) || []).map((id) => boundaries.find((b) => b.id === id)).find((b) => b?.trust_zone)?.trust_zone ?? null;
-    pick(security, basis, 'security.trust_zone', sec, 'trust_zone', inheritedZone);
-    pick(security, basis, 'security.public_exposed', sec, 'public_exposed', ['ingress', 'cdn'].includes(node.role) ? true : null);
-    for (const key of ['auth_method', 'encryption_at_rest', 'encryption_in_transit']) pick(security, basis, `security.${key}`, sec, key, null);
+    pick(security, basis, 'security.trust_zone', sec, 'trust_zone', inheritedZone, origin, 'inferred');
+    pick(security, basis, 'security.public_exposed', sec, 'public_exposed', ['ingress', 'cdn'].includes(node.role) ? true : null, origin, 'inferred');
+    for (const key of ['auth_method', 'encryption_at_rest', 'encryption_in_transit']) pick(security, basis, `security.${key}`, sec, key, null, origin);
     security.compliance_tags = Array.isArray(sec.compliance_tags) ? [...sec.compliance_tags] : [];
-    if (sec.compliance_tags) basis['security.compliance_tags'] = 'authored';
+    if (sec.compliance_tags) { basis['security.compliance_tags'] = 'authored'; origin['security.compliance_tags'] = 'authored'; }
     node.security = security;
 
     node.boundaries = memberOf.get(component.id) || [];
     node.basis = basis;
+    node.origin = origin;
 
     if (latency.p50_ms != null && latency.p99_ms != null && (latency.p50_ms > latency.p99_ms || (latency.p95_ms != null && (latency.p95_ms < latency.p50_ms || latency.p95_ms > latency.p99_ms)))) {
       report('workbench/latency-order', `${component.id}: latency percentiles must satisfy p50 ≤ p95 ≤ p99.`, { node: component.id });
@@ -269,27 +900,30 @@ function buildModel(document) {
   const edges = connections.map((connection, index) => {
     const op = connection.operational || {};
     const basis = {};
+    const origin = {};
     const edge = { id: connection.id ?? `rel-${index}`, idAuthored: Boolean(connection.id), from: connection.from, to: connection.to, label: connection.label ?? null };
     const targetRole = nodeById.get(connection.to)?.role;
-    if (has(op, 'call_semantics')) { edge.call_semantics = op.call_semantics; basis.call_semantics = 'authored'; }
-    else { edge.call_semantics = inferCallSemantics(targetRole); basis.call_semantics = 'assumed'; }
+    if (has(op, 'call_semantics')) { edge.call_semantics = op.call_semantics; basis.call_semantics = 'authored'; origin.call_semantics = 'authored'; }
+    else { edge.call_semantics = inferCallSemantics(targetRole); basis.call_semantics = 'assumed'; origin.call_semantics = 'inferred'; }
     edge.protocol = op.protocol ?? null;
     if (edge.protocol) basis.protocol = 'authored';
 
     const resilience = {}; const res = op.resilience || {};
-    pick(resilience, basis, 'resilience.timeout_ms', res, 'timeout_ms', null);
-    pick(resilience, basis, 'resilience.retries', res, 'retries', EDGE_DEFAULTS.retries);
-    for (const key of ['backoff_strategy', 'jitter', 'circuit_breaker_threshold_pct', 'fallback_edge_id', 'dlq_node_id', 'idempotent']) pick(resilience, basis, `resilience.${key}`, res, key, null);
-    pick(resilience, basis, 'resilience.circuit_breaker_enabled', res, 'circuit_breaker_enabled', EDGE_DEFAULTS.circuit_breaker_enabled);
+    pick(resilience, basis, 'resilience.timeout_ms', res, 'timeout_ms', null, origin);
+    pick(resilience, basis, 'resilience.retries', res, 'retries', EDGE_DEFAULTS.retries, origin);
+    for (const key of ['backoff_strategy', 'jitter', 'circuit_breaker_threshold_pct', 'fallback_edge_id', 'dlq_node_id', 'idempotent']) pick(resilience, basis, `resilience.${key}`, res, key, null, origin);
+    pick(resilience, basis, 'resilience.circuit_breaker_enabled', res, 'circuit_breaker_enabled', EDGE_DEFAULTS.circuit_breaker_enabled, origin);
     edge.resilience = resilience;
 
     const traffic = {}; const tr = op.traffic || {};
-    pick(traffic, basis, 'traffic.request_multiplier', tr, 'request_multiplier', EDGE_DEFAULTS.request_multiplier);
-    pick(traffic, basis, 'traffic.payload_kb', tr, 'payload_kb', EDGE_DEFAULTS.payload_kb);
-    pick(traffic, basis, 'traffic.read_write_ratio', tr, 'read_write_ratio', EDGE_DEFAULTS.read_write_ratio);
-    pick(traffic, basis, 'traffic.egress_cost_per_gb_usd', tr, 'egress_cost_per_gb_usd', null);
+    pick(traffic, basis, 'traffic.request_multiplier', tr, 'request_multiplier', EDGE_DEFAULTS.request_multiplier, origin);
+    pick(traffic, basis, 'traffic.payload_kb', tr, 'payload_kb', EDGE_DEFAULTS.payload_kb, origin);
+    pick(traffic, basis, 'traffic.read_write_ratio', tr, 'read_write_ratio', EDGE_DEFAULTS.read_write_ratio, origin);
+    pick(traffic, basis, 'traffic.egress_cost_per_gb_usd', tr, 'egress_cost_per_gb_usd', null, origin);
+    traffic.egress_price_source = tr.egress_price_source ? { ...tr.egress_price_source } : null;
     edge.traffic = traffic;
     edge.basis = basis;
+    edge.origin = origin;
     return edge;
   });
   const edgeById = new Map(edges.filter((edge) => edge.idAuthored).map((edge) => [edge.id, edge]));
@@ -352,12 +986,23 @@ function buildModel(document) {
   const authoredEntrypoints = workbench.entrypoints?.length ? workbench.entrypoints.filter((id) => nodeById.has(id)) : [];
   const fallbackEntrypoints = authoredEntrypoints.length ? authoredEntrypoints : inferredEntrypoints;
 
+  // A stated baseline load on a component that is not an entry point is not used by the
+  // model: say so instead of dropping it silently.
+  for (const node of nodes) {
+    if (node.capacity.baseline_rps != null && !fallbackEntrypoints.includes(node.id)) {
+      report('workbench/baseline-not-on-entry', `${node.id}: capacity.baseline_rps is stated, but ${node.id} is not an entry point, so the model does not use it. Put the load on an entry component or list ${node.id} in workbench.entrypoints.`, { node: node.id }, 'warning');
+    }
+  }
+
   const model = {
     schemaVersion: MODEL_SCHEMA_VERSION,
     title: document.meta?.title ?? '',
     authored,
     entrypoints: fallbackEntrypoints,
     entrypointsBasis: workbench.entrypoints?.length ? 'authored' : 'assumed',
+    entrypointsOrigin: workbench.entrypoints?.length ? 'authored' : fallbackEntrypoints.length ? 'inferred' : 'unknown',
+    display: displayNames(nodes),
+    as_of: workbench.as_of ?? null,
     nodes,
     edges,
     boundaries,
@@ -368,6 +1013,19 @@ function buildModel(document) {
     drilldowns: (workbench.drilldowns || []).map(({ id, title }) => ({ id, title: title ?? id })),
   };
   return { model, diagnostics };
+}
+
+/**
+ * A unique name per component for scenario targets, findings and results. Components that
+ * share a label are told apart by their description, then by their id: "Aurora" twice
+ * becomes "Aurora (Menus and orders)" and "Aurora (Delivery assignments)".
+ */
+function displayNames(nodes) {
+  const count = (values) => values.reduce((map, value) => map.set(value, (map.get(value) || 0) + 1), new Map());
+  const labels = count(nodes.map((node) => node.label));
+  const names = nodes.map((node) => (labels.get(node.label) > 1 ? `${node.label} (${node.sublabel || node.id})` : node.label));
+  const again = count(names);
+  return Object.fromEntries(nodes.map((node, index) => [node.id, again.get(names[index]) > 1 ? `${node.label} (${node.id})` : names[index]]));
 }
 
 /** Apply one named alternative's overrides to a document (returns a new document). */
@@ -389,7 +1047,7 @@ function applyAlternative(document, alternativeId) {
     connections: (document.connections || []).map((c) => (c.id && connectionPatches.has(c.id) ? { ...c, operational: merge(c.operational, connectionPatches.get(c.id)) } : c)),
   };
 }
-    return { MODEL_SCHEMA_VERSION, lognormalP95, buildModel, applyAlternative };
+    return { MODEL_SCHEMA_VERSION, lognormalP95, buildModel, displayNames, applyAlternative };
   })();
   // ---- sim.mjs
   __modules["sim.mjs"] = (function () {
@@ -401,6 +1059,14 @@ function applyAlternative(document, alternativeId) {
 // treats failures as independent, and uses whatever values the model carries, authored
 // or assumed. Every result therefore states how many of its inputs were assumed.
 // No randomness, no clock, no I/O: the same model and inputs always give the same output.
+//
+// Every result carries its completeness (evidence.mjs): `status`, and one assessment per
+// calculation in `assessments`. A figure that could not be calculated is null with a
+// reason, never zero, false or "healthy". In particular a change in load with no stated
+// baseline load is inconclusive: there is nothing to multiply.
+
+var { assessment, reason, concludeStatus, mergeAssessments, confidenceOf } = __modules["evidence.mjs"];
+var { checkCalculation, isEssential } = __modules["requirements.mjs"];
 
 // "No limit". Spelled this way because a rendered page inlines this module, and the
 // artifact checks reject any page that contains the bare non-finite number names.
@@ -411,7 +1077,7 @@ const INDEPENDENCE_NOTE_FROM = 0.9999;
 const INDEPENDENCE_NOTE = 'Availability this high depends on the assumption that components fail independently. Shared software, configuration and provider-wide incidents are not modelled and usually set the real limit.';
 
 const FAULT_STATES = Object.freeze(['healthy', 'degraded', 'brownout', 'down', 'partitioned', 'surge']);
-const SIM_SCHEMA_VERSION = 1;
+const SIM_SCHEMA_VERSION = 2;
 
 const SYNC = 'sync-blocking';
 const ASYNC = new Set(['async-queue', 'async-pubsub', 'event-stream']);
@@ -475,7 +1141,12 @@ function normaliseFaults(faults = {}) {
     for (const state of Object.values(table)) if (!FAULT_STATES.includes(state)) throw new Error(`unknown fault state "${state}"`);
     return table;
   };
-  return { nodes: check(faults.nodes), edges: check(faults.edges), boundaries: check(faults.boundaries) };
+  // `zone: 'down'` loses one availability zone without naming it: every component keeps
+  // the units its redundancy places elsewhere. Used when the diagram draws no zone boundary.
+  if (faults.zone != null && faults.zone !== 'down' && faults.zone !== 'healthy') throw new Error(`zone fault must be "down", got "${faults.zone}"`);
+  const out = { nodes: check(faults.nodes), edges: check(faults.edges), boundaries: check(faults.boundaries) };
+  if (faults.zone === 'down') out.zone = 'down';
+  return out;
 }
 
 function survivesBoundary(node, boundary) {
@@ -486,10 +1157,59 @@ function survivesBoundary(node, boundary) {
 
 /**
  * Run the model.
+ *
+ * When a zone is lost without the diagram saying which components run in it, the outcome
+ * depends on an unstated fact. The model then runs twice, with every single-unit component
+ * inside the lost zone (worst case, the result returned) and outside it (best case), and
+ * reports both in `bounds`. If the two differ the result is inconclusive.
  * @param {object} model from buildModel()
  * @param {{ multiplier?: number, cacheHit?: number, faults?: object }} inputs
  */
-function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {}) {
+function simulate(model, inputs = {}) {
+  const worst = simulateCase(model, inputs, 'worst');
+  if (worst.inputs.faults.zone !== 'down') return worst;
+  const best = simulateCase(model, inputs, 'best');
+  const outline = (r) => ({
+    affected: r.kpis.blast_radius.nodes,
+    failing: r.kpis.blast_radius.nodes.filter((id) => r.nodes[id].state === 'failing'),
+    ingress_share: r.kpis.blast_radius.ingress_share ?? r.kpis.blast_radius.ingress_share_floor,
+    composite_sla_percent: r.kpis.composite_sla_percent,
+    critical_path_p99_ms: r.kpis.critical_path?.p99_ms ?? null,
+    max_sustainable_rps: r.kpis.max_sustainable_rps,
+  });
+  const bounds = { worst: outline(worst), best: outline(best) };
+  const same = JSON.stringify(bounds.worst) === JSON.stringify(bounds.best);
+  worst.bounds = { ...bounds, agree: same };
+  if (!same) {
+    const subjects = worst.assessments.structure.assumptions.filter((a) => a.input === 'placement').map((a) => a.subject);
+    const gap = assessment('inconclusive', {
+      reasons: [reason('placement-unknown', { subjects })],
+      missing: subjects.map((id) => ({ input: 'placement or redundancy', unit: null, subject: id, description: 'the zone this component runs in, or its redundancy' })),
+      affects: ['nodes.*.state', 'kpis.blast_radius', 'kpis.composite_sla_percent'],
+    });
+    // Every figure that depends on which components fail is unsettled: the values in this
+    // result are the worst case and must not be shown as the outcome.
+    for (const key of ['structure', 'blast_radius', 'availability', 'latency', 'capacity', 'ingress_loss']) {
+      worst.assessments[key] = mergeAssessments([worst.assessments[key], gap], 'inconclusive');
+    }
+    // The outcome figures are not known: they are held in `bounds`, per case, and are null
+    // here so that no output can print the worst case as the result. Component states stay
+    // as the worst case, for the diagram, and `case` says so.
+    worst.case = 'worst';
+    worst.kpis.composite_sla_percent = null;
+    if (worst.kpis.critical_path) worst.kpis.critical_path = { nodes: worst.kpis.critical_path.nodes, p50_ms: null, p95_ms: null, p99_ms: null };
+    worst.kpis.max_sustainable_rps = null; worst.kpis.limiting_node = null; worst.kpis.headroom = null;
+    worst.kpis.blast_radius.ingress_share = null;
+    worst.kpis.blast_radius.ingress_share_floor = bounds.best.ingress_share;
+    worst.kpis.blast_radius.ingress_share_is_floor = true;
+    worst.kpis.blast_radius.status = 'inconclusive';
+    worst.status = 'inconclusive';
+    worst.reasons = mergeAssessments(Object.values(worst.assessments)).reasons;
+  }
+  return worst;
+}
+
+function simulateCase(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {}, placement = 'worst') {
   if (!(multiplier > 0)) throw new Error('multiplier must be greater than 0');
   if (!(cacheHit >= 0 && cacheHit <= 0.99)) throw new Error('cacheHit must be between 0 and 0.99');
   const faults = normaliseFaults(rawFaults);
@@ -535,6 +1255,27 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
     }
     events.push({ type: 'blackout', boundary: boundary.id, state });
   }
+  // One availability zone lost, with no zone drawn. A component with units in more than one
+  // zone keeps the others. A component with a single unit (or a primary with a standby) is
+  // lost only if it runs in that zone, which the document does not say: `placement` picks
+  // the case, and the assumption is recorded so the result can state the range.
+  const structureAssumptions = [];
+  if (faults.zone === 'down') {
+    for (const node of nodes) {
+      if (node.actor) continue;
+      const entry = info.get(node.id);
+      if (entry.fault === 'down') continue;
+      if (node.redundancy === 'multi-az' || node.redundancy === 'active-active-multi-region') {
+        entry.unitsLost = Math.min(redundantUnits(node) - 1, entry.unitsLost + 1);
+        entry.cause.push(`lost one of ${redundantUnits(node)} units with the zone`);
+        if (node.origin.redundancy !== 'authored') structureAssumptions.push({ input: 'redundancy', subject: node.id, value: node.redundancy, origin: node.origin.redundancy });
+      } else {
+        structureAssumptions.push({ input: 'placement', subject: node.id, value: placement === 'worst' ? 'in the lost zone' : 'outside the lost zone', origin: 'unknown', managed_by: node.managed_by });
+        if (placement === 'worst') { entry.fault = 'down'; entry.zoneLost = true; }
+      }
+    }
+    events.push({ type: 'zone-loss', placement });
+  }
   // A partitioned node is up but unreachable: cut every incident edge.
   for (const node of nodes) if (info.get(node.id).fault === 'partitioned') for (const edge of edges) if (edge.from === node.id || edge.to === node.id) cutEdges.add(edge.id);
 
@@ -548,7 +1289,7 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
       entry.cause.push('running on the disaster-recovery replica');
     } else if (entry.fault === 'down' || entry.fault === 'partitioned') {
       state.set(node.id, 'failing');
-      entry.cause.push(`injected fault: ${entry.fault}`);
+      entry.cause.push(entry.zoneLost ? 'runs as one unit; assumed to be in the lost zone (worst case)' : `injected fault: ${entry.fault}`);
     } else if (entry.fault === 'degraded' || entry.fault === 'brownout' || entry.unitsLost > 0) {
       state.set(node.id, 'degraded');
       if (entry.fault) entry.cause.push(`injected fault: ${entry.fault}`);
@@ -630,7 +1371,14 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
   // ---- 4. Offered load, served load, flows, retry amplification ----------------------
   const baselines = entries.map((id) => nodeById.get(id).capacity.baseline_rps);
   const loadKnown = baselines.some((value) => value != null);
-  if (!loadKnown) warnings.push('No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.');
+  // What the run asks: a change in load makes the load calculation essential to any conclusion.
+  const conditions = { loadScaled: multiplier !== 1 };
+  const loadMissing = conditions.loadScaled && !loadKnown;
+  if (!loadKnown) {
+    warnings.push(loadMissing
+      ? `No entry component has baseline_rps, so ${multiplier}x load has nothing to multiply: this run is inconclusive. Loads, utilisation, saturation, traffic lost and latency under load were not calculated. The capacity ceiling is still reported; it is not evidence that ${multiplier}x is safe.`
+      : 'No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.');
+  }
   // Without authored load, propagate one unit of ingress split equally so limits can still be derived.
   const entryLoad = new Map(entries.map((id, index) => [id, loadKnown ? (baselines[index] ?? 0) * multiplier : 1 / entries.length]));
   const totalIngress = [...entryLoad.values()].reduce((sum, value) => sum + value, 0);
@@ -715,18 +1463,33 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
   const live = run(entryLoad, loadKnown);
 
   // Capacity limit: the model is linear in ingress, so scale unit gains without clipping.
+  // Components reached only through a queue or stream do not refuse requests when they
+  // fall behind: they build a backlog. They are reported as a separate drain ceiling, so a
+  // slow background consumer is not shown as the limit of the request path.
   const unit = loadKnown ? run(new Map(entries.map((id, index) => [id, (baselines[index] ?? 0)])), false) : live;
   const unitIngress = loadKnown ? baselines.reduce((sum, value) => sum + (value ?? 0), 0) : 1;
-  let maxSustainable = null; let limitingNode = null;
+  const syncReach = new Set();
+  {
+    const stack = [...entries];
+    while (stack.length) {
+      const id = stack.pop();
+      if (syncReach.has(id)) continue;
+      syncReach.add(id);
+      for (const edge of outgoing.get(id)) if (carriesTraffic(edge) && !backEdges.has(edge.id) && !ASYNC.has(edge.call_semantics)) stack.push(edge.to);
+    }
+  }
+  let maxSustainable = null; let limitingNode = null; let asyncCeiling = null; let asyncLimitingNode = null;
   if (entries.length && unitIngress > 0) {
-    maxSustainable = UNBOUNDED;
+    maxSustainable = UNBOUNDED; asyncCeiling = UNBOUNDED;
     for (const node of nodes) {
       const gain = unit.offered.get(node.id) / unitIngress;
       if (!(gain > 0)) continue;
       const limit = capacityOf(node) / gain;
-      if (limit < maxSustainable) { maxSustainable = limit; limitingNode = node.id; }
+      if (syncReach.has(node.id)) { if (limit < maxSustainable) { maxSustainable = limit; limitingNode = node.id; } }
+      else if (limit < asyncCeiling) { asyncCeiling = limit; asyncLimitingNode = node.id; }
     }
-    if (!Number.isFinite(maxSustainable)) maxSustainable = null;
+    if (!Number.isFinite(maxSustainable)) { maxSustainable = null; limitingNode = null; }
+    if (!Number.isFinite(asyncCeiling)) { asyncCeiling = null; asyncLimitingNode = null; }
     if (entries.some((id) => state.get(id) === 'failing')) { maxSustainable = 0; }
   }
 
@@ -767,7 +1530,8 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
     entrySla.set(entry, value);
   }
   const compositeSla = entries.length ? Math.min(...entrySla.values()) : null;
-  if (compositeSla != null && compositeSla >= INDEPENDENCE_NOTE_FROM && compositeSla < 1) warnings.push(INDEPENDENCE_NOTE);
+  const independenceDominates = compositeSla != null && compositeSla >= INDEPENDENCE_NOTE_FROM && compositeSla < 1;
+  if (independenceDominates && !loadMissing) warnings.push(INDEPENDENCE_NOTE);
 
   // ---- 6. Latency --------------------------------------------------------------------
   const hopFor = (node) => {
@@ -824,7 +1588,8 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
     const load = loadKnown ? live.offered.get(node.id) : null;
     const utilisation = load != null && capacity > 0 ? load / capacity : load != null && load > 0 ? UNBOUNDED : null;
     const entry = info.get(node.id);
-    const saturated = utilisation != null && utilisation >= 1 && state.get(node.id) !== 'failing';
+    // Without a load, whether the component saturates is unknown (null), not false.
+    const saturated = load == null ? null : utilisation != null && utilisation >= 1 && state.get(node.id) !== 'failing';
     const failover = entry.failover ? {
       rto_sec: entry.failover.rto_sec, rpo_sec: entry.failover.rpo_sec,
       writes_at_risk: entry.failover.rpo_sec != null && load != null
@@ -864,28 +1629,180 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
   }
   const affected = nodes.filter((n) => nodeResults[n.id].state !== 'ok').map((n) => n.id);
   const failingIngress = entries.filter((id) => state.get(id) === 'failing').reduce((sum, id) => sum + entryLoad.get(id), 0);
-  const order_ = { blackout: 0, partition: 1, 'dr-failover': 2, fallback: 3, saturation: 4, 'queue-lag': 5, 'retry-storm': 6, 'timeout-inversion': 7 };
+
+  // ---- 8. Completeness: what was calculated, what was not, and why ------------------------
+  const name = (id) => model.display?.[id] ?? nodeById.get(id)?.label ?? id;
+  const anySaturated = nodes.some((n) => nodeResults[n.id].saturated === true);
+  const failingEntries = entries.filter((id) => state.get(id) === 'failing');
+  const structuralShare = entries.length && totalIngress > 0 ? round(failingIngress / totalIngress, 4) : null;
+  const assumedInputsList = [];
+  for (const node of nodes) {
+    if (node.actor) continue;
+    for (const key of ['role', 'sla_percent', 'redundancy', 'capacity.max_rps', 'latency.p50_ms', 'latency.p99_ms']) {
+      if (node.origin[key] && node.origin[key] !== 'authored') assumedInputsList.push({ input: key, subject: node.id, origin: node.origin[key] });
+    }
+  }
+
+  const structure = checkCalculation('structure.propagation', model, conditions);
+  structure.assumptions.push(...structureAssumptions);
+  if (!entries.length) { structure.status = 'unknown'; structure.reasons.push(reason('no-entry-point')); }
+  else if (model.entrypointsOrigin === 'inferred') structure.assumptions.push({ input: 'entrypoints', subject: 'design', value: entries, origin: 'inferred' });
+  if (backEdges.size) structure.reasons.push(reason('cycle-excluded', { subjects: [...backEdges].sort() }));
+
+  const traffic = checkCalculation('traffic.load', model, conditions);
+  const capacityCheck = checkCalculation('capacity.ceiling', model, conditions);
+  if (capacityCheck.status === 'complete' && maxSustainable == null) capacityCheck.status = 'unknown';
+
+  const availabilityCheck = checkCalculation('availability.composite', model, conditions);
+  // Requests are still answered while a component they call is failing, because a caller
+  // contained the failure: a circuit breaker fails fast, or a queue holds the work. The
+  // answers then lack whatever needed that component. A failure covered by a fallback route
+  // is different: the fallback serves the request in full.
+  const containedTargets = [...new Set(edges
+    .filter((edge) => blocked(edge) && !activeFallback.has(edge.id) && state.get(edge.from) !== 'failing'
+      && ((edge.call_semantics === SYNC && edge.resilience.circuit_breaker_enabled) || ASYNC.has(edge.call_semantics)))
+    .map((edge) => edge.to))].sort();
+  const answering = compositeSla != null && compositeSla > 0;
+  if (availabilityCheck.status === 'complete') {
+    if (answering && containedTargets.length) {
+      availabilityCheck.status = 'partial';
+      availabilityCheck.reasons.push(reason('answered-includes-degraded', { subjects: containedTargets }));
+    }
+    if (anySaturated) { availabilityCheck.status = 'partial'; availabilityCheck.reasons.push(reason('load-shedding-not-included', { subjects: nodes.filter((n) => nodeResults[n.id].saturated).map((n) => n.id) })); }
+    if (independenceDominates) availabilityCheck.reasons.push(reason('independence-assumption'));
+    // With no load stated, errors from overload are not in the figure: it is an upper bound.
+    if (!loadKnown && answering) {
+      availabilityCheck.status = 'partial';
+      availabilityCheck.reasons.push(reason('load-dependent-unevaluated', { message: 'Availability does not include errors from overload because the load is not stated.' }));
+    }
+  }
+
+  const latencyCheck = checkCalculation('latency.critical-path', model, conditions);
+  if (latencyCheck.status === 'complete' && unknownTimeout) { latencyCheck.status = 'partial'; latencyCheck.reasons.push(reason('missing-timeout')); }
+  // Without a load there is no queueing in the figure: it is the latency of an idle path,
+  // a lower bound on latency under any real load.
+  if (latencyCheck.status !== 'inconclusive' && latencyCheck.status !== 'unknown' && !loadKnown) {
+    latencyCheck.status = 'partial';
+    latencyCheck.reasons.push(reason('load-dependent-unevaluated', { message: 'Latency is given without queueing because the load is not stated: it is a lower bound on latency under load.' }));
+  }
+
+  const ingressLoss = checkCalculation('traffic.ingress-loss', model, conditions);
+  // When every entry fails, all traffic is lost whatever the load. Otherwise the share is
+  // what the failing entries carry, and more may be lost to overload downstream: a lower
+  // bound when a component saturates, or when the load is not stated at all.
+  if (ingressLoss.status === 'complete' && structuralShare != null && structuralShare < 1) {
+    if (anySaturated) { ingressLoss.status = 'partial'; ingressLoss.reasons.push(reason('load-shedding-not-included')); }
+    else if (!loadKnown) {
+      ingressLoss.status = 'partial';
+      ingressLoss.reasons.push(reason('load-dependent-unevaluated', { message: 'Traffic lost to overload was not evaluated because the load is not stated: the share lost is a lower bound.' }));
+      if (entries.length > 1 && failingEntries.length > 0) {
+        ingressLoss.assumptions.push({ input: 'entry load split', subject: 'entry components', value: 'equal', origin: 'default' });
+        ingressLoss.reasons.push(reason('missing-baseline-load', { message: 'Entry loads are not stated, so traffic is assumed to split equally between entry points.' }));
+      }
+    }
+  }
+  // Which components are affected: structure decides who fails; load decides who saturates.
+  const blastRadius = mergeAssessments([structure, traffic], concludeStatus(
+    [structure.status, ...(isEssential('traffic.load', conditions) ? [traffic.status] : [])],
+    [traffic.status === 'complete' ? 'complete' : 'partial'],
+  ));
+  if (traffic.status !== 'complete' && !loadMissing) blastRadius.reasons.push(reason('load-dependent-unevaluated'));
+
+  const assessments = { structure, traffic, capacity: capacityCheck, availability: availabilityCheck, latency: latencyCheck, ingress_loss: ingressLoss, blast_radius: blastRadius };
+  const essential = [structure.status, ...(isEssential('traffic.load', conditions) ? [traffic.status] : [])];
+  const status = concludeStatus(essential, [traffic.status === 'unknown' ? 'partial' : traffic.status, capacityCheck.status, availabilityCheck.status, latencyCheck.status, ingressLoss.status]);
+  // Evidence confidence: the origins of the inputs the figures rest on, including how each
+  // connection is called (a blocking call inferred from a label shapes every result).
+  const confidence = confidenceOf([
+    ...nodes.filter((n) => !n.actor).flatMap((n) => ['role', 'sla_percent', 'redundancy', 'capacity.max_rps', 'latency.p50_ms', 'latency.p99_ms'].map((key) => n.origin[key] ?? 'unknown')),
+    ...edges.map((e) => e.origin.call_semantics ?? 'unknown'),
+  ]);
+
+  // Journeys: the authored request traces, each served, degraded or failed under these
+  // conditions. An answered request is not a completed operation.
+  const journeys = (model.traces || []).filter((trace) => trace.kind !== 'failover').map((trace) => {
+    let outcome = 'served'; let blockedAt = null;
+    for (const step of trace.steps) {
+      const edge = edgeById.get(step.edge);
+      if (!edge) continue;
+      const bad = cutEdges.has(edge.id) || state.get(edge.to) === 'failing' || state.get(edge.from) === 'failing';
+      if (bad && !activeFallback.has(edge.id)) { outcome = 'failed'; blockedAt = state.get(edge.from) === 'failing' ? edge.from : edge.to; break; }
+      if (state.get(edge.to) === 'degraded' || state.get(edge.from) === 'degraded' || activeFallback.has(edge.id)) outcome = 'degraded';
+    }
+    return { id: trace.id, title: trace.title, status: outcome, blocked_at: blockedAt };
+  });
+
+  // Where each headline figure comes from: the calculation, its equation and its inputs.
+  const inputOf = (id, key, value) => ({ subject: id, input: key, value, origin: nodeById.get(id).origin[key] ?? 'unknown' });
+  const worstEntry = entries.length ? [...entrySla].sort((a, b) => (a[1] - b[1]) || (a[0] < b[0] ? -1 : 1))[0][0] : null;
+  const trace = {
+    composite_sla_percent: {
+      calculation: 'availability.composite',
+      equation: 'min over entry points of the product of availability of every component the entry needs through blocking calls; availability of a component = 1 - (1 - unit availability) ^ redundant units',
+      inputs: worstEntry ? [...hardSet(worstEntry)].sort().filter((id) => !nodeById.get(id).actor).flatMap((id) => [inputOf(id, 'sla_percent', nodeById.get(id).sla_percent), inputOf(id, 'redundancy', nodeById.get(id).redundancy)]) : [],
+    },
+    critical_path: {
+      calculation: 'latency.critical-path',
+      equation: 'lognormal hops along the slowest blocking path, summed with the Fenton-Wilkinson method; each hop is scaled by 1 / (1 - utilisation) when load is known',
+      inputs: critical ? critical.path.filter((id) => nodeById.has(id) && !nodeById.get(id).actor).flatMap((id) => [inputOf(id, 'latency.p50_ms', nodeById.get(id).latency.p50_ms), inputOf(id, 'latency.p99_ms', nodeById.get(id).latency.p99_ms)]) : [],
+    },
+    max_sustainable_rps: {
+      calculation: 'capacity.ceiling',
+      equation: 'min over components on the blocking request path of capacity / (load on the component per unit of entry load); capacity = max_rps × autoscale_max',
+      inputs: limitingNode ? [inputOf(limitingNode, 'capacity.max_rps', nodeById.get(limitingNode).capacity.max_rps), inputOf(limitingNode, 'capacity.autoscale_max', nodeById.get(limitingNode).capacity.autoscale_max)] : [],
+    },
+    ingress_rps: {
+      calculation: 'traffic.load',
+      equation: 'sum over entry points of baseline_rps × multiplier',
+      inputs: entries.map((id) => inputOf(id, 'capacity.baseline_rps', nodeById.get(id).capacity.baseline_rps)),
+    },
+  };
+  const order_ = { blackout: 0, 'zone-loss': 0, partition: 1, 'dr-failover': 2, fallback: 3, saturation: 4, 'queue-lag': 5, 'retry-storm': 6, 'timeout-inversion': 7 };
   events.sort((a, b) => (order_[a.type] - order_[b.type]) || JSON.stringify(a).localeCompare(JSON.stringify(b)));
 
+  const all = mergeAssessments(Object.values(assessments), status);
   return {
     schemaVersion: SIM_SCHEMA_VERSION,
     kind: 'analytical-model',
+    // The completeness of this run as a whole. Anything but "complete" means the figures
+    // below must not be presented as a definitive result: see `reasons` and `assessments`.
+    status,
+    reasons: all.reasons,
+    missing: all.missing,
     inputs: { multiplier, cacheHit, faults },
     kpis: {
       // A share below 1 is never reported as 100%: rounding must not turn "almost always" into "always".
-      composite_sla_percent: compositeSla == null ? null : (compositeSla < 1 ? Math.min(99.99999, round(compositeSla * 100, 5)) : 100),
-      critical_path: criticalPath,
+      // Under a change in load with no baseline, nothing about the outcome was calculated:
+      // availability and latency are null rather than repeated from the healthy state.
+      composite_sla_percent: compositeSla == null || loadMissing ? null : (compositeSla < 1 ? Math.min(99.99999, round(compositeSla * 100, 5)) : 100),
+      critical_path: criticalPath && loadMissing ? { nodes: criticalPath.nodes, p50_ms: null, p95_ms: null, p99_ms: null } : criticalPath,
+      // A ceiling computed from capacities, authored or assumed. Not evidence that a load is safe.
       max_sustainable_rps: maxSustainable == null ? null : round(maxSustainable),
       limiting_node: maxSustainable == null ? null : limitingNode,
+      async_drain_ceiling_rps: asyncCeiling == null ? null : round(asyncCeiling),
+      async_limiting_node: asyncCeiling == null ? null : asyncLimitingNode,
       ingress_rps: loadKnown ? round(totalIngress) : null,
       headroom: loadKnown && maxSustainable != null && totalIngress > 0 ? round(maxSustainable / totalIngress, 4) : null,
       active_spofs: [...spofs].sort(),
-      blast_radius: { nodes: affected, ingress_share: entries.length && totalIngress > 0 ? round(failingIngress / totalIngress, 4) : null },
+      blast_radius: {
+        nodes: affected,
+        // Null when the share could not be calculated. `ingress_share_floor` is what the
+        // declared faults alone remove; with saturation the share itself is a lower bound.
+        ingress_share: ingressLoss.status === 'complete' || ingressLoss.status === 'partial' ? structuralShare : null,
+        ingress_share_floor: structuralShare,
+        ingress_share_is_floor: ingressLoss.status !== 'complete',
+        status: blastRadius.status,
+      },
+      journeys: journeys.length ? journeys : null,
     },
     nodes: nodeResults,
     edges: edgeResults,
     events,
-    basis: { authored_inputs: authoredInputs, assumed_inputs: assumedInputs, load_known: loadKnown },
+    assessments,
+    confidence,
+    trace,
+    display: Object.fromEntries(nodes.map((n) => [n.id, name(n.id)])),
+    basis: { authored_inputs: authoredInputs, assumed_inputs: assumedInputs, load_known: loadKnown, assumed: assumedInputsList },
     warnings,
   };
 }
@@ -894,82 +1811,389 @@ function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {
   // ---- cost.mjs
   __modules["cost.mjs"] = (function () {
     'use strict';
-// Monthly cost estimate from authored cost inputs only. Nothing is priced unless the
-// document carries a price for it: components without cost data are reported as
-// "not set", and the total is given only together with its coverage.
+// Monthly cost estimate from authored prices only. Nothing is priced unless the document
+// carries a price for it, and nothing is counted unless its quantity is known.
+//
+// The estimate is built from meters (billing.mjs): one billed dimension of one component,
+// with a price, a unit and, ideally, a source. Each meter is computed or left out with a
+// reason; a meter whose usage is unknown is never counted as zero.
+//
+//   monthly_total_usd   only when the estimate is complete: every priceable component is
+//                       priced on every dimension its pricing model bills, and every
+//                       quantity is known. Otherwise null.
+//   subtotal_usd        the sum of what could be computed. When status is "partial" it is
+//                       a lower bound and must be shown as partial, never as the total.
+//   status, reasons     the completeness of the estimate (evidence.mjs).
+//   confidence          how auditable the prices are: separate from completeness. Correct
+//                       arithmetic over unsourced prices is still an unaudited estimate.
 
-const SECONDS_PER_MONTH = 2_628_000; // 730 hours
+var { reason, combineStatuses } = __modules["evidence.mjs"];
+var { DIMENSIONS, PRICING_MODELS, QUANTITY_BASES, SECONDS_PER_MONTH: MONTH_SECONDS, HOURS_PER_MONTH, GIB_IN_GB, meterCharge, freshness, isSourced } = __modules["billing.mjs"];
+
+const SECONDS_PER_MONTH = MONTH_SECONDS; // 730 hours
+const COST_SCHEMA_VERSION = 2;
+/** Authored usage and modelled load may differ by this share before they count as contradictory. */
+const USAGE_TOLERANCE = 0.1;
 const KB_PER_GB = 1_048_576;
 const round = (value, digits = 2) => (typeof value === 'number' && Number.isFinite(value) ? Math.round(value * 10 ** digits) / 10 ** digits : value);
+const byId = (a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+
+/** Dimensions a meter covers when checking a pricing model (the legacy base is instance time). */
+function coveredDimensions(meter) {
+  return meter.dimension === 'instance-months-legacy' ? ['instance-hours', 'flat'] : [meter.dimension];
+}
+
+/**
+ * The monthly quantity of one meter, in the meter's unit, with the inputs it came from.
+ * Returns { quantity } or { missing: [...], code } when it cannot be derived.
+ */
+function meterQuantity(meter, node, context) {
+  const { load, multiplier, instances, instancesOrigin } = context;
+  const usage = node.finops.usage;
+  const inputs = [];
+  const missing = [];
+  const need = (label, value, origin, unit) => {
+    if (value == null) { missing.push({ input: label, unit, subject: node.id }); return null; }
+    inputs.push({ input: label, value, unit, origin });
+    return value;
+  };
+  // Requests per month: stated usage (scaled with the run's load multiplier), else modelled load.
+  const requests = () => {
+    if (usage.requests_per_month != null) {
+      inputs.push({ input: 'finops.usage.requests_per_month', value: usage.requests_per_month, unit: 'requests/month', origin: 'authored' });
+      if (multiplier !== 1) inputs.push({ input: 'load multiplier', value: multiplier, unit: 'ratio', origin: 'authored' });
+      const stated = usage.requests_per_month * multiplier;
+      if (load != null) {
+        const modelled = load * MONTH_SECONDS;
+        if (Math.abs(stated - modelled) > USAGE_TOLERANCE * Math.max(stated, modelled)) {
+          return { contradiction: `finops.usage.requests_per_month gives ${round(stated)} requests a month, but the modelled load on ${node.id} gives ${round(modelled)}.` };
+        }
+      }
+      return { value: stated };
+    }
+    if (load != null) {
+      inputs.push({ input: 'modelled load', value: load, unit: 'requests/s', origin: 'derived' }, { input: 'seconds per month', value: MONTH_SECONDS, unit: 's', origin: 'default' });
+      return { value: load * MONTH_SECONDS };
+    }
+    return { value: null };
+  };
+  const billedSeconds = () => {
+    if (meter.quantity_basis === 'provisioned') {
+      inputs.push({ input: 'instances', value: instances, unit: 'count', origin: instancesOrigin }, { input: 'seconds per month', value: MONTH_SECONDS, unit: 's', origin: 'default' });
+      return { value: instances * MONTH_SECONDS };
+    }
+    const r = requests();
+    if (r.contradiction) return r;
+    if (r.value == null) return { value: null, code: 'missing-usage-baseline' };
+    const duration = need('finops.usage.avg_duration_ms', usage.avg_duration_ms, 'authored', 'ms');
+    let seconds = duration == null ? null : r.value * duration / 1000;
+    if (meter.quantity_basis === 'instance-time') {
+      const concurrency = need('finops.usage.concurrency', usage.concurrency, 'authored', 'requests per instance');
+      seconds = seconds == null || concurrency == null ? null : seconds / concurrency;
+    }
+    return { value: seconds, code: 'missing-meter-quantity' };
+  };
+
+  let base = null; let code = 'missing-meter-quantity';
+  switch (meter.dimension) {
+    case 'requests': {
+      const r = requests();
+      if (r.contradiction) return { contradiction: r.contradiction, inputs };
+      base = r.value; code = 'missing-usage-baseline';
+      if (base == null) missing.push({ input: 'capacity.baseline_rps on an entry point, or finops.usage.requests_per_month', unit: 'requests/s or requests/month', subject: node.id });
+      break;
+    }
+    case 'memory-seconds':
+    case 'vcpu-seconds': {
+      const seconds = billedSeconds();
+      if (seconds.contradiction) return { contradiction: seconds.contradiction, inputs };
+      if (seconds.value == null && seconds.code === 'missing-usage-baseline') {
+        code = 'missing-usage-baseline';
+        missing.push({ input: 'capacity.baseline_rps on an entry point, or finops.usage.requests_per_month', unit: 'requests/s or requests/month', subject: node.id });
+      }
+      const size = meter.dimension === 'memory-seconds'
+        ? (usage.memory_gb != null ? need('finops.usage.memory_gb', usage.memory_gb, 'authored', 'GB')
+          : usage.memory_gib != null ? need('finops.usage.memory_gib', usage.memory_gib, 'authored', 'GiB') * GIB_IN_GB
+            : need('finops.usage.memory_gb', node.capacity.memory_gb, node.origin['capacity.memory_gb'], 'GB'))
+        : need('finops.usage.vcpu', usage.vcpu ?? node.capacity.cpu_cores, usage.vcpu != null ? 'authored' : node.origin['capacity.cpu_cores'], 'vCPU');
+      base = seconds.value == null || size == null ? null : seconds.value * size;
+      break;
+    }
+    case 'instance-hours':
+      inputs.push({ input: 'instances', value: instances, unit: 'count', origin: instancesOrigin }, { input: 'hours per month', value: HOURS_PER_MONTH, unit: 'hour', origin: 'default' });
+      base = instances * HOURS_PER_MONTH;
+      break;
+    case 'instance-months-legacy': {
+      // The legacy base is the monthly cost of the minimum footprint, scaled with instances.
+      const min = Math.max(1, node.capacity.autoscale_min ?? 1);
+      inputs.push({ input: 'instances', value: instances, unit: 'count', origin: instancesOrigin }, { input: 'capacity.autoscale_min', value: min, unit: 'count', origin: node.origin['capacity.autoscale_min'] ?? 'default' });
+      base = instances / min;
+      break;
+    }
+    case 'storage-gb-month':
+      base = need('finops.usage.storage_gb', usage.storage_gb ?? meter.legacy_quantity ?? null, 'authored', 'GB');
+      break;
+    case 'operations': {
+      const value = need('finops.usage.operations_per_month', usage.operations_per_month, 'authored', 'operations/month');
+      base = value == null ? null : value * multiplier;
+      break;
+    }
+    case 'data-transfer-gb': {
+      const value = need('finops.usage.transfer_gb_per_month', usage.transfer_gb_per_month, 'authored', 'GB/month');
+      base = value == null ? null : value * multiplier;
+      break;
+    }
+    case 'flat':
+      inputs.push({ input: 'months', value: 1, unit: 'month', origin: 'default' });
+      base = 1;
+      break;
+    default:
+      return { unsupported: true, inputs };
+  }
+  if (base == null) return { missing, code, inputs };
+  const factor = meter.dimension === 'instance-months-legacy' ? 1 : DIMENSIONS[meter.dimension].units[meter.unit];
+  if (!(factor > 0)) return { unsupported: true, inputs };
+  return { quantity: base / factor, inputs };
+}
+
+function describe(meter) {
+  // The price as stated, digit for digit (no exponent form, no rounding).
+  const stated = (value) => `$${Math.abs(value).toFixed(12).replace(/0+$/, '').replace(/\.$/, '')}`;
+  const rate = meter.tiers?.length ? `tiered price (${meter.tiers.map((tier) => `${stated(tier.price)}${tier.up_to == null ? ' beyond' : ` up to ${tier.up_to}`}`).join(', ')})` : stated(meter.price);
+  const per = meter.per === 1 ? meter.unit : `${meter.per} ${meter.unit}s`;
+  const basis = meter.quantity_basis ? `; billed seconds: ${QUANTITY_BASES[meter.quantity_basis]}` : '';
+  return `cost = max(0, quantity − free allowance) ÷ ${meter.per} × ${rate} per ${per}${basis}`;
+}
 
 /**
  * @param {object} model from buildModel()
  * @param {object} result from simulate() for the same model
+ * @param {{ asOf?: string }} options reference date (yyyy-mm-dd) for price freshness;
+ *   defaults to the document's workbench.as_of. With no date, freshness is not judged.
  */
-function estimateCost(model, result) {
+function estimateCost(model, result, options = {}) {
+  const asOf = options.asOf ?? model.as_of ?? null;
+  const multiplier = result.inputs?.multiplier ?? 1;
   const nodes = {};
-  let total = 0; let priced = 0;
+  const omitted = [];
   const notes = [];
-  for (const node of [...model.nodes].sort((a, b) => (a.id < b.id ? -1 : 1))) {
-    const f = node.finops;
-    const hasAny = f.monthly_base_cost_usd != null || f.cost_per_million_requests_usd != null || (f.storage_gb != null && f.storage_cost_per_gb_usd != null);
-    if (!hasAny) { nodes[node.id] = { priced: false }; continue; }
+  const sourcing = { sourced: 0, unsourced: 0, stale: 0, undated: 0, unchecked: 0, current: 0 };
+  const billing = { declared: [], undeclared: [], missing_dimensions: {} };
+  const reasonSubjects = new Map(); // code -> Set(subject)
+  const flag = (code, subject) => { if (!reasonSubjects.has(code)) reasonSubjects.set(code, new Set()); reasonSubjects.get(code).add(subject); };
+  let subtotal = 0; let computed = 0; let meterCount = 0;
+  const priceable = model.nodes.filter((node) => !node.actor).sort(byId);
+  const priced = [];
+  const parts = [];
+  // Arithmetic alone: were the stated meters computed? Kept apart from whether the meters
+  // cover what the provider bills (billing coverage).
+  const arithmeticParts = [];
+
+  for (const node of [...model.nodes].sort(byId)) {
+    if (node.actor) { nodes[node.id] = { priced: false, priceable: false, status: 'not_applicable' }; continue; }
+    const meters = node.finops.meters;
+    if (!meters.length) {
+      nodes[node.id] = { priced: false, priceable: true, status: 'unknown' };
+      flag('unpriced-component', node.id);
+      parts.push('unknown');
+      continue;
+    }
+    priced.push(node.id);
     const load = result.nodes[node.id].load_rps;
     const min = node.capacity.autoscale_min ?? 1;
     const max = Math.max(min, node.capacity.autoscale_max ?? min);
-    const instances = load == null || !node.capacity.max_rps ? min : Math.min(max, Math.max(min, Math.ceil(load / node.capacity.max_rps)));
-    const base = f.monthly_base_cost_usd != null ? f.monthly_base_cost_usd * instances / Math.max(1, min) : 0;
-    let requests = 0;
-    if (f.cost_per_million_requests_usd != null) {
-      if (load == null) notes.push(`${node.id}: request cost left out because load is not set.`);
-      else requests = f.cost_per_million_requests_usd * load * SECONDS_PER_MONTH / 1_000_000;
+    const modelled = load == null || !node.capacity.max_rps ? min : Math.min(max, Math.max(min, Math.ceil(load / node.capacity.max_rps)));
+    const instances = node.finops.usage.instances ?? modelled;
+    const instancesOrigin = node.finops.usage.instances != null ? 'authored' : load == null ? (node.origin['capacity.autoscale_min'] ?? 'default') : 'derived';
+    const lines = [];
+    let nodeSubtotal = 0; let nodeComputed = 0;
+    const legacyUsd = { base_usd: null, requests_usd: null, storage_usd: null };
+    for (const meter of meters) {
+      meterCount += 1;
+      const line = {
+        id: meter.id, dimension: meter.dimension === 'instance-months-legacy' ? 'instance-hours' : meter.dimension, unit: meter.unit, currency: meter.currency ?? null,
+        price: meter.price, per: meter.per, tiers: meter.tiers, free_allowance: meter.free_allowance, quantity_basis: meter.quantity_basis,
+        status: 'complete', reasons: [], missing: [], inputs: [], quantity: null, billable_quantity: null, cost_usd: null,
+        equation: describe(meter), source: meter.source, sourced: isSourced(meter.source), freshness: freshness(meter.source, asOf), legacy: Boolean(meter.legacy),
+      };
+      const leaveOut = (status, code, extra = {}) => {
+        line.status = status; line.reasons.push(reason(code, extra)); flag(code, node.id);
+        omitted.push({ subject: node.id, meter: meter.id, dimension: line.dimension, status, code, message: line.reasons.at(-1).message });
+      };
+      if (meter.dimension === 'other' || !(meter.dimension in DIMENSIONS || meter.dimension === 'instance-months-legacy')) leaveOut('unsupported', 'unsupported-billing-dimension');
+      else if (meter.currency !== 'USD') leaveOut('unsupported', 'unsupported-currency');
+      else {
+        const q = meterQuantity(meter, node, { load, multiplier, instances, instancesOrigin });
+        line.inputs = q.inputs ?? [];
+        if (q.contradiction) leaveOut('invalid', 'contradictory-input', { message: q.contradiction });
+        else if (q.unsupported) leaveOut('unsupported', 'unsupported-billing-dimension');
+        else if (q.quantity == null) { line.missing = q.missing; leaveOut('inconclusive', q.code); }
+        else {
+          const charge = meterCharge(meter, q.quantity);
+          line.quantity = round(q.quantity, 4);
+          line.billable_quantity = round(charge.billable, 4);
+          line.cost_usd = round(charge.cost, 4);
+          nodeSubtotal += charge.cost; nodeComputed += 1; computed += 1;
+          if (charge.unpriced_units > 0) {
+            line.status = 'partial';
+            line.reasons.push(reason('unsupported-billing-structure', { message: `${round(charge.unpriced_units, 4)} ${meter.unit}s lie beyond the last price tier and have no stated price.` }));
+            flag('unsupported-billing-structure', node.id);
+          }
+          if (meter.id === 'legacy-base') legacyUsd.base_usd = round(charge.cost);
+          if (meter.id === 'legacy-requests') legacyUsd.requests_usd = round(charge.cost);
+          if (meter.id === 'legacy-storage') legacyUsd.storage_usd = round(charge.cost);
+        }
+      }
+      // Evidence: can this price be audited, and how old is it?
+      if (line.sourced) sourcing.sourced += 1; else { sourcing.unsourced += 1; flag('price-unsourced', node.id); }
+      if (line.freshness === 'stale') { sourcing.stale += 1; flag('price-stale', node.id); }
+      else if (line.freshness === 'undated' || line.freshness === 'future') sourcing.undated += 1;
+      else if (line.freshness === 'unchecked') { sourcing.unchecked += 1; flag('price-age-unknown', node.id); }
+      else sourcing.current += 1;
+      lines.push(line);
     }
-    const storage = f.storage_gb != null && f.storage_cost_per_gb_usd != null ? f.storage_gb * f.storage_cost_per_gb_usd : 0;
-    const sum = base + requests + storage;
-    nodes[node.id] = { priced: true, instances, base_usd: round(base), requests_usd: round(requests), storage_usd: round(storage), total_usd: round(sum) };
-    total += sum; priced += 1;
+
+    // Billing coverage: does the set of meters cover what this kind of service bills?
+    const reasons = [];
+    let status = combineStatuses(lines.map((line) => line.status));
+    arithmeticParts.push(status);
+    const model_ = node.finops.pricing_model ? PRICING_MODELS[node.finops.pricing_model] : null;
+    let billingCoverage;
+    if (!model_) {
+      billingCoverage = 'undeclared';
+      billing.undeclared.push(node.id);
+      reasons.push(reason('billing-model-undeclared', { subjects: [node.id] }));
+      flag('billing-model-undeclared', node.id);
+    } else {
+      const have = new Set(meters.flatMap(coveredDimensions));
+      const lacking = model_.bills.filter((group) => !group.some((dimension) => have.has(dimension))).map((group) => group.join(' or '));
+      billing.declared.push(node.id);
+      if (lacking.length) {
+        billingCoverage = 'missing-dimensions';
+        billing.missing_dimensions[node.id] = lacking;
+        reasons.push(reason('billing-dimension-missing', { subjects: [node.id], dimensions: lacking, message: `${node.finops.pricing_model} bills ${lacking.join(', ')}, which ${node.id} has no meter for.` }));
+        flag('billing-dimension-missing', node.id);
+        for (const dimension of lacking) omitted.push({ subject: node.id, meter: null, dimension, status: 'unknown', code: 'billing-dimension-missing', message: `No meter for ${dimension}, which ${node.finops.pricing_model} bills.` });
+      } else billingCoverage = 'covered';
+    }
+    // A component is complete only when every meter was computed and its billing is covered.
+    if (billingCoverage !== 'covered' && status === 'complete') status = 'partial';
+    const any = nodeComputed > 0;
+    nodes[node.id] = {
+      priced: true, priceable: true, status,
+      // A component total exists only when it is complete; a partial figure is a subtotal.
+      total_usd: status === 'complete' ? round(nodeSubtotal) : null,
+      subtotal_usd: any ? round(nodeSubtotal) : null,
+      instances, pricing_model: node.finops.pricing_model, billing_coverage: billingCoverage,
+      meters: lines, reasons: [...reasons, ...lines.flatMap((line) => line.reasons)],
+      ...legacyUsd,
+    };
+    if (any) subtotal += nodeSubtotal;
+    parts.push(status === 'partial' && !any ? 'inconclusive' : status);
   }
 
+  // Data transfer across region and zone boundaries.
   const zoneOf = (id) => new Set(model.boundaries.filter((b) => (b.scope === 'region' || b.scope === 'availability-zone') && b.members.includes(id)).map((b) => b.id));
   const egress = {};
-  let egressTotal = 0;
-  for (const edge of [...model.edges].sort((a, b) => (a.id < b.id ? -1 : 1))) {
+  let egressTotal = 0; let egressComputed = 0;
+  for (const edge of [...model.edges].sort(byId)) {
     const price = edge.traffic.egress_cost_per_gb_usd;
     if (price == null || price === 0) continue;
     const from = zoneOf(edge.from); const to = zoneOf(edge.to);
     const crosses = [...from].some((id) => !to.has(id)) || [...to].some((id) => !from.has(id));
-    if (!crosses) continue;
+    const source = edge.traffic.egress_price_source;
+    const entry = { status: 'complete', reasons: [], gb_per_month: null, cost_usd: null, price_per_gb_usd: price, source, sourced: isSourced(source), freshness: freshness(source, asOf), inputs: [], equation: 'cost = flow × payload_kb × seconds per month ÷ KB per GB × price per GB' };
+    if (!crosses) {
+      // A transfer price on a connection that crosses no region or zone boundary is not applied.
+      entry.status = 'not_applicable';
+      entry.reasons.push({ code: 'egress-not-crossing', message: `${edge.id} has a transfer price but crosses no region or availability-zone boundary in this diagram, so the price is not applied.`, ask: 'Draw the region or zone boundary the connection crosses, or remove the price.' });
+      egress[edge.id] = entry;
+      continue;
+    }
+    meterCount += 1;
+    if (entry.sourced) sourcing.sourced += 1; else { sourcing.unsourced += 1; flag('price-unsourced', edge.id); }
     const flow = result.edges[edge.id].flow_rps;
-    if (flow == null) { notes.push(`${edge.id}: egress cost left out because load is not set.`); continue; }
-    const gb = flow * edge.traffic.payload_kb * SECONDS_PER_MONTH / KB_PER_GB;
-    egress[edge.id] = { gb_per_month: round(gb), cost_usd: round(gb * price) };
-    egressTotal += gb * price;
+    if (flow == null) {
+      entry.status = 'inconclusive';
+      entry.reasons.push(reason('egress-flow-unknown', { subjects: [edge.id] }));
+      flag('egress-flow-unknown', edge.id);
+      omitted.push({ subject: edge.id, meter: 'egress', dimension: 'data-transfer-gb', status: 'inconclusive', code: 'egress-flow-unknown', message: entry.reasons[0].message });
+      notes.push(`${edge.id}: egress cost left out because load is not set.`);
+      parts.push('inconclusive');
+      egress[edge.id] = entry;
+      continue;
+    }
+    const gb = flow * edge.traffic.payload_kb * MONTH_SECONDS / KB_PER_GB;
+    entry.gb_per_month = round(gb); entry.cost_usd = round(gb * price);
+    entry.inputs = [{ input: 'flow', value: flow, unit: 'requests/s', origin: 'derived' }, { input: 'traffic.payload_kb', value: edge.traffic.payload_kb, unit: 'KB', origin: edge.origin['traffic.payload_kb'] ?? 'default' }];
+    egress[edge.id] = entry;
+    egressTotal += gb * price; egressComputed += 1; computed += 1;
+    parts.push('complete');
   }
 
-  const any = priced > 0 || Object.keys(egress).length > 0;
+  const anyData = priced.length > 0 || Object.values(egress).some((entry) => entry.status !== 'not_applicable');
+  const status = anyData ? combineStatuses(parts) : 'unknown';
+  const anyComputed = computed > 0;
+  const unpriced = priceable.filter((node) => !priced.includes(node.id)).map((node) => node.id);
+  for (const item of omitted) if (item.code === 'missing-usage-baseline') notes.push(`${item.subject}: ${item.dimension} cost left out because load is not set.`);
+  const reasons = anyData
+    ? [...reasonSubjects].filter(([code]) => !code.startsWith('price-')).map(([code, subjects]) => reason(code, { subjects: [...subjects].sort() }))
+    : [reason('no-cost-data')];
+  const evidence = [...reasonSubjects].filter(([code]) => code.startsWith('price-')).map(([code, subjects]) => reason(code, { subjects: [...subjects].sort() }));
+  const level = meterCount === 0 ? 'unknown' : sourcing.unsourced === 0 && sourcing.stale === 0 ? 'traceable' : sourcing.sourced === 0 ? 'unsourced' : 'partly-sourced';
+
   return {
+    schemaVersion: COST_SCHEMA_VERSION,
     kind: 'analytical-model',
-    monthly_total_usd: any ? round(total + egressTotal) : null,
-    compute_and_storage_usd: any ? round(total) : null,
-    egress_usd: any ? round(egressTotal) : null,
-    coverage: { priced_components: priced, components: model.nodes.length },
+    status,
+    reasons,
+    currency: 'USD',
+    // Null unless the estimate is complete. Never a subtotal.
+    monthly_total_usd: status === 'complete' ? round(subtotal + egressTotal) : null,
+    // The sum of what was computed; a lower bound when status is "partial".
+    subtotal_usd: anyComputed ? round(subtotal + egressTotal) : null,
+    lower_bound: status === 'partial',
+    compute_and_storage_usd: priced.some((id) => nodes[id].subtotal_usd != null) ? round(subtotal) : null,
+    egress_usd: egressComputed ? round(egressTotal) : null,
+    coverage: {
+      priced_components: priced.length,
+      // Priceable components only: actors (users, client systems) are not resources.
+      components: priceable.length,
+      all_components: model.nodes.length,
+      unpriced,
+      meters: { total: meterCount, computed, omitted: meterCount - computed },
+    },
+    billing,
+    // Two separate questions. Arithmetic: were the stated meters computed correctly and in
+    // full? Billing coverage: do the stated meters cover everything the service bills?
+    arithmetic_status: arithmeticParts.length ? combineStatuses(arithmeticParts) : 'unknown',
+    billing_status: !priced.length ? 'unknown' : Object.keys(billing.missing_dimensions).length ? 'missing-dimensions' : billing.undeclared.length ? 'undeclared' : unpriced.length ? 'covered-for-priced-components' : 'covered',
+    // Evidence confidence: whether the prices can be audited. Independent of `status`.
+    confidence: { level, ...sourcing, as_of: asOf, reasons: evidence },
+    omitted,
     nodes,
     egress,
     notes: [
-      ...(priced < model.nodes.length ? [`${model.nodes.length - priced} of ${model.nodes.length} components have no cost data and are not included.`] : []),
+      ...(unpriced.length ? [`${unpriced.length} of ${priceable.length} priceable components have no cost data and are not included.`] : []),
       ...notes,
     ],
   };
 }
-    return { SECONDS_PER_MONTH, estimateCost };
+    return { SECONDS_PER_MONTH, COST_SCHEMA_VERSION, USAGE_TOLERANCE, estimateCost };
   })();
   // ---- scenarios.mjs
   __modules["scenarios.mjs"] = (function () {
     'use strict';
-// The six built-in architect scenarios, derived deterministically from a model.
+// The built-in architect scenarios, derived deterministically from a model.
 // Targets are chosen by highest modelled load, then most inbound traffic edges, then id.
+//
+// Each scenario names exactly what it fails. Losing one availability zone and losing a
+// whole region are different failures and are separate scenarios: a zone-redundant design
+// is expected to survive the first and not the second. Each scenario also states its
+// readiness before it is run: whether the model has the inputs to draw a conclusion.
 
 var { simulate } = __modules["sim.mjs"];
+var { checkCalculation } = __modules["requirements.mjs"];
 
 const TRAFFIC_EXCLUDED = new Set(['replication-sync', 'replication-async', 'heartbeat']);
 
@@ -1011,16 +2235,37 @@ function breachReach(model, start) {
   };
 }
 
-/** @returns {object[]} six scenarios, each { id, key, title, applicable, reason?, targets, inputs, analysis? } */
+/**
+ * @returns {object[]} the scenarios, each
+ *   { id, key, title, applicable, reason?, targets, target_labels, fails, readiness, inputs, analysis? }
+ * `fails` says in words exactly what the scenario takes away. `readiness` is
+ * { status: 'ready' | 'inconclusive', reasons, missing }: an inconclusive scenario can
+ * still be run, and its result says what is missing.
+ */
 function buildScenarios(model) {
   const baseline = simulate(model);
-  const scenario = (id, key, title, targets, inputs, extra = {}) => (targets.length || extra.always
-    ? { id, key, title, applicable: true, targets, inputs: { multiplier: 1, cacheHit: 0, faults: {}, ...inputs }, ...(extra.analysis ? { analysis: extra.analysis } : {}) }
-    : { id, key, title, applicable: false, reason: extra.reason, targets: [], inputs: null });
+  const display = (id) => model.display?.[id] ?? model.nodes.find((n) => n.id === id)?.label ?? id;
+  const boundaryLabel = (boundary) => `${boundary.label} (${boundary.scope === 'region' ? 'region' : 'availability zone'}${boundary.basis.scope === 'assumed' ? ', inferred from its label' : ''})`;
+  const scenario = (id, key, title, targets, inputs, extra = {}) => {
+    if (!(targets.length || extra.always)) return { id, key, title, applicable: false, reason: extra.reason, targets: [], target_labels: [], fails: null, readiness: null, inputs: null };
+    const merged = { multiplier: 1, cacheHit: 0, faults: {}, ...inputs };
+    const check = checkCalculation('traffic.load', model, { loadScaled: merged.multiplier !== 1 });
+    const blocked = merged.multiplier !== 1 && check.status !== 'complete';
+    return {
+      id, key, title, applicable: true, targets,
+      target_labels: extra.target_labels ?? targets.map(display),
+      fails: extra.fails,
+      readiness: blocked ? { status: 'inconclusive', reasons: check.reasons, missing: check.missing } : { status: 'ready', reasons: [], missing: [] },
+      inputs: merged, ...(extra.analysis ? { analysis: extra.analysis } : {}),
+    };
+  };
 
   const database = ranked(model, baseline, (n) => n.role === 'stateful-db')[0];
-  const zone = [...model.boundaries].filter((b) => b.scope === 'region' || b.scope === 'availability-zone')
+  const largest = (scope) => [...model.boundaries].filter((b) => b.scope === scope)
     .sort((a, b) => (b.members.length - a.members.length) || (a.id < b.id ? -1 : 1))[0];
+  const zone = largest('availability-zone');
+  const region = largest('region');
+  const hasComponents = model.nodes.some((n) => !n.actor);
   const provider = ranked(model, baseline, (n) => n.role === 'external-saas' || n.role === 'ai-model')[0];
   const caches = model.nodes.filter((n) => n.role === 'cache').map((n) => n.id).sort();
   const publicEntry = model.entrypoints.map((id) => model.nodes.find((n) => n.id === id))
@@ -1028,24 +2273,36 @@ function buildScenarios(model) {
 
   return [
     scenario('a', 'database-outage', 'Primary database or stateful storage outage', database ? [database.id] : [],
-      database ? { faults: { nodes: { [database.id]: 'down' } } } : {}, { reason: 'No stateful database in this architecture.' }),
-    scenario('b', 'zone-blackout', 'Availability zone or region blackout', zone ? [zone.id] : [],
-      zone ? { faults: { boundaries: { [zone.id]: 'down' } } } : {}, { reason: 'No boundary is marked as a region or availability zone.' }),
-    scenario('c', 'flash-crowd', '10x flash crowd', [], { multiplier: 10 }, { always: true }),
+      database ? { faults: { nodes: { [database.id]: 'down' } } } : {},
+      { reason: 'No stateful database in this architecture.', fails: database ? `${display(database.id)}: the whole service, not one replica` : null }),
+    // One zone. With a zone drawn, that boundary fails. Without one, each component keeps the
+    // units its redundancy places in other zones, and single-unit components give a range.
+    zone
+      ? scenario('b', 'zone-loss', 'Loss of one availability zone', [zone.id], { faults: { boundaries: { [zone.id]: 'down' } } },
+        { target_labels: [boundaryLabel(zone)], fails: `${boundaryLabel(zone)}: every component unit inside it` })
+      : scenario('b', 'zone-loss', 'Loss of one availability zone', [], { faults: { zone: 'down' } },
+        { always: hasComponents, reason: 'No component in this architecture.', target_labels: ['One availability zone (none is drawn)'],
+          fails: 'One availability zone, not the region. No zone is drawn, so each component loses one unit if its redundancy spans zones; a component with a single unit is lost only if it runs in that zone, which gives a best and a worst case' }),
+    scenario('c', 'flash-crowd', '10x flash crowd', [], { multiplier: 10 }, { always: true, target_labels: ['All entry traffic'], fails: 'Nothing fails: entry load is multiplied by 10' }),
     scenario('d', 'provider-brownout', 'Third-party API or model provider high-latency brownout', provider ? [provider.id] : [],
-      provider ? { faults: { nodes: { [provider.id]: 'degraded' } } } : {}, { reason: 'No external service or model provider in this architecture.' }),
+      provider ? { faults: { nodes: { [provider.id]: 'degraded' } } } : {},
+      { reason: 'No external service or model provider in this architecture.', fails: provider ? `${display(provider.id)}: slow, not down` : null }),
     scenario('e', 'cache-stampede', 'Cache stampede or cold cache', caches,
-      caches.length ? { cacheHit: 0, faults: { nodes: Object.fromEntries(caches.map((id) => [id, 'down'])) } } : {}, { reason: 'No cache in this architecture.' }),
+      caches.length ? { cacheHit: 0, faults: { nodes: Object.fromEntries(caches.map((id) => [id, 'down'])) } } : {},
+      { reason: 'No cache in this architecture.', fails: caches.length ? `${caches.map(display).join(', ')}: down, with no cache hits` : null }),
     scenario('f', 'edge-breach', 'Compromised edge or zero-trust boundary breach', publicEntry ? [publicEntry.id] : [],
-      {}, { reason: 'No entry component.', analysis: publicEntry ? { kind: 'breach-reach', ...breachReach(model, publicEntry.id) } : null }),
+      {}, { reason: 'No entry component.', fails: publicEntry ? `Nothing fails: reach from ${display(publicEntry.id)} is traced` : null, analysis: publicEntry ? { kind: 'breach-reach', ...breachReach(model, publicEntry.id) } : null }),
+    scenario('g', 'region-blackout', 'Region blackout', region ? [region.id] : [],
+      region ? { faults: { boundaries: { [region.id]: 'down' } } } : {},
+      { reason: 'No boundary is marked as a region.', target_labels: region ? [boundaryLabel(region)] : [], fails: region ? `${boundaryLabel(region)}: the whole region, every zone in it` : null }),
   ];
 }
 
 /** Run one scenario and return its simulation result (plus breach analysis for scenario f). */
 function runScenario(model, scenario) {
-  if (!scenario.applicable) return { scenario: scenario.id, applicable: false, reason: scenario.reason };
+  if (!scenario.applicable) return { scenario: scenario.id, applicable: false, status: 'not_applicable', reason: scenario.reason };
   const result = simulate(model, scenario.inputs);
-  return { scenario: scenario.id, applicable: true, title: scenario.title, targets: scenario.targets, ...(scenario.analysis ? { analysis: scenario.analysis } : {}), result };
+  return { scenario: scenario.id, applicable: true, status: result.status, title: scenario.title, targets: scenario.targets, target_labels: scenario.target_labels, fails: scenario.fails, ...(scenario.analysis ? { analysis: scenario.analysis } : {}), result };
 }
     return { breachReach, buildScenarios, runScenario };
   })();
@@ -1108,6 +2365,8 @@ function buildFmea(model, { multiplier = 1, cacheHit = 0 } = {}) {
       affected_components: affected,
       failing_components: affected.filter((id) => result.nodes[id].state === 'failing'),
       ingress_share_lost: result.kpis.blast_radius.ingress_share,
+      // The run's completeness: with load-dependent effects unevaluated the row is a floor.
+      status: result.status,
       severity: severityOf(result, model.nodes.length, node.id),
       recovery: { rto_sec: node.dr.rto_sec, rpo_sec: node.dr.rpo_sec, failover: Boolean(self.failover), writes_at_risk: self.failover?.writes_at_risk ?? null },
       existing_controls: controls(model, node),
@@ -1115,8 +2374,11 @@ function buildFmea(model, { multiplier = 1, cacheHit = 0 } = {}) {
       events: result.events.map((event) => event.type).filter((type, index, all) => all.indexOf(type) === index),
     };
   }).sort((a, b) => (SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]) || (a.component < b.component ? -1 : 1));
+  const statuses = new Set(rows.map((row) => row.status));
   return {
     kind: 'analytical-model',
+    // "complete" only when every row's run was complete.
+    status: statuses.has('inconclusive') ? 'inconclusive' : statuses.size === 1 && statuses.has('complete') ? 'complete' : rows.length ? 'partial' : 'not_applicable',
     rows,
     note: 'Each row fails one component alone. Severity reflects the modelled effect on traffic and other components; occurrence and detection are not rated.',
   };
@@ -1132,7 +2394,19 @@ function buildFmea(model, { multiplier = 1, cacheHit = 0 } = {}) {
 // Every finding states its basis. "authored" means it rests on values in the document;
 // "assumed" means it rests on inferred roles or default values, counts half toward the
 // score, and should be confirmed before acting on it.
+//
+// A rule that cannot run is not a rule that passed. Each rule declares what it needs
+// (`requires`); the review records, per rule, whether it was evaluated, and lists every
+// place it could not be as a gap. The result keeps six things apart:
+//   quality (score)            penalties from the findings of the rules that ran;
+//   score_floor                the score if every rule that could not run had fired;
+//   evaluation completeness    how many applicable rules ran;
+//   evidence confidence        how many inputs are authored rather than assumed;
+//   price coverage             how much of the design the cost estimate covers;
+//   simulation coverage        which model calculations were complete.
+// A high score with low coverage is a high score about little: outputs show both.
 
+var { reason, combineStatuses } = __modules["evidence.mjs"];
 var { simulate } = __modules["sim.mjs"];
 var { estimateCost } = __modules["cost.mjs"];
 
@@ -1147,35 +2421,51 @@ const STATEFUL = new Set(['stateful-db', 'object-store']);
 /**
  * Rule registry: the single list of what this version checks. `status` is "implemented" for
  * every entry here. `consequence` says what the problem leads to if it is left as it is.
+ * `requires` lists the inputs the rule needs and `applies` the designs it concerns: a rule
+ * with a missing input is reported as not evaluated, never as passed.
  */
 const RULES = Object.freeze([
   { id: 'spof', title: 'Single point of failure on a critical path', pillars: ['Reliability'], severity: 'high', status: 'implemented',
+    requires: ['an entry point', 'redundancy of each component on the request path (role default allowed; a provider-managed service needs it stated)'], applies: 'designs with an entry point',
     consequence: 'When this component fails, every request that depends on it fails until it is restored.' },
   { id: 'deep-sync-chain', title: 'Deep synchronous call chain', pillars: ['Reliability', 'Performance'], severity: 'medium', status: 'implemented',
+    requires: ['an entry point', 'call semantics of each connection (inferred from the target role when not stated)'], applies: 'designs with an entry point',
     consequence: 'One slow or failed component at the end of the chain holds up every caller above it, so a local fault becomes a full outage.' },
   { id: 'timeout-hierarchy', title: 'Caller timeout shorter than the callee retry budget', pillars: ['Reliability'], severity: 'high', status: 'implemented',
+    requires: ['resilience.timeout_ms on both calls of each chained pair of blocking calls'], applies: 'designs where one blocking call follows another',
     consequence: 'The caller gives up and may retry while the callee is still working, which multiplies load during an incident and can apply an operation twice.' },
   { id: 'unprotected-async-consumer', title: 'Asynchronous consumer without dead-letter handling or idempotency', pillars: ['Reliability', 'Operational Excellence'], severity: 'medium', status: 'implemented',
+    requires: ['resilience.dlq_node_id or resilience.idempotent on each asynchronous connection'], applies: 'designs with a queue, topic or stream connection',
     consequence: 'A message that cannot be processed is retried forever or dropped, and a redelivered message can be applied twice.' },
   { id: 'zero-trust-violation', title: 'Public entry reaches a data store directly without authentication', pillars: ['Security'], severity: 'critical', status: 'implemented',
+    requires: ['security.auth_method of each database reached from a public entry (not stated counts as none, marked assumed)'], applies: 'designs with a database',
     consequence: 'Anyone who can reach the public entry has a direct network path to the data store.' },
   { id: 'chatty-cross-boundary-egress', title: 'High-volume synchronous calls across a region or zone boundary', pillars: ['Cost'], severity: 'medium', status: 'implemented',
+    requires: ['traffic.egress_cost_per_gb_usd on connections that cross a region or zone', 'capacity.baseline_rps on an entry point'], applies: 'designs with a priced connection across a region or zone boundary',
     consequence: 'Every call pays network latency and data-transfer cost, and the boundary becomes a shared failure point for both sides.' },
   { id: 'missing-recovery-objectives', title: 'Stateful component without recovery objectives', pillars: ['Operational Excellence'], severity: 'low', status: 'implemented',
+    requires: [], applies: 'designs with a stateful component',
     consequence: 'Nobody can say how much data may be lost or how long recovery may take, so backups cannot be judged sufficient.' },
   { id: 'idle-over-provisioning', title: 'Idle capacity kept running', pillars: ['Sustainability', 'Cost'], severity: 'low', status: 'implemented',
+    requires: ['capacity.baseline_rps on an entry point', 'capacity.max_rps stated on the component'], applies: 'components with a stated minimum of more than one instance',
     consequence: 'Capacity is paid for and powered without serving load.' },
   { id: 'unencrypted-data-store', title: 'Data store not encrypted at rest', pillars: ['Security'], severity: 'high', status: 'implemented',
+    requires: ['security.encryption_at_rest on each data store'], applies: 'designs with a stateful component',
     consequence: 'Stored data is readable from the underlying disks, snapshots and backups.' },
   { id: 'requirement-availability', title: 'Modelled availability below the stated target', pillars: ['Reliability'], severity: 'high', status: 'implemented',
+    requires: ['workbench.requirements.availability_target_percent', 'modelled composite availability'], applies: 'when an availability target is stated',
     consequence: 'The design as declared cannot meet the stated availability target.' },
   { id: 'requirement-latency', title: 'Modelled P99 latency above the stated target', pillars: ['Performance'], severity: 'high', status: 'implemented',
+    requires: ['workbench.requirements.p99_latency_ms', 'modelled critical-path latency'], applies: 'when a latency target is stated',
     consequence: 'The slowest one percent of requests exceed the stated latency target.' },
   { id: 'requirement-capacity', title: 'Modelled capacity below the stated peak load', pillars: ['Performance'], severity: 'high', status: 'implemented',
+    requires: ['workbench.requirements.peak_rps', 'modelled capacity ceiling'], applies: 'when a peak load is stated',
     consequence: 'At the stated peak a component saturates: requests queue, slow down or fail.' },
   { id: 'requirement-recovery', title: 'Recovery objectives weaker than required', pillars: ['Reliability'], severity: 'high', status: 'implemented',
+    requires: ['workbench.requirements.rpo_sec or rto_sec', 'dr.rpo_sec and dr.rto_sec on each stateful component'], applies: 'when recovery objectives are required',
     consequence: 'A failure would lose more data or take longer to recover than the stated objectives allow.' },
   { id: 'requirement-budget', title: 'Estimated monthly cost above the stated budget', pillars: ['Cost'], severity: 'medium', status: 'implemented',
+    requires: ['workbench.requirements.monthly_budget_usd', 'a complete cost estimate, or a partial one already above the budget'], applies: 'when a monthly budget is stated',
     consequence: 'The design as declared costs more than the stated budget.' },
 ]);
 const RULE = Object.fromEntries(RULES.map((rule) => [rule.id, rule]));
@@ -1187,13 +2477,26 @@ const worst = (...bases) => (bases.some((basis) => basis === 'assumed' || basis 
  * @param {{ multiplier?: number, cacheHit?: number }} inputs conditions to review under
  * @returns {{ findings: object[], score: number, pillars: object, rules: object[], kind: string }}
  */
-function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
+function review(model, { multiplier = 1, cacheHit = 0, asOf } = {}) {
   const result = simulate(model, { multiplier, cacheHit });
-  const cost = estimateCost(model, result);
+  const cost = estimateCost(model, result, { asOf });
   const nodeById = new Map(model.nodes.map((n) => [n.id, n]));
   const edges = [...model.edges].sort((a, b) => (a.id < b.id ? -1 : 1));
   const outgoing = (id) => edges.filter((edge) => edge.from === id);
+  const name = (id) => model.display?.[id] ?? nodeById.get(id)?.label ?? id;
   const findings = [];
+  // Per rule: how many subjects it was evaluated on, and every place it could not be.
+  const evaluation = Object.fromEntries(RULES.map((rule) => [rule.id, { applicable: false, evaluated: 0, skipped: 0 }]));
+  const gaps = [];
+  const ran = (ruleId, count = 1) => { evaluation[ruleId].applicable = true; evaluation[ruleId].evaluated += count; };
+  /** The rule applies here but could not be evaluated: record why, and what would let it run. */
+  const gap = (ruleId, code, { subjects = [], message, ask, missing = [], instances } = {}) => {
+    const rule = RULE[ruleId];
+    evaluation[ruleId].applicable = true; evaluation[ruleId].skipped += 1;
+    const entry = reason(code, { message, ask });
+    // `instances`: how many findings this gap could be hiding (one per unchecked subject).
+    gaps.push({ id: `${ruleId}:${code}:${[...subjects].sort().join(',') || 'design'}`, rule: ruleId, title: rule.title, pillar: rule.pillars[0], pillars: rule.pillars, code, subjects: [...subjects].sort(), instances: instances ?? Math.max(1, subjects.length), message: entry.message, ask: entry.ask, missing });
+  };
   // `fixes` are the part of the remediation that can be expressed as an edit to the model:
   // { target: 'component' | 'connection', id, operational, summary }. They let a reader
   // preview the effect of a change. Remediation that needs a figure only the owner can give
@@ -1209,8 +2512,22 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
   };
 
   // 1. Single points of failure on an entry's hard-dependency path.
+  if (!model.entrypoints.length) gap('spof', 'no-entry-point');
+  else ran('spof');
   for (const id of result.kpis.active_spofs) {
     const node = nodeById.get(id);
+    // A provider-managed service whose redundancy is only a role default: its redundancy is
+    // the provider's and is not known here. That is a question to confirm, not a single
+    // point of failure the design can fix by redeploying the provider's service.
+    if (node.managed_by === 'provider' && node.origin.redundancy !== 'authored') {
+      gap('spof', 'provider-managed-redundancy', {
+        subjects: [id],
+        message: `${name(id)} is a provider-managed service and the document does not state its redundancy, so whether it is a single point of failure is not known. The model assumes one unit.`,
+        ask: `Confirm the provider's availability commitment for ${name(id)} and state it (sla_percent, redundancy), or give its callers a fallback.`,
+        missing: [{ input: 'redundancy', subject: id, unit: null }],
+      });
+      continue;
+    }
     add('spof', {
       nodes: [id], basis: worst(node.basis.redundancy, node.basis.role),
       evidence: `${node.label} is a single instance that every request through an entry depends on.`,
@@ -1221,33 +2538,74 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
 
   // 2. Deep synchronous chains with no circuit breaker or asynchronous hop.
   {
-    const hard = (edge) => edge.call_semantics === 'sync-blocking' && !edge.resilience.circuit_breaker_enabled;
-    const memo = new Map();
-    const longest = (id, seen = new Set()) => {
-      if (memo.has(id)) return memo.get(id);
-      let best = { hops: 0, path: [id], edges: [] };
-      for (const edge of outgoing(id).filter(hard)) {
-        if (seen.has(edge.to)) continue;
-        const child = longest(edge.to, new Set([...seen, id]));
-        if (child.hops + 1 > best.hops) best = { hops: child.hops + 1, path: [id, ...child.path], edges: [edge.id, ...child.edges] };
-      }
-      memo.set(id, best);
-      return best;
+    // `breakers` are connections treated as already protected (used to work out the fix).
+    const deepest = (breakers = new Set()) => {
+      const hard = (edge) => edge.call_semantics === 'sync-blocking' && !edge.resilience.circuit_breaker_enabled && !breakers.has(edge.id);
+      const memo = new Map();
+      const longest = (id, seen = new Set()) => {
+        if (memo.has(id)) return memo.get(id);
+        let best = { hops: 0, path: [id], edges: [] };
+        for (const edge of outgoing(id).filter(hard)) {
+          if (seen.has(edge.to)) continue;
+          const child = longest(edge.to, new Set([...seen, id]));
+          if (child.hops + 1 > best.hops) best = { hops: child.hops + 1, path: [id, ...child.path], edges: [edge.id, ...child.edges] };
+        }
+        memo.set(id, best);
+        return best;
+      };
+      return model.entrypoints.map((id) => longest(id)).filter((chain) => chain.hops > DEEP_CHAIN_HOPS).sort((a, b) => b.hops - a.hops);
     };
-    const chains = model.entrypoints.map((id) => longest(id)).filter((chain) => chain.hops > DEEP_CHAIN_HOPS).sort((a, b) => b.hops - a.hops);
+    if (!model.entrypoints.length) gap('deep-sync-chain', 'no-entry-point');
+    else ran('deep-sync-chain');
+    // A circuit breaker belongs to the caller. It can be previewed only where the caller is
+    // something this design deploys: not the users, and not a provider's managed service.
+    const ownsCaller = (edgeId) => {
+      const from = nodeById.get(edges.find((e) => e.id === edgeId).from);
+      return from && !from.actor && from.managed_by !== 'provider';
+    };
+    const chains = deepest();
     if (chains.length) {
       const chain = chains[0];
+      // The fix: breakers on connections whose caller this design owns, added chain by chain
+      // until no deep chain is left. If a deep chain has no such connection left, breakers
+      // alone cannot close the finding and no previewable fix is offered.
+      const breakers = new Set(); const fixEdges = [];
+      for (let guard = 0; guard <= edges.length; guard += 1) {
+        const left = deepest(breakers)[0];
+        if (!left) break;
+        const owned = left.edges.filter((id) => ownsCaller(id) && !breakers.has(id));
+        if (!owned.length) { fixEdges.length = 0; break; }
+        for (const id of owned) { breakers.add(id); fixEdges.push(id); }
+      }
       add('deep-sync-chain', {
         nodes: chain.path, edges: chain.edges,
         basis: worst(...chain.edges.map((id) => edges.find((e) => e.id === id).basis.call_semantics)),
         evidence: `${chain.hops} blocking hops in a row (${chain.path.join(' → ')}) with no circuit breaker or asynchronous step. A slow or failed component at the end stalls every caller.`,
         remediation: 'Add circuit breakers with timeouts along the chain, or move a step behind a queue or event stream.',
-        fixes: chain.edges.map((edgeId) => ({ target: 'connection', id: edgeId, operational: { resilience: { circuit_breaker_enabled: true } }, summary: `Add a circuit breaker on ${edgeId}` })),
+        fixes: fixEdges.sort().map((edgeId) => ({ target: 'connection', id: edgeId, operational: { resilience: { circuit_breaker_enabled: true } }, summary: `Add a circuit breaker on ${edgeId}` })),
       });
     }
   }
 
-  // 3. Timeout hierarchy (authored timeouts only).
+  // 3. Timeout hierarchy (authored timeouts only). A chained pair with a missing timeout is
+  // not evaluated: it is recorded as a gap, not passed.
+  {
+    const untimed = new Set(); let uncheckedPairs = 0;
+    for (const callee of edges.filter((edge) => edge.call_semantics === 'sync-blocking')) {
+      for (const caller of edges.filter((edge) => edge.to === callee.from && edge.call_semantics === 'sync-blocking')) {
+        if (caller.resilience.timeout_ms != null && callee.resilience.timeout_ms != null) ran('timeout-hierarchy');
+        else { uncheckedPairs += 1; if (caller.resilience.timeout_ms == null) untimed.add(caller.id); if (callee.resilience.timeout_ms == null) untimed.add(callee.id); }
+      }
+    }
+    if (untimed.size) {
+      gap('timeout-hierarchy', 'rule-input-missing', {
+        subjects: [...untimed], instances: uncheckedPairs,
+        message: `${untimed.size} chained blocking call${untimed.size === 1 ? ' has' : 's have'} no timeout_ms, so whether callers give up before callees finish was not checked.`,
+        ask: 'State resilience.timeout_ms (and retries) on the blocking calls listed.',
+        missing: [...untimed].sort().map((id) => ({ input: 'resilience.timeout_ms', subject: id, unit: 'ms' })),
+      });
+    }
+  }
   for (const callee of edges) {
     if (callee.call_semantics !== 'sync-blocking' || callee.resilience.timeout_ms == null) continue;
     const budget = callee.resilience.timeout_ms * ((callee.resilience.retries ?? 0) + 1);
@@ -1266,9 +2624,13 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
 
   // 4. Asynchronous consumers without dead-letter handling or idempotency.
   for (const edge of edges) {
-    if (!ASYNC.has(edge.call_semantics) || edge.resilience.dlq_node_id != null || edge.resilience.idempotent === true) continue;
+    if (!ASYNC.has(edge.call_semantics)) continue;
+    ran('unprotected-async-consumer');
+    if (edge.resilience.dlq_node_id != null || edge.resilience.idempotent === true) continue;
     add('unprotected-async-consumer', {
-      nodes: [edge.to], edges: [edge.id], basis: worst(edge.basis.call_semantics),
+      // "Not stated" is not "declared absent": the finding is authored only when the
+      // document says the consumer is not idempotent.
+      nodes: [edge.to], edges: [edge.id], basis: worst(edge.basis.call_semantics, edge.resilience.idempotent === false ? 'authored' : 'assumed'),
       evidence: `${edge.id} delivers messages to ${nodeById.get(edge.to)?.label ?? edge.to} with no dead-letter destination and no idempotency guarantee. A message that keeps failing blocks or is lost; a redelivered message may be applied twice.`,
       remediation: 'Declare a dead-letter destination (dlq_node_id) or make the consumer idempotent.',
       fixes: [{ target: 'connection', id: edge.id, operational: { resilience: { idempotent: true } }, summary: `Make the consumer of ${edge.id} idempotent` }],
@@ -1279,6 +2641,7 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
   for (const edge of edges) {
     const from = nodeById.get(edge.from); const to = nodeById.get(edge.to);
     if (!from || !to || to.role !== 'stateful-db') continue;
+    ran('zero-trust-violation');
     const exposed = from.security.public_exposed === true || from.role === 'ingress' || from.role === 'cdn';
     const auth = to.security.auth_method;
     if (!exposed || (auth && auth !== 'none')) continue;
@@ -1294,7 +2657,17 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
   for (const [edgeId, item] of Object.entries(cost.egress)) {
     const edge = edges.find((e) => e.id === edgeId);
     const flow = result.edges[edgeId].flow_rps;
-    if (edge.call_semantics !== 'sync-blocking' || flow == null || flow < CHATTY_EGRESS_RPS) continue;
+    if (item.status === 'not_applicable' || edge.call_semantics !== 'sync-blocking') continue;
+    if (flow == null || item.cost_usd == null) {
+      gap('chatty-cross-boundary-egress', 'missing-baseline-load', {
+        subjects: [edgeId],
+        message: `${edgeId} crosses a region or zone boundary and has a transfer price, but its traffic is not known, so whether it is chatty was not checked.`,
+        missing: [{ input: 'capacity.baseline_rps', subject: 'an entry component', unit: 'requests/s' }],
+      });
+      continue;
+    }
+    ran('chatty-cross-boundary-egress');
+    if (flow < CHATTY_EGRESS_RPS) continue;
     add('chatty-cross-boundary-egress', {
       nodes: [edge.from, edge.to], edges: [edgeId], basis: 'authored',
       evidence: `${edgeId} carries ${flow} requests per second across a region or zone boundary: about ${item.gb_per_month} GB and $${item.cost_usd} of egress a month in this model.`,
@@ -1303,6 +2676,8 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
   }
 
   // 7. Stateful components without recovery objectives.
+  ran('missing-recovery-objectives', model.nodes.filter((n) => STATEFUL.has(n.role)).length);
+  if (!model.nodes.some((n) => STATEFUL.has(n.role))) evaluation['missing-recovery-objectives'].applicable = false;
   for (const node of model.nodes.filter((n) => STATEFUL.has(n.role) && (n.dr.rto_sec == null || n.dr.rpo_sec == null))) {
     add('missing-recovery-objectives', {
       nodes: [node.id], basis: worst(node.basis.role),
@@ -1314,7 +2689,19 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
   // 8. Idle over-provisioning (authored load and capacity only).
   for (const node of model.nodes) {
     const util = result.nodes[node.id].utilisation;
-    if (util == null || util >= 0.1 || !(node.capacity.autoscale_min > 1) || node.basis['capacity.max_rps'] !== 'authored') continue;
+    if (!(node.capacity.autoscale_min > 1)) continue;
+    if (util == null || node.basis['capacity.max_rps'] !== 'authored') {
+      const noLoad = result.nodes[node.id].load_rps == null;
+      gap('idle-over-provisioning', noLoad ? 'missing-baseline-load' : 'rule-input-missing', {
+        subjects: [node.id],
+        message: `${name(node.id)} keeps at least ${node.capacity.autoscale_min} instances running, but ${noLoad ? 'its load is not known' : 'its capacity is not stated'}, so whether that capacity is idle was not checked.`,
+        ask: noLoad ? undefined : `State capacity.max_rps for ${name(node.id)}.`,
+        missing: [noLoad ? { input: 'capacity.baseline_rps', subject: 'an entry component', unit: 'requests/s' } : { input: 'capacity.max_rps', subject: node.id, unit: 'requests/s' }],
+      });
+      continue;
+    }
+    ran('idle-over-provisioning');
+    if (util >= 0.1) continue;
     add('idle-over-provisioning', {
       nodes: [node.id], basis: 'authored',
       evidence: `${node.label} runs at ${Math.round(util * 1000) / 10}% of its capacity with a minimum of ${node.capacity.autoscale_min} instances.`,
@@ -1324,9 +2711,23 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
 
   // 9. Data stores not encrypted at rest.
   const complianceStated = (model.requirements?.compliance?.length ?? 0) > 0;
+  {
+    // Not stated, with no compliance requirement in scope: the rule has nothing to judge.
+    const unstated = model.nodes.filter((n) => STATEFUL.has(n.role) && n.security.encryption_at_rest == null && !complianceStated && n.security.compliance_tags.length === 0);
+    if (unstated.length) {
+      gap('unencrypted-data-store', 'rule-input-missing', {
+        subjects: unstated.map((n) => n.id),
+        message: `${unstated.map((n) => name(n.id)).join(', ')} ${unstated.length === 1 ? 'does' : 'do'} not state whether data is encrypted at rest, so this was not checked.`,
+        ask: 'State security.encryption_at_rest (true or false) on each data store.',
+        missing: unstated.map((n) => ({ input: 'security.encryption_at_rest', subject: n.id, unit: null })),
+      });
+    }
+  }
   for (const node of model.nodes.filter((n) => STATEFUL.has(n.role))) {
     const value = node.security.encryption_at_rest;
-    if (value === true || (value == null && !complianceStated && node.security.compliance_tags.length === 0)) continue;
+    if (value == null && !complianceStated && node.security.compliance_tags.length === 0) continue;
+    ran('unencrypted-data-store');
+    if (value === true) continue;
     add('unencrypted-data-store', {
       nodes: [node.id], basis: value === false ? 'authored' : 'assumed', severity: value === false ? 'high' : 'medium',
       evidence: value === false ? `${node.label} is declared as not encrypted at rest.` : `${node.label} is in scope of a stated compliance requirement but does not declare encryption at rest.`,
@@ -1340,6 +2741,7 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
   const modelBasis = result.basis.assumed_inputs > 0 ? 'assumed' : 'authored';
   if (req) {
     const sla = result.kpis.composite_sla_percent;
+    if (req.availability_target_percent != null) { if (sla == null) gap('requirement-availability', 'rule-input-missing', { message: 'Composite availability could not be modelled, so the availability target was not checked.' }); else ran('requirement-availability'); }
     if (req.availability_target_percent != null && sla != null && sla < req.availability_target_percent) {
       add('requirement-availability', {
         nodes: result.kpis.active_spofs, basis: modelBasis,
@@ -1348,6 +2750,17 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
       });
     }
     const p99 = result.kpis.critical_path?.p99_ms;
+    // Without a load the modelled latency has no queueing in it: a lower bound. Above the
+    // target it is already a finding; below it, meeting the target under load is not shown.
+    if (req.p99_latency_ms != null) {
+      if (p99 == null) gap('requirement-latency', 'rule-input-missing', { message: 'Critical-path latency could not be modelled, so the latency target was not checked.' });
+      else if (p99 <= req.p99_latency_ms && !result.basis.load_known) {
+        gap('requirement-latency', 'missing-baseline-load', {
+          message: `Latency with no load is ${p99} ms, within the target of ${req.p99_latency_ms} ms, but latency under load was not calculated because the load is not stated: the target is not confirmed.`,
+          missing: [{ input: 'capacity.baseline_rps', subject: 'an entry component', unit: 'requests/s' }],
+        });
+      } else ran('requirement-latency');
+    }
     if (req.p99_latency_ms != null && p99 != null && p99 > req.p99_latency_ms) {
       add('requirement-latency', {
         nodes: result.kpis.critical_path.nodes.filter((id) => nodeById.has(id)), basis: modelBasis,
@@ -1356,6 +2769,7 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
       });
     }
     const limit = result.kpis.max_sustainable_rps;
+    if (req.peak_rps != null) { if (limit == null) gap('requirement-capacity', 'rule-input-missing', { message: 'The capacity ceiling could not be modelled, so the stated peak load was not checked.' }); else ran('requirement-capacity'); }
     if (req.peak_rps != null && limit != null && limit < req.peak_rps) {
       add('requirement-capacity', {
         nodes: result.kpis.limiting_node ? [result.kpis.limiting_node] : [], basis: modelBasis,
@@ -1364,38 +2778,143 @@ function review(model, { multiplier = 1, cacheHit = 0 } = {}) {
       });
     }
     for (const node of model.nodes.filter((n) => STATEFUL.has(n.role))) {
-      const gaps = [];
-      if (req.rpo_sec != null && node.dr.rpo_sec != null && node.dr.rpo_sec > req.rpo_sec) gaps.push(`RPO ${node.dr.rpo_sec} s exceeds the required ${req.rpo_sec} s`);
-      if (req.rto_sec != null && node.dr.rto_sec != null && node.dr.rto_sec > req.rto_sec) gaps.push(`RTO ${node.dr.rto_sec} s exceeds the required ${req.rto_sec} s`);
-      if (gaps.length) add('requirement-recovery', { nodes: [node.id], basis: 'authored', evidence: `${node.label}: ${gaps.join('; ')}.`, remediation: 'Tighten replication or backup frequency and rehearse failover to meet the objectives.' });
+      const shortfalls = [];
+      const unstated = [];
+      if (req.rpo_sec != null) { if (node.dr.rpo_sec == null) unstated.push('dr.rpo_sec'); else if (node.dr.rpo_sec > req.rpo_sec) shortfalls.push(`RPO ${node.dr.rpo_sec} s exceeds the required ${req.rpo_sec} s`); }
+      if (req.rto_sec != null) { if (node.dr.rto_sec == null) unstated.push('dr.rto_sec'); else if (node.dr.rto_sec > req.rto_sec) shortfalls.push(`RTO ${node.dr.rto_sec} s exceeds the required ${req.rto_sec} s`); }
+      if (req.rpo_sec == null && req.rto_sec == null) continue;
+      if (unstated.length) {
+        gap('requirement-recovery', 'rule-input-missing', {
+          subjects: [node.id],
+          message: `${name(node.id)} does not state ${unstated.join(' and ')}, so the required recovery objectives were not checked for it.`,
+          ask: `State ${unstated.join(' and ')} for ${name(node.id)}.`,
+          missing: unstated.map((input) => ({ input, subject: node.id, unit: 's' })),
+        });
+      }
+      if (unstated.length < [req.rpo_sec, req.rto_sec].filter((value) => value != null).length) ran('requirement-recovery');
+      if (shortfalls.length) add('requirement-recovery', { nodes: [node.id], basis: 'authored', evidence: `${node.label}: ${shortfalls.join('; ')}.`, remediation: 'Tighten replication or backup frequency and rehearse failover to meet the objectives.' });
     }
-    if (req.monthly_budget_usd != null && cost.monthly_total_usd != null && cost.monthly_total_usd > req.monthly_budget_usd) {
-      add('requirement-budget', {
-        basis: 'authored',
-        evidence: `Estimated cost is $${cost.monthly_total_usd} a month against a budget of $${req.monthly_budget_usd}, covering ${cost.coverage.priced_components} of ${cost.coverage.components} components.`,
-        remediation: 'Review the largest cost lines first; right-size tiers and minimum instance counts.',
-      });
+    if (req.monthly_budget_usd != null) {
+      // A complete estimate is compared directly. A partial one is a lower bound: above the
+      // budget it is already a finding; below it, nothing can be concluded.
+      const figure = cost.status === 'complete' ? cost.monthly_total_usd : cost.status === 'partial' ? cost.subtotal_usd : null;
+      if (figure != null && figure > req.monthly_budget_usd) {
+        ran('requirement-budget');
+        add('requirement-budget', {
+          basis: 'authored',
+          evidence: cost.status === 'complete'
+            ? `Estimated cost is ${cost.monthly_total_usd} a month against a budget of ${req.monthly_budget_usd}, covering ${cost.coverage.priced_components} of ${cost.coverage.components} components.`
+            : `The part of the cost that could be estimated is already ${cost.subtotal_usd} a month against a budget of ${req.monthly_budget_usd}. The estimate is partial (${cost.coverage.priced_components} of ${cost.coverage.components} components priced), so the real cost is higher.`,
+          remediation: 'Review the largest cost lines first; right-size tiers and minimum instance counts.',
+        });
+      } else if (cost.status === 'complete') ran('requirement-budget');
+      else {
+        gap('requirement-budget', cost.status === 'unknown' ? 'no-cost-data' : 'cost-estimate-incomplete', {
+          message: cost.status === 'unknown'
+            ? `A budget of ${req.monthly_budget_usd} is stated, but no component carries cost data, so it was not checked.`
+            : `A budget of ${req.monthly_budget_usd} is stated, but the cost estimate is ${cost.status}${cost.subtotal_usd != null ? ` (a subtotal of ${cost.subtotal_usd} so far)` : ''}, so staying within budget was not confirmed.`,
+        });
+      }
     }
   }
 
+  // The cost estimate itself: when it is not complete, the Cost pillar says so with an
+  // actionable gap instead of "no rule fired".
+  if (cost.status !== 'complete' && cost.status !== 'unknown') {
+    const first = cost.omitted[0];
+    gaps.push({
+      id: 'cost-estimate:incomplete', rule: null, title: 'Cost estimate is not complete', pillar: 'Cost', pillars: ['Cost'], code: 'cost-estimate-incomplete',
+      subjects: [...new Set([...cost.omitted.map((item) => item.subject), ...cost.coverage.unpriced])].sort(),
+      message: `The cost estimate is ${cost.status}: ${cost.coverage.priced_components} of ${cost.coverage.components} priceable components carry prices and ${cost.coverage.meters.computed} of ${cost.coverage.meters.total} meters could be calculated.${first ? ` For example ${name(first.subject)}: ${first.message}` : ''}`,
+      ask: cost.reasons[0]?.ask ?? null, missing: cost.omitted.flatMap((item) => item.missing ?? []),
+    });
+  }
+  gaps.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+
   findings.sort((a, b) => (SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]) || (a.id < b.id ? -1 : 1));
   const penalty = (finding) => WEIGHTS[finding.severity] * (finding.basis === 'assumed' ? 0.5 : 1);
-  const score = Math.max(0, Math.round((100 - findings.reduce((sum, finding) => sum + penalty(finding), 0)) * 10) / 10);
+  const tenth = (value) => Math.max(0, Math.round(value * 10) / 10);
+  // Rule status: complete (ran everywhere it applies), partial (ran in some places),
+  // inconclusive (applies, ran nowhere), not_applicable.
+  const ruleResults = RULES.map((rule) => {
+    const e = evaluation[rule.id];
+    const status = !e.applicable ? 'not_applicable' : e.skipped === 0 ? 'complete' : e.evaluated > 0 ? 'partial' : 'inconclusive';
+    return { id: rule.id, title: rule.title, pillars: rule.pillars, severity: rule.severity, status, evaluated: e.evaluated, not_evaluated: e.skipped, findings: findings.filter((f) => f.rule === rule.id).length, requires: rule.requires, applies: rule.applies };
+  });
+  const applicable = ruleResults.filter((rule) => rule.status !== 'not_applicable');
+  const evaluatedRules = applicable.filter((rule) => rule.status === 'complete');
+  // Quality: penalties of the findings found. Null when no rule could run at all.
+  const anyRan = applicable.some((rule) => rule.status !== 'inconclusive');
+  const score = tenth(100 - findings.reduce((sum, finding) => sum + penalty(finding), 0));
+  // Floor: the worst case the evidence allows. Every finding counts in full, including the
+  // assumed ones that count half in the score, and every gap counts as the findings it could
+  // be hiding. Removing a fact from the document can therefore never raise the floor.
+  const floorOf = (own, pillar) => tenth(100
+    - own.reduce((sum, finding) => sum + WEIGHTS[finding.severity], 0)
+    - gaps.filter((item) => item.rule && (!pillar || item.pillar === pillar)).reduce((sum, item) => sum + WEIGHTS[RULE[item.rule].severity] * item.instances, 0));
+  const costOpen = cost.status !== 'complete';
   const pillars = Object.fromEntries(PILLARS.map((pillar) => {
     const own = findings.filter((finding) => finding.pillar === pillar);
-    return [pillar, { score: Math.max(0, Math.round((100 - own.reduce((sum, finding) => sum + penalty(finding), 0)) * 10) / 10), findings: own.length }];
+    const rules = ruleResults.filter((rule) => rule.pillars[0] === pillar);
+    const pillarApplicable = rules.filter((rule) => rule.status !== 'not_applicable');
+    const pillarScore = tenth(100 - own.reduce((sum, finding) => sum + penalty(finding), 0));
+    // The Cost pillar also depends on the estimate: an incomplete or absent estimate means
+    // cost was not fully assessed, whatever the rules say.
+    const parts = [...pillarApplicable.map((rule) => rule.status), ...(pillar === 'Cost' ? [cost.status] : [])];
+    const status = parts.length ? combineStatuses(parts) : 'not_applicable';
+    const assessed = status === 'complete' || status === 'partial';
+    return [pillar, {
+      // Null when nothing in this pillar could be assessed: not 100.
+      score: assessed ? pillarScore : null,
+      floor: assessed ? floorOf(own, pillar) : null,
+      findings: own.length,
+      status,
+      rules: { applicable: pillarApplicable.length, evaluated: pillarApplicable.filter((rule) => rule.status === 'complete').length },
+      gaps: gaps.filter((item) => item.pillar === pillar).length,
+    }];
   }));
+  const status = applicable.length ? combineStatuses([...applicable.map((rule) => rule.status), ...(costOpen && cost.status !== 'unknown' ? [cost.status] : [])]) : 'not_applicable';
+  const coverage = {
+    rules: RULES.length,
+    applicable: applicable.length,
+    evaluated: evaluatedRules.length,
+    partial: applicable.filter((rule) => rule.status === 'partial').length,
+    inconclusive: applicable.filter((rule) => rule.status === 'inconclusive').length,
+    not_applicable: RULES.length - applicable.length,
+    share: applicable.length ? Math.round((evaluatedRules.length / applicable.length) * 1000) / 1000 : null,
+  };
+  const calculations = Object.entries(result.assessments).map(([id, item]) => ({ id, status: item.status }));
+  const scoreFloor = floorOf(findings);
   return {
     kind: 'analytical-model',
-    score,
+    // Completeness of the review itself: "complete" only when every applicable rule ran.
+    status,
+    // Quality from the rules that ran. Read it with `score_floor` and `coverage`.
+    score: anyRan ? score : null,
+    score_floor: anyRan ? scoreFloor : null,
+    coverage,
     pillars,
     counts: Object.fromEntries(Object.keys(WEIGHTS).map((severity) => [severity, findings.filter((f) => f.severity === severity).length])),
     findings,
+    // Where a rule applies but could not be evaluated, and what would let it run.
+    gaps,
+    rule_results: ruleResults,
+    // The six things a score must not blur together.
+    dimensions: {
+      architecture_quality: { score: anyRan ? score : null, floor: anyRan ? scoreFloor : null, findings: findings.length },
+      evaluation_completeness: { status, ...coverage },
+      evidence_confidence: result.confidence,
+      price_coverage: { status: cost.status, priced_components: cost.coverage.priced_components, components: cost.coverage.components, meters: cost.coverage.meters, price_evidence: cost.confidence.level },
+      simulation_coverage: { status: result.status, calculations },
+      unresolved: [...new Set([...gaps.map((item) => item.code), ...result.reasons.map((item) => item.code), ...(cost.status === 'unknown' ? [] : cost.reasons.map((item) => item.code))])].sort(),
+    },
     kpis: result.kpis,
-    cost: { monthly_total_usd: cost.monthly_total_usd, coverage: cost.coverage },
+    cost: { status: cost.status, monthly_total_usd: cost.monthly_total_usd, subtotal_usd: cost.subtotal_usd, coverage: cost.coverage, confidence: cost.confidence.level },
+    simulation: { status: result.status, reasons: result.reasons },
+    confidence: result.confidence,
     basis: { ...result.basis, assumed_findings: findings.filter((f) => f.basis === 'assumed').length },
     rules_checked: RULES.map(({ id, title, pillars: rulePillars }) => ({ id, title, pillars: rulePillars })),
-    note: 'Findings come from an analytical model of the declared architecture. Those marked "assumed" rest on inferred roles or default values and count half toward the score.',
+    note: 'Findings come from an analytical model of the declared architecture. Those marked "assumed" rest on inferred roles or default values and count half toward the score. A rule that could not be evaluated is listed under gaps: it is not a pass. The floor is the score if every assumed finding counted in full and every check that could not run had found a problem.',
   };
 }
     return { PILLARS, WEIGHTS, CHATTY_EGRESS_RPS, DEEP_CHAIN_HOPS, RULES, review };
@@ -1426,7 +2945,10 @@ function designSnapshot(model) {
     max_sustainable_rps: result.kpis.max_sustainable_rps,
     single_points_of_failure: result.kpis.active_spofs.length,
     monthly_cost_usd: cost.monthly_total_usd,
+    monthly_cost_subtotal_usd: cost.subtotal_usd,
     review_score: reviewed.score,
+    review_score_floor: reviewed.score_floor,
+    statuses: { simulation: result.status, cost: cost.status, review: reviewed.status },
     findings: reviewed.findings.map(({ id, rule, title, severity, basis }) => ({ id, rule, title, severity, basis })),
     assumed_inputs: result.basis.assumed_inputs,
   };
@@ -1444,10 +2966,16 @@ const METRICS = [
 
 function deltas(base, head) {
   return METRICS.map(([key, label, unit, direction]) => {
-    const before = base[key]; const after = head[key];
+    let before = base[key]; let after = head[key]; let shown = label; let partial = false;
+    // A total exists only for a complete estimate. Two partial estimates are compared on
+    // their subtotals, and the row says so.
+    if (key === 'monthly_cost_usd' && (before == null || after == null)) {
+      before = base.monthly_cost_subtotal_usd ?? null; after = head.monthly_cost_subtotal_usd ?? null;
+      if (before != null && after != null) { partial = true; shown = `${label} (partial subtotal)`; }
+    }
     const change = before == null || after == null ? null : round(after - before);
     const verdict = change == null ? 'not comparable' : change === 0 ? 'unchanged' : (change > 0) === (direction > 0) ? 'better' : 'worse';
-    return { metric: key, label, unit, before, after, change, verdict };
+    return { metric: key, label: shown, unit, before, after, change, verdict, ...(partial ? { partial: true } : {}) };
   });
 }
 
@@ -1550,32 +3078,55 @@ const METRICS = [
   ['review_score', 'Review score', '/100', 1],
 ];
 
-/** The comparable figures of a model under given conditions (faults, load, cache). */
+/**
+ * The comparable figures of a model under given conditions (faults, load, cache).
+ * A figure the model could not calculate is null, so a comparison built on it reads
+ * "not comparable" and never "unchanged". `statuses` says why.
+ */
 function figures(model, inputs = {}) {
   const result = simulate(model, inputs);
   const cost = estimateCost(model, result);
   const reviewed = review(model, { multiplier: inputs.multiplier ?? 1, cacheHit: inputs.cacheHit ?? 0 });
   const share = result.kpis.blast_radius.ingress_share;
   return {
+    status: result.status,
+    reasons: result.reasons,
     composite_sla_percent: result.kpis.composite_sla_percent,
     critical_path_p99_ms: result.kpis.critical_path?.p99_ms ?? null,
     max_sustainable_rps: result.kpis.max_sustainable_rps,
-    affected_components: result.kpis.blast_radius.nodes.length,
+    // How many components are affected is not known while the blast radius is inconclusive.
+    affected_components: result.kpis.blast_radius.status === 'inconclusive' ? null : result.kpis.blast_radius.nodes.length,
     ingress_lost_percent: share == null ? null : round(share * 100, 2),
     single_points_of_failure: result.kpis.active_spofs.length,
+    // The total exists only for a complete estimate; a partial one offers a subtotal.
     monthly_cost_usd: cost.monthly_total_usd,
+    monthly_cost_subtotal_usd: cost.subtotal_usd,
     review_score: reviewed.score,
+    review_score_floor: reviewed.score_floor,
+    statuses: {
+      simulation: result.status, blast_radius: result.kpis.blast_radius.status, availability: result.assessments.availability.status,
+      latency: result.assessments.latency.status, capacity: result.assessments.capacity.status, ingress_loss: result.assessments.ingress_loss.status,
+      cost: cost.status, review: reviewed.status,
+    },
     findings: reviewed.findings.map(({ id, title, severity }) => ({ id, title, severity })),
   };
 }
 
-/** Compare two sets of figures: one row per metric, with a verdict in words. */
+/**
+ * Compare two sets of figures: one row per metric, with a verdict in words.
+ * Cost is compared on totals when both estimates are complete, otherwise on subtotals,
+ * and the row then says it compares partial subtotals.
+ */
 function compareFigures(before, after) {
   return METRICS.map(([key, label, unit, direction]) => {
-    const a = before[key]; const b = after[key];
+    let a = before[key]; let b = after[key]; let shown = label; let partial = false;
+    if (key === 'monthly_cost_usd' && (a == null || b == null)) {
+      a = before.monthly_cost_subtotal_usd ?? null; b = after.monthly_cost_subtotal_usd ?? null;
+      if (a != null && b != null) { partial = true; shown = `${label} (partial subtotal)`; }
+    }
     const change = a == null || b == null ? null : round(b - a);
     const verdict = change == null ? 'not comparable' : change === 0 ? 'unchanged' : (change > 0) === (direction > 0) ? 'better' : 'worse';
-    return { metric: key, label, unit, before: a, after: b, change, verdict };
+    return { metric: key, label: shown, unit, before: a, after: b, change, verdict, ...(partial ? { partial: true } : {}) };
   });
 }
 
@@ -1634,7 +3185,7 @@ function recoveryOptions(model, result) {
   }
 
   for (const node of failedAtSource) {
-    if (!injected[node.id] || node.actor || node.redundancy === 'active-passive-dr' || result.nodes[node.id].fault !== 'down') continue;
+    if (!injected[node.id] || node.actor || node.managed_by === 'provider' || node.redundancy === 'active-passive-dr' || result.nodes[node.id].fault !== 'down') continue;
     const summary = `Add a standby for ${node.label}`;
     options.push({
       id: `standby:${node.id}`, kind: 'standby', previewable: true, components: [node.id], connections: [], title: summary,
@@ -1645,7 +3196,8 @@ function recoveryOptions(model, result) {
 
   const cascading = model.edges
     .filter((edge) => edge.call_semantics === 'sync-blocking' && !edge.resilience.circuit_breaker_enabled && edge.resilience.fallback_edge_id == null
-      && result.nodes[edge.to]?.state === 'failing' && result.nodes[edge.from]?.state === 'failing' && result.edges[edge.id]?.state !== 'cut')
+      && result.nodes[edge.to]?.state === 'failing' && result.nodes[edge.from]?.state === 'failing' && result.edges[edge.id]?.state !== 'cut'
+      && !model.nodes.find((n) => n.id === edge.from)?.actor && model.nodes.find((n) => n.id === edge.from)?.managed_by !== 'provider')
     .sort((a, b) => (a.id < b.id ? -1 : 1));
   if (cascading.length) {
     options.push({
@@ -1677,11 +3229,22 @@ const RECOVERY_METRICS = new Set(['composite_sla_percent', 'critical_path_p99_ms
 function recoveryPlan(document, inputs = {}) {
   const model = buildModel(document).model;
   const result = simulate(model, inputs);
+  // An inconclusive run has no established impact to recover from. Proposing changes, or
+  // saying there is nothing to recover from, would both claim a result that was not computed.
+  if (result.status === 'inconclusive') {
+    return {
+      kind: 'analytical-model', status: 'inconclusive', reasons: result.reasons, missing: result.missing,
+      inputs: result.inputs, affected_components: null, options: [],
+      note: 'No recovery options are proposed because the run is inconclusive: the impact was not calculated. Supply the missing inputs and run it again.',
+    };
+  }
   const options = recoveryOptions(model, result)
     .map((option) => (option.previewable ? { ...option, preview: previewPatches(document, option.patches, inputs) } : option))
     .filter((option) => !option.previewable || option.preview.metrics.some((metric) => RECOVERY_METRICS.has(metric.metric) && metric.verdict === 'better'));
   return {
     kind: 'analytical-model',
+    status: result.status,
+    reasons: result.reasons,
     inputs: result.inputs,
     affected_components: result.kpis.blast_radius.nodes.length,
     options,
@@ -1689,6 +3252,214 @@ function recoveryPlan(document, inputs = {}) {
   };
 }
     return { applyPatches, figures, compareFigures, previewPatches, recoveryOptions, recoveryPlan };
+  })();
+  // ---- present.mjs
+  __modules["present.mjs"] = (function () {
+    'use strict';
+// Canonical presentation of workbench results.
+//
+// The command line, the plain-text output, the design document and the in-page workbench
+// all print what these functions return. That is what keeps them equivalent: a renderer
+// formats nothing on its own judgement, so it cannot turn "partial" into a total, "unknown"
+// into zero, or an inconclusive run into "no component is affected".
+//
+// Each function takes a canonical result (simulate, estimateCost, review) and returns
+// plain data: a status, the words to show, and what to ask the reader for.
+
+var { STATUS_LABELS } = __modules["evidence.mjs"];
+
+const thousands = (text) => text.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+/**
+ * Money as text. Cents are kept below $100 so that $0.60 is never shown as $1; from $100
+ * whole dollars are shown. Null is not a number and has no money text: use formatCost.
+ */
+function formatUsd(value) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const abs = Math.abs(value);
+  const text = abs < 100 ? abs.toFixed(2) : thousands(String(Math.round(abs)));
+  return `${value < 0 ? '-' : ''}$${text}`;
+}
+
+/**
+ * A unit price as text, never rounded: a rate of $0.000016 per GB-second is not "$0.00".
+ * At least two decimals are shown; beyond that, every stated digit (up to twelve places).
+ */
+function formatPrice(value) {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null;
+  const [whole, fraction = ''] = Math.abs(value).toFixed(12).split('.');
+  const digits = fraction.replace(/0+$/, '').padEnd(2, '0');
+  return `${value < 0 ? '-' : ''}$${thousands(whole)}.${digits}`;
+}
+
+/** A quantity with its unit in words: "3,000,000 requests", "1 hour", "250 GB". */
+function formatQuantity(quantity, unit) {
+  if (typeof quantity !== 'number' || !Number.isFinite(quantity)) return null;
+  const rounded = Math.round(quantity * 100) / 100;
+  const [whole, fraction] = String(rounded).split('.');
+  const plural = rounded !== 1 && !/B$/.test(unit) ? 's' : '';
+  return `${thousands(whole)}${fraction ? `.${fraction}` : ''} ${unit}${plural}`;
+}
+
+function statusLabel(status) { return STATUS_LABELS[status] ?? String(status); }
+
+/** A share (0..1) as a whole percentage, or null. */
+function sharePercent(share) { return share == null ? null : Math.round(share * 100); }
+
+/**
+ * The words for a cost figure from its status: a subtotal reads "at least" (or "≥" in the
+ * short form used where space is tight), never as a total. No form drops a digit.
+ */
+function costText(status, total, subtotal, short = false) {
+  if (status === 'complete') return formatUsd(total);
+  if (status === 'partial' && subtotal != null) return `${short ? '≥' : 'at least'} ${formatUsd(subtotal)}`;
+  if (status === 'unknown') return 'no data';
+  if (status === 'inconclusive') return 'not calculated';
+  return status === 'invalid' ? 'invalid inputs' : statusLabel(status);
+}
+
+/**
+ * The headline of a cost estimate.
+ * @returns {{ status, label, value, text, qualifier, coverage, definitive }}
+ *   `value` is the number shown (total or subtotal) or null; `text` is what to print.
+ */
+function formatCost(cost) {
+  const { priced_components: priced, components, meters } = cost.coverage;
+  const coverage = `${priced} of ${components} priceable component${components === 1 ? '' : 's'} priced; ${meters.computed} of ${meters.total} meter${meters.total === 1 ? '' : 's'} calculated`;
+  switch (cost.status) {
+    case 'complete':
+      return { status: 'complete', label: 'Total', value: cost.monthly_total_usd, text: costText('complete', cost.monthly_total_usd), short: costText('complete', cost.monthly_total_usd), qualifier: 'a month', coverage, definitive: true };
+    case 'partial':
+      return { status: 'partial', label: 'Partial subtotal', value: cost.subtotal_usd, text: costText('partial', null, cost.subtotal_usd), short: costText('partial', null, cost.subtotal_usd, true), qualifier: 'a month, not the total', coverage, definitive: false };
+    case 'unknown':
+      return { status: 'unknown', label: 'Total', value: null, text: 'no data', short: 'no data', qualifier: 'no component carries cost data', coverage, definitive: false };
+    case 'inconclusive':
+      return { status: 'inconclusive', label: 'Not calculated', value: null, text: 'not calculated', short: 'not calculated', qualifier: 'prices are stated, but no quantity to apply them to', coverage, definitive: false };
+    default:
+      return { status: cost.status, label: statusLabel(cost.status), value: null, text: costText(cost.status, null, null), short: costText(cost.status, null, null), qualifier: 'see the reasons listed', coverage, definitive: false };
+  }
+}
+
+/** The cost shown on one component (a diagram badge, a table cell), or null for an actor. */
+function formatNodeCost(entry) {
+  if (!entry || entry.priceable === false) return null;
+  // `text` stands alone (a badge), so it carries the status in words. `amount` is for a
+  // row that shows the status beside it.
+  if (!entry.priced) return { status: 'unknown', text: 'no cost data', amount: 'no cost data', tone: 'muted' };
+  if (entry.status === 'complete') return { status: 'complete', text: `${formatUsd(entry.total_usd)}/mo`, amount: `${formatUsd(entry.total_usd)}/mo`, tone: 'info' };
+  if (entry.subtotal_usd != null) return { status: entry.status, text: `≥ ${formatUsd(entry.subtotal_usd)}/mo partial`, amount: `≥ ${formatUsd(entry.subtotal_usd)}/mo`, tone: 'warn' };
+  const words = entry.status === 'inconclusive' ? 'usage unknown' : statusLabel(entry.status);
+  return { status: entry.status, text: words, amount: words, tone: 'warn' };
+}
+
+/**
+ * Everything a reader must see next to a cost figure: why it is not complete, what was
+ * left out, and whether the prices can be audited. One line each.
+ */
+function costLines(cost, name = (id) => id) {
+  const lines = [];
+  const list = (ids) => ids.map(name).join(', ');
+  for (const item of cost.reasons) {
+    if (item.code === 'no-cost-data') { lines.push(item.message); continue; }
+    lines.push(`${item.message}${item.subjects?.length ? ` (${list(item.subjects)})` : ''}`);
+  }
+  for (const item of cost.omitted) lines.push(`Left out: ${name(item.subject)}, ${item.dimension}${item.meter ? ` (${item.meter})` : ''}: ${statusLabel(item.status)}.`);
+  if (cost.status !== 'unknown') {
+    const c = cost.confidence;
+    const evidence = c.level === 'traceable' ? `Price evidence: traceable (${c.sourced} of ${c.sourced + c.unsourced} prices carry a source).`
+      : c.level === 'unsourced' ? `Price evidence: none. No price carries a source (provider, region, URL, retrieval date), so the figures are an authored worksheet, not a checked provider estimate.`
+        : `Price evidence: partly sourced (${c.sourced} of ${c.sourced + c.unsourced} prices carry a source).`;
+    lines.push(evidence);
+    if (c.stale) lines.push(`${c.stale} price${c.stale === 1 ? ' was' : 's were'} retrieved more than the freshness limit before ${c.as_of}: check them against the current list.`);
+    if (c.unchecked) lines.push(`${c.unchecked} price${c.unchecked === 1 ? ' has' : 's have'} a retrieval date but no reference date was given, so their age was not judged.`);
+  }
+  return lines;
+}
+
+/**
+ * The headline of a simulation run.
+ * @returns {{ status, tone, text, lines, asks, show_comparison, show_recovery }}
+ *  - `text` never claims "no component is affected" unless the blast radius is complete;
+ *  - `show_comparison` and `show_recovery` are false for an inconclusive run: a before/after
+ *    table or a recovery list would imply an impact was calculated.
+ */
+function simulationHeadline(model, result) {
+  const name = (id) => result.display?.[id] ?? model.display?.[id] ?? id;
+  const k = result.kpis; const radius = k.blast_radius; const total = model.nodes.length;
+  const asks = [...new Set(result.reasons.map((item) => item.ask).filter(Boolean))];
+  const lines = [];
+  if (result.status === 'inconclusive') {
+    let text;
+    if (result.bounds && !result.bounds.agree) {
+      const { best, worst } = result.bounds;
+      const describe = (side) => (side.failing.length ? `${side.failing.length} component${side.failing.length === 1 ? '' : 's'} fail${side.failing.length === 1 ? 's' : ''}${side.ingress_share ? ` and at least ${sharePercent(side.ingress_share)}% of entry traffic is not served` : ''}` : `no component fails (${side.affected.length} run with fewer units)`);
+      const unplaced = (result.assessments.structure.reasons.find((item) => item.code === 'placement-unknown')?.subjects ?? []).map(name);
+      text = `Inconclusive. Best case: ${describe(best)}. Worst case: ${describe(worst)}. The outcome depends on where ${unplaced.join(', ') || 'single-unit components'} run${unplaced.length === 1 ? 's' : ''}, which the document does not state.`;
+      const onlyWorst = worst.failing.filter((id) => !best.failing.includes(id)).map(name);
+      if (onlyWorst.length) lines.push(`At risk (fails only in the worst case): ${onlyWorst.join(', ')}.`);
+    } else {
+      const first = result.reasons.find((item) => item.code === 'missing-baseline-load') ?? result.reasons[0];
+      text = `Inconclusive. ${result.inputs.multiplier !== 1 ? `${result.inputs.multiplier}x load was not calculated: there is no baseline load to multiply. ` : ''}${first ? first.message : ''}`.trim();
+      if (k.max_sustainable_rps != null) lines.push(`Capacity ceiling: ${k.max_sustainable_rps} requests/s on the request path${k.limiting_node ? ` (first limit: ${name(k.limiting_node)})` : ''}. This is a ceiling computed from authored and assumed limits, not evidence that ${result.inputs.multiplier}x the current load is below it.`);
+    }
+    return { status: 'inconclusive', tone: 'inconclusive', text, lines, asks, show_comparison: false, show_recovery: false };
+  }
+  const affected = radius.nodes;
+  const share = radius.ingress_share;
+  let text;
+  if (affected.length) {
+    // Running with fewer units is not failing: say so, so a survived loss does not read as an outage.
+    const failing = affected.filter((id) => result.nodes[id].state === 'failing').length;
+    text = `${affected.length} component${affected.length === 1 ? '' : 's'} of ${total} affected${failing ? '' : ', none failing'}.`;
+    // A lower bound of zero says nothing: the note about load-dependent effects covers it.
+    if (share != null && !radius.ingress_share_is_floor) text += ` ${sharePercent(share)}% of entry traffic is not served.`;
+    else if (share != null && share > 0) text += ` At least ${sharePercent(share)}% of entry traffic is not served.`;
+    else if (share != null) text += ' Traffic lost to overload was not evaluated.';
+  } else if (radius.status === 'complete') text = 'No component is affected under these conditions.';
+  else text = 'No component fails under these conditions. Load-dependent effects (saturation, queueing) were not evaluated because no entry load is stated.';
+  if (result.assessments.availability.reasons.some((item) => item.code === 'answered-includes-degraded')) {
+    lines.push('Requests are still answered, but operations that need the failed component do not succeed: "answered" is not "successful".');
+  }
+  for (const journey of k.journeys ?? []) if (journey.status !== 'served') lines.push(`Journey "${journey.title}": ${journey.status}${journey.blocked_at ? ` at ${name(journey.blocked_at)}` : ''}.`);
+  return { status: result.status, tone: affected.length ? 'critical' : result.status === 'complete' ? 'ok' : 'partial', text, lines, asks, show_comparison: true, show_recovery: true };
+}
+
+/**
+ * The headline of a review: quality, and next to it how much was evaluated.
+ * A score is never shown without its coverage.
+ */
+function reviewHeadline(review) {
+  const c = review.coverage;
+  const score = review.score == null ? 'not scored' : `${review.score}/100`;
+  const covered = c.applicable ? `${c.evaluated} of ${c.applicable} applicable rules fully evaluated` : 'no rule applies';
+  const floor = review.score != null && review.score_floor !== review.score ? `; as low as ${review.score_floor}/100 if assumed findings count in full and the checks that could not run had found problems` : '';
+  const confidence = review.confidence ? `; evidence confidence ${review.confidence.level}` : '';
+  return {
+    status: review.status,
+    score,
+    text: `Score: ${score} (${statusLabel(review.status)}: ${covered}${floor}${confidence})`,
+    short: review.status === 'complete' ? score : `${score} ${statusLabel(review.status)}`,
+    qualifier: `${covered}${floor}`,
+    definitive: review.status === 'complete',
+  };
+}
+
+/** One line per gap: what could not be checked and what to supply. */
+function gapLines(review) {
+  return review.gaps.map((gap) => `${gap.title}: ${gap.message}${gap.ask ? ` ${gap.ask}` : ''}`);
+}
+
+/** What to say where a list of findings is empty: never "no rule fired" when rules could not run. */
+function noFindingsText(review, pillar) {
+  const gaps = review.gaps.filter((gap) => !pillar || gap.pillars.includes(pillar));
+  const state = pillar ? review.pillars[pillar]?.status : review.status;
+  if (gaps.length || (state && state !== 'complete' && state !== 'not_applicable')) {
+    return `No finding, but this was not fully checked: ${gaps.length} check${gaps.length === 1 ? '' : 's'} could not be evaluated. See what is missing below.`;
+  }
+  if (state === 'not_applicable') return 'No rule applies here.';
+  return 'No rule fired here. That means none of the checked rules found a problem, not that this aspect is complete.';
+}
+    return { formatUsd, formatPrice, formatQuantity, statusLabel, costText, formatCost, formatNodeCost, costLines, simulationHeadline, reviewHeadline, gapLines, noFindingsText };
   })();
   // ---- exporters/shared.mjs
   __modules["exporters/shared.mjs"] = (function () {
@@ -2141,6 +3912,7 @@ var { review } = __modules["review.mjs"];
 var { buildFmea } = __modules["fmea.mjs"];
 var { estimateCost } = __modules["cost.mjs"];
 var { buildScenarios, runScenario } = __modules["scenarios.mjs"];
+var { formatCost, formatUsd, formatPrice, formatQuantity, costLines, simulationHeadline, reviewHeadline, noFindingsText, statusLabel } = __modules["present.mjs"];
 var { toMermaidFlowchart } = __modules["exporters/mermaid.mjs"];
 var { mdLineStart, mdTable, mdText, plural, preformatted } = __modules["exporters/shared.mjs"];
 
@@ -2154,7 +3926,9 @@ function toRfc(document, model) {
   const fmea = buildFmea(model);
   const cost = estimateCost(model, result);
   const scenarios = buildScenarios(model).map((scenario) => ({ scenario, outcome: runScenario(model, scenario) }));
-  const name = (id) => model.nodes.find((n) => n.id === id)?.label ?? id;
+  const name = (id) => model.display?.[id] ?? model.nodes.find((n) => n.id === id)?.label ?? id;
+  const costHead = formatCost(cost);
+  const status = (key) => statusLabel(result.assessments[key].status);
   const k = result.kpis;
   const out = [];
   const push = (...lines) => out.push(...lines);
@@ -2165,8 +3939,9 @@ function toRfc(document, model) {
   push('## 1. Summary', '');
   push(`- ${plural(model.nodes.filter((n) => !n.actor).length, 'component')}, ${plural(model.edges.length, 'connection')}, ${plural(model.boundaries.length, 'boundary')}.`);
   push(`- Entry points: ${model.entrypoints.map((id) => mdText(name(id))).join(', ') || 'none identified'}.`);
-  push(`- Review score: ${findings.score}/100 with ${findings.findings.length} finding${findings.findings.length === 1 ? '' : 's'}.`);
-  push(`- Inputs: ${result.basis.authored_inputs} authored, ${result.basis.assumed_inputs} assumed.`, '');
+  push(`- Review: ${mdText(reviewHeadline(findings).text.replace(/^Score: /, ''))}, with ${findings.findings.length} finding${findings.findings.length === 1 ? '' : 's'} and ${findings.gaps.length} check${findings.gaps.length === 1 ? '' : 's'} that could not be evaluated.`);
+  push(`- Model status: ${statusLabel(result.status)}. Cost estimate: ${statusLabel(cost.status)}.`);
+  push(`- Inputs: ${result.basis.authored_inputs} authored, ${result.basis.assumed_inputs} assumed. Evidence confidence: ${result.confidence.level}.`, '');
 
   const assumptions = (document.cards || []).find((card) => card.title === 'Assumptions');
   if (assumptions || model.requirements) {
@@ -2204,23 +3979,43 @@ function toRfc(document, model) {
     ])), '');
 
   push('## 4. Modelled behaviour', '');
-  push(mdTable(['Measure', 'Modelled value'], [
-    ['Composite availability', k.composite_sla_percent == null ? 'not available' : `${k.composite_sla_percent}%`],
-    ['Critical path', k.critical_path ? k.critical_path.nodes.map(name).join(' → ') : 'none'],
-    ['Critical-path latency', k.critical_path ? `P50 ${k.critical_path.p50_ms} ms, P95 ${k.critical_path.p95_ms} ms, P99 ${k.critical_path.p99_ms} ms` : 'not available'],
-    ['Max sustainable load', k.max_sustainable_rps == null ? 'not available' : `${k.max_sustainable_rps} requests/s (limit: ${name(k.limiting_node)})`],
-    ['Current ingress', k.ingress_rps == null ? 'not set' : `${k.ingress_rps} requests/s (headroom ${k.headroom}x)`],
-    ['Single points of failure', k.active_spofs.length ? k.active_spofs.map(name).join(', ') : 'none'],
-    ['Estimated monthly cost', cost.monthly_total_usd == null ? 'not available (no cost data)' : `$${cost.monthly_total_usd} (${cost.coverage.priced_components} of ${cost.coverage.components} components priced)`],
+  push(mdTable(['Measure', 'Modelled value', 'Status'], [
+    ['Composite availability (requests answered, including degraded answers)', k.composite_sla_percent == null ? 'not available' : `${k.composite_sla_percent}%`, status('availability')],
+    ['Critical path', k.critical_path ? k.critical_path.nodes.map(name).join(' → ') : 'none', status('latency')],
+    ['Critical-path latency', k.critical_path?.p99_ms != null ? `P50 ${k.critical_path.p50_ms} ms, P95 ${k.critical_path.p95_ms} ms, P99 ${k.critical_path.p99_ms} ms` : 'not available', status('latency')],
+    ['Capacity ceiling of the request path', k.max_sustainable_rps == null ? 'not available' : `${k.max_sustainable_rps} requests/s (limit: ${name(k.limiting_node)})`, status('capacity')],
+    ['Asynchronous drain ceiling', k.async_drain_ceiling_rps == null ? 'not applicable' : `${k.async_drain_ceiling_rps} requests/s (limit: ${name(k.async_limiting_node)}); above it a backlog grows`, status('capacity')],
+    ['Current ingress', k.ingress_rps == null ? 'not stated' : `${k.ingress_rps} requests/s (headroom ${k.headroom}x)`, status('traffic')],
+    ['Single points of failure', k.active_spofs.length ? k.active_spofs.map(name).join(', ') : 'none found', status('structure')],
+    [`Monthly cost: ${costHead.label.toLowerCase()}`, `${costHead.text} (${costHead.coverage})`, statusLabel(cost.status)],
   ]), '');
-  for (const warning of result.warnings) push(`- Note: ${mdText(warning)}`);
-  if (result.warnings.length) push('');
+  for (const item of result.reasons) push(`- Note (${item.code}): ${mdText(item.message)}`);
+  if (result.reasons.length) push('');
+
+  push('### Cost estimate', '');
+  push(`${costHead.label}: **${mdText(costHead.text)}** ${mdText(costHead.qualifier)}. ${mdText(costHead.coverage)}.`, '');
+  const meterRows = model.nodes.filter((n) => cost.nodes[n.id]?.priced).flatMap((n) => cost.nodes[n.id].meters.map((meter) => [
+    name(n.id), meter.dimension, meter.quantity == null ? 'not known' : formatQuantity(meter.quantity, meter.unit),
+    meter.tiers ? 'tiered' : `${formatPrice(meter.price)} per ${meter.per === 1 ? meter.unit : formatQuantity(meter.per, meter.unit)}`,
+    meter.cost_usd == null ? `left out (${statusLabel(meter.status)})` : formatUsd(meter.cost_usd),
+    meter.source ? [meter.source.provider, meter.source.service, meter.source.region, meter.source.retrieved_at ? `retrieved ${meter.source.retrieved_at}` : null].filter(Boolean).join(', ') : 'no source',
+  ]));
+  if (meterRows.length) push(mdTable(['Component', 'Billed dimension', 'Monthly quantity', 'Price', 'Cost', 'Price source'], meterRows), '');
+  for (const line of costLines(cost, name)) push(`- ${mdText(line)}`);
+  push('');
 
   push('## 5. Review', '');
-  push(mdTable(['Pillar', 'Score', 'Findings'], Object.entries(findings.pillars).map(([pillar, value]) => [pillar, value.score, value.findings])), '');
+  push(mdText(reviewHeadline(findings).text), '');
+  push(mdTable(['Pillar', 'Score', 'Lowest possible', 'Rules evaluated', 'Status', 'Findings'], Object.entries(findings.pillars).map(([pillar, value]) => [
+    pillar, value.score == null ? 'not assessed' : value.score, value.floor == null ? 'not assessed' : value.floor,
+    `${value.rules.evaluated} of ${value.rules.applicable}`, statusLabel(value.status), value.findings])), '');
   if (findings.findings.length) {
     push(mdTable(['Severity', 'Finding', 'Evidence', 'Remediation', 'Basis'], findings.findings.map((f) => [f.severity, f.title, f.evidence, f.remediation, f.basis])), '');
-  } else push('No rule fired. This means none of the checked rules found a problem, not that the design is complete.', '');
+  } else push(noFindingsText(findings), '');
+  if (findings.gaps.length) {
+    push('### Not evaluated', '', 'These checks apply to the design but could not be run. They are not passes.', '');
+    push(mdTable(['Check', 'Pillar', 'Why it was not evaluated', 'What to supply'], findings.gaps.map((gap) => [gap.title, gap.pillar, gap.message, gap.ask ?? ''])), '');
+  }
 
   push('## 6. Failure modes', '');
   push(mdTable(['Component', 'Effect', 'Also affected', 'Ingress lost', 'Severity', 'RTO', 'RPO', 'Recommended'],
@@ -2229,15 +4024,17 @@ function toRfc(document, model) {
   push(fmea.note, '');
 
   push('## 7. Scenarios', '');
-  push(mdTable(['Scenario', 'Applied to', 'Outcome'], scenarios.map(({ scenario, outcome }) => {
-    if (!outcome.applicable) return [scenario.title, 'n/a', `Not applicable: ${outcome.reason}`];
+  push(mdTable(['Scenario', 'What fails', 'Status', 'Outcome'], scenarios.map(({ scenario, outcome }) => {
+    if (!outcome.applicable) return [scenario.title, 'n/a', 'not applicable', `Not applicable: ${outcome.reason}`];
     const r = outcome.result;
+    // The outcome sentence is the canonical headline: the same words as every other output.
+    const head = simulationHeadline(model, r);
     const failing = r.kpis.blast_radius.nodes.filter((id) => r.nodes[id].state === 'failing').map(name);
     const degraded = r.kpis.blast_radius.nodes.filter((id) => r.nodes[id].state === 'degraded').map(name);
-    const parts = [failing.length ? `failing: ${failing.join(', ')}` : null, degraded.length ? `degraded: ${degraded.join(', ')}` : null,
-      r.kpis.blast_radius.ingress_share != null ? `${Math.round(r.kpis.blast_radius.ingress_share * 100)}% of ingress lost` : null,
+    const detail = head.status === 'inconclusive' ? [] : [failing.length ? `failing: ${failing.join(', ')}` : null, degraded.length ? `degraded: ${degraded.join(', ')}` : null];
+    const parts = [head.text, ...head.lines, ...detail,
       outcome.analysis ? `reachable without authentication: ${outcome.analysis.reachable_without_authentication.map(name).join(', ') || 'nothing'}` : null].filter(Boolean);
-    return [scenario.title, scenario.targets.map(name).join(', ') || 'all traffic', parts.join('; ') || 'no component affected'];
+    return [scenario.title, scenario.fails ?? scenario.target_labels.join(', '), statusLabel(head.status), parts.join(' ')];
   })), '');
 
   if (model.adrs.length) {
@@ -2254,7 +4051,9 @@ function toRfc(document, model) {
   push('## Appendix: how to read this document', '');
   push('- An asterisk (*) marks a value assumed from the component\'s role. Replace it with a real figure and regenerate.');
   push('- The model is steady-state and treats failures as independent. It ranks risks and shows propagation; it does not replace load or failover testing.');
-  push(`- Review rules checked: ${findings.rules_checked.length}. The score summarises those rules only.`, '');
+  push(`- Review rules: ${findings.rules_checked.length}, of which ${findings.coverage.applicable} apply to this design and ${findings.coverage.evaluated} were fully evaluated. The score summarises the rules that ran; the lowest possible score assumes every rule that could not run had fired.`);
+  push('- A status of partial means a figure is a subset or a lower bound; inconclusive means an essential input is missing and no conclusion is drawn; unknown means there was nothing to evaluate. None of these is a pass.');
+  push('- A cost total is given only when every priceable component is priced on every dimension its pricing model bills. Otherwise the figure is a partial subtotal.', '');
   return out.join('\n');
 }
     return { toRfc };
@@ -2262,6 +4061,24 @@ function toRfc(document, model) {
   return {
     buildModel: __modules["model.mjs"].buildModel,
     applyAlternative: __modules["model.mjs"].applyAlternative,
+    STATUSES: __modules["evidence.mjs"].STATUSES,
+    ORIGINS: __modules["evidence.mjs"].ORIGINS,
+    REASONS: __modules["evidence.mjs"].REASONS,
+    CALCULATIONS: __modules["requirements.mjs"].CALCULATIONS,
+    DIMENSIONS: __modules["billing.mjs"].DIMENSIONS,
+    PRICING_MODELS: __modules["billing.mjs"].PRICING_MODELS,
+    formatUsd: __modules["present.mjs"].formatUsd,
+    formatPrice: __modules["present.mjs"].formatPrice,
+    formatQuantity: __modules["present.mjs"].formatQuantity,
+    costText: __modules["present.mjs"].costText,
+    formatCost: __modules["present.mjs"].formatCost,
+    formatNodeCost: __modules["present.mjs"].formatNodeCost,
+    costLines: __modules["present.mjs"].costLines,
+    simulationHeadline: __modules["present.mjs"].simulationHeadline,
+    reviewHeadline: __modules["present.mjs"].reviewHeadline,
+    gapLines: __modules["present.mjs"].gapLines,
+    noFindingsText: __modules["present.mjs"].noFindingsText,
+    statusLabel: __modules["present.mjs"].statusLabel,
     simulate: __modules["sim.mjs"].simulate,
     FAULT_STATES: __modules["sim.mjs"].FAULT_STATES,
     estimateCost: __modules["cost.mjs"].estimateCost,

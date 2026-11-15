@@ -32,7 +32,11 @@ test('snapshot carries the comparable figures of one design', () => {
   const snapshot = designSnapshot(buildModel(design()).model);
   assert.equal(snapshot.components, 3);
   assert.equal(snapshot.single_points_of_failure, 1);
-  assert.equal(snapshot.monthly_cost_usd, 300);
+  // The prices do not say how the components are billed, so the estimate is a partial
+  // subtotal: there is no total to carry.
+  assert.equal(snapshot.monthly_cost_usd, null);
+  assert.equal(snapshot.monthly_cost_subtotal_usd, 300);
+  assert.equal(snapshot.statuses.cost, 'partial');
   // (1 - 0.0001^2) * (1 - 0.0005^2) * 0.999 = 0.99899974
   assert.ok(Math.abs(snapshot.composite_sla_percent - 99.89997) < 1e-4, String(snapshot.composite_sla_percent));
   assert.deepEqual(snapshot.findings.map((f) => f.id), ['spof:db']);
@@ -97,7 +101,7 @@ test('review --against and --alternatives on the command line', (t) => {
   assert.equal(text.status, 0, text.stderr);
   assert.match(text.stdout, /^Design comparison\. Analytical model of the declared architecture, not a measurement\./);
   assert.match(text.stdout, /Single points of failure: 1 → 0 \(-1\) better/);
-  assert.match(text.stdout, /Estimated monthly cost: 300 USD → 600 USD \(\+300\) worse/);
+  assert.match(text.stdout, /Estimated monthly cost \(partial subtotal\): 300 USD → 600 USD \(\+300\) worse/);
   assert.match(text.stdout, /Findings closed \(1\):\n  \[high\] Single point of failure on a critical path \(spof:db\)/);
   const json = JSON.parse(run('review', 'after.json', '--against', 'before.json', '--json').stdout);
   assert.equal(json.mode, 'against');

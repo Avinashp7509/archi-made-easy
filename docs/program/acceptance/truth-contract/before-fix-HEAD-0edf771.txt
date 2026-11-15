@@ -1,0 +1,27 @@
+Report-scenario regressions (test/qa-report-regressions.test.mjs) run against an untouched export of HEAD 0edf771, before the fix.
+Command: node --test test/qa-report-regressions.test.mjs
+
+✔ QA P0: with an authored baseline the surge is calculated: load, utilisation, saturation, latency, queue lag, affected components
+✖ FinOps (packaged example): the illustrative total is a partial subtotal with unsourced prices, and is not reviewed as 100 complete
+✖ FinOps P0 (preserved): no cost fields is still "no data"; complete inputs still give a number
+✖ FinOps P0: a fixed charge plus an uncomputable request meter gives a partial subtotal, labelled partial
+✖ FinOps P0: a request price with no traffic is not a $0 estimate
+✖ FinOps P0: an egress price with no flow is left out with a reason, not silently dropped
+✖ FinOps P0: command-line JSON, plain text, review and the design document all carry the omission
+✖ FinOps P1: a request-only price does not look like the whole bill
+✖ FinOps P1: the cost pillar cannot score 100 with one of nine priceable components priced
+✖ FinOps P2: the coverage denominator counts priceable resources, not the user actor
+✖ QA P0: 10x traffic with no baseline load is inconclusive in the engine, with the reason
+✖ QA P0: command-line JSON, plain text and the design document agree that the surge is inconclusive
+✖ QA P0: no unchanged before/after comparison and no "nothing to recover from" for the uncalculated surge
+✖ QA P1: a provider-managed identity service gets no "run it multi-az" fix; its unknown redundancy is a question
+✖ QA P1: a zone-redundant design is not reported as failing a zone outage because a whole region was removed
+✖ QA P1: zone loss and region loss are separate scenarios, each naming its exact boundary
+✖ QA P2: a background consumer is not the headline capacity of the request path
+✖ QA P2: a contained database outage is not reported as plain availability; a declared journey fails
+✖ QA P2: circuit-breaker fixes are offered only on connections whose caller the design owns
+✖ QA P2: two components with one label are told apart in scenario targets and output
+
+tests 20
+pass 1
+fail 19

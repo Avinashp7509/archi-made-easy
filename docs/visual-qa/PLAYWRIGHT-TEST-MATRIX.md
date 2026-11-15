@@ -8,6 +8,7 @@ How the interface is tested in a real browser, what each run covers, and how to 
 |---|---|---|---|
 | 1. Automated visual QA | `scripts/visual-qa.mjs`: renders six documents, drives every workbench state at six viewports in both themes, and runs in-page defect checks in each state. Optional screenshots and pixel comparison. | On demand, and before accepting interface work | `node scripts/visual-qa.mjs --shots` |
 | 2. Workbench browser test | `test/workbench-browser.test.mjs`: 13 subtests with real pointer and keyboard input; compares the page with the command-line engine value for value. | In the browser suite (`npm run test:browser`) | `node --test test/workbench-browser.test.mjs` |
+| 2b. Truth-contract browser test | `test/truth-contract-browser.test.mjs`: 8 subtests on what a reader sees for an inconclusive run, a missing usage figure, a partial cost and a partly evaluated review; compares the page with the command-line engine value for value; checks that a status is always words. Writes screenshots when `ARCHI_MADE_EASY_TRUTH_SHOTS` names a directory. | In the browser suite (`npm run test:browser`) | `node --test test/truth-contract-browser.test.mjs` |
 | 3. Playwright MCP inspection | Interactive: open the rendered page, click through it, take screenshots, look at them, fix, repeat. Used throughout the redesign and for the upstream baseline capture. | While working on the interface | `docs/visual-qa/tools/` |
 
 Layers 1 and 2 drive Chrome through the repository's own zero-dependency browser harness (the one the inherited layout gate uses), so they run anywhere the test suite runs. Layer 3 needs the Playwright MCP server.
@@ -68,6 +69,7 @@ Letters follow the addendum. "Auto" is layer 1 (state id in `scripts/visual-qa.m
 | Q | Long labels, dense architectures | `long-labels`, `dense` documents | | yes |
 | R | Console and runtime errors | error trap in every state | error list asserted empty in every subtest | console read during capture |
 | S | Reset and rerun | `simulate-reset`, `workbench-off` | Reset in the Simulate subtest; off in the first subtest | yes |
+| U | Completeness of a result (truth contract) | `simulate-region-loss` uses scenario `g` | `truth-contract-browser`: "QA P0…", "QA P1/P2…", "QA P1: review…", "FinOps P0…", "FinOps P1/P2…", "FinOps (packaged example)…", "accessibility…", "narrow screens…" | [truth-contract/](truth-contract/) |
 | T | Inherited diagram types | `workflow`, `sequence`, `web-app` | "narrow screens… other diagram types have no workbench"; the inherited browser suite | captured |
 
 ## Automated defect checks (layer 1)

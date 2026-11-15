@@ -95,6 +95,17 @@ export function inferRole(component, { inbound = 0, outbound = 0 } = {}) {
   }
 }
 
+/**
+ * Roles that are normally a provider's service rather than something this design deploys:
+ * an identity provider, a CDN, a third-party API, a hosted model. Their redundancy is the
+ * provider's, so a review must not recommend redeploying them. This is an inference,
+ * recorded as such; `operational.managed_by` overrides it.
+ */
+const PROVIDER_MANAGED_ROLES = new Set(['identity', 'cdn', 'external-saas', 'ai-model']);
+export function inferManagedBy(role) {
+  return PROVIDER_MANAGED_ROLES.has(role) ? 'provider' : 'customer';
+}
+
 /** Default call semantics for a relationship, from the target's role. */
 export function inferCallSemantics(targetRole) {
   if (targetRole === 'message-broker') return 'async-queue';

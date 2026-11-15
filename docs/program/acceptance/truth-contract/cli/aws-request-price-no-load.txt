@@ -1,0 +1,68 @@
+# aws-request-price-no-load
+
+Report 2, case E: a request price with no baseline load (AWS).
+
+Document: finops-missing-load-aws.architecture.json
+
+$ archi-made-easy simulate finops-missing-load-aws.architecture.json --cost
+
+Simulation. Analytical model of the declared architecture, not a measurement.
+Conditions: 1x traffic, cache hit 0%, no faults
+Status: partial
+Result: No component fails under these conditions. Load-dependent effects (saturation, queueing) were not evaluated because no entry load is stated.
+Composite availability (requests answered, including degraded answers): 99.89985% [partial]
+Critical path: P50 45.259 ms, P95 146.645 ms, P99 238.674 ms (Users → CloudFront → ALB → ECS Fargate → Aurora) [partial]
+Capacity ceiling of the request path: 2000 requests/s (limit: Aurora)
+Asynchronous drain ceiling: 1000 requests/s (limit: Lambda); above it a backlog grows, requests are not refused
+Single points of failure on the request path: Cognito
+Affected components: none fail; load-dependent effects not evaluated
+Note: No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+Not complete (load-dependent-unevaluated): Availability does not include errors from overload because the load is not stated.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+Inputs: 16 authored, 39 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+Monthly cost. Not calculated: not calculated (prices are stated, but no quantity to apply them to; 1 of 9 priceable components priced; 0 of 1 meter calculated). Status: inconclusive.
+  Some components carry no cost data, so any total leaves them out. (ECS Fargate, ElastiCache, CloudFront, Aurora, Cognito, ALB, SQS, S3)
+  A usage-priced meter has a price but no usage to multiply: the load is not stated. It is left out, not counted as zero. (Lambda)
+  Some priced components do not say how their service is billed (finops.pricing_model), so it cannot be told whether every billed dimension is included. (Lambda)
+  Left out: Lambda, requests (legacy-requests): inconclusive.
+  Price evidence: none. No price carries a source (provider, region, URL, retrieval date), so the figures are an authored worksheet, not a checked provider estimate.
+
+(exit 0)
+
+JSON: result.status=partial; cost.status=inconclusive; cost.monthly_total_usd=null; cost.subtotal_usd=null
+
+$ archi-made-easy review finops-missing-load-aws.architecture.json
+
+Architecture review. Analytical model of the declared architecture, not a measurement.
+Score: 94/100 (partial: 4 of 8 applicable rules fully evaluated; as low as 37/100 if assumed findings count in full and the checks that could not run had found problems; evidence confidence low)
+Pillars: Reliability 96 (partial) · Security 100 (partial) · Performance not assessed (not applicable) · Cost not assessed (inconclusive) · Operational Excellence 98 · Sustainability not assessed (inconclusive)
+Findings: 1 medium, 2 low
+
+[MEDIUM] Deep synchronous call chain (Reliability; authored)
+  4 blocking hops in a row (users → cdn → lb → app → db) with no circuit breaker or asynchronous step. A slow or failed component at the end stalls every caller.
+  Fix: Add circuit breakers with timeouts along the chain, or move a step behind a queue or event stream.
+
+[LOW] Stateful component without recovery objectives (Operational Excellence; authored)
+  Aurora holds data but has no recovery point (RPO) or recovery time (RTO) objective.
+  Fix: Set dr.rpo_sec and dr.rto_sec for Aurora and confirm the backup strategy meets them.
+
+[LOW] Stateful component without recovery objectives (Operational Excellence; authored)
+  S3 holds data but has no recovery point (RPO) or recovery time (RTO) objective.
+  Fix: Set dr.rpo_sec and dr.rto_sec for S3 and confirm the backup strategy meets them.
+
+Not evaluated (5). These checks apply but could not be run; they are not passes:
+  [Cost] Cost estimate is not complete: The cost estimate is inconclusive: 1 of 9 priceable components carry prices and 0 of 1 meters could be calculated. For example Lambda: A usage-priced meter has a price but no usage to multiply: the load is not stated. It is left out, not counted as zero. Add finops meters to the components listed, or confirm they cost nothing.
+  [Sustainability] Idle capacity kept running: ECS Fargate keeps at least 2 instances running, but its load is not known, so whether that capacity is idle was not checked. State the current requests per second on at least one entry point (capacity.baseline_rps).
+  [Reliability] Single point of failure on a critical path: Cognito is a provider-managed service and the document does not state its redundancy, so whether it is a single point of failure is not known. The model assumes one unit. Confirm the provider's availability commitment for Cognito and state it (sla_percent, redundancy), or give its callers a fallback.
+  [Reliability] Caller timeout shorter than the callee retry budget: 6 chained blocking calls have no timeout_ms, so whether callers give up before callees finish was not checked. State resilience.timeout_ms (and retries) on the blocking calls listed.
+  [Security] Data store not encrypted at rest: S3 does not state whether data is encrypted at rest, so this was not checked. State security.encryption_at_rest (true or false) on each data store.
+
+Monthly cost. Not calculated: not calculated (prices are stated, but no quantity to apply them to; 1 of 9 priceable components priced; 0 of 1 meter calculated). Status: inconclusive.
+
+Rules: 14, 8 applicable, 4 fully evaluated. Findings come from an analytical model of the declared architecture. Those marked "assumed" rest on inferred roles or default values and count half toward the score. A rule that could not be evaluated is listed under gaps: it is not a pass. The floor is the score if every assumed finding counted in full and every check that could not run had found a problem.
+
+(exit 0)
+
+JSON: result.status=undefined; cost.status=inconclusive; cost.monthly_total_usd=null; cost.subtotal_usd=null
+
