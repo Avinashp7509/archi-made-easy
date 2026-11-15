@@ -1,3 +1,6 @@
+> [!NOTE]
+> **Superseded by the final release [copilot-v1.0.1](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1).** These notes describe the earlier pre-release copilot-v1.0.1-rc1, which held only the delivery adapter.
+
 > [!WARNING]
 > **Testing candidate. Not validated in Microsoft's sandbox.** Copilot Edition 1.0.1 has passed local restricted-folder tests and CI, but it has not yet been run inside Microsoft 365 Copilot Agent Builder. It is a pre-release, published only so that it can be tested there. The stable Copilot release remains [copilot-v1.0.0](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0), which has a known artifact-delivery failure in Agent Builder. 1.0.1 becomes stable only after a successful Agent Builder test.
 

@@ -1,6 +1,6 @@
 # Archi-Made-Easy: Microsoft 365 Copilot Edition
 
-The Copilot Edition is the Archi-Made-Easy skill repackaged for [skills in Microsoft 365 Copilot Agent Builder](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/agent-builder-skills). It is one ZIP, `archi-made-easy-copilot.zip`. It runs the same engine as the Full Edition, unchanged, and needs no Node.js, npm or Git on the user's computer.
+The Copilot Edition is the Archi-Made-Easy skill repackaged for [skills in Microsoft 365 Copilot Agent Builder](https://learn.microsoft.com/en-us/microsoft-365/copilot/extensibility/agent-builder-skills). It is one ZIP, `archi-made-easy-copilot.zip`. It runs the same engine files as the Full Edition at the same commit, unchanged, and needs no Node.js, npm or Git on the user's computer.
 
 - **Full Edition.** For coding agents such as Claude Code, Codex and Cursor. Unchanged by this edition: same files, same `archi-made-easy.zip`, same v1.0.0 release.
 - **Copilot Edition.** For Agent Builder and other locked-down environments where users cannot install tools.
@@ -13,11 +13,22 @@ The Copilot Edition is the Archi-Made-Easy skill repackaged for [skills in Micro
 > | Generating and delivering the HTML workbench file | **Confirmed once** (copilot-v1.0.0, run 2). Run 1 delivered no file. |
 > | The delivered page's interactions in a browser (Explore, Review, Simulate controls) | **Not yet verified** |
 > | Why run 1 failed | **Not established.** Two causes are possible; see run 1. |
-> | 1.0.1 (pre-release [copilot-v1.0.1-rc1](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1-rc1)) | **Not tested in Agent Builder.** Whether it is needed is not established. |
+> | 1.0.1 ([copilot-v1.0.1](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1); supersedes the pre-release copilot-v1.0.1-rc1) | **Not yet run in Agent Builder.** See [What is new in 1.0.1](#what-is-new-in-101). |
 >
 > Everything in the [validation report](#validation-report) was produced on a local computer, from the unpacked ZIP, with network access blocked.
 
-Contents: [Agent Builder test log](#agent-builder-test-log) · [Install in Agent Builder](#install-in-agent-builder) · [Example prompts](#example-prompts) · [Full and Copilot Editions compared](#full-and-copilot-editions-compared) · [Compatibility with Agent Builder's rules](#compatibility-with-agent-builders-rules) · [Validation report](#validation-report) · [Limitations](#limitations) · [How the ZIP is built](#how-the-zip-is-built)
+Contents: [What is new in 1.0.1](#what-is-new-in-101) · [Agent Builder test log](#agent-builder-test-log) · [Install in Agent Builder](#install-in-agent-builder) · [Example prompts](#example-prompts) · [Full and Copilot Editions compared](#full-and-copilot-editions-compared) · [Compatibility with Agent Builder's rules](#compatibility-with-agent-builders-rules) · [Validation report](#validation-report) · [Limitations](#limitations) · [How the ZIP is built](#how-the-zip-is-built)
+
+## What is new in 1.0.1
+
+1.0.1 is the final release of this version. It supersedes the pre-release copilot-v1.0.1-rc1, which held only the delivery adapter. Full notes: [RELEASE-NOTES.md](RELEASE-NOTES.md).
+
+- **Simulation truthfulness.** A traffic surge with no stated load is inconclusive and says what to supply, instead of reporting that nothing is affected. A zone loss and a region loss are separate scenarios, and an unknown placement gives a best and a worst case.
+- **FinOps completeness.** A price with no usage is left out with a reason, never counted as $0. A total is given only when the estimate is complete; otherwise the figure is a labelled partial subtotal. Prices can be given per billing dimension, with their source.
+- **Review.** The score is shown with its coverage and how low it could be; checks that could not run are listed.
+- **Step checks** in `SKILL.md` (below), and the **delivery adapter** from rc1.
+
+The fixes are in the engine, which is the Full Edition's at the same commit; they are not yet in a Full Edition release. Evidence: [run record](../../docs/program/acceptance/truth-contract/README.md).
 
 ## Agent Builder test log
 
@@ -45,7 +56,7 @@ Contents: [Agent Builder test log](#agent-builder-test-log) · [Install in Agent
 - **Run 2's transcript:** the `export html` (or `render`) command, its output path, and its JSON receipt.
 - **A one-line probe of `/mnt/data` in the v1.0.0 agent** (see [Evidence still needed](#evidence-still-needed)). If it reports `hardLink: true` and a non-zero inode number, cause 2 is ruled out for `/mnt/data`.
 
-**The 1.0.1 candidate** addresses both causes, in the Copilot Edition only, with the Full Edition unchanged. Whether it is needed depends on the evidence above.
+**1.0.1** addresses both causes, in the Copilot Edition only, with the Full Edition unchanged. Whether run 1's failure would recur with 1.0.1 is not known until 1.0.1 runs in Agent Builder.
 - **`bin/copilot-deliver.mjs`:**
   1. Probes for a folder where the engine's unchanged writer works.
   2. Runs `validate`, `render` and `check` there.
@@ -69,9 +80,9 @@ Contents: [Agent Builder test log](#agent-builder-test-log) · [Install in Agent
   - its browser interactions, including the Simulate panel's failure and load controls;
   - the commands, output folder and delivery path that run 2 used.
 
-### Next release (in development): step checks
+### In 1.0.1: step checks
 
-On `main`, not published, and not in rc1. In response to run 1, the edition's `SKILL.md` now gates every step on its result:
+In 1.0.1, not in rc1. In response to run 1, the edition's `SKILL.md` gates every step on its result:
 - **`check` only after success.** `check` runs only after `validate` and `export html` both return exit 0 with `"ok": true`, and the page file exists.
 - **The real error is reported.** If a step fails, the agent reports that step's own validation or rendering error (`code` and `message`), never a later missing-file or `input/artifact-unreadable` message.
 - **A safe correction is attempted.** The agent makes the smallest change the diagnostic names: shortening a label, widening a box or fixing a connection. It never removes what the user asked for and never weakens a check. It tries at most three rounds, then may fall back to standard layout quality, and says so. If the step still fails, it stops and gives the text outputs.
@@ -93,11 +104,11 @@ These are instructions to the agent. `test/copilot-edition.test.mjs` checks that
 
    It creates and removes three hidden test files and changes nothing else. If every field is `true` (or a number), `/mnt/data` supports the engine's page writer.
 
-### Retest procedure for the 1.0.1 candidate
+### Test procedure for 1.0.1
 
-Use this only if the evidence above shows that 1.0.1 is needed.
+Run this in Agent Builder before relying on 1.0.1 there.
 
-1. Remove the old `archi-made-easy` skill from the agent, then upload the 1.0.1 `archi-made-easy-copilot.zip` from the pre-release [copilot-v1.0.1-rc1](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1-rc1). Check its SHA-256 first: `23a81c9d45520830ceeced0e72225ed330eaf10916d779a01ce2789d6723f3c1`.
+1. Remove the old `archi-made-easy` skill from the agent, then upload `archi-made-easy-copilot.zip` from the release [copilot-v1.0.1](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1). Check its SHA-256 first: `e371d34ac0ee0bb267a461a1963d9e801d49d718becb5237fdd9f824daa8ee14`.
 2. In the agent's test pane, send: *"Using the archi-made-easy skill, run `node SKILL_DIR/bin/copilot-deliver.mjs probe /mnt/data --json` and show me the complete JSON output."* Keep the output. It records which folders support the engine's writer, and the exact error from each step in `/mnt/data`.
 3. Send the original prompt: *"Design a multi-region GCP architecture supporting 1 million users and generate an interactive architecture workbench."*
 4. **Pass** requires all three of these:
@@ -115,14 +126,14 @@ Before you start:
 - Your administrator must allow skills in Agent Builder.
 - Tenants that use Microsoft Purview Information Barriers cannot add skills.
 
-1. Download `archi-made-easy-copilot.zip` from the newest `copilot-v*` release on the [releases page](https://github.com/Avinashp7509/archi-made-easy/releases). Check its SHA-256 against the `.sha256` file published beside it. The stable release is [copilot-v1.0.0](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0). In Agent Builder it has delivered the HTML workbench once and failed once (see the [test log](#agent-builder-test-log)).
+1. Download `archi-made-easy-copilot.zip` from the newest `copilot-v*` release on the [releases page](https://github.com/Avinashp7509/archi-made-easy/releases). Check its SHA-256 against the `.sha256` file published beside it. The current release is [copilot-v1.0.1](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1); it has not yet been run in Agent Builder. The earlier [copilot-v1.0.0](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0) delivered the HTML workbench once and failed once there (see the [test log](#agent-builder-test-log)).
 2. In Microsoft 365 Copilot, open **Agents**, choose **New agent**, then **Configure**.
 3. Under **Skills**, choose **Add skill** and upload the ZIP. Do not unpack it. `SKILL.md` is at the ZIP's root, which is where Agent Builder looks for it.
 4. Give the agent a name, for example *Architecture Workbench*. Add an instruction such as: "Use the archi-made-easy skill for every architecture, diagram, review, failure, load or cost question."
 5. Turn on code execution if your tenant shows that option. The skill runs its scripts there.
 6. Test in the preview pane with one of the [example prompts](#example-prompts), then publish the agent for the people who need it.
 
-An agent can hold up to eight skills, and all of its skills together may contain at most 350 files. Edition 1.0.1 uses 214, which leaves room for other skills.
+An agent can hold up to eight skills, and all of its skills together may contain at most 350 files. Edition 1.0.1 uses 219, which leaves room for other skills.
 
 These steps follow Microsoft's documentation as of 2026-11-06. Microsoft's own labels may differ.
 
@@ -170,26 +181,26 @@ The edition's `SKILL.md` first runs `node --version`.
 
 ## Compatibility with Agent Builder's rules
 
-The rules are from Microsoft Learn, *Add skills to agents in Agent Builder* (updated 2026-11-06). The measurements are from the pre-release copilot-v1.0.1-rc1 `archi-made-easy-copilot.zip` (SHA-256 `23a81c9d45520830ceeced0e72225ed330eaf10916d779a01ce2789d6723f3c1`). The unreleased development ZIP on `main` differs only in its `SKILL.md` (15,623 characters, with the [step checks](#next-release-in-development-step-checks)). The measurements are checked by `scripts/build-copilot-skill.mjs --verify` and `test/copilot-edition.test.mjs`. The released 1.0.0 had 213 files, 1,731,067 bytes and an 11,496-character `SKILL.md`.
+The rules are from Microsoft Learn, *Add skills to agents in Agent Builder* (updated 2026-11-06). The measurements are from the copilot-v1.0.1 `archi-made-easy-copilot.zip` (SHA-256 `e371d34ac0ee0bb267a461a1963d9e801d49d718becb5237fdd9f824daa8ee14`). The pre-release rc1 had 214 files, 1,739,686 bytes and a 13,400-character `SKILL.md`. The measurements are checked by `scripts/build-copilot-skill.mjs --verify` and `test/copilot-edition.test.mjs`. The released 1.0.0 had 213 files, 1,731,067 bytes and an 11,496-character `SKILL.md`.
 
-| Rule | Limit | Copilot Edition 1.0.1-rc1 | Full Edition ZIP (for comparison) |
+| Rule | Limit | Copilot Edition 1.0.1 | Full Edition ZIP at the same commit (for comparison) |
 |---|---|---|---|
 | `SKILL.md` at the root of the ZIP | Required | Yes | No: inside an `archi-made-easy/` folder |
 | `name` and `description` in the front matter | Required | Yes: `archi-made-easy`, 731-character description | Yes (974-character description) |
-| `SKILL.md` length | Under 20,000 characters | 13,400 | 20,470 |
-| ZIP size | 50 MB | 1,739,686 bytes (1.7 MB) | 6,951,339 bytes |
-| Size of any one file | 25 MB | Largest is 1,119,339 bytes | Within the limit |
-| Files across all of an agent's skills | 350 | 214 | 257 |
-| Folder depth | 3 | 2 | 4 inside its `archi-made-easy/` folder (20 files deeper than 3) |
+| `SKILL.md` length | Under 20,000 characters | 16,836 | 21,639 |
+| ZIP size | 50 MB | 1,852,173 bytes (1.8 MB) | 7,247,959 bytes |
+| Size of any one file | 25 MB | Largest is 1,204,696 bytes | Within the limit |
+| Files across all of an agent's skills | 350 | 219 | 262 |
+| Folder depth | 3 | 2 | 4 inside its `archi-made-easy/` folder (23 files deeper than 3) |
 | Accepted file types only | The listed types | Yes: `.md .json .mjs .js .html .txt` | No: four files without an extension (`LICENSE`, `LICENSE-MIT`, `NOTICE`, a vendored `LICENSE`) and one `.css` file |
 | Duplicate paths or contents | None | None | None |
 | Network or package installs at run time | Not available in the sandbox | None needed; an offline run is tested with the network blocked | Update checks and brand capture expect a network |
 
-Unpacked, edition 1.0.1 is 5,992,598 bytes: 103 `.mjs`, 76 `.json`, 29 `.md`, 4 `.txt`, 1 `.js` and 1 `.html` file.
+Unpacked, edition 1.0.1 is 6,336,287 bytes: 107 `.mjs`, 76 `.json`, 30 `.md`, 4 `.txt`, 1 `.js` and 1 `.html` file.
 
 ## Validation report
 
-Run on 2026-11-11 and 2026-11-12, on Windows 11 with Node.js 24.18.0 (tests) and Node.js 22.23.4 (the build). The ZIP was unpacked into a temporary folder. Every command ran with a preloaded module that throws on any network call: `fetch`, `http`, `https`, `net` and `dns`.
+Run on 2026-11-11, 2026-11-12 and 2026-11-15 (1.0.1), on Windows 11 with Node.js 24.18.0 (tests) and Node.js 22.23.4 (the build). The ZIP was unpacked into a temporary folder. Every command ran with a preloaded module that throws on any network call: `fetch`, `http`, `https`, `net` and `dns`.
 
 ### Restricted-folder delivery (1.0.1, `test/copilot-delivery.test.mjs`)
 
@@ -228,6 +239,7 @@ Restricted folders are emulated by a preloaded module, `test/helpers/copilot-res
 | Hostile text is escaped in the page | Pass: `</script><img …>` in the title and `<img …>` in a label appear only as text | Test |
 | The generated page in a real browser | Pass. The page opened in Chromium at 1440×900 and 390×844, with no page errors. With the database marked down, it showed the same failure set as `simulate --fault db=down` from the CLI (five components; availability 0% modelled). | Manual Playwright session |
 | `doctor` | Reports "Explainer runtime and reader assets" missing and exits 1. This is expected, and `SKILL.md` tells the agent so. | Manual run |
+| Truth and completeness of results (1.0.1): the two QA reports' scenarios, invariants across generated designs, the same words on every output, real-browser checks of the page | Pass: 20 of 20, 33 of 33, 9 of 9 | `test/qa-report-regressions.test.mjs`, `test/truth-contract.test.mjs`, `test/truth-contract-browser.test.mjs`; [run record](../../docs/program/acceptance/truth-contract/README.md) |
 | Inside Microsoft's sandbox | 1.0.0: run 1 **failed** (scripts ran; no page delivered). Run 2 **generated and delivered** the HTML workbench. Browser interactions **not yet verified**. 1.0.1: **not yet run** | [Agent Builder test log](#agent-builder-test-log) |
 
 ### Not tested
@@ -275,6 +287,6 @@ node --test test/copilot-edition.test.mjs test/copilot-delivery.test.mjs
 
 Releases use their own tags, `copilot-v<version>`, and their own workflow, [`.github/workflows/copilot-release.yml`](../../.github/workflows/copilot-release.yml). The workflow rebuilds the ZIP, byte-compares it with the committed one and attaches it with its checksum. It never marks the release as latest, and the Full Edition's `v*` releases are unaffected.
 
-The edition has its own version (`version` in `SKILL.md`, now 1.0.1). It also records the Full Edition version it repackages (`engine-version`, 1.0.0). The workflow requires the tag to match the first, and `archi-made-easy/package.json` to match the second.
+The edition has its own version (`version` in `SKILL.md`, now 1.0.1). It also records the Full Edition version it repackages (`engine-version`, 1.0.0). In 1.0.1 the engine files come from the same commit and include fixes that are not yet in a Full Edition release. The workflow requires the tag to match the first, and `archi-made-easy/package.json` to match the second.
 
 Licence: Apache-2.0, as for the Full Edition. See `NOTICE.txt` and `THIRD_PARTY_NOTICES.md` in the ZIP.

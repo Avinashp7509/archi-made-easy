@@ -30,8 +30,8 @@ Current stable version: `v1.0.0` · Apache-2.0 · Node.js 18 or newer · no runt
 
 > [!TIP]
 > **Microsoft Copilot Edition: for Microsoft 365 Copilot Agent Builder and locked-down corporate laptops.** One ZIP to upload as an agent skill, with nothing to install.<br>
-> **[⬇ Download Microsoft Copilot Skill (.zip)](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip)** · [SHA-256](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip.sha256) · [Release notes](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0) · [How to add it to an agent](#microsoft-copilot-edition--enterprise--restricted-environments)<br>
-> **Tested in Microsoft Agent Builder (v1.0.0):** in one run it generated and delivered the HTML workbench; in an earlier run it delivered no page, for a reason still under investigation. Interactive behaviour in the browser, including the Simulate controls, is **not yet verified**. See the [test log](editions/copilot/README.md#agent-builder-test-log).
+> **[⬇ Download Microsoft Copilot Skill (.zip)](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.1/archi-made-easy-copilot.zip)** · [SHA-256](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.1/archi-made-easy-copilot.zip.sha256) · [Release notes](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1) · [How to add it to an agent](#microsoft-copilot-edition--enterprise--restricted-environments)<br>
+> **Version 1.0.1** fixes results shown as calculated when they were not: a traffic surge with no stated load is now inconclusive, and a price with no stated usage is never $0. It has **not yet been run in Microsoft Agent Builder**. The earlier v1.0.0 generated and delivered the HTML workbench in one Agent Builder run and delivered no page in another; interactive behaviour in the browser is **not yet verified**. See the [test log](editions/copilot/README.md#agent-builder-test-log).
 
 <p align="center"><img src="docs/assets/archi-made-easy-demo.gif" alt="A 37-second walkthrough of the workbench: a bundled example architecture, a component and its inputs, a review finding and its fix, a region failure and its impact, recovery options, ten times the load, monthly cost, a C4 level opened, and the exports" width="900"></p>
 
@@ -389,7 +389,7 @@ node archi-made-easy/install.mjs --agent claude-code --uninstall
 
 For Microsoft 365 Copilot Agent Builder and other locked-down environments where people cannot install Node.js, npm or Git. It is the same engine, repackaged as one ZIP that meets Agent Builder's skill rules. The Full Edition above is unchanged.
 
-<p><a href="https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip"><strong>⬇ Download Microsoft Copilot Skill (.zip)</strong></a> · <a href="https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip.sha256">SHA-256</a> · <a href="https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0">Release notes (copilot-v1.0.0)</a> · <a href="editions/copilot/README.md">Edition guide</a> · <a href="editions/copilot/README.md#validation-report">Validation report</a></p>
+<p><a href="https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.1/archi-made-easy-copilot.zip"><strong>⬇ Download Microsoft Copilot Skill (.zip)</strong></a> · <a href="https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.1/archi-made-easy-copilot.zip.sha256">SHA-256</a> · <a href="https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1">Release notes (copilot-v1.0.1)</a> · <a href="editions/copilot/README.md">Edition guide</a> · <a href="editions/copilot/README.md#validation-report">Validation report</a></p>
 
 | | Full Edition | Microsoft Copilot Edition |
 |---|---|---|
@@ -418,12 +418,13 @@ You need a Microsoft 365 Copilot licence (or pay-as-you-go), and your administra
 
 | Package | Value |
 |---|---|
-| ZIP size | 1,731,067 bytes (1.7 MB; limit 50 MB) |
-| Files | 213 (limit 350 per agent) |
+| Version | 1.0.1 (supersedes the pre-release 1.0.1-rc1) |
+| ZIP size | 1,852,173 bytes (1.8 MB; limit 50 MB) |
+| Files | 219 (limit 350 per agent) |
 | Deepest folder | 2 levels (limit 3) |
-| `SKILL.md` | At the root, 11,496 characters (limit 20,000) |
-| SHA-256 | `95ed9aad76280c00c8b6a91e5d34739268d614f4f170926ed7d174678a3df4fc` |
-| Sandbox validation | **Partly confirmed in Microsoft Agent Builder (v1.0.0).** Upload and script execution: confirmed. Generating and delivering the HTML workbench: confirmed in one run (2026-11-12); an earlier run (2026-11-11) delivered no page, cause under investigation. Browser interactions and Simulate controls of a delivered page: **not yet verified**. See the [test log](editions/copilot/README.md#agent-builder-test-log). |
+| `SKILL.md` | At the root, 16,836 characters (limit 20,000) |
+| SHA-256 | `e371d34ac0ee0bb267a461a1963d9e801d49d718becb5237fdd9f824daa8ee14` |
+| Sandbox validation | **1.0.1: not yet run in Microsoft Agent Builder.** **Partly confirmed for v1.0.0.** Upload and script execution: confirmed. Generating and delivering the HTML workbench: confirmed in one run (2026-11-12); an earlier run (2026-11-11) delivered no page, cause under investigation. Browser interactions and Simulate controls of a delivered page: **not yet verified**. See the [test log](editions/copilot/README.md#agent-builder-test-log). |
 
 Figures are modelled from the declared design, not measured, in both editions.
 
