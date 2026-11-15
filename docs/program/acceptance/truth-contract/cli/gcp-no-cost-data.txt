@@ -1,0 +1,30 @@
+# gcp-no-cost-data
+
+Report 2, case A: a scaffold with no finops fields (Google Cloud).
+
+Document: finops-none-gcp.architecture.json
+
+$ archi-made-easy simulate finops-none-gcp.architecture.json --cost
+
+Simulation. Analytical model of the declared architecture, not a measurement.
+Conditions: 1x traffic, cache hit 0%, no faults
+Status: partial
+Result: No component fails under these conditions. Load-dependent effects (saturation, queueing) were not evaluated because no entry load is stated.
+Composite availability (requests answered, including degraded answers): 99.89985% [partial]
+Critical path: P50 45.259 ms, P95 146.645 ms, P99 238.674 ms (Users → Cloud CDN → Cloud LB → Cloud Run → Cloud SQL) [partial]
+Capacity ceiling of the request path: 2000 requests/s (limit: Cloud SQL)
+Asynchronous drain ceiling: 1000 requests/s (limit: Functions); above it a backlog grows, requests are not refused
+Single points of failure on the request path: Identity Plat.
+Affected components: none fail; load-dependent effects not evaluated
+Note: No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+Not complete (load-dependent-unevaluated): Availability does not include errors from overload because the load is not stated.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+Inputs: 16 authored, 39 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+Monthly cost. Total: no data (no component carries cost data; 0 of 9 priceable components priced; 0 of 0 meters calculated). Status: unknown.
+  No component carries cost data, so no estimate was made.
+
+(exit 0)
+
+JSON: result.status=partial; cost.status=unknown; cost.monthly_total_usd=null; cost.subtotal_usd=null
+

@@ -1,0 +1,102 @@
+# hybrid
+
+Hybrid: cloud workloads beside on-premises systems.
+
+Document: hybrid-azure.architecture.json
+
+$ archi-made-easy simulate hybrid-azure.architecture.json --multiplier 10
+
+Simulation. Analytical model of the declared architecture, not a measurement.
+Conditions: 10x traffic, cache hit 0%, no faults
+Status: inconclusive
+Result: Inconclusive. 10x load was not calculated: there is no baseline load to multiply. No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+  Capacity ceiling: 1000 requests/s on the request path (first limit: App Service). This is a ceiling computed from authored and assumed limits, not evidence that 10x the current load is below it.
+Composite availability: inconclusive
+Critical path latency: inconclusive
+Capacity ceiling of the request path: 1000 requests/s (limit: App Service)
+Single points of failure on the request path: Core systems, Azure Firewall, ExpressRoute
+Affected components: not calculated
+Note: No entry component has baseline_rps, so 10x load has nothing to multiply: this run is inconclusive. Loads, utilisation, saturation, traffic lost and latency under load were not calculated. The capacity ceiling is still reported; it is not evidence that 10x is safe.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+Inputs: 14 authored, 46 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+
+(exit 0)
+
+JSON: status=inconclusive
+
+$ archi-made-easy simulate hybrid-azure.architecture.json --scenario b
+
+Scenario b: Loss of one availability zone. Analytical model of the declared architecture, not a measurement.
+Conditions: 1x traffic, cache hit 0%, faults: one availability zone (not drawn) down
+Status: inconclusive
+Result: Inconclusive. Best case: no component fails (3 run with fewer units). Worst case: 7 components fail and at least 100% of entry traffic is not served. The outcome depends on where Entra ID, Core systems, Directory, Azure Firewall, On-prem DB, ExpressRoute, Data Factory run, which the document does not state.
+  At risk (fails only in the worst case): Entra ID, Core systems, Directory, Azure Firewall, On-prem DB, ExpressRoute, Data Factory.
+Composite availability: inconclusive (worst case 0%, best case 99.80012%)
+Critical path latency: inconclusive
+Capacity ceiling of the request path: inconclusive
+Single points of failure on the request path: Core systems, Azure Firewall, ExpressRoute
+Affected components (10), in the worst case:
+  App Service: degraded (lost one of 2 units with the zone)
+  Azure SQL: degraded (lost one of 2 units with the zone)
+  Entra ID: failing (runs as one unit; assumed to be in the lost zone (worst case))
+  Core systems: failing (runs as one unit; assumed to be in the lost zone (worst case))
+  Directory: failing (runs as one unit; assumed to be in the lost zone (worst case))
+  Azure Firewall: failing (runs as one unit; assumed to be in the lost zone (worst case))
+  API Management: degraded (lost one of 2 units with the zone)
+  On-prem DB: failing (runs as one unit; assumed to be in the lost zone (worst case))
+  ExpressRoute: failing (runs as one unit; assumed to be in the lost zone (worst case))
+  Data Factory: failing (runs as one unit; assumed to be in the lost zone (worst case))
+Ingress traffic lost: between 0% (best case) and 100% (worst case)
+Note: No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.
+Note: A failing blocking call has no timeout_ms: its wait cannot be modelled and is left out of latency.
+Not complete (placement-unknown): Which zone each component runs in is not stated, so the outcome is given as a range: the worst case assumes every component with one unit runs in the lost zone.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+Not complete (missing-timeout): A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.
+Not complete (load-dependent-unevaluated): Latency is given without queueing because the load is not stated: it is a lower bound on latency under load.
+To resolve: Place components in availability-zone boundaries, or state redundancy for each component.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+To resolve: State resilience.timeout_ms on the blocking calls into failing components.
+Inputs: 14 authored, 46 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+
+(exit 0)
+
+JSON: status=inconclusive
+
+$ archi-made-easy review hybrid-azure.architecture.json
+
+Architecture review. Analytical model of the declared architecture, not a measurement.
+Score: 82/100 (partial: 4 of 6 applicable rules fully evaluated; as low as 34/100 if assumed findings count in full and the checks that could not run had found problems; evidence confidence low)
+Pillars: Reliability 84 (partial) · Security 100 (partial) · Performance not assessed (not applicable) · Cost not assessed (unknown) · Operational Excellence 98 · Sustainability not assessed (not applicable)
+Findings: 3 high, 2 low
+
+[HIGH] Single point of failure on a critical path (Reliability; assumed)
+  Core systems is a single instance that every request through an entry depends on.
+  Fix: Run Core systems across at least two failure domains (multi-az), or give its callers a fallback.
+
+[HIGH] Single point of failure on a critical path (Reliability; assumed)
+  Azure Firewall is a single instance that every request through an entry depends on.
+  Fix: Run Azure Firewall across at least two failure domains (multi-az), or give its callers a fallback.
+
+[HIGH] Single point of failure on a critical path (Reliability; authored)
+  ExpressRoute is a single instance that every request through an entry depends on.
+  Fix: Run ExpressRoute across at least two failure domains (multi-az), or give its callers a fallback.
+
+[LOW] Stateful component without recovery objectives (Operational Excellence; authored)
+  Azure SQL holds data but has no recovery point (RPO) or recovery time (RTO) objective.
+  Fix: Set dr.rpo_sec and dr.rto_sec for Azure SQL and confirm the backup strategy meets them.
+
+[LOW] Stateful component without recovery objectives (Operational Excellence; authored)
+  On-prem DB holds data but has no recovery point (RPO) or recovery time (RTO) objective.
+  Fix: Set dr.rpo_sec and dr.rto_sec for On-prem DB and confirm the backup strategy meets them.
+
+Not evaluated (2). These checks apply but could not be run; they are not passes:
+  [Reliability] Caller timeout shorter than the callee retry budget: 5 chained blocking calls have no timeout_ms, so whether callers give up before callees finish was not checked. State resilience.timeout_ms (and retries) on the blocking calls listed.
+  [Security] Data store not encrypted at rest: On-prem DB does not state whether data is encrypted at rest, so this was not checked. State security.encryption_at_rest (true or false) on each data store.
+
+Rules: 14, 6 applicable, 4 fully evaluated. Findings come from an analytical model of the declared architecture. Those marked "assumed" rest on inferred roles or default values and count half toward the score. A rule that could not be evaluated is listed under gaps: it is not a pass. The floor is the score if every assumed finding counted in full and every check that could not run had found a problem.
+
+(exit 0)
+
+JSON: result.status=undefined; cost.status=unknown; cost.monthly_total_usd=null; cost.subtotal_usd=null
+

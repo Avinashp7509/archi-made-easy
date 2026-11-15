@@ -132,6 +132,8 @@ Why no bundled display face: each embedded face adds about 40KB to every artifac
 | Mode rail button | Icon above a short label; the active mode has an accent bar on its edge. With the workbench off, the icon alone, with the name as a tooltip and accessible name. |
 | Readout | A figure in the vitals bar or inspector: mono label, value, unit, optional change against the baseline, and a basis tag. |
 | Basis tag | `MODELLED`, `ASSUMED`, `AUTHORED` or `MEASURED`. See below. |
+| Status tag | The completeness of a figure: `COMPLETE`, `PARTIAL`, `INCONCLUSIVE`, `UNKNOWN`, `UNSUPPORTED`, `INVALID`, `NOT APPLICABLE`. Always words; the colour only repeats it (ok for complete, warning for partial and inconclusive, muted and dashed for unknown, critical for invalid). A figure that is not complete carries one beside it, or the status word beneath it in the vitals bar. The words come from the engine, never from the page. |
+| Caution callout | The warning-toned callout used for a result that is not complete: an inconclusive run, a cost that is partial or not calculated. It holds the status tag, the engine's sentence, and what to supply. |
 | Finding card | Severity, title, pillar. Selecting it spotlights the affected components and expands problem, evidence, consequence and recommended change. |
 | Scenario card | A named failure or load case with what it does. One is selected at a time. |
 | Compare table | Baseline against the current state, one row per figure, with better or worse stated in words. |

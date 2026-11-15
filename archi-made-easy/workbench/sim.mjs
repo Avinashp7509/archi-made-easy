@@ -5,6 +5,14 @@
 // treats failures as independent, and uses whatever values the model carries, authored
 // or assumed. Every result therefore states how many of its inputs were assumed.
 // No randomness, no clock, no I/O: the same model and inputs always give the same output.
+//
+// Every result carries its completeness (evidence.mjs): `status`, and one assessment per
+// calculation in `assessments`. A figure that could not be calculated is null with a
+// reason, never zero, false or "healthy". In particular a change in load with no stated
+// baseline load is inconclusive: there is nothing to multiply.
+
+import { assessment, reason, concludeStatus, mergeAssessments, confidenceOf } from './evidence.mjs';
+import { checkCalculation, isEssential } from './requirements.mjs';
 
 // "No limit". Spelled this way because a rendered page inlines this module, and the
 // artifact checks reject any page that contains the bare non-finite number names.
@@ -15,7 +23,7 @@ const INDEPENDENCE_NOTE_FROM = 0.9999;
 export const INDEPENDENCE_NOTE = 'Availability this high depends on the assumption that components fail independently. Shared software, configuration and provider-wide incidents are not modelled and usually set the real limit.';
 
 export const FAULT_STATES = Object.freeze(['healthy', 'degraded', 'brownout', 'down', 'partitioned', 'surge']);
-export const SIM_SCHEMA_VERSION = 1;
+export const SIM_SCHEMA_VERSION = 2;
 
 const SYNC = 'sync-blocking';
 const ASYNC = new Set(['async-queue', 'async-pubsub', 'event-stream']);
@@ -79,7 +87,12 @@ function normaliseFaults(faults = {}) {
     for (const state of Object.values(table)) if (!FAULT_STATES.includes(state)) throw new Error(`unknown fault state "${state}"`);
     return table;
   };
-  return { nodes: check(faults.nodes), edges: check(faults.edges), boundaries: check(faults.boundaries) };
+  // `zone: 'down'` loses one availability zone without naming it: every component keeps
+  // the units its redundancy places elsewhere. Used when the diagram draws no zone boundary.
+  if (faults.zone != null && faults.zone !== 'down' && faults.zone !== 'healthy') throw new Error(`zone fault must be "down", got "${faults.zone}"`);
+  const out = { nodes: check(faults.nodes), edges: check(faults.edges), boundaries: check(faults.boundaries) };
+  if (faults.zone === 'down') out.zone = 'down';
+  return out;
 }
 
 function survivesBoundary(node, boundary) {
@@ -90,10 +103,59 @@ function survivesBoundary(node, boundary) {
 
 /**
  * Run the model.
+ *
+ * When a zone is lost without the diagram saying which components run in it, the outcome
+ * depends on an unstated fact. The model then runs twice, with every single-unit component
+ * inside the lost zone (worst case, the result returned) and outside it (best case), and
+ * reports both in `bounds`. If the two differ the result is inconclusive.
  * @param {object} model from buildModel()
  * @param {{ multiplier?: number, cacheHit?: number, faults?: object }} inputs
  */
-export function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {}) {
+export function simulate(model, inputs = {}) {
+  const worst = simulateCase(model, inputs, 'worst');
+  if (worst.inputs.faults.zone !== 'down') return worst;
+  const best = simulateCase(model, inputs, 'best');
+  const outline = (r) => ({
+    affected: r.kpis.blast_radius.nodes,
+    failing: r.kpis.blast_radius.nodes.filter((id) => r.nodes[id].state === 'failing'),
+    ingress_share: r.kpis.blast_radius.ingress_share ?? r.kpis.blast_radius.ingress_share_floor,
+    composite_sla_percent: r.kpis.composite_sla_percent,
+    critical_path_p99_ms: r.kpis.critical_path?.p99_ms ?? null,
+    max_sustainable_rps: r.kpis.max_sustainable_rps,
+  });
+  const bounds = { worst: outline(worst), best: outline(best) };
+  const same = JSON.stringify(bounds.worst) === JSON.stringify(bounds.best);
+  worst.bounds = { ...bounds, agree: same };
+  if (!same) {
+    const subjects = worst.assessments.structure.assumptions.filter((a) => a.input === 'placement').map((a) => a.subject);
+    const gap = assessment('inconclusive', {
+      reasons: [reason('placement-unknown', { subjects })],
+      missing: subjects.map((id) => ({ input: 'placement or redundancy', unit: null, subject: id, description: 'the zone this component runs in, or its redundancy' })),
+      affects: ['nodes.*.state', 'kpis.blast_radius', 'kpis.composite_sla_percent'],
+    });
+    // Every figure that depends on which components fail is unsettled: the values in this
+    // result are the worst case and must not be shown as the outcome.
+    for (const key of ['structure', 'blast_radius', 'availability', 'latency', 'capacity', 'ingress_loss']) {
+      worst.assessments[key] = mergeAssessments([worst.assessments[key], gap], 'inconclusive');
+    }
+    // The outcome figures are not known: they are held in `bounds`, per case, and are null
+    // here so that no output can print the worst case as the result. Component states stay
+    // as the worst case, for the diagram, and `case` says so.
+    worst.case = 'worst';
+    worst.kpis.composite_sla_percent = null;
+    if (worst.kpis.critical_path) worst.kpis.critical_path = { nodes: worst.kpis.critical_path.nodes, p50_ms: null, p95_ms: null, p99_ms: null };
+    worst.kpis.max_sustainable_rps = null; worst.kpis.limiting_node = null; worst.kpis.headroom = null;
+    worst.kpis.blast_radius.ingress_share = null;
+    worst.kpis.blast_radius.ingress_share_floor = bounds.best.ingress_share;
+    worst.kpis.blast_radius.ingress_share_is_floor = true;
+    worst.kpis.blast_radius.status = 'inconclusive';
+    worst.status = 'inconclusive';
+    worst.reasons = mergeAssessments(Object.values(worst.assessments)).reasons;
+  }
+  return worst;
+}
+
+function simulateCase(model, { multiplier = 1, cacheHit = 0, faults: rawFaults } = {}, placement = 'worst') {
   if (!(multiplier > 0)) throw new Error('multiplier must be greater than 0');
   if (!(cacheHit >= 0 && cacheHit <= 0.99)) throw new Error('cacheHit must be between 0 and 0.99');
   const faults = normaliseFaults(rawFaults);
@@ -139,6 +201,27 @@ export function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFault
     }
     events.push({ type: 'blackout', boundary: boundary.id, state });
   }
+  // One availability zone lost, with no zone drawn. A component with units in more than one
+  // zone keeps the others. A component with a single unit (or a primary with a standby) is
+  // lost only if it runs in that zone, which the document does not say: `placement` picks
+  // the case, and the assumption is recorded so the result can state the range.
+  const structureAssumptions = [];
+  if (faults.zone === 'down') {
+    for (const node of nodes) {
+      if (node.actor) continue;
+      const entry = info.get(node.id);
+      if (entry.fault === 'down') continue;
+      if (node.redundancy === 'multi-az' || node.redundancy === 'active-active-multi-region') {
+        entry.unitsLost = Math.min(redundantUnits(node) - 1, entry.unitsLost + 1);
+        entry.cause.push(`lost one of ${redundantUnits(node)} units with the zone`);
+        if (node.origin.redundancy !== 'authored') structureAssumptions.push({ input: 'redundancy', subject: node.id, value: node.redundancy, origin: node.origin.redundancy });
+      } else {
+        structureAssumptions.push({ input: 'placement', subject: node.id, value: placement === 'worst' ? 'in the lost zone' : 'outside the lost zone', origin: 'unknown', managed_by: node.managed_by });
+        if (placement === 'worst') { entry.fault = 'down'; entry.zoneLost = true; }
+      }
+    }
+    events.push({ type: 'zone-loss', placement });
+  }
   // A partitioned node is up but unreachable: cut every incident edge.
   for (const node of nodes) if (info.get(node.id).fault === 'partitioned') for (const edge of edges) if (edge.from === node.id || edge.to === node.id) cutEdges.add(edge.id);
 
@@ -152,7 +235,7 @@ export function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFault
       entry.cause.push('running on the disaster-recovery replica');
     } else if (entry.fault === 'down' || entry.fault === 'partitioned') {
       state.set(node.id, 'failing');
-      entry.cause.push(`injected fault: ${entry.fault}`);
+      entry.cause.push(entry.zoneLost ? 'runs as one unit; assumed to be in the lost zone (worst case)' : `injected fault: ${entry.fault}`);
     } else if (entry.fault === 'degraded' || entry.fault === 'brownout' || entry.unitsLost > 0) {
       state.set(node.id, 'degraded');
       if (entry.fault) entry.cause.push(`injected fault: ${entry.fault}`);
@@ -234,7 +317,14 @@ export function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFault
   // ---- 4. Offered load, served load, flows, retry amplification ----------------------
   const baselines = entries.map((id) => nodeById.get(id).capacity.baseline_rps);
   const loadKnown = baselines.some((value) => value != null);
-  if (!loadKnown) warnings.push('No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.');
+  // What the run asks: a change in load makes the load calculation essential to any conclusion.
+  const conditions = { loadScaled: multiplier !== 1 };
+  const loadMissing = conditions.loadScaled && !loadKnown;
+  if (!loadKnown) {
+    warnings.push(loadMissing
+      ? `No entry component has baseline_rps, so ${multiplier}x load has nothing to multiply: this run is inconclusive. Loads, utilisation, saturation, traffic lost and latency under load were not calculated. The capacity ceiling is still reported; it is not evidence that ${multiplier}x is safe.`
+      : 'No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.');
+  }
   // Without authored load, propagate one unit of ingress split equally so limits can still be derived.
   const entryLoad = new Map(entries.map((id, index) => [id, loadKnown ? (baselines[index] ?? 0) * multiplier : 1 / entries.length]));
   const totalIngress = [...entryLoad.values()].reduce((sum, value) => sum + value, 0);
@@ -319,18 +409,33 @@ export function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFault
   const live = run(entryLoad, loadKnown);
 
   // Capacity limit: the model is linear in ingress, so scale unit gains without clipping.
+  // Components reached only through a queue or stream do not refuse requests when they
+  // fall behind: they build a backlog. They are reported as a separate drain ceiling, so a
+  // slow background consumer is not shown as the limit of the request path.
   const unit = loadKnown ? run(new Map(entries.map((id, index) => [id, (baselines[index] ?? 0)])), false) : live;
   const unitIngress = loadKnown ? baselines.reduce((sum, value) => sum + (value ?? 0), 0) : 1;
-  let maxSustainable = null; let limitingNode = null;
+  const syncReach = new Set();
+  {
+    const stack = [...entries];
+    while (stack.length) {
+      const id = stack.pop();
+      if (syncReach.has(id)) continue;
+      syncReach.add(id);
+      for (const edge of outgoing.get(id)) if (carriesTraffic(edge) && !backEdges.has(edge.id) && !ASYNC.has(edge.call_semantics)) stack.push(edge.to);
+    }
+  }
+  let maxSustainable = null; let limitingNode = null; let asyncCeiling = null; let asyncLimitingNode = null;
   if (entries.length && unitIngress > 0) {
-    maxSustainable = UNBOUNDED;
+    maxSustainable = UNBOUNDED; asyncCeiling = UNBOUNDED;
     for (const node of nodes) {
       const gain = unit.offered.get(node.id) / unitIngress;
       if (!(gain > 0)) continue;
       const limit = capacityOf(node) / gain;
-      if (limit < maxSustainable) { maxSustainable = limit; limitingNode = node.id; }
+      if (syncReach.has(node.id)) { if (limit < maxSustainable) { maxSustainable = limit; limitingNode = node.id; } }
+      else if (limit < asyncCeiling) { asyncCeiling = limit; asyncLimitingNode = node.id; }
     }
-    if (!Number.isFinite(maxSustainable)) maxSustainable = null;
+    if (!Number.isFinite(maxSustainable)) { maxSustainable = null; limitingNode = null; }
+    if (!Number.isFinite(asyncCeiling)) { asyncCeiling = null; asyncLimitingNode = null; }
     if (entries.some((id) => state.get(id) === 'failing')) { maxSustainable = 0; }
   }
 
@@ -371,7 +476,8 @@ export function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFault
     entrySla.set(entry, value);
   }
   const compositeSla = entries.length ? Math.min(...entrySla.values()) : null;
-  if (compositeSla != null && compositeSla >= INDEPENDENCE_NOTE_FROM && compositeSla < 1) warnings.push(INDEPENDENCE_NOTE);
+  const independenceDominates = compositeSla != null && compositeSla >= INDEPENDENCE_NOTE_FROM && compositeSla < 1;
+  if (independenceDominates && !loadMissing) warnings.push(INDEPENDENCE_NOTE);
 
   // ---- 6. Latency --------------------------------------------------------------------
   const hopFor = (node) => {
@@ -428,7 +534,8 @@ export function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFault
     const load = loadKnown ? live.offered.get(node.id) : null;
     const utilisation = load != null && capacity > 0 ? load / capacity : load != null && load > 0 ? UNBOUNDED : null;
     const entry = info.get(node.id);
-    const saturated = utilisation != null && utilisation >= 1 && state.get(node.id) !== 'failing';
+    // Without a load, whether the component saturates is unknown (null), not false.
+    const saturated = load == null ? null : utilisation != null && utilisation >= 1 && state.get(node.id) !== 'failing';
     const failover = entry.failover ? {
       rto_sec: entry.failover.rto_sec, rpo_sec: entry.failover.rpo_sec,
       writes_at_risk: entry.failover.rpo_sec != null && load != null
@@ -468,28 +575,180 @@ export function simulate(model, { multiplier = 1, cacheHit = 0, faults: rawFault
   }
   const affected = nodes.filter((n) => nodeResults[n.id].state !== 'ok').map((n) => n.id);
   const failingIngress = entries.filter((id) => state.get(id) === 'failing').reduce((sum, id) => sum + entryLoad.get(id), 0);
-  const order_ = { blackout: 0, partition: 1, 'dr-failover': 2, fallback: 3, saturation: 4, 'queue-lag': 5, 'retry-storm': 6, 'timeout-inversion': 7 };
+
+  // ---- 8. Completeness: what was calculated, what was not, and why ------------------------
+  const name = (id) => model.display?.[id] ?? nodeById.get(id)?.label ?? id;
+  const anySaturated = nodes.some((n) => nodeResults[n.id].saturated === true);
+  const failingEntries = entries.filter((id) => state.get(id) === 'failing');
+  const structuralShare = entries.length && totalIngress > 0 ? round(failingIngress / totalIngress, 4) : null;
+  const assumedInputsList = [];
+  for (const node of nodes) {
+    if (node.actor) continue;
+    for (const key of ['role', 'sla_percent', 'redundancy', 'capacity.max_rps', 'latency.p50_ms', 'latency.p99_ms']) {
+      if (node.origin[key] && node.origin[key] !== 'authored') assumedInputsList.push({ input: key, subject: node.id, origin: node.origin[key] });
+    }
+  }
+
+  const structure = checkCalculation('structure.propagation', model, conditions);
+  structure.assumptions.push(...structureAssumptions);
+  if (!entries.length) { structure.status = 'unknown'; structure.reasons.push(reason('no-entry-point')); }
+  else if (model.entrypointsOrigin === 'inferred') structure.assumptions.push({ input: 'entrypoints', subject: 'design', value: entries, origin: 'inferred' });
+  if (backEdges.size) structure.reasons.push(reason('cycle-excluded', { subjects: [...backEdges].sort() }));
+
+  const traffic = checkCalculation('traffic.load', model, conditions);
+  const capacityCheck = checkCalculation('capacity.ceiling', model, conditions);
+  if (capacityCheck.status === 'complete' && maxSustainable == null) capacityCheck.status = 'unknown';
+
+  const availabilityCheck = checkCalculation('availability.composite', model, conditions);
+  // Requests are still answered while a component they call is failing, because a caller
+  // contained the failure: a circuit breaker fails fast, or a queue holds the work. The
+  // answers then lack whatever needed that component. A failure covered by a fallback route
+  // is different: the fallback serves the request in full.
+  const containedTargets = [...new Set(edges
+    .filter((edge) => blocked(edge) && !activeFallback.has(edge.id) && state.get(edge.from) !== 'failing'
+      && ((edge.call_semantics === SYNC && edge.resilience.circuit_breaker_enabled) || ASYNC.has(edge.call_semantics)))
+    .map((edge) => edge.to))].sort();
+  const answering = compositeSla != null && compositeSla > 0;
+  if (availabilityCheck.status === 'complete') {
+    if (answering && containedTargets.length) {
+      availabilityCheck.status = 'partial';
+      availabilityCheck.reasons.push(reason('answered-includes-degraded', { subjects: containedTargets }));
+    }
+    if (anySaturated) { availabilityCheck.status = 'partial'; availabilityCheck.reasons.push(reason('load-shedding-not-included', { subjects: nodes.filter((n) => nodeResults[n.id].saturated).map((n) => n.id) })); }
+    if (independenceDominates) availabilityCheck.reasons.push(reason('independence-assumption'));
+    // With no load stated, errors from overload are not in the figure: it is an upper bound.
+    if (!loadKnown && answering) {
+      availabilityCheck.status = 'partial';
+      availabilityCheck.reasons.push(reason('load-dependent-unevaluated', { message: 'Availability does not include errors from overload because the load is not stated.' }));
+    }
+  }
+
+  const latencyCheck = checkCalculation('latency.critical-path', model, conditions);
+  if (latencyCheck.status === 'complete' && unknownTimeout) { latencyCheck.status = 'partial'; latencyCheck.reasons.push(reason('missing-timeout')); }
+  // Without a load there is no queueing in the figure: it is the latency of an idle path,
+  // a lower bound on latency under any real load.
+  if (latencyCheck.status !== 'inconclusive' && latencyCheck.status !== 'unknown' && !loadKnown) {
+    latencyCheck.status = 'partial';
+    latencyCheck.reasons.push(reason('load-dependent-unevaluated', { message: 'Latency is given without queueing because the load is not stated: it is a lower bound on latency under load.' }));
+  }
+
+  const ingressLoss = checkCalculation('traffic.ingress-loss', model, conditions);
+  // When every entry fails, all traffic is lost whatever the load. Otherwise the share is
+  // what the failing entries carry, and more may be lost to overload downstream: a lower
+  // bound when a component saturates, or when the load is not stated at all.
+  if (ingressLoss.status === 'complete' && structuralShare != null && structuralShare < 1) {
+    if (anySaturated) { ingressLoss.status = 'partial'; ingressLoss.reasons.push(reason('load-shedding-not-included')); }
+    else if (!loadKnown) {
+      ingressLoss.status = 'partial';
+      ingressLoss.reasons.push(reason('load-dependent-unevaluated', { message: 'Traffic lost to overload was not evaluated because the load is not stated: the share lost is a lower bound.' }));
+      if (entries.length > 1 && failingEntries.length > 0) {
+        ingressLoss.assumptions.push({ input: 'entry load split', subject: 'entry components', value: 'equal', origin: 'default' });
+        ingressLoss.reasons.push(reason('missing-baseline-load', { message: 'Entry loads are not stated, so traffic is assumed to split equally between entry points.' }));
+      }
+    }
+  }
+  // Which components are affected: structure decides who fails; load decides who saturates.
+  const blastRadius = mergeAssessments([structure, traffic], concludeStatus(
+    [structure.status, ...(isEssential('traffic.load', conditions) ? [traffic.status] : [])],
+    [traffic.status === 'complete' ? 'complete' : 'partial'],
+  ));
+  if (traffic.status !== 'complete' && !loadMissing) blastRadius.reasons.push(reason('load-dependent-unevaluated'));
+
+  const assessments = { structure, traffic, capacity: capacityCheck, availability: availabilityCheck, latency: latencyCheck, ingress_loss: ingressLoss, blast_radius: blastRadius };
+  const essential = [structure.status, ...(isEssential('traffic.load', conditions) ? [traffic.status] : [])];
+  const status = concludeStatus(essential, [traffic.status === 'unknown' ? 'partial' : traffic.status, capacityCheck.status, availabilityCheck.status, latencyCheck.status, ingressLoss.status]);
+  // Evidence confidence: the origins of the inputs the figures rest on, including how each
+  // connection is called (a blocking call inferred from a label shapes every result).
+  const confidence = confidenceOf([
+    ...nodes.filter((n) => !n.actor).flatMap((n) => ['role', 'sla_percent', 'redundancy', 'capacity.max_rps', 'latency.p50_ms', 'latency.p99_ms'].map((key) => n.origin[key] ?? 'unknown')),
+    ...edges.map((e) => e.origin.call_semantics ?? 'unknown'),
+  ]);
+
+  // Journeys: the authored request traces, each served, degraded or failed under these
+  // conditions. An answered request is not a completed operation.
+  const journeys = (model.traces || []).filter((trace) => trace.kind !== 'failover').map((trace) => {
+    let outcome = 'served'; let blockedAt = null;
+    for (const step of trace.steps) {
+      const edge = edgeById.get(step.edge);
+      if (!edge) continue;
+      const bad = cutEdges.has(edge.id) || state.get(edge.to) === 'failing' || state.get(edge.from) === 'failing';
+      if (bad && !activeFallback.has(edge.id)) { outcome = 'failed'; blockedAt = state.get(edge.from) === 'failing' ? edge.from : edge.to; break; }
+      if (state.get(edge.to) === 'degraded' || state.get(edge.from) === 'degraded' || activeFallback.has(edge.id)) outcome = 'degraded';
+    }
+    return { id: trace.id, title: trace.title, status: outcome, blocked_at: blockedAt };
+  });
+
+  // Where each headline figure comes from: the calculation, its equation and its inputs.
+  const inputOf = (id, key, value) => ({ subject: id, input: key, value, origin: nodeById.get(id).origin[key] ?? 'unknown' });
+  const worstEntry = entries.length ? [...entrySla].sort((a, b) => (a[1] - b[1]) || (a[0] < b[0] ? -1 : 1))[0][0] : null;
+  const trace = {
+    composite_sla_percent: {
+      calculation: 'availability.composite',
+      equation: 'min over entry points of the product of availability of every component the entry needs through blocking calls; availability of a component = 1 - (1 - unit availability) ^ redundant units',
+      inputs: worstEntry ? [...hardSet(worstEntry)].sort().filter((id) => !nodeById.get(id).actor).flatMap((id) => [inputOf(id, 'sla_percent', nodeById.get(id).sla_percent), inputOf(id, 'redundancy', nodeById.get(id).redundancy)]) : [],
+    },
+    critical_path: {
+      calculation: 'latency.critical-path',
+      equation: 'lognormal hops along the slowest blocking path, summed with the Fenton-Wilkinson method; each hop is scaled by 1 / (1 - utilisation) when load is known',
+      inputs: critical ? critical.path.filter((id) => nodeById.has(id) && !nodeById.get(id).actor).flatMap((id) => [inputOf(id, 'latency.p50_ms', nodeById.get(id).latency.p50_ms), inputOf(id, 'latency.p99_ms', nodeById.get(id).latency.p99_ms)]) : [],
+    },
+    max_sustainable_rps: {
+      calculation: 'capacity.ceiling',
+      equation: 'min over components on the blocking request path of capacity / (load on the component per unit of entry load); capacity = max_rps × autoscale_max',
+      inputs: limitingNode ? [inputOf(limitingNode, 'capacity.max_rps', nodeById.get(limitingNode).capacity.max_rps), inputOf(limitingNode, 'capacity.autoscale_max', nodeById.get(limitingNode).capacity.autoscale_max)] : [],
+    },
+    ingress_rps: {
+      calculation: 'traffic.load',
+      equation: 'sum over entry points of baseline_rps × multiplier',
+      inputs: entries.map((id) => inputOf(id, 'capacity.baseline_rps', nodeById.get(id).capacity.baseline_rps)),
+    },
+  };
+  const order_ = { blackout: 0, 'zone-loss': 0, partition: 1, 'dr-failover': 2, fallback: 3, saturation: 4, 'queue-lag': 5, 'retry-storm': 6, 'timeout-inversion': 7 };
   events.sort((a, b) => (order_[a.type] - order_[b.type]) || JSON.stringify(a).localeCompare(JSON.stringify(b)));
 
+  const all = mergeAssessments(Object.values(assessments), status);
   return {
     schemaVersion: SIM_SCHEMA_VERSION,
     kind: 'analytical-model',
+    // The completeness of this run as a whole. Anything but "complete" means the figures
+    // below must not be presented as a definitive result: see `reasons` and `assessments`.
+    status,
+    reasons: all.reasons,
+    missing: all.missing,
     inputs: { multiplier, cacheHit, faults },
     kpis: {
       // A share below 1 is never reported as 100%: rounding must not turn "almost always" into "always".
-      composite_sla_percent: compositeSla == null ? null : (compositeSla < 1 ? Math.min(99.99999, round(compositeSla * 100, 5)) : 100),
-      critical_path: criticalPath,
+      // Under a change in load with no baseline, nothing about the outcome was calculated:
+      // availability and latency are null rather than repeated from the healthy state.
+      composite_sla_percent: compositeSla == null || loadMissing ? null : (compositeSla < 1 ? Math.min(99.99999, round(compositeSla * 100, 5)) : 100),
+      critical_path: criticalPath && loadMissing ? { nodes: criticalPath.nodes, p50_ms: null, p95_ms: null, p99_ms: null } : criticalPath,
+      // A ceiling computed from capacities, authored or assumed. Not evidence that a load is safe.
       max_sustainable_rps: maxSustainable == null ? null : round(maxSustainable),
       limiting_node: maxSustainable == null ? null : limitingNode,
+      async_drain_ceiling_rps: asyncCeiling == null ? null : round(asyncCeiling),
+      async_limiting_node: asyncCeiling == null ? null : asyncLimitingNode,
       ingress_rps: loadKnown ? round(totalIngress) : null,
       headroom: loadKnown && maxSustainable != null && totalIngress > 0 ? round(maxSustainable / totalIngress, 4) : null,
       active_spofs: [...spofs].sort(),
-      blast_radius: { nodes: affected, ingress_share: entries.length && totalIngress > 0 ? round(failingIngress / totalIngress, 4) : null },
+      blast_radius: {
+        nodes: affected,
+        // Null when the share could not be calculated. `ingress_share_floor` is what the
+        // declared faults alone remove; with saturation the share itself is a lower bound.
+        ingress_share: ingressLoss.status === 'complete' || ingressLoss.status === 'partial' ? structuralShare : null,
+        ingress_share_floor: structuralShare,
+        ingress_share_is_floor: ingressLoss.status !== 'complete',
+        status: blastRadius.status,
+      },
+      journeys: journeys.length ? journeys : null,
     },
     nodes: nodeResults,
     edges: edgeResults,
     events,
-    basis: { authored_inputs: authoredInputs, assumed_inputs: assumedInputs, load_known: loadKnown },
+    assessments,
+    confidence,
+    trace,
+    display: Object.fromEntries(nodes.map((n) => [n.id, name(n.id)])),
+    basis: { authored_inputs: authoredInputs, assumed_inputs: assumedInputs, load_known: loadKnown, assumed: assumedInputsList },
     warnings,
   };
 }

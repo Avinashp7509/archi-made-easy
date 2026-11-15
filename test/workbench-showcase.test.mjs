@@ -66,7 +66,9 @@ test('every showcase document validates at showcase quality and passes review, e
     const simulated = run(['simulate', file, '--scenario', 'all', '--json'], directory);
     assert.equal(simulated.status, 0, `${name}: ${simulated.stderr}`);
     const outcomes = simulated.json.outcomes;
-    assert.equal(outcomes.length, 6, `${name}: six preset scenarios`);
+    assert.equal(outcomes.length, 7, `${name}: seven preset scenarios`);
+    // Every outcome states how complete it is.
+    for (const outcome of outcomes) assert.ok(['complete', 'partial', 'inconclusive', 'not_applicable'].includes(outcome.status), `${name}: scenario ${outcome.scenario} status ${outcome.status}`);
     // The flash crowd applies to every architecture; each applicable scenario has a result.
     assert.ok(outcomes.some((outcome) => outcome.applicable), name);
     for (const outcome of outcomes) assert.equal(Boolean(outcome.result), outcome.applicable, `${name}: scenario ${outcome.scenario}`);

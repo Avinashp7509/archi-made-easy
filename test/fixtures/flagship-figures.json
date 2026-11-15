@@ -6,14 +6,34 @@
       "components": 12,
       "connections": 14,
       "healthy": {
+        "status": "complete",
+        "reasons": [
+          {
+            "code": "independence-assumption",
+            "message": "Availability this high depends on the assumption that components fail independently.",
+            "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+          }
+        ],
         "composite_sla_percent": 99.99999,
         "critical_path_p99_ms": 302.376,
         "max_sustainable_rps": 7200,
         "affected_components": 0,
         "ingress_lost_percent": 0,
         "single_points_of_failure": 0,
-        "monthly_cost_usd": 54950.88,
+        "monthly_cost_usd": null,
+        "monthly_cost_subtotal_usd": 54950.88,
         "review_score": 98,
+        "review_score_floor": 92,
+        "statuses": {
+          "simulation": "complete",
+          "blast_radius": "complete",
+          "availability": "complete",
+          "latency": "complete",
+          "capacity": "complete",
+          "ingress_loss": "complete",
+          "cost": "partial",
+          "review": "partial"
+        },
         "findings": [
           {
             "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
@@ -29,14 +49,34 @@
             "ledger_a"
           ],
           "figures": {
+            "status": "complete",
+            "reasons": [
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99997,
             "critical_path_p99_ms": 348.86,
             "max_sustainable_rps": 3600,
             "affected_components": 3,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 56150.88,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 56150.88,
             "review_score": 98,
+            "review_score_floor": 92,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
@@ -47,19 +87,31 @@
           }
         },
         "b": {
-          "title": "Availability zone or region blackout",
-          "targets": [
-            "region-a"
-          ],
+          "title": "Loss of one availability zone",
+          "targets": [],
           "figures": {
-            "composite_sla_percent": 99.99997,
-            "critical_path_p99_ms": 348.86,
-            "max_sustainable_rps": 3600,
-            "affected_components": 3,
+            "status": "complete",
+            "reasons": [],
+            "composite_sla_percent": 99.98996,
+            "critical_path_p99_ms": 342.827,
+            "max_sustainable_rps": 4500,
+            "affected_components": 11,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 56150.88,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 54950.88,
             "review_score": 98,
+            "review_score_floor": 92,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
@@ -73,14 +125,50 @@
           "title": "10x flash crowd",
           "targets": [],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "load-shedding-not-included",
+                "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale).",
+                "subjects": [
+                  "gw_a",
+                  "gw_b",
+                  "pay_a",
+                  "pay_b"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              },
+              {
+                "code": "load-shedding-not-included",
+                "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale)."
+              }
+            ],
             "composite_sla_percent": 99.99999,
             "critical_path_p99_ms": 3890.823,
             "max_sustainable_rps": 7200,
             "affected_components": 4,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 195361.2,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 195361.2,
             "review_score": 90,
+            "review_score_floor": 84,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "complete",
+              "availability": "partial",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "requirement-latency:merchants,edge,gw_a,pay_a,fraud",
@@ -106,14 +194,34 @@
             "fraud"
           ],
           "figures": {
+            "status": "complete",
+            "reasons": [
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99999,
             "critical_path_p99_ms": 569.655,
             "max_sustainable_rps": 7200,
             "affected_components": 1,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 54950.88,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 54950.88,
             "review_score": 98,
+            "review_score_floor": 92,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
@@ -133,14 +241,77 @@
             "merchants"
           ],
           "figures": {
+            "status": "complete",
+            "reasons": [
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99999,
             "critical_path_p99_ms": 302.376,
             "max_sustainable_rps": 7200,
             "affected_components": 0,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 54950.88,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 54950.88,
             "review_score": 98,
+            "review_score_floor": 92,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
+            "findings": [
+              {
+                "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
+                "title": "Deep synchronous call chain",
+                "severity": "medium"
+              }
+            ]
+          }
+        },
+        "g": {
+          "title": "Region blackout",
+          "targets": [
+            "region-a"
+          ],
+          "figures": {
+            "status": "complete",
+            "reasons": [
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
+            "composite_sla_percent": 99.99997,
+            "critical_path_p99_ms": 348.86,
+            "max_sustainable_rps": 3600,
+            "affected_components": 3,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 56150.88,
+            "review_score": 98,
+            "review_score_floor": 92,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "deep-sync-chain:merchants,edge,gw_a,pay_a,ledger_a,merchants-edge,edge-gw-a,gw-a-pay,pay-a-ledger",
@@ -157,14 +328,34 @@
       "components": 11,
       "connections": 10,
       "healthy": {
+        "status": "complete",
+        "reasons": [
+          {
+            "code": "independence-assumption",
+            "message": "Availability this high depends on the assumption that components fail independently.",
+            "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+          }
+        ],
         "composite_sla_percent": 99.99995,
         "critical_path_p99_ms": 5155.62,
         "max_sustainable_rps": 18.182,
         "affected_components": 0,
         "ingress_lost_percent": 0,
         "single_points_of_failure": 0,
-        "monthly_cost_usd": 104799,
+        "monthly_cost_usd": null,
+        "monthly_cost_subtotal_usd": 104799,
         "review_score": 92,
+        "review_score_floor": 88,
+        "statuses": {
+          "simulation": "complete",
+          "blast_radius": "complete",
+          "availability": "complete",
+          "latency": "complete",
+          "capacity": "complete",
+          "ingress_loss": "complete",
+          "cost": "partial",
+          "review": "partial"
+        },
         "findings": [
           {
             "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
@@ -180,14 +371,42 @@
             "retrieval"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "answered-includes-degraded",
+                "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                "subjects": [
+                  "retrieval"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99995,
             "critical_path_p99_ms": 5155.62,
             "max_sustainable_rps": 18.182,
             "affected_components": 2,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 104799,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 104799,
             "review_score": 92,
+            "review_score_floor": 88,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "complete",
+              "availability": "partial",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
@@ -198,21 +417,86 @@
           }
         },
         "b": {
-          "title": "Availability zone or region blackout",
-          "applicable": false
+          "title": "Loss of one availability zone",
+          "targets": [],
+          "figures": {
+            "status": "complete",
+            "reasons": [],
+            "composite_sla_percent": 99.89993,
+            "critical_path_p99_ms": 6397.443,
+            "max_sustainable_rps": 9.091,
+            "affected_components": 10,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 104799,
+            "review_score": 92,
+            "review_score_floor": 88,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
+            "findings": [
+              {
+                "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
+                "title": "Caller timeout shorter than the callee retry budget",
+                "severity": "high"
+              }
+            ]
+          }
         },
         "c": {
           "title": "10x flash crowd",
           "targets": [],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "load-shedding-not-included",
+                "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale).",
+                "subjects": [
+                  "model",
+                  "orchestrator"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              },
+              {
+                "code": "load-shedding-not-included",
+                "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale)."
+              }
+            ],
             "composite_sla_percent": 99.99995,
             "critical_path_p99_ms": 86095.319,
             "max_sustainable_rps": 18.182,
             "affected_components": 2,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 1073167.58,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 1073167.58,
             "review_score": 84,
+            "review_score_floor": 80,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "complete",
+              "availability": "partial",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "requirement-latency:users,gateway,orchestrator,router,model",
@@ -238,14 +522,34 @@
             "model"
           ],
           "figures": {
+            "status": "complete",
+            "reasons": [
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99995,
             "critical_path_p99_ms": 18898.257,
             "max_sustainable_rps": 9.091,
             "affected_components": 1,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 191523,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 191523,
             "review_score": 92,
+            "review_score_floor": 88,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
@@ -261,14 +565,42 @@
             "semcache"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "answered-includes-degraded",
+                "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                "subjects": [
+                  "semcache"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99995,
             "critical_path_p99_ms": 5155.62,
             "max_sustainable_rps": 18.182,
             "affected_components": 2,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 104799,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 104799,
             "review_score": 92,
+            "review_score_floor": 88,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "complete",
+              "availability": "partial",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
@@ -284,14 +616,34 @@
             "users"
           ],
           "figures": {
+            "status": "complete",
+            "reasons": [
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99995,
             "critical_path_p99_ms": 5155.62,
             "max_sustainable_rps": 18.182,
             "affected_components": 0,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 104799,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 104799,
             "review_score": 92,
+            "review_score_floor": 88,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "timeout-hierarchy:orchestrator,router,model,orchestrator-router,router-model",
@@ -300,6 +652,10 @@
               }
             ]
           }
+        },
+        "g": {
+          "title": "Region blackout",
+          "applicable": false
         }
       }
     },
@@ -308,14 +664,34 @@
       "components": 9,
       "connections": 9,
       "healthy": {
+        "status": "complete",
+        "reasons": [
+          {
+            "code": "independence-assumption",
+            "message": "Availability this high depends on the assumption that components fail independently.",
+            "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+          }
+        ],
         "composite_sla_percent": 99.99998,
         "critical_path_p99_ms": 376.479,
         "max_sustainable_rps": 3225.806,
         "affected_components": 0,
         "ingress_lost_percent": 0,
         "single_points_of_failure": 0,
-        "monthly_cost_usd": 15878,
+        "monthly_cost_usd": null,
+        "monthly_cost_subtotal_usd": 15878,
         "review_score": 100,
+        "review_score_floor": 96,
+        "statuses": {
+          "simulation": "complete",
+          "blast_radius": "complete",
+          "availability": "complete",
+          "latency": "complete",
+          "capacity": "complete",
+          "ingress_loss": "complete",
+          "cost": "partial",
+          "review": "partial"
+        },
         "findings": []
       },
       "scenarios": {
@@ -325,31 +701,71 @@
             "catalog_db"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "answered-includes-degraded",
+                "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                "subjects": [
+                  "catalog"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99998,
             "critical_path_p99_ms": 376.479,
             "max_sustainable_rps": 4000,
             "affected_components": 3,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 15878,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 15878,
             "review_score": 100,
+            "review_score_floor": 96,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "complete",
+              "availability": "partial",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": []
           }
         },
         "b": {
-          "title": "Availability zone or region blackout",
-          "targets": [
-            "region"
-          ],
+          "title": "Loss of one availability zone",
+          "targets": [],
           "figures": {
-            "composite_sla_percent": 0,
-            "critical_path_p99_ms": null,
-            "max_sustainable_rps": 0,
-            "affected_components": 9,
-            "ingress_lost_percent": 100,
+            "status": "complete",
+            "reasons": [],
+            "composite_sla_percent": 99.95,
+            "critical_path_p99_ms": 405.283,
+            "max_sustainable_rps": 2150.538,
+            "affected_components": 8,
+            "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 15878,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 15878,
             "review_score": 100,
+            "review_score_floor": 96,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": []
           }
         },
@@ -357,14 +773,50 @@
           "title": "10x flash crowd",
           "targets": [],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "load-shedding-not-included",
+                "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale).",
+                "subjects": [
+                  "catalog",
+                  "checkout",
+                  "fulfilment",
+                  "gateway"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              },
+              {
+                "code": "load-shedding-not-included",
+                "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale)."
+              }
+            ],
             "composite_sla_percent": 99.99998,
             "critical_path_p99_ms": 6493.304,
             "max_sustainable_rps": 3225.806,
             "affected_components": 4,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 31244.67,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 31244.67,
             "review_score": 88,
+            "review_score_floor": 88,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "complete",
+              "availability": "partial",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "requirement-latency:shoppers,gateway,checkout,orders_db",
@@ -393,14 +845,65 @@
             "shoppers"
           ],
           "figures": {
+            "status": "complete",
+            "reasons": [
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99998,
             "critical_path_p99_ms": 376.479,
             "max_sustainable_rps": 3225.806,
             "affected_components": 0,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
-            "monthly_cost_usd": 15878,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 15878,
             "review_score": 100,
+            "review_score_floor": 96,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
+            "findings": []
+          }
+        },
+        "g": {
+          "title": "Region blackout",
+          "targets": [
+            "region"
+          ],
+          "figures": {
+            "status": "complete",
+            "reasons": [],
+            "composite_sla_percent": 0,
+            "critical_path_p99_ms": null,
+            "max_sustainable_rps": 0,
+            "affected_components": 9,
+            "ingress_lost_percent": 100,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": 15878,
+            "review_score": 100,
+            "review_score_floor": 96,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "partial",
+              "review": "partial"
+            },
             "findings": []
           }
         }
@@ -411,6 +914,14 @@
           "components": 8,
           "connections": 7,
           "healthy": {
+            "status": "complete",
+            "reasons": [
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99993,
             "critical_path_p99_ms": 105.194,
             "max_sustainable_rps": 3100,
@@ -418,7 +929,19 @@
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 100,
+            "review_score_floor": 100,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "unknown",
+              "review": "complete"
+            },
             "findings": []
           },
           "scenarios": {
@@ -428,6 +951,8 @@
                 "products"
               ],
               "figures": {
+                "status": "complete",
+                "reasons": [],
                 "composite_sla_percent": 0,
                 "critical_path_p99_ms": 40.03,
                 "max_sustainable_rps": 0,
@@ -435,18 +960,76 @@
                 "ingress_lost_percent": 96.77,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "complete",
+                  "blast_radius": "complete",
+                  "availability": "complete",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
             },
             "b": {
-              "title": "Availability zone or region blackout",
-              "applicable": false
+              "title": "Loss of one availability zone",
+              "targets": [],
+              "figures": {
+                "status": "complete",
+                "reasons": [],
+                "composite_sla_percent": 99.85007,
+                "critical_path_p99_ms": 114.645,
+                "max_sustainable_rps": 1550,
+                "affected_components": 7,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
+                "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "complete",
+                  "blast_radius": "complete",
+                  "availability": "complete",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
+                "findings": []
+              }
             },
             "c": {
               "title": "10x flash crowd",
               "targets": [],
               "figures": {
+                "status": "partial",
+                "reasons": [
+                  {
+                    "code": "load-shedding-not-included",
+                    "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                    "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale).",
+                    "subjects": [
+                      "api"
+                    ]
+                  },
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  },
+                  {
+                    "code": "load-shedding-not-included",
+                    "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                    "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale)."
+                  }
+                ],
                 "composite_sla_percent": 99.99993,
                 "critical_path_p99_ms": 634.125,
                 "max_sustainable_rps": 3100,
@@ -454,7 +1037,19 @@
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 92,
+                "review_score_floor": 92,
+                "statuses": {
+                  "simulation": "partial",
+                  "blast_radius": "complete",
+                  "availability": "partial",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "partial",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": [
                   {
                     "id": "requirement-latency:gateway_in,api,search",
@@ -474,6 +1069,22 @@
                 "cache"
               ],
               "figures": {
+                "status": "partial",
+                "reasons": [
+                  {
+                    "code": "answered-includes-degraded",
+                    "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                    "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                    "subjects": [
+                      "cache"
+                    ]
+                  },
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  }
+                ],
                 "composite_sla_percent": 99.99993,
                 "critical_path_p99_ms": 105.194,
                 "max_sustainable_rps": 3100,
@@ -481,7 +1092,19 @@
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "partial",
+                  "blast_radius": "complete",
+                  "availability": "partial",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
             },
@@ -491,6 +1114,14 @@
                 "gateway_in"
               ],
               "figures": {
+                "status": "complete",
+                "reasons": [
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  }
+                ],
                 "composite_sla_percent": 99.99993,
                 "critical_path_p99_ms": 105.194,
                 "max_sustainable_rps": 3100,
@@ -498,9 +1129,25 @@
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "complete",
+                  "blast_radius": "complete",
+                  "availability": "complete",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
+            },
+            "g": {
+              "title": "Region blackout",
+              "applicable": false
             }
           }
         },
@@ -509,6 +1156,14 @@
           "components": 9,
           "connections": 8,
           "healthy": {
+            "status": "complete",
+            "reasons": [
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99988,
             "critical_path_p99_ms": 1245.981,
             "max_sustainable_rps": 333.333,
@@ -516,7 +1171,19 @@
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 100,
+            "review_score_floor": 100,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "unknown",
+              "review": "complete"
+            },
             "findings": []
           },
           "scenarios": {
@@ -526,6 +1193,8 @@
                 "outbox"
               ],
               "figures": {
+                "status": "complete",
+                "reasons": [],
                 "composite_sla_percent": 0,
                 "critical_path_p99_ms": null,
                 "max_sustainable_rps": 0,
@@ -533,18 +1202,78 @@
                 "ingress_lost_percent": 100,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "complete",
+                  "blast_radius": "complete",
+                  "availability": "complete",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
             },
             "b": {
-              "title": "Availability zone or region blackout",
-              "applicable": false
+              "title": "Loss of one availability zone",
+              "targets": [],
+              "figures": {
+                "status": "complete",
+                "reasons": [],
+                "composite_sla_percent": 99.75025,
+                "critical_path_p99_ms": 1263.996,
+                "max_sustainable_rps": 166.667,
+                "affected_components": 8,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
+                "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "complete",
+                  "blast_radius": "complete",
+                  "availability": "complete",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
+                "findings": []
+              }
             },
             "c": {
               "title": "10x flash crowd",
               "targets": [],
               "figures": {
+                "status": "partial",
+                "reasons": [
+                  {
+                    "code": "load-shedding-not-included",
+                    "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                    "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale).",
+                    "subjects": [
+                      "api",
+                      "orders",
+                      "payment"
+                    ]
+                  },
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  },
+                  {
+                    "code": "load-shedding-not-included",
+                    "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                    "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale)."
+                  }
+                ],
                 "composite_sla_percent": 99.99988,
                 "critical_path_p99_ms": 3386.267,
                 "max_sustainable_rps": 333.333,
@@ -552,7 +1281,19 @@
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 92,
+                "review_score_floor": 92,
+                "statuses": {
+                  "simulation": "partial",
+                  "blast_radius": "complete",
+                  "availability": "partial",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "partial",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": [
                   {
                     "id": "requirement-latency:gateway_in,api,orders,payment,psp",
@@ -568,6 +1309,14 @@
                 "psp"
               ],
               "figures": {
+                "status": "complete",
+                "reasons": [
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  }
+                ],
                 "composite_sla_percent": 99.99988,
                 "critical_path_p99_ms": 3684.548,
                 "max_sustainable_rps": 333.333,
@@ -575,7 +1324,19 @@
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "complete",
+                  "blast_radius": "complete",
+                  "availability": "complete",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
             },
@@ -585,6 +1346,22 @@
                 "cart_cache"
               ],
               "figures": {
+                "status": "partial",
+                "reasons": [
+                  {
+                    "code": "answered-includes-degraded",
+                    "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                    "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                    "subjects": [
+                      "cart_cache"
+                    ]
+                  },
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  }
+                ],
                 "composite_sla_percent": 99.99988,
                 "critical_path_p99_ms": 1245.981,
                 "max_sustainable_rps": 333.333,
@@ -592,7 +1369,19 @@
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "partial",
+                  "blast_radius": "complete",
+                  "availability": "partial",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
             },
@@ -602,6 +1391,14 @@
                 "gateway_in"
               ],
               "figures": {
+                "status": "complete",
+                "reasons": [
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  }
+                ],
                 "composite_sla_percent": 99.99988,
                 "critical_path_p99_ms": 1245.981,
                 "max_sustainable_rps": 333.333,
@@ -609,9 +1406,25 @@
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "complete",
+                  "blast_radius": "complete",
+                  "availability": "complete",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
+            },
+            "g": {
+              "title": "Region blackout",
+              "applicable": false
             }
           }
         },
@@ -620,14 +1433,34 @@
           "components": 9,
           "connections": 8,
           "healthy": {
+            "status": "complete",
+            "reasons": [
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              }
+            ],
             "composite_sla_percent": 99.99998,
             "critical_path_p99_ms": 40.03,
-            "max_sustainable_rps": 100,
+            "max_sustainable_rps": 20000,
             "affected_components": 0,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 100,
+            "review_score_floor": 100,
+            "statuses": {
+              "simulation": "complete",
+              "blast_radius": "complete",
+              "availability": "complete",
+              "latency": "complete",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "unknown",
+              "review": "complete"
+            },
             "findings": []
           },
           "scenarios": {
@@ -637,6 +1470,22 @@
                 "stock_db"
               ],
               "figures": {
+                "status": "partial",
+                "reasons": [
+                  {
+                    "code": "answered-includes-degraded",
+                    "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                    "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                    "subjects": [
+                      "consumer"
+                    ]
+                  },
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  }
+                ],
                 "composite_sla_percent": 99.99998,
                 "critical_path_p99_ms": 40.03,
                 "max_sustainable_rps": 20000,
@@ -644,26 +1493,97 @@
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "partial",
+                  "blast_radius": "complete",
+                  "availability": "partial",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
             },
             "b": {
-              "title": "Availability zone or region blackout",
-              "applicable": false
+              "title": "Loss of one availability zone",
+              "targets": [],
+              "figures": {
+                "status": "complete",
+                "reasons": [],
+                "composite_sla_percent": 99.95,
+                "critical_path_p99_ms": 40.06,
+                "max_sustainable_rps": 10000,
+                "affected_components": 9,
+                "ingress_lost_percent": 0,
+                "single_points_of_failure": 0,
+                "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
+                "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "complete",
+                  "blast_radius": "complete",
+                  "availability": "complete",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
+                "findings": []
+              }
             },
             "c": {
               "title": "10x flash crowd",
               "targets": [],
               "figures": {
+                "status": "partial",
+                "reasons": [
+                  {
+                    "code": "load-shedding-not-included",
+                    "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                    "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale).",
+                    "subjects": [
+                      "consumer",
+                      "shipping"
+                    ]
+                  },
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  },
+                  {
+                    "code": "load-shedding-not-included",
+                    "message": "A component saturates; requests it cannot serve are not counted as lost entry traffic, so the share lost is a lower bound.",
+                    "ask": "Confirm what the saturated component does with excess load (queue, reject, autoscale)."
+                  }
+                ],
                 "composite_sla_percent": 99.99998,
                 "critical_path_p99_ms": 40.302,
-                "max_sustainable_rps": 100,
+                "max_sustainable_rps": 20000,
                 "affected_components": 2,
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "partial",
+                  "blast_radius": "complete",
+                  "availability": "partial",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "partial",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
             },
@@ -673,14 +1593,34 @@
                 "carrier"
               ],
               "figures": {
+                "status": "complete",
+                "reasons": [
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  }
+                ],
                 "composite_sla_percent": 99.99998,
                 "critical_path_p99_ms": 40.03,
-                "max_sustainable_rps": 100,
+                "max_sustainable_rps": 20000,
                 "affected_components": 1,
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "complete",
+                  "blast_radius": "complete",
+                  "availability": "complete",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
             },
@@ -694,16 +1634,40 @@
                 "stream_in"
               ],
               "figures": {
+                "status": "complete",
+                "reasons": [
+                  {
+                    "code": "independence-assumption",
+                    "message": "Availability this high depends on the assumption that components fail independently.",
+                    "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+                  }
+                ],
                 "composite_sla_percent": 99.99998,
                 "critical_path_p99_ms": 40.03,
-                "max_sustainable_rps": 100,
+                "max_sustainable_rps": 20000,
                 "affected_components": 0,
                 "ingress_lost_percent": 0,
                 "single_points_of_failure": 0,
                 "monthly_cost_usd": null,
+                "monthly_cost_subtotal_usd": null,
                 "review_score": 100,
+                "review_score_floor": 100,
+                "statuses": {
+                  "simulation": "complete",
+                  "blast_radius": "complete",
+                  "availability": "complete",
+                  "latency": "complete",
+                  "capacity": "complete",
+                  "ingress_loss": "complete",
+                  "cost": "unknown",
+                  "review": "complete"
+                },
                 "findings": []
               }
+            },
+            "g": {
+              "title": "Region blackout",
+              "applicable": false
             }
           }
         }
@@ -714,14 +1678,54 @@
       "components": 9,
       "connections": 8,
       "healthy": {
+        "status": "partial",
+        "reasons": [
+          {
+            "code": "missing-baseline-load",
+            "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+            "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+            "affects": [
+              "nodes.*.load_rps",
+              "nodes.*.served_rps",
+              "nodes.*.utilisation",
+              "nodes.*.saturated",
+              "nodes.*.queue_lag_rps",
+              "edges.*.flow_rps",
+              "kpis.ingress_rps",
+              "kpis.headroom"
+            ]
+          },
+          {
+            "code": "independence-assumption",
+            "message": "Availability this high depends on the assumption that components fail independently.",
+            "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+          },
+          {
+            "code": "load-dependent-unevaluated",
+            "message": "Availability does not include errors from overload because the load is not stated.",
+            "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+          }
+        ],
         "composite_sla_percent": 99.99988,
         "critical_path_p99_ms": 211.457,
-        "max_sustainable_rps": 500,
+        "max_sustainable_rps": 1000,
         "affected_components": 0,
         "ingress_lost_percent": 0,
         "single_points_of_failure": 0,
         "monthly_cost_usd": null,
+        "monthly_cost_subtotal_usd": null,
         "review_score": 98,
+        "review_score_floor": 81,
+        "statuses": {
+          "simulation": "partial",
+          "blast_radius": "partial",
+          "availability": "partial",
+          "latency": "partial",
+          "capacity": "complete",
+          "ingress_loss": "partial",
+          "cost": "unknown",
+          "review": "partial"
+        },
         "findings": [
           {
             "id": "missing-recovery-objectives:archive",
@@ -742,6 +1746,47 @@
             "store"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "answered-includes-degraded",
+                "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                "subjects": [
+                  "processor"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              },
+              {
+                "code": "missing-timeout",
+                "message": "A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.",
+                "ask": "State resilience.timeout_ms on the blocking calls into failing components."
+              }
+            ],
             "composite_sla_percent": 99.99988,
             "critical_path_p99_ms": 211.457,
             "max_sustainable_rps": 1000,
@@ -749,7 +1794,19 @@
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 98,
+            "review_score_floor": 81,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "partial",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:archive",
@@ -765,19 +1822,52 @@
           }
         },
         "b": {
-          "title": "Availability zone or region blackout",
-          "targets": [
-            "region"
-          ],
+          "title": "Loss of one availability zone",
+          "targets": [],
           "figures": {
-            "composite_sla_percent": 0,
-            "critical_path_p99_ms": null,
-            "max_sustainable_rps": 0,
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
+            "composite_sla_percent": 99.85005,
+            "critical_path_p99_ms": 211.457,
+            "max_sustainable_rps": 500,
             "affected_components": 8,
-            "ingress_lost_percent": 100,
+            "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 98,
+            "review_score_floor": 81,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "partial",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:archive",
@@ -796,14 +1886,44 @@
           "title": "10x flash crowd",
           "targets": [],
           "figures": {
-            "composite_sla_percent": 99.99988,
-            "critical_path_p99_ms": 211.457,
-            "max_sustainable_rps": 500,
-            "affected_components": 0,
-            "ingress_lost_percent": 0,
+            "status": "inconclusive",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              }
+            ],
+            "composite_sla_percent": null,
+            "critical_path_p99_ms": null,
+            "max_sustainable_rps": 1000,
+            "affected_components": null,
+            "ingress_lost_percent": null,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 98,
+            "review_score_floor": 81,
+            "statuses": {
+              "simulation": "inconclusive",
+              "blast_radius": "inconclusive",
+              "availability": "inconclusive",
+              "latency": "inconclusive",
+              "capacity": "complete",
+              "ingress_loss": "inconclusive",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:archive",
@@ -824,14 +1944,54 @@
             "partner"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
             "composite_sla_percent": 99.99988,
             "critical_path_p99_ms": 211.457,
-            "max_sustainable_rps": 500,
+            "max_sustainable_rps": 1000,
             "affected_components": 1,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 98,
+            "review_score_floor": 81,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "partial",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:archive",
@@ -856,14 +2016,122 @@
             "clients"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
             "composite_sla_percent": 99.99988,
             "critical_path_p99_ms": 211.457,
-            "max_sustainable_rps": 500,
+            "max_sustainable_rps": 1000,
             "affected_components": 0,
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 98,
+            "review_score_floor": 81,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "partial",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "unknown",
+              "review": "partial"
+            },
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:archive",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:store",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "g": {
+          "title": "Region blackout",
+          "targets": [
+            "region"
+          ],
+          "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "missing-timeout",
+                "message": "A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.",
+                "ask": "State resilience.timeout_ms on the blocking calls into failing components."
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Latency is given without queueing because the load is not stated: it is a lower bound on latency under load.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
+            "composite_sla_percent": 0,
+            "critical_path_p99_ms": null,
+            "max_sustainable_rps": 0,
+            "affected_components": 8,
+            "ingress_lost_percent": 100,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
+            "review_score": 98,
+            "review_score_floor": 81,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "complete",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:archive",
@@ -885,6 +2153,34 @@
       "components": 8,
       "connections": 7,
       "healthy": {
+        "status": "partial",
+        "reasons": [
+          {
+            "code": "missing-baseline-load",
+            "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+            "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+            "affects": [
+              "nodes.*.load_rps",
+              "nodes.*.served_rps",
+              "nodes.*.utilisation",
+              "nodes.*.saturated",
+              "nodes.*.queue_lag_rps",
+              "edges.*.flow_rps",
+              "kpis.ingress_rps",
+              "kpis.headroom"
+            ]
+          },
+          {
+            "code": "independence-assumption",
+            "message": "Availability this high depends on the assumption that components fail independently.",
+            "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+          },
+          {
+            "code": "load-dependent-unevaluated",
+            "message": "Availability does not include errors from overload because the load is not stated.",
+            "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+          }
+        ],
         "composite_sla_percent": 99.99975,
         "critical_path_p99_ms": 302.24,
         "max_sustainable_rps": 1000,
@@ -892,7 +2188,19 @@
         "ingress_lost_percent": 0,
         "single_points_of_failure": 0,
         "monthly_cost_usd": null,
+        "monthly_cost_subtotal_usd": null,
         "review_score": 99,
+        "review_score_floor": 59,
+        "statuses": {
+          "simulation": "partial",
+          "blast_radius": "partial",
+          "availability": "partial",
+          "latency": "partial",
+          "capacity": "complete",
+          "ingress_loss": "partial",
+          "cost": "unknown",
+          "review": "partial"
+        },
         "findings": [
           {
             "id": "missing-recovery-objectives:db",
@@ -908,6 +2216,34 @@
             "db"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "missing-timeout",
+                "message": "A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.",
+                "ask": "State resilience.timeout_ms on the blocking calls into failing components."
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Latency is given without queueing because the load is not stated: it is a lower bound on latency under load.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
             "composite_sla_percent": 0,
             "critical_path_p99_ms": null,
             "max_sustainable_rps": 0,
@@ -915,7 +2251,19 @@
             "ingress_lost_percent": 100,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 99,
+            "review_score_floor": 59,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "complete",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:db",
@@ -926,21 +2274,119 @@
           }
         },
         "b": {
-          "title": "Availability zone or region blackout",
-          "applicable": false
+          "title": "Loss of one availability zone",
+          "targets": [],
+          "figures": {
+            "status": "inconclusive",
+            "reasons": [
+              {
+                "code": "placement-unknown",
+                "message": "Which zone each component runs in is not stated, so the outcome is given as a range: the worst case assumes every component with one unit runs in the lost zone.",
+                "ask": "Place components in availability-zone boundaries, or state redundancy for each component.",
+                "subjects": [
+                  "audit"
+                ]
+              },
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "answered-includes-degraded",
+                "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                "subjects": [
+                  "audit"
+                ]
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
+            "composite_sla_percent": null,
+            "critical_path_p99_ms": null,
+            "max_sustainable_rps": null,
+            "affected_components": null,
+            "ingress_lost_percent": null,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
+            "review_score": 99,
+            "review_score_floor": 59,
+            "statuses": {
+              "simulation": "inconclusive",
+              "blast_radius": "inconclusive",
+              "availability": "inconclusive",
+              "latency": "inconclusive",
+              "capacity": "inconclusive",
+              "ingress_loss": "inconclusive",
+              "cost": "unknown",
+              "review": "partial"
+            },
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
         },
         "c": {
           "title": "10x flash crowd",
           "targets": [],
           "figures": {
-            "composite_sla_percent": 99.99975,
-            "critical_path_p99_ms": 302.24,
+            "status": "inconclusive",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              }
+            ],
+            "composite_sla_percent": null,
+            "critical_path_p99_ms": null,
             "max_sustainable_rps": 1000,
-            "affected_components": 0,
-            "ingress_lost_percent": 0,
+            "affected_components": null,
+            "ingress_lost_percent": null,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 99,
+            "review_score_floor": 59,
+            "statuses": {
+              "simulation": "inconclusive",
+              "blast_radius": "inconclusive",
+              "availability": "inconclusive",
+              "latency": "inconclusive",
+              "capacity": "complete",
+              "ingress_loss": "inconclusive",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:db",
@@ -964,6 +2410,34 @@
             "users"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
             "composite_sla_percent": 99.99975,
             "critical_path_p99_ms": 302.24,
             "max_sustainable_rps": 1000,
@@ -971,7 +2445,19 @@
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 99,
+            "review_score_floor": 59,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "partial",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:db",
@@ -980,6 +2466,10 @@
               }
             ]
           }
+        },
+        "g": {
+          "title": "Region blackout",
+          "applicable": false
         }
       }
     },
@@ -988,6 +2478,34 @@
       "components": 9,
       "connections": 9,
       "healthy": {
+        "status": "partial",
+        "reasons": [
+          {
+            "code": "missing-baseline-load",
+            "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+            "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+            "affects": [
+              "nodes.*.load_rps",
+              "nodes.*.served_rps",
+              "nodes.*.utilisation",
+              "nodes.*.saturated",
+              "nodes.*.queue_lag_rps",
+              "edges.*.flow_rps",
+              "kpis.ingress_rps",
+              "kpis.headroom"
+            ]
+          },
+          {
+            "code": "independence-assumption",
+            "message": "Availability this high depends on the assumption that components fail independently.",
+            "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+          },
+          {
+            "code": "load-dependent-unevaluated",
+            "message": "Availability does not include errors from overload because the load is not stated.",
+            "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+          }
+        ],
         "composite_sla_percent": 99.99998,
         "critical_path_p99_ms": 232.35,
         "max_sustainable_rps": 1000,
@@ -995,7 +2513,19 @@
         "ingress_lost_percent": 0,
         "single_points_of_failure": 0,
         "monthly_cost_usd": null,
+        "monthly_cost_subtotal_usd": null,
         "review_score": 98,
+        "review_score_floor": 56,
+        "statuses": {
+          "simulation": "partial",
+          "blast_radius": "partial",
+          "availability": "partial",
+          "latency": "partial",
+          "capacity": "complete",
+          "ingress_loss": "partial",
+          "cost": "unknown",
+          "review": "partial"
+        },
         "findings": [
           {
             "id": "missing-recovery-objectives:orders_db",
@@ -1016,6 +2546,47 @@
             "orders_db"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "answered-includes-degraded",
+                "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                "subjects": [
+                  "orders"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              },
+              {
+                "code": "missing-timeout",
+                "message": "A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.",
+                "ask": "State resilience.timeout_ms on the blocking calls into failing components."
+              }
+            ],
             "composite_sla_percent": 99.99998,
             "critical_path_p99_ms": 232.35,
             "max_sustainable_rps": 2000,
@@ -1023,7 +2594,19 @@
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 98,
+            "review_score_floor": 56,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "partial",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:orders_db",
@@ -1039,19 +2622,73 @@
           }
         },
         "b": {
-          "title": "Availability zone or region blackout",
-          "targets": [
-            "region"
-          ],
+          "title": "Loss of one availability zone",
+          "targets": [],
           "figures": {
-            "composite_sla_percent": 0,
+            "status": "inconclusive",
+            "reasons": [
+              {
+                "code": "placement-unknown",
+                "message": "Which zone each component runs in is not stated, so the outcome is given as a range: the worst case assumes every component with one unit runs in the lost zone.",
+                "ask": "Place components in availability-zone boundaries, or state redundancy for each component.",
+                "subjects": [
+                  "identity"
+                ]
+              },
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "answered-includes-degraded",
+                "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                "subjects": [
+                  "identity"
+                ]
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              },
+              {
+                "code": "missing-timeout",
+                "message": "A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.",
+                "ask": "State resilience.timeout_ms on the blocking calls into failing components."
+              }
+            ],
+            "composite_sla_percent": null,
             "critical_path_p99_ms": null,
-            "max_sustainable_rps": 0,
-            "affected_components": 9,
-            "ingress_lost_percent": 100,
+            "max_sustainable_rps": null,
+            "affected_components": null,
+            "ingress_lost_percent": null,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 98,
+            "review_score_floor": 56,
+            "statuses": {
+              "simulation": "inconclusive",
+              "blast_radius": "inconclusive",
+              "availability": "inconclusive",
+              "latency": "inconclusive",
+              "capacity": "inconclusive",
+              "ingress_loss": "inconclusive",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:orders_db",
@@ -1070,14 +2707,44 @@
           "title": "10x flash crowd",
           "targets": [],
           "figures": {
-            "composite_sla_percent": 99.99998,
-            "critical_path_p99_ms": 232.35,
+            "status": "inconclusive",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              }
+            ],
+            "composite_sla_percent": null,
+            "critical_path_p99_ms": null,
             "max_sustainable_rps": 1000,
-            "affected_components": 0,
-            "ingress_lost_percent": 0,
+            "affected_components": null,
+            "ingress_lost_percent": null,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 98,
+            "review_score_floor": 56,
+            "statuses": {
+              "simulation": "inconclusive",
+              "blast_radius": "inconclusive",
+              "availability": "inconclusive",
+              "latency": "inconclusive",
+              "capacity": "complete",
+              "ingress_loss": "inconclusive",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:orders_db",
@@ -1106,6 +2773,34 @@
             "users"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "independence-assumption",
+                "message": "Availability this high depends on the assumption that components fail independently.",
+                "ask": "Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled."
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
             "composite_sla_percent": 99.99998,
             "critical_path_p99_ms": 232.35,
             "max_sustainable_rps": 1000,
@@ -1113,7 +2808,87 @@
             "ingress_lost_percent": 0,
             "single_points_of_failure": 0,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 98,
+            "review_score_floor": 56,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "partial",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "unknown",
+              "review": "partial"
+            },
+            "findings": [
+              {
+                "id": "missing-recovery-objectives:orders_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:payments_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "g": {
+          "title": "Region blackout",
+          "targets": [
+            "region"
+          ],
+          "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "missing-timeout",
+                "message": "A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.",
+                "ask": "State resilience.timeout_ms on the blocking calls into failing components."
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Latency is given without queueing because the load is not stated: it is a lower bound on latency under load.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
+            "composite_sla_percent": 0,
+            "critical_path_p99_ms": null,
+            "max_sustainable_rps": 0,
+            "affected_components": 9,
+            "ingress_lost_percent": 100,
+            "single_points_of_failure": 0,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
+            "review_score": 98,
+            "review_score_floor": 56,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "complete",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "complete",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "missing-recovery-objectives:orders_db",
@@ -1135,6 +2910,29 @@
       "components": 10,
       "connections": 8,
       "healthy": {
+        "status": "partial",
+        "reasons": [
+          {
+            "code": "missing-baseline-load",
+            "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+            "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+            "affects": [
+              "nodes.*.load_rps",
+              "nodes.*.served_rps",
+              "nodes.*.utilisation",
+              "nodes.*.saturated",
+              "nodes.*.queue_lag_rps",
+              "edges.*.flow_rps",
+              "kpis.ingress_rps",
+              "kpis.headroom"
+            ]
+          },
+          {
+            "code": "load-dependent-unevaluated",
+            "message": "Availability does not include errors from overload because the load is not stated.",
+            "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+          }
+        ],
         "composite_sla_percent": 99.80012,
         "critical_path_p99_ms": 332.8,
         "max_sustainable_rps": 1000,
@@ -1142,7 +2940,19 @@
         "ingress_lost_percent": 0,
         "single_points_of_failure": 3,
         "monthly_cost_usd": null,
+        "monthly_cost_subtotal_usd": null,
         "review_score": 82,
+        "review_score_floor": 34,
+        "statuses": {
+          "simulation": "partial",
+          "blast_radius": "partial",
+          "availability": "partial",
+          "latency": "partial",
+          "capacity": "complete",
+          "ingress_loss": "partial",
+          "cost": "unknown",
+          "review": "partial"
+        },
         "findings": [
           {
             "id": "spof:core",
@@ -1178,6 +2988,42 @@
             "cloud_db"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "answered-includes-degraded",
+                "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                "subjects": [
+                  "gateway"
+                ]
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              },
+              {
+                "code": "missing-timeout",
+                "message": "A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.",
+                "ask": "State resilience.timeout_ms on the blocking calls into failing components."
+              }
+            ],
             "composite_sla_percent": 99.80012,
             "critical_path_p99_ms": 221.031,
             "max_sustainable_rps": 1000,
@@ -1185,7 +3031,19 @@
             "ingress_lost_percent": 0,
             "single_points_of_failure": 3,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 82,
+            "review_score_floor": 34,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "partial",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "spof:core",
@@ -1216,19 +3074,71 @@
           }
         },
         "b": {
-          "title": "Availability zone or region blackout",
-          "targets": [
-            "cloud"
-          ],
+          "title": "Loss of one availability zone",
+          "targets": [],
           "figures": {
-            "composite_sla_percent": 99.80012,
-            "critical_path_p99_ms": 221.031,
-            "max_sustainable_rps": 1000,
-            "affected_components": 6,
-            "ingress_lost_percent": 0,
+            "status": "inconclusive",
+            "reasons": [
+              {
+                "code": "placement-unknown",
+                "message": "Which zone each component runs in is not stated, so the outcome is given as a range: the worst case assumes every component with one unit runs in the lost zone.",
+                "ask": "Place components in availability-zone boundaries, or state redundancy for each component.",
+                "subjects": [
+                  "cloud_identity",
+                  "core",
+                  "directory",
+                  "firewall",
+                  "legacy_db",
+                  "link",
+                  "sync"
+                ]
+              },
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "missing-timeout",
+                "message": "A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.",
+                "ask": "State resilience.timeout_ms on the blocking calls into failing components."
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Latency is given without queueing because the load is not stated: it is a lower bound on latency under load.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
+            "composite_sla_percent": null,
+            "critical_path_p99_ms": null,
+            "max_sustainable_rps": null,
+            "affected_components": null,
+            "ingress_lost_percent": null,
             "single_points_of_failure": 3,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 82,
+            "review_score_floor": 34,
+            "statuses": {
+              "simulation": "inconclusive",
+              "blast_radius": "inconclusive",
+              "availability": "inconclusive",
+              "latency": "inconclusive",
+              "capacity": "inconclusive",
+              "ingress_loss": "inconclusive",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "spof:core",
@@ -1262,14 +3172,44 @@
           "title": "10x flash crowd",
           "targets": [],
           "figures": {
-            "composite_sla_percent": 99.80012,
-            "critical_path_p99_ms": 332.8,
+            "status": "inconclusive",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              }
+            ],
+            "composite_sla_percent": null,
+            "critical_path_p99_ms": null,
             "max_sustainable_rps": 1000,
-            "affected_components": 0,
-            "ingress_lost_percent": 0,
+            "affected_components": null,
+            "ingress_lost_percent": null,
             "single_points_of_failure": 3,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 82,
+            "review_score_floor": 34,
+            "statuses": {
+              "simulation": "inconclusive",
+              "blast_radius": "inconclusive",
+              "availability": "inconclusive",
+              "latency": "inconclusive",
+              "capacity": "complete",
+              "ingress_loss": "inconclusive",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "spof:core",
@@ -1313,6 +3253,29 @@
             "core"
           ],
           "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              }
+            ],
             "composite_sla_percent": 99.80012,
             "critical_path_p99_ms": 332.8,
             "max_sustainable_rps": 1000,
@@ -1320,7 +3283,110 @@
             "ingress_lost_percent": 0,
             "single_points_of_failure": 3,
             "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
             "review_score": 82,
+            "review_score_floor": 34,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "partial",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "unknown",
+              "review": "partial"
+            },
+            "findings": [
+              {
+                "id": "spof:core",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "spof:firewall",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "spof:link",
+                "title": "Single point of failure on a critical path",
+                "severity": "high"
+              },
+              {
+                "id": "missing-recovery-objectives:cloud_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              },
+              {
+                "id": "missing-recovery-objectives:legacy_db",
+                "title": "Stateful component without recovery objectives",
+                "severity": "low"
+              }
+            ]
+          }
+        },
+        "g": {
+          "title": "Region blackout",
+          "targets": [
+            "cloud"
+          ],
+          "figures": {
+            "status": "partial",
+            "reasons": [
+              {
+                "code": "missing-baseline-load",
+                "message": "No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps).",
+                "affects": [
+                  "nodes.*.load_rps",
+                  "nodes.*.served_rps",
+                  "nodes.*.utilisation",
+                  "nodes.*.saturated",
+                  "nodes.*.queue_lag_rps",
+                  "edges.*.flow_rps",
+                  "kpis.ingress_rps",
+                  "kpis.headroom"
+                ]
+              },
+              {
+                "code": "answered-includes-degraded",
+                "message": "Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.",
+                "ask": "Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.",
+                "subjects": [
+                  "gateway"
+                ]
+              },
+              {
+                "code": "load-dependent-unevaluated",
+                "message": "Availability does not include errors from overload because the load is not stated.",
+                "ask": "State the current requests per second on at least one entry point (capacity.baseline_rps)."
+              },
+              {
+                "code": "missing-timeout",
+                "message": "A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.",
+                "ask": "State resilience.timeout_ms on the blocking calls into failing components."
+              }
+            ],
+            "composite_sla_percent": 99.80012,
+            "critical_path_p99_ms": 221.031,
+            "max_sustainable_rps": 1000,
+            "affected_components": 6,
+            "ingress_lost_percent": 0,
+            "single_points_of_failure": 3,
+            "monthly_cost_usd": null,
+            "monthly_cost_subtotal_usd": null,
+            "review_score": 82,
+            "review_score_floor": 34,
+            "statuses": {
+              "simulation": "partial",
+              "blast_radius": "partial",
+              "availability": "partial",
+              "latency": "partial",
+              "capacity": "complete",
+              "ingress_loss": "partial",
+              "cost": "unknown",
+              "review": "partial"
+            },
             "findings": [
               {
                 "id": "spof:core",

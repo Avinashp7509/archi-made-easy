@@ -30,8 +30,8 @@ Current stable version: `v1.0.0` · Apache-2.0 · Node.js 18 or newer · no runt
 
 > [!TIP]
 > **Microsoft Copilot Edition: for Microsoft 365 Copilot Agent Builder and locked-down corporate laptops.** One ZIP to upload as an agent skill, with nothing to install.<br>
-> **[⬇ Download Microsoft Copilot Skill (.zip)](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip)** · [SHA-256](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip.sha256) · [Release notes](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0) · [How to add it to an agent](#microsoft-copilot-edition--enterprise--restricted-environments)<br>
-> **Tested in Microsoft Agent Builder (v1.0.0):** in one run it generated and delivered the HTML workbench; in an earlier run it delivered no page, for a reason still under investigation. Interactive behaviour in the browser, including the Simulate controls, is **not yet verified**. See the [test log](editions/copilot/README.md#agent-builder-test-log).
+> **[⬇ Download Microsoft Copilot Skill (.zip)](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.1/archi-made-easy-copilot.zip)** · [SHA-256](https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.1/archi-made-easy-copilot.zip.sha256) · [Release notes](https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1) · [How to add it to an agent](#microsoft-copilot-edition--enterprise--restricted-environments)<br>
+> **Version 1.0.1** fixes results shown as calculated when they were not: a traffic surge with no stated load is now inconclusive, and a price with no stated usage is never $0. It has **not yet been run in Microsoft Agent Builder**. The earlier v1.0.0 generated and delivered the HTML workbench in one Agent Builder run and delivered no page in another; interactive behaviour in the browser is **not yet verified**. See the [test log](editions/copilot/README.md#agent-builder-test-log).
 
 <p align="center"><img src="docs/assets/archi-made-easy-demo.gif" alt="A 37-second walkthrough of the workbench: a bundled example architecture, a component and its inputs, a review finding and its fix, a region failure and its impact, recovery options, ten times the load, monthly cost, a C4 level opened, and the exports" width="900"></p>
 
@@ -77,7 +77,7 @@ One request gives you one file.
 
 ### The workbench
 
-Architecture pages carry a workbench: nine modes around the diagram, an inspector, and a vitals bar with six modelled figures (answered requests, path P99, max load, single points of failure, cost per month, review score).
+Architecture pages carry a workbench: nine modes around the diagram, an inspector, and a vitals bar with six modelled figures (answered requests, path P99, max load, single points of failure, cost per month, review score). A figure that is not complete says so in words: partial, inconclusive or unknown.
 
 | Mode | Answers |
 |---|---|
@@ -86,7 +86,7 @@ Architecture pages carry a workbench: nine modes around the diagram, an inspecto
 | Simulate | What happens when something fails: set up a scenario, run it, watch it spread, compare before and after, try recovery options |
 | Security | What is exposed, what each entry point reaches, and what protects it |
 | Performance | Where it saturates under more load or a colder cache, and how slow it gets |
-| FinOps | What it costs each month, by component, and how much of that is known |
+| FinOps | What it costs each month, by component and by billed meter, how much of that is known, and where each price came from |
 | Optimize | Which changes improve the review most, previewed together |
 | Decide | Decision records, alternatives compared, request traces stepped through on the diagram |
 | Handoff | Mermaid, draw.io, Structurizr and design-document downloads |
@@ -191,14 +191,14 @@ A component can open into a complete child architecture diagram one level down, 
 ### Analyse
 
 **Architecture review and scorecard**<br>
-The review checks 14 rules across six pillars: reliability, security, performance, cost, operational excellence and sustainability. Each finding gives its evidence, its consequence and a recommended change. Where the change is an operational setting, the page can also preview the fix. The score is 100 minus the finding weights (critical 15, high 8, medium 4, low 1). Findings that rest on assumed values count half. Each pillar gets its own score.
+The review checks 14 rules across six pillars: reliability, security, performance, cost, operational excellence and sustainability. Each finding gives its evidence, its consequence and a recommended change. Where the change is an operational setting, the page can also preview the fix. The score is 100 minus the finding weights (critical 15, high 8, medium 4, low 1). Findings that rest on assumed values count half. Each pillar gets its own score. The review also says how many of the applicable rules it could evaluate, the lowest the score could be, and which checks could not run and why. A check that could not run is not a pass, and a pillar in which nothing could be assessed is shown as not assessed, not as 100.
 - **Ask:** "Review this solution architecture and identify risks."
 - **Runs:** `review arch.json`. `review --strict`, and `validate` or `finalize` with `--arb strict`, exit non-zero on a critical finding.
 - **Evidence:** [`test/workbench-review.test.mjs`](test/workbench-review.test.mjs) checks that each rule fires on a failing fixture and stays quiet on a passing one. Also agent [run 4](docs/program/acceptance/agent-runs/run-4.json).
 - **Note:** only [these 14 rules](archi-made-easy/references/arb-well-architected-rules.md) are checked. Network design, IAM policies, data classification, secrets, observability and backup testing are not. The rules follow the Well-Architected frameworks and NIST SP 800-207 by topic only. The score is not a certification or a statement of compliance.
 
 **Failure and chaos scenarios**<br>
-Six preset scenarios: (A) database outage, (B) zone or region blackout, (C) 10x flash crowd, (D) provider brownout, (E) cache stampede and (F) edge breach. You can also set any component, connection or boundary to degraded, brownout, down, partitioned or surge. The result shows how the failure spreads through blocking calls, fallbacks, circuit breakers and disaster-recovery failover. It then offers recovery options, and the page previews each one under the same failure.
+Seven preset scenarios: (A) database outage, (B) loss of one availability zone, (C) 10x flash crowd, (D) provider brownout, (E) cache stampede, (F) edge breach and (G) region blackout. Each one says exactly what it fails. A run that lacks an essential input is reported as inconclusive, with what to supply: with no stated load, the 10x scenario gives no outcome, and a zone loss with unknown placement gives a best and a worst case. You can also set any component, connection or boundary to degraded, brownout, down, partitioned or surge. The result shows how the failure spreads through blocking calls, fallbacks, circuit breakers and disaster-recovery failover. It then offers recovery options, and the page previews each one under the same failure.
 - **Ask:** "What happens if the database fails?" · "What if we lose a region?"
 - **Runs:** `simulate arch.json --scenario a` (or `all`), or `simulate arch.json --fault db=down`
 - **Evidence:** [`test/workbench-sim.test.mjs`](test/workbench-sim.test.mjs), [`test/workbench-analysis.test.mjs`](test/workbench-analysis.test.mjs) (every scenario runs on every pattern), [`test/workbench-remedy.test.mjs`](test/workbench-remedy.test.mjs), and agent [run 5b](docs/program/acceptance/agent-runs/run-5b.json)
@@ -230,7 +230,7 @@ For each entry point, Security lists what it reaches without passing an authenti
 - **Note:** this is structural reachability over declared relationships. It is not a threat model, not a penetration test, and not an IAM, network-policy or secrets analysis. A "not stated" in the page is not evidence that a control is missing.
 
 **FinOps and cost**<br>
-FinOps estimates a 730-hour month from prices written in the document. It counts base cost per instance, scaled by the instances the load needs, plus cost per million requests, storage, and egress on connections that cross a region or zone boundary. The cost is reported per component, together with its coverage (how many components carry prices) and the cost findings.
+FinOps estimates a 730-hour month from prices written in the document. Each price is a meter: one billed dimension (requests, memory-seconds, vCPU-seconds, instance-hours, storage, operations, data transfer or a flat charge) with its unit, free allowance, tiers and source. A total is given only when every priceable component is priced on every dimension its pricing model bills and every quantity is known. Otherwise the figure is a partial subtotal, labelled as one, with what was left out. A meter whose usage is unknown is left out, never counted as $0. The earlier fields (base cost per instance, cost per million requests, storage) still work. Each result also says whether its prices carry a source.
 - **Ask:** "What does this cost?" · "Optimize this architecture for lower cost."
 - **Runs:** `simulate arch.json --cost`, then `review`. The agent edits the document and runs both again to show before and after.
 - **Evidence:** [`test/workbench-analysis.test.mjs`](test/workbench-analysis.test.mjs). In agent [run 7](docs/program/acceptance/agent-runs/run-7.json), the modelled cost of the 4 of 10 components that carry prices went from $1,108.48 to $498.92 a month. The agent set the new tiers and prices itself, as illustrative targets, and named the trade-offs.
@@ -389,7 +389,7 @@ node archi-made-easy/install.mjs --agent claude-code --uninstall
 
 For Microsoft 365 Copilot Agent Builder and other locked-down environments where people cannot install Node.js, npm or Git. It is the same engine, repackaged as one ZIP that meets Agent Builder's skill rules. The Full Edition above is unchanged.
 
-<p><a href="https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip"><strong>⬇ Download Microsoft Copilot Skill (.zip)</strong></a> · <a href="https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.0/archi-made-easy-copilot.zip.sha256">SHA-256</a> · <a href="https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.0">Release notes (copilot-v1.0.0)</a> · <a href="editions/copilot/README.md">Edition guide</a> · <a href="editions/copilot/README.md#validation-report">Validation report</a></p>
+<p><a href="https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.1/archi-made-easy-copilot.zip"><strong>⬇ Download Microsoft Copilot Skill (.zip)</strong></a> · <a href="https://github.com/Avinashp7509/archi-made-easy/releases/download/copilot-v1.0.1/archi-made-easy-copilot.zip.sha256">SHA-256</a> · <a href="https://github.com/Avinashp7509/archi-made-easy/releases/tag/copilot-v1.0.1">Release notes (copilot-v1.0.1)</a> · <a href="editions/copilot/README.md">Edition guide</a> · <a href="editions/copilot/README.md#validation-report">Validation report</a></p>
 
 | | Full Edition | Microsoft Copilot Edition |
 |---|---|---|
@@ -418,12 +418,13 @@ You need a Microsoft 365 Copilot licence (or pay-as-you-go), and your administra
 
 | Package | Value |
 |---|---|
-| ZIP size | 1,731,067 bytes (1.7 MB; limit 50 MB) |
-| Files | 213 (limit 350 per agent) |
+| Version | 1.0.1 (supersedes the pre-release 1.0.1-rc1) |
+| ZIP size | 1,852,173 bytes (1.8 MB; limit 50 MB) |
+| Files | 219 (limit 350 per agent) |
 | Deepest folder | 2 levels (limit 3) |
-| `SKILL.md` | At the root, 11,496 characters (limit 20,000) |
-| SHA-256 | `95ed9aad76280c00c8b6a91e5d34739268d614f4f170926ed7d174678a3df4fc` |
-| Sandbox validation | **Partly confirmed in Microsoft Agent Builder (v1.0.0).** Upload and script execution: confirmed. Generating and delivering the HTML workbench: confirmed in one run (2026-11-12); an earlier run (2026-11-11) delivered no page, cause under investigation. Browser interactions and Simulate controls of a delivered page: **not yet verified**. See the [test log](editions/copilot/README.md#agent-builder-test-log). |
+| `SKILL.md` | At the root, 16,836 characters (limit 20,000) |
+| SHA-256 | `e371d34ac0ee0bb267a461a1963d9e801d49d718becb5237fdd9f824daa8ee14` |
+| Sandbox validation | **1.0.1: not yet run in Microsoft Agent Builder.** **Partly confirmed for v1.0.0.** Upload and script execution: confirmed. Generating and delivering the HTML workbench: confirmed in one run (2026-11-12); an earlier run (2026-11-11) delivered no page, cause under investigation. Browser interactions and Simulate controls of a delivered page: **not yet verified**. See the [test log](editions/copilot/README.md#agent-builder-test-log). |
 
 Figures are modelled from the declared design, not measured, in both editions.
 
@@ -456,9 +457,9 @@ Three complete examples ship rendered, each with its source document beside it. 
 
 The mesh has two active regions behind a global edge, and each region can take all the traffic. Payments and a double-entry ledger run in each region, and settlement runs through ordered events. Fraud scoring sits behind a circuit breaker that falls back to rules. The design has 12 components, and its stated targets are 99.95% availability, 450 ms P99, 3,000 requests/s at peak, RPO 0, RTO 120 s and a $60,000 monthly budget.
 
-- **Review:** score 98. One medium finding: a deep synchronous chain, which rests on assumed values.
-- **Simulate:** scenarios A, B, C, D and F apply; E does not, because there is no cache. When region A goes dark, 3 of 12 components fail, the edge fails over to API gateway B, and no entry traffic is lost. When Ledger A is down, the option "Add a standby for Ledger A" cuts the components affected from 3 to 1. All of these figures are modelled.
-- **FinOps:** $54,951 a month, modelled from the prices written in the example, with 11 of 12 components priced.
+- **Review:** score 98, with 12 of 13 applicable rules evaluated and a lowest possible score of 92. One medium finding: a deep synchronous chain, which rests on assumed values. The budget is not confirmed, because the cost estimate is partial.
+- **Simulate:** scenarios A, B, C, D, F and G apply; E does not, because there is no cache. When region A goes dark (scenario G), 3 of 12 components fail, the edge fails over to API gateway B, and no entry traffic is lost. Losing one availability zone (scenario B) fails nothing: components run with fewer units. When Ledger A is down, the option "Add a standby for Ledger A" cuts the components affected from 3 to 1. All of these figures are modelled.
+- **FinOps:** at least $54,951 a month, a partial subtotal modelled from the prices written in the example. All 11 priceable components are priced, but the illustrative prices state no pricing model and no source.
 - **Decide:** two decision records, two request traces and one alternative.
 
 [Page](archi-made-easy/examples/global-fintech-payment-mesh.html) · [Document](archi-made-easy/examples/global-fintech-payment-mesh.architecture.json)
@@ -469,9 +470,9 @@ The mesh has two active regions behind a global edge, and each region can take a
 
 On this platform, every caller goes through one AI gateway that handles sign-in, quotas and audit. Behind it, an agent runtime plans, retrieves grounding documents through vector search and calls tool servers. A model router sends prompts to a primary model and fails over to a second provider, and a semantic cache and observability sit beside the router. The design has 11 components, with GDPR, SOC 2 and EU data residency stated as requirements.
 
-- **Review:** score 92. One high finding, which rests on authored values: the orchestrator-to-router timeout (20,000 ms) is shorter than the router-to-model retry budget (12,000 ms × 2 attempts).
-- **Simulate:** scenarios A, C, D, E and F apply; B does not, because no boundary is marked as a region or zone. In scenario D, the primary model slows down and the router keeps retrying it: the fallback route carries traffic only when the primary fails (down or cut off), and the agent runtime's timeout gives up first. Critical-path P99 goes from 5,156 to 18,898 ms (modelled). The example's Resilience card says the router switches when the primary "fails or is slow"; the model covers only the first case.
-- **FinOps:** $104,799 a month, modelled from the prices written in the example, with 10 of 11 components priced.
+- **Review:** score 92, with 12 of 13 applicable rules evaluated and a lowest possible score of 88. One high finding, which rests on authored values: the orchestrator-to-router timeout (20,000 ms) is shorter than the router-to-model retry budget (12,000 ms × 2 attempts).
+- **Simulate:** scenarios A, B, C, D, E and F apply; G does not, because no boundary is marked as a region. In scenario D, the primary model slows down and the router keeps retrying it: the fallback route carries traffic only when the primary fails (down or cut off), and the agent runtime's timeout gives up first. Critical-path P99 goes from 5,156 to 18,898 ms (modelled). The example's Resilience card says the router switches when the primary "fails or is slow"; the model covers only the first case.
+- **FinOps:** at least $104,799 a month, a partial subtotal modelled from the prices written in the example. All 10 priceable components are priced, but the illustrative prices state no pricing model and no source.
 - **Decide:** two decision records, two request traces and one alternative.
 
 [Page](archi-made-easy/examples/enterprise-agentic-ai-platform.html) · [Document](archi-made-easy/examples/enterprise-agentic-ai-platform.architecture.json)
@@ -482,9 +483,9 @@ On this platform, every caller goes through one AI gateway that handles sign-in,
 
 This is a C4 container diagram in one region with three zones. Shoppers reach an API gateway in front of the catalog and checkout services. Checkout publishes orders to an event stream, which the fulfilment and catalog services consume. Each service opens into its own component diagram. All three child diagrams are carried in the same file, and each one has its own workbench. The container level has 9 components.
 
-- **Review:** score 100, no findings.
-- **Simulate:** scenarios A, B, C and F apply. D and E do not, because the design has no external provider and no cache.
-- **FinOps:** $15,878 a month, modelled from the prices written in the example, with 8 of 9 components priced.
+- **Review:** score 100 with no findings, from 12 of 13 applicable rules; the lowest possible score is 96, because the budget is not confirmed while the cost estimate is partial.
+- **Simulate:** scenarios A, B, C, F and G apply. D and E do not, because the design has no external provider and no cache. Losing the region (scenario G) stops it; losing one zone (scenario B) does not.
+- **FinOps:** at least $15,878 a month, a partial subtotal modelled from the prices written in the example. All 8 priceable components are priced, but the illustrative prices state no pricing model and no source.
 - **Levels:** open a service with its ZOOM IN marker, the Open button in Explore, or a double click.
 
 [Page](archi-made-easy/examples/cloud-native-ecommerce-c4.html) · [Document](archi-made-easy/examples/cloud-native-ecommerce-c4.architecture.json)
@@ -601,10 +602,14 @@ Start with [SKILL.md](archi-made-easy/SKILL.md) and the [intents guide](archi-ma
 | `model.mjs` | Builds the model from the document: roles, boundaries, trust zones, alternatives, and default values tagged as assumed |
 | `defaults.mjs` | Planning defaults for 13 operational roles (availability, capacity, latency, redundancy); not provider SLAs |
 | `sim.mjs` | Fault propagation, traffic, saturation, retries, failover, composite availability, critical-path latency |
-| `scenarios.mjs` | The six preset scenarios, and breach reach for scenario F |
+| `evidence.mjs` | The truth contract: statuses, origins, reasons, how statuses combine, evidence confidence |
+| `requirements.mjs` | What each calculation requires, its units, defaults, applicability and meaning |
+| `billing.mjs` | Billing dimensions, units, pricing models, allowances, tiers, price sources and freshness. No prices |
+| `present.mjs` | The words every output prints for a result: headlines, cost and money text |
+| `scenarios.mjs` | The seven preset scenarios, each with what it fails and its readiness, and breach reach for scenario F |
 | `review.mjs` | The 14 rules, six pillars, weights and scores |
 | `fmea.mjs` | The failure-mode table |
-| `cost.mjs` | Monthly cost from authored prices, with coverage |
+| `cost.mjs` | Monthly cost from authored meters: a total only when complete, otherwise a partial subtotal with what was left out |
 | `remedy.mjs` | Recovery options and previewed fixes |
 | `compare.mjs` | Design snapshots and modelled comparisons |
 | `levels.mjs` | Packs and restores C4 child diagrams |

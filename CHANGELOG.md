@@ -36,3 +36,22 @@ First release of Archi-Made-Easy. Evidence for every item: [release acceptance r
 - The workbench text is English only.
 - Update notices: an installed copy checks `https://avinashp7509.github.io/archi-made-easy/skill-updates/archi-made-easy/stable.json` for a newer release and only tells the user; it never installs anything. That manifest is served from the project's GitHub Pages, which is switched off for 1.0.0; until a later release enables Pages and publishes it, the check finds nothing. Turn it off with `ARCHI_MADE_EASY_UPDATE_CHECK_DISABLED=1`.
 - The original project's journal, review evidence, translated READMEs, community, sponsor and donation material, and contributor tooling are not part of this repository.
+
+## Microsoft 365 Copilot Edition
+
+The Copilot Edition has its own versions and tags (`copilot-v<version>`). Full notes: [editions/copilot/RELEASE-NOTES.md](editions/copilot/RELEASE-NOTES.md).
+
+### Copilot Edition 1.0.1 - 2026-11-15
+
+Supersedes the pre-release copilot-v1.0.1-rc1.
+
+- **Fixed: simulation truthfulness.** A traffic surge with no stated load is inconclusive, with the missing input named, instead of "no component is affected" and 0% lost. Zone loss and region loss are separate scenarios; an unknown placement gives a best and a worst case.
+- **Fixed: FinOps completeness.** A price with no usage is left out with a reason, never $0. A total is given only when the estimate is complete; otherwise a labelled partial subtotal. Prices by billing dimension, with sources. Amounts keep their cents.
+- **Fixed: review coverage.** Scores come with coverage and a lowest possible value; checks that could not run are listed, not passed.
+- **Added:** step checks in `SKILL.md`, and the delivery adapter `bin/copilot-deliver.mjs` (first in rc1).
+- **Engine:** the Full Edition's engine at the same commit, with these fixes, which are not yet in a Full Edition release.
+- **Not yet run in Microsoft 365 Copilot Agent Builder.**
+
+### Copilot Edition 1.0.0 - 2026-11-11
+
+- First release: the Full Edition 1.0.0 engine repackaged as one ZIP that meets Agent Builder's skill rules.

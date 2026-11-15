@@ -1,0 +1,28 @@
+# aws-request-price-with-load
+
+Report 2, case B: a request price with 3M requests a month (AWS).
+
+Document: finops-priced-aws.architecture.json
+
+$ archi-made-easy simulate finops-priced-aws.architecture.json --cost
+
+Simulation. Analytical model of the declared architecture, not a measurement.
+Conditions: 1x traffic, cache hit 0%, no faults
+Status: complete
+Result: No component is affected under these conditions.
+Composite availability (requests answered, including degraded answers): 99.89985%
+Critical path: P50 45.267 ms, P95 146.671 ms, P99 238.716 ms (Users → CloudFront → ALB → ECS Fargate → Aurora)
+Capacity ceiling of the request path: 2000 requests/s (limit: Aurora); current ingress 1.142 requests/s, headroom 1752x
+Asynchronous drain ceiling: 1000 requests/s (limit: Lambda); above it a backlog grows, requests are not refused
+Single points of failure on the request path: Cognito
+Affected components: none
+Inputs: 16 authored, 39 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: low.
+Monthly cost. Partial subtotal: at least $0.60 (a month, not the total; 1 of 9 priceable components priced; 1 of 1 meter calculated). Status: partial.
+  Some components carry no cost data, so any total leaves them out. (ECS Fargate, ElastiCache, CloudFront, Aurora, Cognito, ALB, SQS, S3)
+  Some priced components do not say how their service is billed (finops.pricing_model), so it cannot be told whether every billed dimension is included. (Lambda)
+  Price evidence: none. No price carries a source (provider, region, URL, retrieval date), so the figures are an authored worksheet, not a checked provider estimate.
+
+(exit 0)
+
+JSON: result.status=complete; cost.status=partial; cost.monthly_total_usd=null; cost.subtotal_usd=0.6
+

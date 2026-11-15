@@ -49,6 +49,8 @@ A scaffold is a starting point. After scaffolding:
 | "under 300 ms" | `workbench.requirements.p99_latency_ms` |
 | "lose at most 5 minutes of data", "back within an hour" | `workbench.requirements.rpo_sec`, `rto_sec`; database `operational.dr` |
 | "budget of $20k a month" | `workbench.requirements.monthly_budget_usd` |
+| A price, with where it came from | A meter in the component's `operational.finops.meters`, with its `source`. See [Cost](capacity-latency-and-finops.md#cost) |
+| "Entra ID / Cognito / the CDN is the provider's" | Nothing needed: identity, CDN, third-party and model services are treated as provider-managed. Write `operational.managed_by` only to override |
 | "data must stay in the EU", "PCI-DSS" | `workbench.requirements.data_residency`, `compliance`; component `operational.security.compliance_tags` |
 | A measured or quoted figure for one component | That component's `operational` (`sla_percent`, `capacity`, `latency`, `finops`) |
 | Timeouts, retries, circuit breakers, queues | The connection's `operational.resilience` and `call_semantics` |
@@ -59,7 +61,9 @@ A scaffold is a starting point. After scaffolding:
 
 - A value you write into the document is **authored**. Write only what the user stated, what a cited source states, or what you measured.
 - A value you leave out is **assumed** by the model from the component's role, and is labelled as an assumption wherever it is shown.
-- Never write an invented SLA, price, latency or load to make the model look complete. Leave it out.
+- Never write an invented SLA, price, latency or load to make the model look complete. Leave it out. The model then says what is missing: a run that needs it is reported as partial or inconclusive, which is the correct answer. See [truth-and-evidence-contract.md](truth-and-evidence-contract.md).
+- Load (`baseline_rps`) and prices have no default. Without a load, a "what if traffic grows 10x" run is inconclusive; ask the user for the current requests per second.
+- A role you do not state is inferred from the label and marked as inferred. State `role` when the label could be read two ways.
 - Scaffolds set structure only (roles, redundancy, call semantics, decisions). They contain no traffic, latency, availability or cost figures.
 - Knowledge packs name services. They carry no SLA or price figures; such values need an official source and a date before they are added.
 
@@ -75,7 +79,8 @@ Component `operational`:
 - `capacity`: `max_rps` (per instance), `baseline_rps` (entry components), `autoscale_min`, `autoscale_max`, `cpu_cores`, `memory_gb`, `scaling_lag_sec`.
 - `latency`: `p50_ms`, `p95_ms`, `p99_ms`, in ascending order.
 - `dr`: `rpo_sec`, `rto_sec`, `backup_strategy`.
-- `finops`: `cloud_provider`, `instance_tier`, `monthly_base_cost_usd`, `cost_per_million_requests_usd`, `storage_gb`, `storage_cost_per_gb_usd`.
+- `finops`: `pricing_model`, `usage` (`requests_per_month`, `avg_duration_ms`, `memory_gb` or `memory_gib`, `vcpu`, `concurrency`, `instances`, `storage_gb`, `operations_per_month`, `transfer_gb_per_month`) and `meters` (each `dimension`, `unit`, `price` or `tiers`, `per`, `currency`, `free_allowance`, `quantity_basis`, `source`). Also `cloud_provider`, `instance_tier`, and the earlier fields `monthly_base_cost_usd`, `cost_per_million_requests_usd`, `storage_gb`, `storage_cost_per_gb_usd`. See [Cost](capacity-latency-and-finops.md#cost).
+- `managed_by`: `provider` or `customer`. Inferred from the role when absent.
 - `security`: `trust_zone`, `auth_method`, `encryption_at_rest`, `encryption_in_transit`, `compliance_tags`, `public_exposed`.
 - `c4_level`: `context`, `container`, `component` or `code`. `drilldown_diagram_id`: the `id` of the child diagram in `workbench.drilldowns` that this component opens into. See [Levels](workbench-ui-and-exporters.md#interactive-workbench).
 
@@ -84,9 +89,11 @@ Connection `operational`:
 - `call_semantics`: `sync-blocking`, `async-queue`, `async-pubsub`, `event-stream`, `replication-sync`, `replication-async`, `failover-route`, `heartbeat`.
 - `protocol`: `HTTPS/REST`, `gRPC`, `GraphQL`, `Kafka`, `AMQP`, `WebSockets`, `TCP`, `SQL`, `CDC`.
 - `resilience`: `timeout_ms`, `retries`, `backoff_strategy`, `jitter`, `circuit_breaker_enabled`, `circuit_breaker_threshold_pct`, `fallback_edge_id`, `dlq_node_id`, `idempotent`.
-- `traffic`: `request_multiplier`, `payload_kb`, `read_write_ratio` (fraction of reads), `egress_cost_per_gb_usd`.
+- `traffic`: `request_multiplier`, `payload_kb`, `read_write_ratio` (fraction of reads), `egress_cost_per_gb_usd`, `egress_price_source`.
 
 Boundary: optional `id`, and `operational.scope` (`region`, `availability-zone`, `trust-zone`) with optional `trust_zone`.
+
+`workbench.as_of`: the reference date of the document's figures (yyyy-mm-dd). Price freshness is judged against it.
 
 Give a connection an `id` whenever another field refers to it (`fallback_edge_id`, trace steps, alternatives).
 
@@ -99,4 +106,10 @@ Give a connection an `id` whenever another field refers to it (`fallback_edge_id
 | `workbench/latency-order` | Percentiles are not ascending | Make p50 ≤ p95 ≤ p99 |
 | `workbench/autoscale-range` | `autoscale_min` exceeds `autoscale_max` | Swap or correct them |
 | `workbench/duplicate-value` | A list repeats a value | Remove the duplicate |
+| `workbench/finops-unit-mismatch` | A meter's unit does not measure its dimension | Use a unit of that dimension, such as `GB-second` for `memory-seconds` |
+| `workbench/finops-basis-required` | A `memory-seconds` or `vcpu-seconds` meter has no `quantity_basis` | State how billed seconds are counted |
+| `workbench/finops-double-count` | One dimension is billed by two meters, or by an earlier cost field and a meter | Keep one |
+| `workbench/finops-price-and-tiers`, `workbench/finops-no-price`, `workbench/finops-tier-order` | A meter has both a price and tiers, neither, or tiers out of order | Give one price, or tiers with increasing limits |
+| `workbench/finops-memory-twice` | Usage states memory in GB and in GiB | Give one |
+| `workbench/baseline-not-on-entry` (warning) | `baseline_rps` is on a component that is not an entry point, so it is not used | Put the load on an entry component |
 | `architecture/missing-component-position` | A component has no position | Use `layout { "mode": "grid" }` with `row` and `col`, or give `pos` |

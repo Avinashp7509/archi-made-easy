@@ -163,7 +163,8 @@ test('RFC document: sections, labelled model figures and assumed-value marks', (
   assert.match(rfc, /analytical model of the declared design\. They are not measurements\./);
   assert.match(rfc, /- 9 components, 9 connections, 1 boundary\./);
   assert.match(rfc, /\| App Service \| stateless-compute \| multi-az \| 99\.9\* \|/, 'an assumed SLA carries an asterisk; an authored role does not');
-  assert.match(rfc, /Estimated monthly cost \| not available \(no cost data\)/);
+  assert.match(rfc, /\| Monthly cost: total \| no data \(0 of 9 priceable components priced; 0 of 0 meters calculated\) \| unknown \|/);
+  assert.ok(rfc.includes('### Cost estimate') && rfc.includes('### Not evaluated'), 'the cost estimate and the checks that could not run have their own sections');
   assert.match(rfc, /### Zone redundancy before multi-region/);
   assert.match(rfc, /occurrence and detection are not rated/);
   assert.equal(count(rfc, '```mermaid'), 1);

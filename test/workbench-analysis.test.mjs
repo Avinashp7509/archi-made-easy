@@ -36,16 +36,27 @@ function priced() {
   };
 }
 
-test('six scenarios are generated in order, with deterministic targets', () => {
+test('seven scenarios are generated in order, with deterministic targets', () => {
   const model = patternModel('web-ha');
   const scenarios = buildScenarios(model);
-  assert.deepEqual(scenarios.map((s) => s.id), ['a', 'b', 'c', 'd', 'e', 'f']);
-  assert.deepEqual(scenarios.map((s) => s.key), ['database-outage', 'zone-blackout', 'flash-crowd', 'provider-brownout', 'cache-stampede', 'edge-breach']);
+  assert.deepEqual(scenarios.map((s) => s.id), ['a', 'b', 'c', 'd', 'e', 'f', 'g']);
+  assert.deepEqual(scenarios.map((s) => s.key), ['database-outage', 'zone-loss', 'flash-crowd', 'provider-brownout', 'cache-stampede', 'edge-breach', 'region-blackout']);
   const by = Object.fromEntries(scenarios.map((s) => [s.id, s]));
   assert.deepEqual(by.a.targets, ['db']);
   assert.deepEqual(by.a.inputs.faults, { nodes: { db: 'down' } });
-  assert.deepEqual(by.b.targets, ['region']);
+  // Losing a zone and losing the region are separate scenarios. The pattern draws a region
+  // and no zone, so the zone scenario loses one unnamed zone and never the region boundary.
+  assert.deepEqual(by.b.targets, []);
+  assert.deepEqual(by.b.inputs.faults, { zone: 'down' });
+  assert.match(by.b.fails, /One availability zone, not the region/);
+  assert.deepEqual(by.g.targets, ['region']);
+  assert.deepEqual(by.g.inputs.faults, { boundaries: { region: 'down' } });
+  assert.match(by.g.fails, /the whole region/);
   assert.equal(by.c.inputs.multiplier, 10);
+  // The pattern states no load, so the scenario says before it runs that it will be inconclusive.
+  assert.equal(by.c.readiness.status, 'inconclusive');
+  assert.equal(by.c.readiness.reasons[0].code, 'missing-baseline-load');
+  assert.equal(by.a.readiness.status, 'ready');
   assert.equal(by.d.applicable, false, 'web-ha has no external provider');
   assert.match(by.d.reason, /No external service/);
   assert.deepEqual(by.e.targets, ['cache']);
@@ -127,17 +138,47 @@ test('cost: base, request, storage and egress follow the formulas', () => {
   const cost = estimateCost(model, simulate(model));
   // api: 100 rps / 60 per instance -> 2 instances (the minimum): base 200 * 2 / 2 = 200
   //      requests: 0.5 * 100 * 2,628,000 / 1e6 = 131.40
-  assert.deepEqual(cost.nodes.api, { priced: true, instances: 2, base_usd: 200, requests_usd: 131.4, storage_usd: 0, total_usd: 331.4 });
+  const figures = ({ priced: isPriced, instances, base_usd, requests_usd, storage_usd, subtotal_usd }) => ({ priced: isPriced, instances, base_usd, requests_usd, storage_usd, subtotal_usd });
+  // A meter the component does not have is null, not $0.
+  assert.deepEqual(figures(cost.nodes.api), { priced: true, instances: 2, base_usd: 200, requests_usd: 131.4, storage_usd: null, subtotal_usd: 331.4 });
   // db: base 400 + storage 500 * 0.1 = 450
-  assert.deepEqual(cost.nodes.db, { priced: true, instances: 1, base_usd: 400, requests_usd: 0, storage_usd: 50, total_usd: 450 });
-  assert.deepEqual(cost.nodes.web, { priced: false });
+  assert.deepEqual(figures(cost.nodes.db), { priced: true, instances: 1, base_usd: 400, requests_usd: null, storage_usd: 50, subtotal_usd: 450 });
+  assert.deepEqual(cost.nodes.web, { priced: false, priceable: true, status: 'unknown' });
+  // Every meter was computed (the arithmetic is complete), but the components do not say how
+  // they are billed and one is unpriced: the figures are subtotals, never component totals.
+  assert.equal(cost.arithmetic_status, 'complete');
+  assert.equal(cost.nodes.api.status, 'partial');
+  assert.equal(cost.nodes.api.total_usd, null);
+  assert.equal(cost.nodes.api.billing_coverage, 'undeclared');
   // egress: 100 rps * 4 KB * 2,628,000 s / 1,048,576 = 1002.50 GB -> $20.05
   const gb = 100 * 4 * SECONDS_PER_MONTH / 1_048_576;
   assert.equal(cost.egress['api-db'].gb_per_month, Math.round(gb * 100) / 100);
   assert.equal(cost.egress['api-db'].cost_usd, Math.round(gb * 0.02 * 100) / 100);
-  assert.equal(cost.monthly_total_usd, Math.round((331.4 + 450 + gb * 0.02) * 100) / 100);
-  assert.deepEqual(cost.coverage, { priced_components: 2, components: 3 });
-  assert.match(cost.notes[0], /1 of 3 components have no cost data/);
+  assert.equal(cost.status, 'partial');
+  assert.equal(cost.monthly_total_usd, null, 'a partial estimate has no total');
+  assert.equal(cost.subtotal_usd, Math.round((331.4 + 450 + gb * 0.02) * 100) / 100);
+  assert.equal(cost.lower_bound, true);
+  assert.deepEqual([cost.coverage.priced_components, cost.coverage.components, cost.coverage.unpriced], [2, 3, ['web']]);
+  assert.match(cost.notes[0], /1 of 3 priceable components have no cost data/);
+  assert.deepEqual(cost.reasons.map((r) => r.code).sort(), ['billing-model-undeclared', 'unpriced-component']);
+});
+
+test('cost: a total is given once every component is priced and says how it is billed', () => {
+  const doc = priced();
+  const byId = Object.fromEntries(doc.components.map((c) => [c.id, c]));
+  byId.web.operational.finops = { pricing_model: 'flat-monthly', monthly_base_cost_usd: 30 };
+  byId.api.operational.finops.pricing_model = 'provisioned-instance';
+  byId.db.operational.finops.pricing_model = 'provisioned-with-storage';
+  const model = buildModel(doc).model;
+  const cost = estimateCost(model, simulate(model));
+  const gb = 100 * 4 * SECONDS_PER_MONTH / 1_048_576;
+  assert.equal(cost.status, 'complete');
+  assert.deepEqual(cost.reasons, []);
+  assert.equal(cost.monthly_total_usd, Math.round((30 + 331.4 + 450 + gb * 0.02) * 100) / 100);
+  assert.equal(cost.monthly_total_usd, cost.subtotal_usd);
+  assert.equal(cost.nodes.api.total_usd, 331.4);
+  // Complete arithmetic is not audited pricing: no price here carries a source.
+  assert.equal(cost.confidence.level, 'unsourced');
 });
 
 test('cost: instances scale with load; nothing is priced without cost data', () => {
@@ -155,9 +196,17 @@ test('cost: request and egress cost are left out when load is not set', () => {
   delete doc.components[0].operational.capacity.baseline_rps;
   const model = buildModel(doc).model;
   const cost = estimateCost(model, simulate(model));
-  assert.equal(cost.nodes.api.requests_usd, 0);
+  // Unknown usage is not zero usage: the request meter has no cost at all.
+  assert.equal(cost.nodes.api.requests_usd, null);
+  const requests = cost.nodes.api.meters.find((meter) => meter.dimension === 'requests');
+  assert.deepEqual([requests.status, requests.cost_usd, requests.reasons[0].code], ['inconclusive', null, 'missing-usage-baseline']);
   assert.equal(cost.nodes.api.instances, 2);
-  assert.deepEqual(cost.egress, {});
-  assert.ok(cost.notes.some((n) => /request cost left out because load is not set/.test(n)));
+  assert.equal(cost.nodes.api.subtotal_usd, 200, 'the fixed part is still a subtotal');
+  assert.deepEqual([cost.egress['api-db'].status, cost.egress['api-db'].cost_usd, cost.egress['api-db'].reasons[0].code], ['inconclusive', null, 'egress-flow-unknown']);
+  assert.equal(cost.status, 'partial');
+  assert.equal(cost.monthly_total_usd, null);
+  assert.equal(cost.subtotal_usd, 650);
+  assert.ok(cost.omitted.some((item) => item.subject === 'api' && item.code === 'missing-usage-baseline'));
+  assert.ok(cost.notes.some((n) => /requests cost left out because load is not set/.test(n)));
   assert.ok(cost.notes.some((n) => /egress cost left out because load is not set/.test(n)));
 });

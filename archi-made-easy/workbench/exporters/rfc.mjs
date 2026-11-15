@@ -7,6 +7,7 @@ import { review } from '../review.mjs';
 import { buildFmea } from '../fmea.mjs';
 import { estimateCost } from '../cost.mjs';
 import { buildScenarios, runScenario } from '../scenarios.mjs';
+import { formatCost, formatUsd, formatPrice, formatQuantity, costLines, simulationHeadline, reviewHeadline, noFindingsText, statusLabel } from '../present.mjs';
 import { toMermaidFlowchart } from './mermaid.mjs';
 import { mdLineStart, mdTable, mdText, plural, preformatted } from './shared.mjs';
 
@@ -20,7 +21,9 @@ export function toRfc(document, model) {
   const fmea = buildFmea(model);
   const cost = estimateCost(model, result);
   const scenarios = buildScenarios(model).map((scenario) => ({ scenario, outcome: runScenario(model, scenario) }));
-  const name = (id) => model.nodes.find((n) => n.id === id)?.label ?? id;
+  const name = (id) => model.display?.[id] ?? model.nodes.find((n) => n.id === id)?.label ?? id;
+  const costHead = formatCost(cost);
+  const status = (key) => statusLabel(result.assessments[key].status);
   const k = result.kpis;
   const out = [];
   const push = (...lines) => out.push(...lines);
@@ -31,8 +34,9 @@ export function toRfc(document, model) {
   push('## 1. Summary', '');
   push(`- ${plural(model.nodes.filter((n) => !n.actor).length, 'component')}, ${plural(model.edges.length, 'connection')}, ${plural(model.boundaries.length, 'boundary')}.`);
   push(`- Entry points: ${model.entrypoints.map((id) => mdText(name(id))).join(', ') || 'none identified'}.`);
-  push(`- Review score: ${findings.score}/100 with ${findings.findings.length} finding${findings.findings.length === 1 ? '' : 's'}.`);
-  push(`- Inputs: ${result.basis.authored_inputs} authored, ${result.basis.assumed_inputs} assumed.`, '');
+  push(`- Review: ${mdText(reviewHeadline(findings).text.replace(/^Score: /, ''))}, with ${findings.findings.length} finding${findings.findings.length === 1 ? '' : 's'} and ${findings.gaps.length} check${findings.gaps.length === 1 ? '' : 's'} that could not be evaluated.`);
+  push(`- Model status: ${statusLabel(result.status)}. Cost estimate: ${statusLabel(cost.status)}.`);
+  push(`- Inputs: ${result.basis.authored_inputs} authored, ${result.basis.assumed_inputs} assumed. Evidence confidence: ${result.confidence.level}.`, '');
 
   const assumptions = (document.cards || []).find((card) => card.title === 'Assumptions');
   if (assumptions || model.requirements) {
@@ -70,23 +74,43 @@ export function toRfc(document, model) {
     ])), '');
 
   push('## 4. Modelled behaviour', '');
-  push(mdTable(['Measure', 'Modelled value'], [
-    ['Composite availability', k.composite_sla_percent == null ? 'not available' : `${k.composite_sla_percent}%`],
-    ['Critical path', k.critical_path ? k.critical_path.nodes.map(name).join(' → ') : 'none'],
-    ['Critical-path latency', k.critical_path ? `P50 ${k.critical_path.p50_ms} ms, P95 ${k.critical_path.p95_ms} ms, P99 ${k.critical_path.p99_ms} ms` : 'not available'],
-    ['Max sustainable load', k.max_sustainable_rps == null ? 'not available' : `${k.max_sustainable_rps} requests/s (limit: ${name(k.limiting_node)})`],
-    ['Current ingress', k.ingress_rps == null ? 'not set' : `${k.ingress_rps} requests/s (headroom ${k.headroom}x)`],
-    ['Single points of failure', k.active_spofs.length ? k.active_spofs.map(name).join(', ') : 'none'],
-    ['Estimated monthly cost', cost.monthly_total_usd == null ? 'not available (no cost data)' : `$${cost.monthly_total_usd} (${cost.coverage.priced_components} of ${cost.coverage.components} components priced)`],
+  push(mdTable(['Measure', 'Modelled value', 'Status'], [
+    ['Composite availability (requests answered, including degraded answers)', k.composite_sla_percent == null ? 'not available' : `${k.composite_sla_percent}%`, status('availability')],
+    ['Critical path', k.critical_path ? k.critical_path.nodes.map(name).join(' → ') : 'none', status('latency')],
+    ['Critical-path latency', k.critical_path?.p99_ms != null ? `P50 ${k.critical_path.p50_ms} ms, P95 ${k.critical_path.p95_ms} ms, P99 ${k.critical_path.p99_ms} ms` : 'not available', status('latency')],
+    ['Capacity ceiling of the request path', k.max_sustainable_rps == null ? 'not available' : `${k.max_sustainable_rps} requests/s (limit: ${name(k.limiting_node)})`, status('capacity')],
+    ['Asynchronous drain ceiling', k.async_drain_ceiling_rps == null ? 'not applicable' : `${k.async_drain_ceiling_rps} requests/s (limit: ${name(k.async_limiting_node)}); above it a backlog grows`, status('capacity')],
+    ['Current ingress', k.ingress_rps == null ? 'not stated' : `${k.ingress_rps} requests/s (headroom ${k.headroom}x)`, status('traffic')],
+    ['Single points of failure', k.active_spofs.length ? k.active_spofs.map(name).join(', ') : 'none found', status('structure')],
+    [`Monthly cost: ${costHead.label.toLowerCase()}`, `${costHead.text} (${costHead.coverage})`, statusLabel(cost.status)],
   ]), '');
-  for (const warning of result.warnings) push(`- Note: ${mdText(warning)}`);
-  if (result.warnings.length) push('');
+  for (const item of result.reasons) push(`- Note (${item.code}): ${mdText(item.message)}`);
+  if (result.reasons.length) push('');
+
+  push('### Cost estimate', '');
+  push(`${costHead.label}: **${mdText(costHead.text)}** ${mdText(costHead.qualifier)}. ${mdText(costHead.coverage)}.`, '');
+  const meterRows = model.nodes.filter((n) => cost.nodes[n.id]?.priced).flatMap((n) => cost.nodes[n.id].meters.map((meter) => [
+    name(n.id), meter.dimension, meter.quantity == null ? 'not known' : formatQuantity(meter.quantity, meter.unit),
+    meter.tiers ? 'tiered' : `${formatPrice(meter.price)} per ${meter.per === 1 ? meter.unit : formatQuantity(meter.per, meter.unit)}`,
+    meter.cost_usd == null ? `left out (${statusLabel(meter.status)})` : formatUsd(meter.cost_usd),
+    meter.source ? [meter.source.provider, meter.source.service, meter.source.region, meter.source.retrieved_at ? `retrieved ${meter.source.retrieved_at}` : null].filter(Boolean).join(', ') : 'no source',
+  ]));
+  if (meterRows.length) push(mdTable(['Component', 'Billed dimension', 'Monthly quantity', 'Price', 'Cost', 'Price source'], meterRows), '');
+  for (const line of costLines(cost, name)) push(`- ${mdText(line)}`);
+  push('');
 
   push('## 5. Review', '');
-  push(mdTable(['Pillar', 'Score', 'Findings'], Object.entries(findings.pillars).map(([pillar, value]) => [pillar, value.score, value.findings])), '');
+  push(mdText(reviewHeadline(findings).text), '');
+  push(mdTable(['Pillar', 'Score', 'Lowest possible', 'Rules evaluated', 'Status', 'Findings'], Object.entries(findings.pillars).map(([pillar, value]) => [
+    pillar, value.score == null ? 'not assessed' : value.score, value.floor == null ? 'not assessed' : value.floor,
+    `${value.rules.evaluated} of ${value.rules.applicable}`, statusLabel(value.status), value.findings])), '');
   if (findings.findings.length) {
     push(mdTable(['Severity', 'Finding', 'Evidence', 'Remediation', 'Basis'], findings.findings.map((f) => [f.severity, f.title, f.evidence, f.remediation, f.basis])), '');
-  } else push('No rule fired. This means none of the checked rules found a problem, not that the design is complete.', '');
+  } else push(noFindingsText(findings), '');
+  if (findings.gaps.length) {
+    push('### Not evaluated', '', 'These checks apply to the design but could not be run. They are not passes.', '');
+    push(mdTable(['Check', 'Pillar', 'Why it was not evaluated', 'What to supply'], findings.gaps.map((gap) => [gap.title, gap.pillar, gap.message, gap.ask ?? ''])), '');
+  }
 
   push('## 6. Failure modes', '');
   push(mdTable(['Component', 'Effect', 'Also affected', 'Ingress lost', 'Severity', 'RTO', 'RPO', 'Recommended'],
@@ -95,15 +119,17 @@ export function toRfc(document, model) {
   push(fmea.note, '');
 
   push('## 7. Scenarios', '');
-  push(mdTable(['Scenario', 'Applied to', 'Outcome'], scenarios.map(({ scenario, outcome }) => {
-    if (!outcome.applicable) return [scenario.title, 'n/a', `Not applicable: ${outcome.reason}`];
+  push(mdTable(['Scenario', 'What fails', 'Status', 'Outcome'], scenarios.map(({ scenario, outcome }) => {
+    if (!outcome.applicable) return [scenario.title, 'n/a', 'not applicable', `Not applicable: ${outcome.reason}`];
     const r = outcome.result;
+    // The outcome sentence is the canonical headline: the same words as every other output.
+    const head = simulationHeadline(model, r);
     const failing = r.kpis.blast_radius.nodes.filter((id) => r.nodes[id].state === 'failing').map(name);
     const degraded = r.kpis.blast_radius.nodes.filter((id) => r.nodes[id].state === 'degraded').map(name);
-    const parts = [failing.length ? `failing: ${failing.join(', ')}` : null, degraded.length ? `degraded: ${degraded.join(', ')}` : null,
-      r.kpis.blast_radius.ingress_share != null ? `${Math.round(r.kpis.blast_radius.ingress_share * 100)}% of ingress lost` : null,
+    const detail = head.status === 'inconclusive' ? [] : [failing.length ? `failing: ${failing.join(', ')}` : null, degraded.length ? `degraded: ${degraded.join(', ')}` : null];
+    const parts = [head.text, ...head.lines, ...detail,
       outcome.analysis ? `reachable without authentication: ${outcome.analysis.reachable_without_authentication.map(name).join(', ') || 'nothing'}` : null].filter(Boolean);
-    return [scenario.title, scenario.targets.map(name).join(', ') || 'all traffic', parts.join('; ') || 'no component affected'];
+    return [scenario.title, scenario.fails ?? scenario.target_labels.join(', '), statusLabel(head.status), parts.join(' ')];
   })), '');
 
   if (model.adrs.length) {
@@ -120,6 +146,8 @@ export function toRfc(document, model) {
   push('## Appendix: how to read this document', '');
   push('- An asterisk (*) marks a value assumed from the component\'s role. Replace it with a real figure and regenerate.');
   push('- The model is steady-state and treats failures as independent. It ranks risks and shows propagation; it does not replace load or failover testing.');
-  push(`- Review rules checked: ${findings.rules_checked.length}. The score summarises those rules only.`, '');
+  push(`- Review rules: ${findings.rules_checked.length}, of which ${findings.coverage.applicable} apply to this design and ${findings.coverage.evaluated} were fully evaluated. The score summarises the rules that ran; the lowest possible score assumes every rule that could not run had fired.`);
+  push('- A status of partial means a figure is a subset or a lower bound; inconclusive means an essential input is missing and no conclusion is drawn; unknown means there was nothing to evaluate. None of these is a pass.');
+  push('- A cost total is given only when every priceable component is priced on every dimension its pricing model bills. Otherwise the figure is a partial subtotal.', '');
   return out.join('\n');
 }

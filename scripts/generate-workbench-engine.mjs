@@ -16,13 +16,17 @@ const defaultRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '
 
 /** Modules in dependency order (a module may import only from earlier ones). */
 export const ENGINE_MODULES = [
-  'defaults.mjs', 'model.mjs', 'sim.mjs', 'cost.mjs', 'scenarios.mjs', 'fmea.mjs', 'review.mjs', 'compare.mjs', 'remedy.mjs',
+  'defaults.mjs', 'evidence.mjs', 'requirements.mjs', 'billing.mjs', 'model.mjs', 'sim.mjs', 'cost.mjs', 'scenarios.mjs', 'fmea.mjs', 'review.mjs', 'compare.mjs', 'remedy.mjs', 'present.mjs',
   'exporters/shared.mjs', 'exporters/mermaid.mjs', 'exporters/drawio.mjs', 'exporters/structurizr.mjs', 'exporters/rfc.mjs',
 ];
 
 /** Public surface of ArchiMadeEasy.workbenchEngine: export name -> module. */
 export const ENGINE_API = {
   buildModel: 'model.mjs', applyAlternative: 'model.mjs',
+  STATUSES: 'evidence.mjs', ORIGINS: 'evidence.mjs', REASONS: 'evidence.mjs', CALCULATIONS: 'requirements.mjs',
+  DIMENSIONS: 'billing.mjs', PRICING_MODELS: 'billing.mjs',
+  formatUsd: 'present.mjs', formatPrice: 'present.mjs', formatQuantity: 'present.mjs', costText: 'present.mjs', formatCost: 'present.mjs', formatNodeCost: 'present.mjs', costLines: 'present.mjs', simulationHeadline: 'present.mjs',
+  reviewHeadline: 'present.mjs', gapLines: 'present.mjs', noFindingsText: 'present.mjs', statusLabel: 'present.mjs',
   simulate: 'sim.mjs', FAULT_STATES: 'sim.mjs',
   estimateCost: 'cost.mjs',
   buildScenarios: 'scenarios.mjs', runScenario: 'scenarios.mjs', breachReach: 'scenarios.mjs',

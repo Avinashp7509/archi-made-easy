@@ -56,32 +56,55 @@ const METRICS = [
   ['review_score', 'Review score', '/100', 1],
 ];
 
-/** The comparable figures of a model under given conditions (faults, load, cache). */
+/**
+ * The comparable figures of a model under given conditions (faults, load, cache).
+ * A figure the model could not calculate is null, so a comparison built on it reads
+ * "not comparable" and never "unchanged". `statuses` says why.
+ */
 export function figures(model, inputs = {}) {
   const result = simulate(model, inputs);
   const cost = estimateCost(model, result);
   const reviewed = review(model, { multiplier: inputs.multiplier ?? 1, cacheHit: inputs.cacheHit ?? 0 });
   const share = result.kpis.blast_radius.ingress_share;
   return {
+    status: result.status,
+    reasons: result.reasons,
     composite_sla_percent: result.kpis.composite_sla_percent,
     critical_path_p99_ms: result.kpis.critical_path?.p99_ms ?? null,
     max_sustainable_rps: result.kpis.max_sustainable_rps,
-    affected_components: result.kpis.blast_radius.nodes.length,
+    // How many components are affected is not known while the blast radius is inconclusive.
+    affected_components: result.kpis.blast_radius.status === 'inconclusive' ? null : result.kpis.blast_radius.nodes.length,
     ingress_lost_percent: share == null ? null : round(share * 100, 2),
     single_points_of_failure: result.kpis.active_spofs.length,
+    // The total exists only for a complete estimate; a partial one offers a subtotal.
     monthly_cost_usd: cost.monthly_total_usd,
+    monthly_cost_subtotal_usd: cost.subtotal_usd,
     review_score: reviewed.score,
+    review_score_floor: reviewed.score_floor,
+    statuses: {
+      simulation: result.status, blast_radius: result.kpis.blast_radius.status, availability: result.assessments.availability.status,
+      latency: result.assessments.latency.status, capacity: result.assessments.capacity.status, ingress_loss: result.assessments.ingress_loss.status,
+      cost: cost.status, review: reviewed.status,
+    },
     findings: reviewed.findings.map(({ id, title, severity }) => ({ id, title, severity })),
   };
 }
 
-/** Compare two sets of figures: one row per metric, with a verdict in words. */
+/**
+ * Compare two sets of figures: one row per metric, with a verdict in words.
+ * Cost is compared on totals when both estimates are complete, otherwise on subtotals,
+ * and the row then says it compares partial subtotals.
+ */
 export function compareFigures(before, after) {
   return METRICS.map(([key, label, unit, direction]) => {
-    const a = before[key]; const b = after[key];
+    let a = before[key]; let b = after[key]; let shown = label; let partial = false;
+    if (key === 'monthly_cost_usd' && (a == null || b == null)) {
+      a = before.monthly_cost_subtotal_usd ?? null; b = after.monthly_cost_subtotal_usd ?? null;
+      if (a != null && b != null) { partial = true; shown = `${label} (partial subtotal)`; }
+    }
     const change = a == null || b == null ? null : round(b - a);
     const verdict = change == null ? 'not comparable' : change === 0 ? 'unchanged' : (change > 0) === (direction > 0) ? 'better' : 'worse';
-    return { metric: key, label, unit, before: a, after: b, change, verdict };
+    return { metric: key, label: shown, unit, before: a, after: b, change, verdict, ...(partial ? { partial: true } : {}) };
   });
 }
 
@@ -140,7 +163,7 @@ export function recoveryOptions(model, result) {
   }
 
   for (const node of failedAtSource) {
-    if (!injected[node.id] || node.actor || node.redundancy === 'active-passive-dr' || result.nodes[node.id].fault !== 'down') continue;
+    if (!injected[node.id] || node.actor || node.managed_by === 'provider' || node.redundancy === 'active-passive-dr' || result.nodes[node.id].fault !== 'down') continue;
     const summary = `Add a standby for ${node.label}`;
     options.push({
       id: `standby:${node.id}`, kind: 'standby', previewable: true, components: [node.id], connections: [], title: summary,
@@ -151,7 +174,8 @@ export function recoveryOptions(model, result) {
 
   const cascading = model.edges
     .filter((edge) => edge.call_semantics === 'sync-blocking' && !edge.resilience.circuit_breaker_enabled && edge.resilience.fallback_edge_id == null
-      && result.nodes[edge.to]?.state === 'failing' && result.nodes[edge.from]?.state === 'failing' && result.edges[edge.id]?.state !== 'cut')
+      && result.nodes[edge.to]?.state === 'failing' && result.nodes[edge.from]?.state === 'failing' && result.edges[edge.id]?.state !== 'cut'
+      && !model.nodes.find((n) => n.id === edge.from)?.actor && model.nodes.find((n) => n.id === edge.from)?.managed_by !== 'provider')
     .sort((a, b) => (a.id < b.id ? -1 : 1));
   if (cascading.length) {
     options.push({
@@ -183,11 +207,22 @@ const RECOVERY_METRICS = new Set(['composite_sla_percent', 'critical_path_p99_ms
 export function recoveryPlan(document, inputs = {}) {
   const model = buildModel(document).model;
   const result = simulate(model, inputs);
+  // An inconclusive run has no established impact to recover from. Proposing changes, or
+  // saying there is nothing to recover from, would both claim a result that was not computed.
+  if (result.status === 'inconclusive') {
+    return {
+      kind: 'analytical-model', status: 'inconclusive', reasons: result.reasons, missing: result.missing,
+      inputs: result.inputs, affected_components: null, options: [],
+      note: 'No recovery options are proposed because the run is inconclusive: the impact was not calculated. Supply the missing inputs and run it again.',
+    };
+  }
   const options = recoveryOptions(model, result)
     .map((option) => (option.previewable ? { ...option, preview: previewPatches(document, option.patches, inputs) } : option))
     .filter((option) => !option.previewable || option.preview.metrics.some((metric) => RECOVERY_METRICS.has(metric.metric) && metric.verdict === 'better'));
   return {
     kind: 'analytical-model',
+    status: result.status,
+    reasons: result.reasons,
     inputs: result.inputs,
     affected_components: result.kpis.blast_radius.nodes.length,
     options,

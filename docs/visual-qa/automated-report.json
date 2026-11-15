@@ -1,8 +1,8 @@
 {
-  "generated": "2026-11-11",
+  "generated": "2026-11-15",
   "scope": "full",
   "states": 744,
-  "seconds": 468,
+  "seconds": 537,
   "defects": {
     "critical": 0,
     "high": 0,
@@ -437,6 +437,6 @@
       ]
     }
   ],
-  "screenshots": 182,
+  "screenshots": 0,
   "comparisons": null
 }

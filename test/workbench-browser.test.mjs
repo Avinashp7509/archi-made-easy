@@ -14,6 +14,8 @@ import { buildModel } from '../archi-made-easy/workbench/model.mjs';
 import { simulate } from '../archi-made-easy/workbench/sim.mjs';
 import { review } from '../archi-made-easy/workbench/review.mjs';
 import { buildScenarios } from '../archi-made-easy/workbench/scenarios.mjs';
+import { estimateCost } from '../archi-made-easy/workbench/cost.mjs';
+import { formatCost, formatNodeCost, simulationHeadline, statusLabel } from '../archi-made-easy/workbench/present.mjs';
 import { figures, previewPatches, recoveryPlan } from '../archi-made-easy/workbench/remedy.mjs';
 import { toMermaidMarkdown } from '../archi-made-easy/workbench/exporters/mermaid.mjs';
 import { toStructurizr } from '../archi-made-easy/workbench/exporters/structurizr.mjs';
@@ -233,7 +235,9 @@ test('Architecture workbench in the browser', {
     // The 0% is never bare: it names the condition and shows the healthy value.
     assert.match(ran.availability, /Answered now\s*0%\s*healthy: 99\.85%/);
     assert.match(ran.condition, /Condition: Primary database or stateful storage outage/);
-    assert.match(ran.impact, new RegExp(`modelled\\s*${failing.length} components of ${model.nodes.length} affected\\. 100% of entry traffic is not served`, 'i'));
+    const head = simulationHeadline(model, expected);
+    assert.equal(ran.impact.replace(/\s+/g, ' ').trim(), `modelled ${statusLabel(expected.status)} ${head.text}`, 'the impact line is the engine headline with its status');
+    assert.match(head.text, new RegExp(`^${failing.length} components of ${model.nodes.length} affected\\. 100% of entry traffic is not served`));
     assert.equal(ran.steps[0], 'Aurora', 'propagation is listed from the origin outward');
     assert.equal(ran.steps.at(-1), 'Users');
     assert.match(ran.body, /5\. Before and after/);
@@ -358,8 +362,13 @@ test('Architecture workbench in the browser', {
     const finops = await page(`{ figures: w.figures(), badges: [...svg.querySelectorAll('.workbench-badge text')].map(n => n.textContent), text: document.getElementById('workbench-body').textContent, condition: Boolean(document.querySelector('[data-workbench-condition]')) }`);
     assert.deepEqual(finops.figures, plain(figures(model, {})));
     assert.equal(finops.condition, false);
-    assert.ok(finops.badges.includes('no cost data') && finops.badges.some((b) => /^\$[\d,]+\/mo$/.test(b)), finops.badges.join(','));
-    assert.match(finops.text, /This total is incomplete: \d+ components carry no cost data/);
+    const cost = estimateCost(model, simulate(model, {}));
+    const expectedBadges = model.nodes.map((node) => formatNodeCost(cost.nodes[node.id])).filter(Boolean).map((shown) => shown.text).sort();
+    assert.deepEqual([...finops.badges].sort(), expectedBadges, 'each component badge is the engine text for that component');
+    assert.ok(finops.badges.includes('no cost data') && finops.badges.some((b) => /^≥ \$[\d,.]+\/mo partial$/.test(b)), finops.badges.join(','));
+    assert.ok(!finops.badges.some((b) => /^\$[\d,.]+\/mo$/.test(b)), 'no partial component shows a bare amount');
+    assert.ok(finops.text.includes(formatCost(cost).label) && finops.text.includes(formatCost(cost).text), 'the heading and figure are the engine words');
+    assert.match(finops.text, /Some components carry no cost data, so any total leaves them out\./);
 
     await act(`document.querySelector('[data-workbench-mode="decide"]').click(); document.querySelector('[data-workbench-trace="next"]').click();`);
     const decide = await page(`{ current: svg.querySelector('path[data-edge-id="cdn-lb"]').getAttribute('data-wb-edge'), done: svg.querySelector('path[data-edge-id="users-cdn"]').getAttribute('data-wb-edge'), later: svg.querySelector('path[data-edge-id="app-db"]').getAttribute('data-wb-edge'),

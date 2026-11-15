@@ -47,4 +47,5 @@ export const browserTestFiles = [
   'workbench-browser.test.mjs',
   'visual-qa-browser.test.mjs',
   'demo-browser.test.mjs',
+  'truth-contract-browser.test.mjs',
 ];

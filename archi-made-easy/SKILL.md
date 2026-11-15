@@ -108,6 +108,17 @@ For workflow viewport overflow, read [Workflow viewport repair](references/autho
 
 When reporting verification details, distinguish artifact checks, browser evidence, captures, and actual perceptual review. For an explicitly requested immediate preview or active desktop loop, see [Optional opening](references/delivery-contract.md#optional-opening).
 
+## Truth and evidence
+
+Every modelled result (`simulate`, `review`, cost, a scenario) carries a `status` and `reasons`. Read them before the figures and pass them on. Read [references/truth-and-evidence-contract.md](references/truth-and-evidence-contract.md) before reporting any modelled figure.
+
+- Only `complete` is a result. `partial` is a subset or a lower bound: say "at least" and what is missing. `inconclusive` draws no conclusion: say what to supply. `unknown` is no data, never zero.
+- Never invent a load, a price, an SLA or a recovery objective. Leave it out; the model reports what is missing, and that is the correct answer.
+- A change in load with no stated baseline load is inconclusive. Ask for the current requests per second. Do not say that nothing is affected.
+- A cost is a total only when the estimate is complete. Otherwise report the partial subtotal as partial, with what is left out. A meter with no usage is never $0.
+- Report a review score with its coverage and its lowest possible value. A check that could not run is listed under `gaps`; it is not a pass.
+- Name exactly what a scenario fails: one availability zone is not the region.
+
 ## Optional viewer capabilities
 
 Live motion is enabled by default for every rendered diagram; omit `meta.animation`. The Viewer’s Live/Still button controls playback.

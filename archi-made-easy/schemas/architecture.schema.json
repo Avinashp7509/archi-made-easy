@@ -157,6 +157,11 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "as_of": {
+          "description": "Reference date for the figures in this document, yyyy-mm-dd. Price freshness is judged against it; without it, the age of prices is not judged.",
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
         "entrypoints": {
           "description": "Components where user traffic enters. Inferred when omitted.",
           "type": "array",

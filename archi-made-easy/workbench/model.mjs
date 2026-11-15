@@ -2,10 +2,14 @@
 // workbench. Pure and deterministic (no I/O, no clock, no randomness).
 //
 // Every operational value carries its basis in `basis`: "authored" when it came from the
-// document, "assumed" when it came from defaults.mjs or inference. Outputs built on the
-// model must surface that distinction; nothing assumed may be presented as measured.
+// document, "assumed" when it came from defaults.mjs or inference. `origin` refines it with
+// the evidence.mjs vocabulary: "authored", "default" (a documented planning default),
+// "inferred" (guessed from names, types or structure), "derived" or "unknown". Outputs
+// built on the model must surface that distinction; nothing assumed may be presented as
+// measured, and nothing unknown is replaced by zero, false or empty.
 
-import { EDGE_DEFAULTS, ROLE_DEFAULTS, inferCallSemantics, inferRole } from './defaults.mjs';
+import { EDGE_DEFAULTS, ROLE_DEFAULTS, inferCallSemantics, inferRole, inferManagedBy } from './defaults.mjs';
+import { normaliseFinops } from './billing.mjs';
 
 export const MODEL_SCHEMA_VERSION = 1;
 const Z95 = 1.6448536269514722;
@@ -15,16 +19,22 @@ function has(object, key) {
   return object != null && Object.prototype.hasOwnProperty.call(object, key) && object[key] !== undefined && object[key] !== null;
 }
 
-/** Copy `value` (authored) or `fallback` (assumed) into target[key], recording the basis. */
-function pick(target, basis, path, authoredSource, key, fallback) {
+/**
+ * Copy `value` (authored) or `fallback` (assumed) into target[key], recording the basis and
+ * the origin. A missing value with no fallback stays null and its origin is "unknown".
+ */
+function pick(target, basis, path, authoredSource, key, fallback, origin, fallbackOrigin = 'default') {
   if (has(authoredSource, key)) {
     target[key] = authoredSource[key];
     basis[path] = 'authored';
+    if (origin) origin[path] = 'authored';
   } else if (fallback !== undefined && fallback !== null) {
     target[key] = fallback;
     basis[path] = 'assumed';
+    if (origin) origin[path] = fallbackOrigin;
   } else {
     target[key] = null;
+    if (origin) origin[path] = 'unknown';
   }
 }
 
@@ -93,53 +103,67 @@ export function buildModel(document) {
   const nodes = components.map((component) => {
     const op = component.operational || {};
     const basis = {};
+    const origin = {};
     const node = { id: component.id, label: component.label, type: component.type, sublabel: component.sublabel ?? null };
-    if (has(op, 'role')) { node.role = op.role; basis.role = 'authored'; }
-    else { node.role = inferRole(component, { inbound: inbound.get(component.id) || 0, outbound: outbound.get(component.id) || 0 }); basis.role = 'assumed'; }
+    if (has(op, 'role')) { node.role = op.role; basis.role = 'authored'; origin.role = 'authored'; }
+    else { node.role = inferRole(component, { inbound: inbound.get(component.id) || 0, outbound: outbound.get(component.id) || 0 }); basis.role = 'assumed'; origin.role = 'inferred'; }
     // An external entry component stands for the people or systems that send traffic. It is an
     // actor, not infrastructure: it has no availability, capacity or latency of its own.
     node.actor = component.type === 'external' && node.role === 'ingress';
     const defaults = node.actor ? { sla_percent: null, max_rps: null, p50_ms: null, p99_ms: null, redundancy: null } : ROLE_DEFAULTS[node.role];
     node.c4_level = op.c4_level ?? null;
     node.drilldown_diagram_id = op.drilldown_diagram_id ?? null;
-    pick(node, basis, 'sla_percent', op, 'sla_percent', defaults.sla_percent);
-    pick(node, basis, 'redundancy', op, 'redundancy', defaults.redundancy);
+    // Who operates the component: a provider-managed service (an identity provider, a CDN,
+    // a third-party API) cannot be redeployed with different redundancy by this design.
+    if (has(op, 'managed_by')) { node.managed_by = op.managed_by; origin.managed_by = 'authored'; }
+    else { node.managed_by = node.actor ? null : inferManagedBy(node.role); origin.managed_by = node.managed_by ? 'inferred' : 'unknown'; }
+    // A role's default inherits the role's origin: a default for an inferred role is inferred.
+    const roleDefault = origin.role === 'inferred' ? 'inferred' : 'default';
+    pick(node, basis, 'sla_percent', op, 'sla_percent', defaults.sla_percent, origin, roleDefault);
+    pick(node, basis, 'redundancy', op, 'redundancy', defaults.redundancy, origin, roleDefault);
 
     const capacity = {}; const cap = op.capacity || {};
-    pick(capacity, basis, 'capacity.max_rps', cap, 'max_rps', defaults.max_rps);
-    pick(capacity, basis, 'capacity.baseline_rps', cap, 'baseline_rps', null);
-    for (const key of ['cpu_cores', 'memory_gb', 'scaling_lag_sec']) pick(capacity, basis, `capacity.${key}`, cap, key, null);
-    pick(capacity, basis, 'capacity.autoscale_min', cap, 'autoscale_min', node.actor ? null : 1);
-    pick(capacity, basis, 'capacity.autoscale_max', cap, 'autoscale_max', has(cap, 'autoscale_min') ? cap.autoscale_min : node.actor ? null : 1);
+    pick(capacity, basis, 'capacity.max_rps', cap, 'max_rps', defaults.max_rps, origin, roleDefault);
+    pick(capacity, basis, 'capacity.baseline_rps', cap, 'baseline_rps', null, origin);
+    for (const key of ['cpu_cores', 'memory_gb', 'scaling_lag_sec']) pick(capacity, basis, `capacity.${key}`, cap, key, null, origin);
+    pick(capacity, basis, 'capacity.autoscale_min', cap, 'autoscale_min', node.actor ? null : 1, origin);
+    pick(capacity, basis, 'capacity.autoscale_max', cap, 'autoscale_max', has(cap, 'autoscale_min') ? cap.autoscale_min : node.actor ? null : 1, origin, has(cap, 'autoscale_min') ? 'derived' : 'default');
     node.capacity = capacity;
 
     const latency = {}; const lat = op.latency || {};
-    pick(latency, basis, 'latency.p50_ms', lat, 'p50_ms', defaults.p50_ms);
-    pick(latency, basis, 'latency.p99_ms', lat, 'p99_ms', defaults.p99_ms);
-    if (has(lat, 'p95_ms')) { latency.p95_ms = lat.p95_ms; basis['latency.p95_ms'] = 'authored'; }
-    else if (latency.p50_ms != null && latency.p99_ms != null) { latency.p95_ms = round(lognormalP95(latency.p50_ms, latency.p99_ms)); basis['latency.p95_ms'] = 'assumed'; }
-    else latency.p95_ms = null;
+    pick(latency, basis, 'latency.p50_ms', lat, 'p50_ms', defaults.p50_ms, origin, roleDefault);
+    pick(latency, basis, 'latency.p99_ms', lat, 'p99_ms', defaults.p99_ms, origin, roleDefault);
+    if (has(lat, 'p95_ms')) { latency.p95_ms = lat.p95_ms; basis['latency.p95_ms'] = 'authored'; origin['latency.p95_ms'] = 'authored'; }
+    else if (latency.p50_ms != null && latency.p99_ms != null) { latency.p95_ms = round(lognormalP95(latency.p50_ms, latency.p99_ms)); basis['latency.p95_ms'] = 'assumed'; origin['latency.p95_ms'] = 'derived'; }
+    else { latency.p95_ms = null; origin['latency.p95_ms'] = 'unknown'; }
     node.latency = latency;
 
     const dr = {}; const drIn = op.dr || {};
-    for (const key of ['rpo_sec', 'rto_sec', 'backup_strategy']) pick(dr, basis, `dr.${key}`, drIn, key, null);
+    for (const key of ['rpo_sec', 'rto_sec', 'backup_strategy']) pick(dr, basis, `dr.${key}`, drIn, key, null, origin);
     node.dr = dr;
 
     const finops = {}; const fin = op.finops || {};
-    for (const key of ['cloud_provider', 'instance_tier', 'monthly_base_cost_usd', 'cost_per_million_requests_usd', 'storage_gb', 'storage_cost_per_gb_usd']) pick(finops, basis, `finops.${key}`, fin, key, null);
+    for (const key of ['cloud_provider', 'instance_tier', 'monthly_base_cost_usd', 'cost_per_million_requests_usd', 'storage_gb', 'storage_cost_per_gb_usd']) pick(finops, basis, `finops.${key}`, fin, key, null, origin);
+    const billing = normaliseFinops(fin);
+    finops.meters = billing.meters;
+    finops.usage = billing.usage;
+    finops.pricing_model = billing.pricing_model;
+    finops.legacy = billing.legacy;
+    for (const problem of billing.problems) report(problem.code, `${component.id}: ${problem.message}`, { node: component.id });
     node.finops = finops;
 
     const security = {}; const sec = op.security || {};
     const inheritedZone = (memberOf.get(component.id) || []).map((id) => boundaries.find((b) => b.id === id)).find((b) => b?.trust_zone)?.trust_zone ?? null;
-    pick(security, basis, 'security.trust_zone', sec, 'trust_zone', inheritedZone);
-    pick(security, basis, 'security.public_exposed', sec, 'public_exposed', ['ingress', 'cdn'].includes(node.role) ? true : null);
-    for (const key of ['auth_method', 'encryption_at_rest', 'encryption_in_transit']) pick(security, basis, `security.${key}`, sec, key, null);
+    pick(security, basis, 'security.trust_zone', sec, 'trust_zone', inheritedZone, origin, 'inferred');
+    pick(security, basis, 'security.public_exposed', sec, 'public_exposed', ['ingress', 'cdn'].includes(node.role) ? true : null, origin, 'inferred');
+    for (const key of ['auth_method', 'encryption_at_rest', 'encryption_in_transit']) pick(security, basis, `security.${key}`, sec, key, null, origin);
     security.compliance_tags = Array.isArray(sec.compliance_tags) ? [...sec.compliance_tags] : [];
-    if (sec.compliance_tags) basis['security.compliance_tags'] = 'authored';
+    if (sec.compliance_tags) { basis['security.compliance_tags'] = 'authored'; origin['security.compliance_tags'] = 'authored'; }
     node.security = security;
 
     node.boundaries = memberOf.get(component.id) || [];
     node.basis = basis;
+    node.origin = origin;
 
     if (latency.p50_ms != null && latency.p99_ms != null && (latency.p50_ms > latency.p99_ms || (latency.p95_ms != null && (latency.p95_ms < latency.p50_ms || latency.p95_ms > latency.p99_ms)))) {
       report('workbench/latency-order', `${component.id}: latency percentiles must satisfy p50 ≤ p95 ≤ p99.`, { node: component.id });
@@ -154,27 +178,30 @@ export function buildModel(document) {
   const edges = connections.map((connection, index) => {
     const op = connection.operational || {};
     const basis = {};
+    const origin = {};
     const edge = { id: connection.id ?? `rel-${index}`, idAuthored: Boolean(connection.id), from: connection.from, to: connection.to, label: connection.label ?? null };
     const targetRole = nodeById.get(connection.to)?.role;
-    if (has(op, 'call_semantics')) { edge.call_semantics = op.call_semantics; basis.call_semantics = 'authored'; }
-    else { edge.call_semantics = inferCallSemantics(targetRole); basis.call_semantics = 'assumed'; }
+    if (has(op, 'call_semantics')) { edge.call_semantics = op.call_semantics; basis.call_semantics = 'authored'; origin.call_semantics = 'authored'; }
+    else { edge.call_semantics = inferCallSemantics(targetRole); basis.call_semantics = 'assumed'; origin.call_semantics = 'inferred'; }
     edge.protocol = op.protocol ?? null;
     if (edge.protocol) basis.protocol = 'authored';
 
     const resilience = {}; const res = op.resilience || {};
-    pick(resilience, basis, 'resilience.timeout_ms', res, 'timeout_ms', null);
-    pick(resilience, basis, 'resilience.retries', res, 'retries', EDGE_DEFAULTS.retries);
-    for (const key of ['backoff_strategy', 'jitter', 'circuit_breaker_threshold_pct', 'fallback_edge_id', 'dlq_node_id', 'idempotent']) pick(resilience, basis, `resilience.${key}`, res, key, null);
-    pick(resilience, basis, 'resilience.circuit_breaker_enabled', res, 'circuit_breaker_enabled', EDGE_DEFAULTS.circuit_breaker_enabled);
+    pick(resilience, basis, 'resilience.timeout_ms', res, 'timeout_ms', null, origin);
+    pick(resilience, basis, 'resilience.retries', res, 'retries', EDGE_DEFAULTS.retries, origin);
+    for (const key of ['backoff_strategy', 'jitter', 'circuit_breaker_threshold_pct', 'fallback_edge_id', 'dlq_node_id', 'idempotent']) pick(resilience, basis, `resilience.${key}`, res, key, null, origin);
+    pick(resilience, basis, 'resilience.circuit_breaker_enabled', res, 'circuit_breaker_enabled', EDGE_DEFAULTS.circuit_breaker_enabled, origin);
     edge.resilience = resilience;
 
     const traffic = {}; const tr = op.traffic || {};
-    pick(traffic, basis, 'traffic.request_multiplier', tr, 'request_multiplier', EDGE_DEFAULTS.request_multiplier);
-    pick(traffic, basis, 'traffic.payload_kb', tr, 'payload_kb', EDGE_DEFAULTS.payload_kb);
-    pick(traffic, basis, 'traffic.read_write_ratio', tr, 'read_write_ratio', EDGE_DEFAULTS.read_write_ratio);
-    pick(traffic, basis, 'traffic.egress_cost_per_gb_usd', tr, 'egress_cost_per_gb_usd', null);
+    pick(traffic, basis, 'traffic.request_multiplier', tr, 'request_multiplier', EDGE_DEFAULTS.request_multiplier, origin);
+    pick(traffic, basis, 'traffic.payload_kb', tr, 'payload_kb', EDGE_DEFAULTS.payload_kb, origin);
+    pick(traffic, basis, 'traffic.read_write_ratio', tr, 'read_write_ratio', EDGE_DEFAULTS.read_write_ratio, origin);
+    pick(traffic, basis, 'traffic.egress_cost_per_gb_usd', tr, 'egress_cost_per_gb_usd', null, origin);
+    traffic.egress_price_source = tr.egress_price_source ? { ...tr.egress_price_source } : null;
     edge.traffic = traffic;
     edge.basis = basis;
+    edge.origin = origin;
     return edge;
   });
   const edgeById = new Map(edges.filter((edge) => edge.idAuthored).map((edge) => [edge.id, edge]));
@@ -237,12 +264,23 @@ export function buildModel(document) {
   const authoredEntrypoints = workbench.entrypoints?.length ? workbench.entrypoints.filter((id) => nodeById.has(id)) : [];
   const fallbackEntrypoints = authoredEntrypoints.length ? authoredEntrypoints : inferredEntrypoints;
 
+  // A stated baseline load on a component that is not an entry point is not used by the
+  // model: say so instead of dropping it silently.
+  for (const node of nodes) {
+    if (node.capacity.baseline_rps != null && !fallbackEntrypoints.includes(node.id)) {
+      report('workbench/baseline-not-on-entry', `${node.id}: capacity.baseline_rps is stated, but ${node.id} is not an entry point, so the model does not use it. Put the load on an entry component or list ${node.id} in workbench.entrypoints.`, { node: node.id }, 'warning');
+    }
+  }
+
   const model = {
     schemaVersion: MODEL_SCHEMA_VERSION,
     title: document.meta?.title ?? '',
     authored,
     entrypoints: fallbackEntrypoints,
     entrypointsBasis: workbench.entrypoints?.length ? 'authored' : 'assumed',
+    entrypointsOrigin: workbench.entrypoints?.length ? 'authored' : fallbackEntrypoints.length ? 'inferred' : 'unknown',
+    display: displayNames(nodes),
+    as_of: workbench.as_of ?? null,
     nodes,
     edges,
     boundaries,
@@ -253,6 +291,19 @@ export function buildModel(document) {
     drilldowns: (workbench.drilldowns || []).map(({ id, title }) => ({ id, title: title ?? id })),
   };
   return { model, diagnostics };
+}
+
+/**
+ * A unique name per component for scenario targets, findings and results. Components that
+ * share a label are told apart by their description, then by their id: "Aurora" twice
+ * becomes "Aurora (Menus and orders)" and "Aurora (Delivery assignments)".
+ */
+export function displayNames(nodes) {
+  const count = (values) => values.reduce((map, value) => map.set(value, (map.get(value) || 0) + 1), new Map());
+  const labels = count(nodes.map((node) => node.label));
+  const names = nodes.map((node) => (labels.get(node.label) > 1 ? `${node.label} (${node.sublabel || node.id})` : node.label));
+  const again = count(names);
+  return Object.fromEntries(nodes.map((node, index) => [node.id, again.get(names[index]) > 1 ? `${node.label} (${node.id})` : names[index]]));
 }
 
 /** Apply one named alternative's overrides to a document (returns a new document). */

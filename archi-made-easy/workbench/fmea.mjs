@@ -54,6 +54,8 @@ export function buildFmea(model, { multiplier = 1, cacheHit = 0 } = {}) {
       affected_components: affected,
       failing_components: affected.filter((id) => result.nodes[id].state === 'failing'),
       ingress_share_lost: result.kpis.blast_radius.ingress_share,
+      // The run's completeness: with load-dependent effects unevaluated the row is a floor.
+      status: result.status,
       severity: severityOf(result, model.nodes.length, node.id),
       recovery: { rto_sec: node.dr.rto_sec, rpo_sec: node.dr.rpo_sec, failover: Boolean(self.failover), writes_at_risk: self.failover?.writes_at_risk ?? null },
       existing_controls: controls(model, node),
@@ -61,8 +63,11 @@ export function buildFmea(model, { multiplier = 1, cacheHit = 0 } = {}) {
       events: result.events.map((event) => event.type).filter((type, index, all) => all.indexOf(type) === index),
     };
   }).sort((a, b) => (SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]) || (a.component < b.component ? -1 : 1));
+  const statuses = new Set(rows.map((row) => row.status));
   return {
     kind: 'analytical-model',
+    // "complete" only when every row's run was complete.
+    status: statuses.has('inconclusive') ? 'inconclusive' : statuses.size === 1 && statuses.has('complete') ? 'complete' : rows.length ? 'partial' : 'not_applicable',
     rows,
     note: 'Each row fails one component alone. Severity reflects the modelled effect on traffic and other components; occurrence and detection are not rated.',
   };

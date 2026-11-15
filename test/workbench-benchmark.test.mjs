@@ -36,16 +36,24 @@ test('the recorded benchmark holds what the flagships are meant to show', () => 
     assert.ok(entry.healthy.composite_sla_percent > 99.9 && entry.healthy.composite_sla_percent < 100, entry.title);
     assert.equal(entry.healthy.single_points_of_failure, 0, entry.title);
     assert.equal(entry.healthy.affected_components, 0, entry.title);
-    assert.ok(entry.healthy.monthly_cost_usd > 0, entry.title);
+    // The flagships state load and every operational figure: the model run itself is complete.
+    assert.equal(entry.healthy.statuses.simulation, 'complete', entry.title);
+    // Their prices are illustrative, with no pricing model and no source: the cost is a
+    // partial subtotal, never a total.
+    assert.deepEqual([entry.healthy.statuses.cost, entry.healthy.monthly_cost_usd], ['partial', null], entry.title);
+    assert.ok(entry.healthy.monthly_cost_subtotal_usd > 0, entry.title);
     // A tenfold load saturates something in each of them.
     assert.ok(entry.scenarios.c.figures.affected_components > 0, `${entry.title}: flash crowd`);
   }
-  // Two regions: losing one leaves the mesh answering. One region: losing it stops the shop.
-  assert.ok(fintech.scenarios.b.figures.composite_sla_percent > 99, 'the payment mesh survives a region');
-  assert.equal(shop.scenarios.b.figures.composite_sla_percent, 0, 'the single-region shop does not');
-  assert.equal(shop.scenarios.b.figures.ingress_lost_percent, 100);
+  // Region blackout is scenario g. Two regions: losing one leaves the mesh answering. One
+  // region: losing it stops the shop.
+  assert.ok(fintech.scenarios.g.figures.composite_sla_percent > 99, 'the payment mesh survives a region');
+  assert.equal(shop.scenarios.g.figures.composite_sla_percent, 0, 'the single-region shop does not');
+  assert.equal(shop.scenarios.g.figures.ingress_lost_percent, 100);
+  // Scenario b loses one availability zone, never a region: it targets no region boundary.
+  for (const entry of [fintech, ai, shop]) assert.deepEqual(entry.scenarios.b.targets, [], `${entry.title}: zone loss names no boundary`);
   // The agent platform has no region boundary, and its review holds one finding to act on.
-  assert.equal(ai.scenarios.b.applicable, false);
+  assert.equal(ai.scenarios.g.applicable, false);
   assert.deepEqual(ai.healthy.findings.map((finding) => finding.id.split(':')[0]), ['timeout-hierarchy']);
   // The shop carries three levels, each with figures of its own.
   assert.deepEqual(Object.keys(shop.levels), ['catalog-service', 'checkout-service', 'fulfilment-service']);
@@ -63,7 +71,9 @@ test('model-quality floors: what a showcase document may not fall below', () => 
     assert.ok(healthy.composite_sla_percent >= requirements.availability_target_percent, `${title}: availability`);
     assert.ok(healthy.max_sustainable_rps >= requirements.peak_rps, `${title}: capacity ${healthy.max_sustainable_rps} against a peak of ${requirements.peak_rps}`);
     assert.ok(healthy.critical_path_p99_ms <= requirements.p99_latency_ms, `${title}: latency`);
-    if (requirements.monthly_budget_usd != null) assert.ok(healthy.monthly_cost_usd <= requirements.monthly_budget_usd, `${title}: cost`);
+    // The priced part stays within the budget. The estimate is partial, so this is a lower
+    // bound, not proof: the review reports the budget as not confirmed.
+    if (requirements.monthly_budget_usd != null) assert.ok(healthy.monthly_cost_subtotal_usd != null && healthy.monthly_cost_subtotal_usd <= requirements.monthly_budget_usd, `${title}: cost`);
   }
   // A provider example is a starting point: its review may hold findings, never a critical one.
   for (const name of providerExamples()) {

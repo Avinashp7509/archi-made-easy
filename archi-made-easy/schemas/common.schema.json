@@ -189,6 +189,10 @@
         "role": { "$ref": "#/$defs/operationalRole" },
         "c4_level": { "enum": ["context", "container", "component", "code"] },
         "drilldown_diagram_id": { "$ref": "#/$defs/id" },
+        "managed_by": {
+          "description": "Who operates the component. provider: a managed service whose redundancy is the provider's, so a review does not recommend redeploying it. customer: something this design deploys. When absent it is inferred from the role and marked as inferred.",
+          "enum": ["provider", "customer"]
+        },
         "sla_percent": { "description": "Availability of one deployment unit, in percent.", "type": "number", "minimum": 0, "maximum": 100 },
         "redundancy": { "enum": ["single-instance", "multi-az", "active-active-multi-region", "active-passive-dr"] },
         "capacity": {
@@ -223,6 +227,7 @@
           }
         },
         "finops": {
+          "description": "Cost inputs. Prices are never invented: a component with no price is listed as unpriced, and a meter whose quantity is unknown is left out, not counted as zero. The first four cost fields are the earlier, simpler form and remain supported; meters express every billed dimension with its source.",
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -231,7 +236,34 @@
             "monthly_base_cost_usd": { "type": "number", "minimum": 0 },
             "cost_per_million_requests_usd": { "type": "number", "minimum": 0 },
             "storage_gb": { "type": "number", "minimum": 0 },
-            "storage_cost_per_gb_usd": { "type": "number", "minimum": 0 }
+            "storage_cost_per_gb_usd": { "type": "number", "minimum": 0 },
+            "pricing_model": {
+              "description": "How the service is billed. It tells the estimate which dimensions must be priced before a component total can be called complete.",
+              "enum": ["serverless-request", "serverless-instance", "provisioned-instance", "provisioned-with-storage", "storage", "data-transfer", "flat-monthly"]
+            },
+            "usage": {
+              "description": "Monthly usage the meters are multiplied by. What is not stated here is derived from the modelled load when possible, and otherwise reported as missing.",
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "requests_per_month": { "type": "number", "minimum": 0 },
+                "avg_duration_ms": { "description": "Average billed duration of one request.", "type": "number", "exclusiveMinimum": 0 },
+                "memory_gb": { "description": "Configured memory in GB (10^9 bytes).", "type": "number", "exclusiveMinimum": 0 },
+                "memory_gib": { "description": "Configured memory in GiB (2^30 bytes). Give memory_gb or memory_gib, not both.", "type": "number", "exclusiveMinimum": 0 },
+                "vcpu": { "type": "number", "exclusiveMinimum": 0 },
+                "concurrency": { "description": "Requests one instance serves at a time (for instance-time billing).", "type": "number", "exclusiveMinimum": 0 },
+                "instances": { "description": "Instances running all month (for instance-hours and provisioned billing).", "type": "number", "minimum": 0 },
+                "storage_gb": { "type": "number", "minimum": 0 },
+                "operations_per_month": { "type": "number", "minimum": 0 },
+                "transfer_gb_per_month": { "type": "number", "minimum": 0 }
+              }
+            },
+            "meters": {
+              "description": "The billed dimensions of this component.",
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/billingMeter" }
+            }
           }
         },
         "security": {
@@ -277,9 +309,69 @@
             "request_multiplier": { "description": "Calls on this relationship per request handled by the source.", "type": "number", "minimum": 0 },
             "payload_kb": { "type": "number", "minimum": 0 },
             "read_write_ratio": { "description": "Fraction of calls that are reads (0 to 1).", "type": "number", "minimum": 0, "maximum": 1 },
-            "egress_cost_per_gb_usd": { "type": "number", "minimum": 0 }
+            "egress_cost_per_gb_usd": { "type": "number", "minimum": 0 },
+            "egress_price_source": { "$ref": "#/$defs/priceSource" }
           }
         }
+      }
+    },
+    "priceSource": {
+      "description": "Where a price came from, so it can be audited and refreshed. A price with no source is treated as an unaudited, authored figure.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "origin": { "description": "authored: typed in by the author. imported: copied from a price list or calculator.", "enum": ["authored", "imported"] },
+        "provider": { "description": "Cloud provider or vendor, for example aws, azure, gcp.", "type": "string", "minLength": 1 },
+        "service": { "type": "string", "minLength": 1 },
+        "meter": { "description": "The billing meter as the provider names it.", "type": "string", "minLength": 1 },
+        "sku": { "description": "SKU or equivalent identifier, when the provider publishes one.", "type": "string", "minLength": 1 },
+        "region": { "type": "string", "minLength": 1 },
+        "plan": { "description": "Pricing plan or purchase model, for example on-demand, consumption, reserved-1y.", "type": "string", "minLength": 1 },
+        "commitment": { "description": "Commitment or discount assumed, for example none, savings-plan-1y.", "type": "string", "minLength": 1 },
+        "url": { "description": "Page the price was read from.", "type": "string", "pattern": "^https://" },
+        "retrieved_at": { "description": "Date the price was read, yyyy-mm-dd.", "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "effective_at": { "description": "Date the price took effect, when known, yyyy-mm-dd.", "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" }
+      }
+    },
+    "billingMeter": {
+      "description": "One billed dimension of a component: what is charged, in which unit, at what price, with which free allowance, and where the price came from.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dimension", "currency"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "description": { "type": "string", "minLength": 1 },
+        "dimension": {
+          "description": "What is billed. \"other\" records a charge the model cannot calculate: it is reported as unsupported and left out.",
+          "enum": ["requests", "memory-seconds", "vcpu-seconds", "instance-hours", "storage-gb-month", "operations", "data-transfer-gb", "flat", "other"]
+        },
+        "unit": {
+          "description": "Unit the price is quoted in. It must measure the dimension, for example GB-second or GiB-second for memory-seconds.",
+          "enum": ["request", "GB-second", "GiB-second", "vCPU-second", "vCPU-hour", "hour", "month", "GB-month", "GiB-month", "TB-month", "operation", "GB", "GiB", "TB"]
+        },
+        "price": { "description": "Price for `per` units, in `currency`.", "type": "number", "minimum": 0 },
+        "per": { "description": "Number of units the price buys, for example 1000000 for a price per million requests.", "type": "number", "exclusiveMinimum": 0 },
+        "currency": { "description": "ISO currency code. Only USD is calculated; another currency is reported as unsupported.", "type": "string", "pattern": "^[A-Z]{3}$" },
+        "free_allowance": { "description": "Units per month that are free, applied before the price or tiers.", "type": "number", "minimum": 0 },
+        "tiers": {
+          "description": "Graduated prices instead of `price`: each tier applies up to its limit (in units, after the free allowance). The last tier may omit up_to.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["price"],
+            "properties": {
+              "up_to": { "type": "number", "exclusiveMinimum": 0 },
+              "price": { "type": "number", "minimum": 0 }
+            }
+          }
+        },
+        "quantity_basis": {
+          "description": "How billed seconds are counted for memory-seconds and vcpu-seconds. request-duration: each request for its own duration. instance-time: instances while serving, divided by concurrency. provisioned: all month.",
+          "enum": ["request-duration", "instance-time", "provisioned"]
+        },
+        "source": { "$ref": "#/$defs/priceSource" }
       }
     },
     "boundaryOperational": {

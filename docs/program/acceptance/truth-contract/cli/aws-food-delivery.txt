@@ -1,0 +1,88 @@
+# aws-food-delivery
+
+Report 1, prompt 2: "Design a food-delivery backend on AWS. What happens if its database fails, and what happens with 10x traffic?"
+
+Document: food-delivery-aws.architecture.json
+
+$ archi-made-easy simulate food-delivery-aws.architecture.json --multiplier 10
+
+Simulation. Analytical model of the declared architecture, not a measurement.
+Conditions: 10x traffic, cache hit 0%, no faults
+Status: inconclusive
+Result: Inconclusive. 10x load was not calculated: there is no baseline load to multiply. No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+  Capacity ceiling: 1000 requests/s on the request path (first limit: Aurora (Payments data)). This is a ceiling computed from authored and assumed limits, not evidence that 10x the current load is below it.
+Composite availability: inconclusive
+Critical path latency: inconclusive
+Capacity ceiling of the request path: 1000 requests/s (limit: Aurora (Payments data))
+Asynchronous drain ceiling: 1000 requests/s (limit: Lambda); above it a backlog grows, requests are not refused
+Single points of failure on the request path: none found
+Affected components: not calculated
+Note: No entry component has baseline_rps, so 10x load has nothing to multiply: this run is inconclusive. Loads, utilisation, saturation, traffic lost and latency under load were not calculated. The capacity ceiling is still reported; it is not evidence that 10x is safe.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+Inputs: 16 authored, 33 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: medium.
+
+(exit 0)
+
+JSON: status=inconclusive
+
+$ archi-made-easy simulate food-delivery-aws.architecture.json --scenario a
+
+Scenario a: Primary database or stateful storage outage. Analytical model of the declared architecture, not a measurement.
+Conditions: 1x traffic, cache hit 0%, faults: orders_db down
+Status: partial
+Result: 3 components of 9 affected. Traffic lost to overload was not evaluated.
+  Requests are still answered, but operations that need the failed component do not succeed: "answered" is not "successful".
+Composite availability (requests answered, including degraded answers): 99.99998% [partial]
+Critical path: P50 37.478 ms, P95 136.152 ms, P99 232.35 ms (Users → API Gateway → Payments service → Aurora (Payments data)) [partial]
+Capacity ceiling of the request path: 2000 requests/s (limit: Cognito)
+Single points of failure on the request path: none found
+Affected components (3):
+  API Gateway: degraded (orders is failing; circuit breaker on gateway-orders fails fast)
+  Orders service: failing (orders_db is failing; orders-db is a blocking call with no circuit breaker or fallback)
+  Aurora (Orders data): failing (injected fault: down)
+Ingress traffic lost: no entry fails; loss to overload was not evaluated
+Note: No entry component has baseline_rps: loads and utilisation are not reported; capacity limits still are.
+Note: Availability this high depends on the assumption that components fail independently. Shared software, configuration and provider-wide incidents are not modelled and usually set the real limit.
+Note: A failing blocking call has no timeout_ms: its wait cannot be modelled and is left out of latency.
+Not complete (missing-baseline-load): No entry component states its normal load (capacity.baseline_rps), so load, utilisation, saturation, queue lag and latency under load were not calculated.
+Not complete (answered-includes-degraded): Requests answered counts any response, including degraded answers from callers that contain a failure: operations that need the failed component do not succeed.
+Not complete (independence-assumption): Availability this high depends on the assumption that components fail independently.
+Not complete (load-dependent-unevaluated): Availability does not include errors from overload because the load is not stated.
+Not complete (missing-timeout): A failing blocking call has no timeout_ms, so the time callers wait for it is not included: latency is a lower bound.
+To resolve: State the current requests per second on at least one entry point (capacity.baseline_rps).
+To resolve: Declare request traces (workbench.traces) for the journeys that matter to see which ones fail.
+To resolve: Treat the figure as an upper bound; shared software, configuration and provider-wide incidents are not modelled.
+To resolve: State resilience.timeout_ms on the blocking calls into failing components.
+Inputs: 16 authored, 33 assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: medium.
+
+(exit 0)
+
+JSON: status=partial
+
+$ archi-made-easy review food-delivery-aws.architecture.json
+
+Architecture review. Analytical model of the declared architecture, not a measurement.
+Score: 98/100 (partial: 6 of 8 applicable rules fully evaluated; as low as 56/100 if assumed findings count in full and the checks that could not run had found problems; evidence confidence medium)
+Pillars: Reliability 100 (partial) · Security 100 · Performance not assessed (not applicable) · Cost not assessed (unknown) · Operational Excellence 98 · Sustainability not assessed (inconclusive)
+Findings: 2 low
+
+[LOW] Stateful component without recovery objectives (Operational Excellence; authored)
+  Aurora holds data but has no recovery point (RPO) or recovery time (RTO) objective.
+  Fix: Set dr.rpo_sec and dr.rto_sec for Aurora and confirm the backup strategy meets them.
+
+[LOW] Stateful component without recovery objectives (Operational Excellence; authored)
+  Aurora holds data but has no recovery point (RPO) or recovery time (RTO) objective.
+  Fix: Set dr.rpo_sec and dr.rto_sec for Aurora and confirm the backup strategy meets them.
+
+Not evaluated (3). These checks apply but could not be run; they are not passes:
+  [Sustainability] Idle capacity kept running: Orders service keeps at least 2 instances running, but its load is not known, so whether that capacity is idle was not checked. State the current requests per second on at least one entry point (capacity.baseline_rps).
+  [Sustainability] Idle capacity kept running: Payments service keeps at least 2 instances running, but its load is not known, so whether that capacity is idle was not checked. State the current requests per second on at least one entry point (capacity.baseline_rps).
+  [Reliability] Caller timeout shorter than the callee retry budget: 6 chained blocking calls have no timeout_ms, so whether callers give up before callees finish was not checked. State resilience.timeout_ms (and retries) on the blocking calls listed.
+
+Rules: 14, 8 applicable, 6 fully evaluated. Findings come from an analytical model of the declared architecture. Those marked "assumed" rest on inferred roles or default values and count half toward the score. A rule that could not be evaluated is listed under gaps: it is not a pass. The floor is the score if every assumed finding counted in full and every check that could not run had found a problem.
+
+(exit 0)
+
+JSON: result.status=undefined; cost.status=unknown; cost.monthly_total_usd=null; cost.subtotal_usd=null
+

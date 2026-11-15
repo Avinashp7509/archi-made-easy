@@ -87,7 +87,8 @@ test('simulate: a fault, a scenario, the scenario list and all scenarios', (t) =
   assert.match(list.stdout, /d  provider-brownout .*\[not applicable: No external service/);
 
   const all = run('simulate', 'web.json', '--scenario', 'all', '--json');
-  assert.equal(all.json.outcomes.length, 6);
+  assert.equal(all.json.outcomes.length, 7);
+  assert.equal(all.json.outcomes[6].scenario, 'g', 'region blackout is its own scenario, after the original six');
   assert.equal(all.json.outcomes[3].applicable, false);
   assert.equal(all.json.outcomes[5].analysis.kind, 'breach-reach');
 
@@ -103,8 +104,12 @@ test('simulate: FMEA, traffic and cost options', (t) => {
   assert.match(run('simulate', 'web.json', '--fmea').stdout, /^Failure mode and effects analysis\./);
   const surge = run('simulate', 'web.json', '--multiplier', '10', '--cache-hit', '0.9', '--cost');
   assert.match(surge.stdout, /Conditions: 10x traffic, cache hit 90%/);
-  assert.match(surge.stdout, /Cost: not available \(no component has cost data\)\./);
+  assert.match(surge.stdout, /Monthly cost\. Total: no data \(no component carries cost data/);
   assert.match(surge.stdout, /No entry component has baseline_rps/);
+  // No load is stated, so 10x has nothing to multiply: the run says so and claims no outcome.
+  assert.match(surge.stdout, /^Status: inconclusive$/m);
+  assert.match(surge.stdout, /Affected components: not calculated/);
+  assert.doesNotMatch(surge.stdout, /Affected components: none|Ingress traffic lost: 0%/);
 });
 
 test('review and simulate reject bad input with a clear message', (t) => {

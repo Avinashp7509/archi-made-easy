@@ -21,7 +21,10 @@ export function designSnapshot(model) {
     max_sustainable_rps: result.kpis.max_sustainable_rps,
     single_points_of_failure: result.kpis.active_spofs.length,
     monthly_cost_usd: cost.monthly_total_usd,
+    monthly_cost_subtotal_usd: cost.subtotal_usd,
     review_score: reviewed.score,
+    review_score_floor: reviewed.score_floor,
+    statuses: { simulation: result.status, cost: cost.status, review: reviewed.status },
     findings: reviewed.findings.map(({ id, rule, title, severity, basis }) => ({ id, rule, title, severity, basis })),
     assumed_inputs: result.basis.assumed_inputs,
   };
@@ -39,10 +42,16 @@ const METRICS = [
 
 function deltas(base, head) {
   return METRICS.map(([key, label, unit, direction]) => {
-    const before = base[key]; const after = head[key];
+    let before = base[key]; let after = head[key]; let shown = label; let partial = false;
+    // A total exists only for a complete estimate. Two partial estimates are compared on
+    // their subtotals, and the row says so.
+    if (key === 'monthly_cost_usd' && (before == null || after == null)) {
+      before = base.monthly_cost_subtotal_usd ?? null; after = head.monthly_cost_subtotal_usd ?? null;
+      if (before != null && after != null) { partial = true; shown = `${label} (partial subtotal)`; }
+    }
     const change = before == null || after == null ? null : round(after - before);
     const verdict = change == null ? 'not comparable' : change === 0 ? 'unchanged' : (change > 0) === (direction > 0) ? 'better' : 'worse';
-    return { metric: key, label, unit, before, after, change, verdict };
+    return { metric: key, label: shown, unit, before, after, change, verdict, ...(partial ? { partial: true } : {}) };
   });
 }
 

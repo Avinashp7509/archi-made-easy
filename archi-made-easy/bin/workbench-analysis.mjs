@@ -13,6 +13,7 @@ import { buildFmea } from '../workbench/fmea.mjs';
 import { estimateCost } from '../workbench/cost.mjs';
 import { review } from '../workbench/review.mjs';
 import { compareDesigns, compareAlternatives } from '../workbench/compare.mjs';
+import { formatCost, costLines, simulationHeadline, reviewHeadline, noFindingsText, statusLabel } from '../workbench/present.mjs';
 
 const MODEL_NOTE = 'Analytical model of the declared architecture, not a measurement.';
 
@@ -40,6 +41,12 @@ function numberOption(name, raw, { min, max }) {
   return value;
 }
 
+/** A reference date for price freshness: yyyy-mm-dd. */
+function dateOption(raw) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw ?? '') || Number.isNaN(Date.parse(raw))) throw new UsageError('--as-of must be a date, yyyy-mm-dd.');
+  return raw;
+}
+
 /** Parse `db=down`, `node:db=down`, `edge:api-db=partitioned`, `boundary:region=down`. */
 export function parseFault(spec, model) {
   const match = /^(?:(node|edge|boundary):)?([^=]+)=(.+)$/.exec(spec);
@@ -54,31 +61,63 @@ export function parseFault(spec, model) {
 }
 
 const pct = (value) => (value == null ? 'not available' : `${value}%`);
+/** Names for output: unique per component, so two components with one label stay distinct. */
 function labelOf(model) {
-  const labels = new Map(model.nodes.map((n) => [n.id, n.label]));
+  const labels = new Map(model.nodes.map((n) => [n.id, model.display?.[n.id] ?? n.label]));
   return (id) => labels.get(id) ?? id;
+}
+
+/** The cost block: the canonical headline, then every reason and omission. */
+export function formatCostText(cost, model) {
+  const head = formatCost(cost);
+  const name = labelOf(model);
+  const lines = [`Monthly cost. ${head.label}: ${head.text} (${head.qualifier}; ${head.coverage}). Status: ${statusLabel(cost.status)}.`];
+  for (const line of costLines(cost, name)) lines.push(`  ${line}`);
+  return lines.join('\n');
 }
 
 export function formatSimulation(model, result, heading = 'Simulation') {
   const name = labelOf(model);
   const lines = [`${heading}. ${MODEL_NOTE}`];
   const faults = [...Object.entries(result.inputs.faults.nodes), ...Object.entries(result.inputs.faults.edges), ...Object.entries(result.inputs.faults.boundaries)].filter(([, s]) => s !== 'healthy');
+  if (result.inputs.faults.zone === 'down') faults.push(['one availability zone (not drawn)', 'down']);
   lines.push(`Conditions: ${result.inputs.multiplier}x traffic, cache hit ${Math.round(result.inputs.cacheHit * 100)}%${faults.length ? `, faults: ${faults.map(([id, s]) => `${id} ${s}`).join(', ')}` : ', no faults'}`);
+  // The headline is the canonical one: the same words as the workbench and the design document.
+  const head = simulationHeadline(model, result);
+  const inconclusive = result.status === 'inconclusive';
+  lines.push(`Status: ${statusLabel(result.status)}`, `Result: ${head.text}`, ...head.lines.map((line) => `  ${line}`));
   const k = result.kpis;
-  lines.push(`Composite availability: ${pct(k.composite_sla_percent)}`);
-  lines.push(k.critical_path
-    ? `Critical path: P50 ${k.critical_path.p50_ms} ms, P95 ${k.critical_path.p95_ms} ms, P99 ${k.critical_path.p99_ms} ms (${k.critical_path.nodes.map((id) => name(id)).join(' → ')})`
-    : 'Critical path: none served (every entry is failing)');
+  const marked = (key) => (result.assessments[key].status === 'complete' ? '' : ` [${statusLabel(result.assessments[key].status)}]`);
   const limit = k.limiting_node ? ` (limit: ${name(k.limiting_node)})` : '';
   const ingress = k.ingress_rps != null ? `; current ingress ${k.ingress_rps} requests/s, headroom ${k.headroom}x` : '';
-  lines.push(k.max_sustainable_rps == null ? 'Max sustainable load: not available' : `Max sustainable load: ${k.max_sustainable_rps} requests/s${limit}${ingress}`);
-  lines.push(`Single points of failure on the request path: ${k.active_spofs.length ? k.active_spofs.map(name).join(', ') : 'none'}`);
+  // A figure whose assessment is inconclusive is not printed as a value: with a best and a
+  // worst case it is given as that range, otherwise as "inconclusive".
+  const unsettled = (key) => result.assessments[key].status === 'inconclusive';
+  const split = result.bounds && !result.bounds.agree ? result.bounds : null;
+  if (unsettled('availability')) lines.push(`Composite availability: inconclusive${split ? ` (worst case ${pct(split.worst.composite_sla_percent)}, best case ${pct(split.best.composite_sla_percent)})` : ''}`);
+  else lines.push(`Composite availability (requests answered, including degraded answers): ${pct(k.composite_sla_percent)}${marked('availability')}`);
+  if (unsettled('latency')) lines.push('Critical path latency: inconclusive');
+  else {
+    lines.push(k.critical_path?.p99_ms != null
+      ? `Critical path: P50 ${k.critical_path.p50_ms} ms, P95 ${k.critical_path.p95_ms} ms, P99 ${k.critical_path.p99_ms} ms (${k.critical_path.nodes.map((id) => name(id)).join(' → ')})${marked('latency')}`
+      : 'Critical path: none served (every entry is failing)');
+  }
+  // The ceiling comes from capacities, authored or assumed. It is reported in every case,
+  // and never as evidence that a load is safe.
+  lines.push(unsettled('capacity') ? 'Capacity ceiling of the request path: inconclusive' : k.max_sustainable_rps == null ? 'Capacity ceiling of the request path: not available' : `Capacity ceiling of the request path: ${k.max_sustainable_rps} requests/s${limit}${ingress}`);
+  if (k.async_drain_ceiling_rps != null) lines.push(`Asynchronous drain ceiling: ${k.async_drain_ceiling_rps} requests/s (limit: ${name(k.async_limiting_node)}); above it a backlog grows, requests are not refused`);
+  lines.push(`Single points of failure on the request path: ${k.active_spofs.length ? k.active_spofs.map(name).join(', ') : 'none found'}`);
   const affected = k.blast_radius.nodes;
-  if (affected.length) {
-    lines.push(`Affected components (${affected.length}):`);
+  if (inconclusive && !(result.bounds && !result.bounds.agree)) lines.push('Affected components: not calculated');
+  else if (affected.length) {
+    lines.push(`Affected components (${affected.length})${inconclusive ? ', in the worst case' : ''}:`);
     for (const id of affected) lines.push(`  ${name(id)}: ${result.nodes[id].state}${result.nodes[id].cause.length ? ` (${result.nodes[id].cause.at(-1)})` : ''}`);
-    if (k.blast_radius.ingress_share != null) lines.push(`Ingress traffic lost: ${Math.round(k.blast_radius.ingress_share * 100)}%`);
-  } else lines.push('Affected components: none');
+    const share = k.blast_radius.ingress_share;
+    if (split) lines.push(`Ingress traffic lost: between ${Math.round((split.best.ingress_share ?? 0) * 100)}% (best case) and ${Math.round((split.worst.ingress_share ?? 0) * 100)}% (worst case)`);
+    else if (share != null && !k.blast_radius.ingress_share_is_floor) lines.push(`Ingress traffic lost: ${Math.round(share * 100)}%`);
+    else if (share != null && share > 0) lines.push(`Ingress traffic lost: at least ${Math.round(share * 100)}%`);
+    else if (share != null) lines.push('Ingress traffic lost: no entry fails; loss to overload was not evaluated');
+  } else lines.push(k.blast_radius.status === 'complete' ? 'Affected components: none' : 'Affected components: none fail; load-dependent effects not evaluated');
   for (const event of result.events) {
     if (event.type === 'fallback') lines.push(`Fallback: ${event.edge} switched to ${event.to}`);
     else if (event.type === 'dr-failover') lines.push(`Failover: ${name(event.node)} recovers on its replica (RTO ${event.rto_sec ?? 'not set'} s, RPO ${event.rpo_sec ?? 'not set'} s)`);
@@ -88,20 +127,29 @@ export function formatSimulation(model, result, heading = 'Simulation') {
     else if (event.type === 'timeout-inversion') lines.push(`Timeout inversion: ${event.caller} gives up before ${event.callee} finishes retrying`);
   }
   for (const warning of result.warnings) lines.push(`Note: ${warning}`);
-  lines.push(`Inputs: ${result.basis.authored_inputs} authored, ${result.basis.assumed_inputs} assumed. Assumed values are role defaults, not facts about your system.`);
+  for (const item of result.reasons) lines.push(`Not complete (${item.code}): ${item.message}`);
+  for (const ask of head.asks) lines.push(`To resolve: ${ask}`);
+  lines.push(`Inputs: ${result.basis.authored_inputs} authored, ${result.basis.assumed_inputs} assumed. Assumed values are role defaults, not facts about your system. Evidence confidence: ${result.confidence.level}.`);
   return lines.join('\n');
 }
 
 export function formatReview(result) {
-  const lines = [`Architecture review. ${MODEL_NOTE}`, `Score: ${result.score}/100`];
-  lines.push(`Pillars: ${Object.entries(result.pillars).map(([pillar, value]) => `${pillar} ${value.score}`).join(' · ')}`);
+  const lines = [`Architecture review. ${MODEL_NOTE}`, reviewHeadline(result).text];
+  lines.push(`Pillars: ${Object.entries(result.pillars).map(([pillar, value]) => `${pillar} ${value.score == null ? `not assessed (${statusLabel(value.status)})` : `${value.score}${value.status === 'complete' ? '' : ` (${statusLabel(value.status)})`}`}`).join(' · ')}`);
   const counts = Object.entries(result.counts).filter(([, n]) => n > 0).map(([severity, n]) => `${n} ${severity}`).join(', ');
-  lines.push(`Findings: ${result.findings.length ? counts : 'none'}`);
+  lines.push(`Findings: ${result.findings.length ? counts : noFindingsText(result)}`);
   for (const finding of result.findings) {
     lines.push('', `[${finding.severity.toUpperCase()}] ${finding.title} (${finding.pillar}; ${finding.basis})`, `  ${finding.evidence}`, `  Fix: ${finding.remediation}`);
   }
-  if (result.cost.monthly_total_usd != null) lines.push('', `Estimated monthly cost: $${result.cost.monthly_total_usd} (${result.cost.coverage.priced_components} of ${result.cost.coverage.components} components priced)`);
-  lines.push('', `Rules checked: ${result.rules_checked.length}. ${result.note}`);
+  if (result.gaps.length) {
+    lines.push('', `Not evaluated (${result.gaps.length}). These checks apply but could not be run; they are not passes:`);
+    for (const gap of result.gaps) lines.push(`  [${gap.pillar}] ${gap.title}: ${gap.message}${gap.ask ? ` ${gap.ask}` : ''}`);
+  }
+  if (result.cost.status !== 'unknown') {
+    const head = formatCost(result.cost);
+    lines.push('', `Monthly cost. ${head.label}: ${head.text} (${head.qualifier}; ${head.coverage}). Status: ${statusLabel(result.cost.status)}.`);
+  }
+  lines.push('', `Rules: ${result.rules_checked.length}, ${result.coverage.applicable} applicable, ${result.coverage.evaluated} fully evaluated. ${result.note}`);
   return lines.join('\n');
 }
 
@@ -148,14 +196,14 @@ function failure(stdout, stderr, json, command, error) {
   return 2;
 }
 
-export const REVIEW_USAGE = '<architecture.json> [--against <earlier.json> | --alternatives] [--multiplier N] [--cache-hit N] [--strict] [--json]';
-export const SIMULATE_USAGE = '<architecture.json> [--scenario a..f|all] [--multiplier N] [--cache-hit N] [--fault <target>=<state>] [--list-scenarios] [--fmea] [--cost] [--json]';
+export const REVIEW_USAGE = '<architecture.json> [--against <earlier.json> | --alternatives] [--multiplier N] [--cache-hit N] [--as-of yyyy-mm-dd] [--strict] [--json]';
+export const SIMULATE_USAGE = '<architecture.json> [--scenario a..g|all] [--multiplier N] [--cache-hit N] [--fault <target>=<state>] [--list-scenarios] [--fmea] [--cost] [--as-of yyyy-mm-dd] [--json]';
 
 /** review: findings and score. Exit 1 with --strict when a critical finding exists. */
 export function commandReview(args, { stdout = process.stdout, stderr = process.stderr, cwd = process.cwd() } = {}) {
   const json = args.includes('--json');
   try {
-    let input = null; let multiplier = 1; let cacheHit = 0; let strict = false; let against = null; let alternatives = false;
+    let input = null; let multiplier = 1; let cacheHit = 0; let strict = false; let against = null; let alternatives = false; let asOf;
     for (let i = 0; i < args.length; i += 1) {
       const arg = args[i];
       if (arg === '--json') continue;
@@ -164,6 +212,7 @@ export function commandReview(args, { stdout = process.stdout, stderr = process.
       else if (arg === '--against') { against = args[++i]; if (!against) throw new UsageError('--against needs the path of the earlier design.'); }
       else if (arg === '--multiplier') multiplier = numberOption('--multiplier', args[++i], { min: 0.1, max: 100 });
       else if (arg === '--cache-hit') cacheHit = numberOption('--cache-hit', args[++i], { min: 0, max: 0.99 });
+      else if (arg === '--as-of') asOf = dateOption(args[++i]);
       else if (arg.startsWith('--')) throw new UsageError(`Unknown review option ${arg}.`);
       else if (input === null) input = arg;
       else throw new UsageError(`Unexpected argument "${arg}".`);
@@ -183,8 +232,8 @@ export function commandReview(args, { stdout = process.stdout, stderr = process.
       emit(stdout, json, { schemaVersion: 1, ok: true, command: 'review', mode: 'alternatives', input: absolute, ...comparison }, formatAlternatives(comparison));
       return 0;
     }
-    const result = review(model, { multiplier, cacheHit });
-    emit(stdout, json, { schemaVersion: 1, ok: true, command: 'review', input: absolute, ...result }, formatReview(result));
+    const result = review(model, { multiplier, cacheHit, asOf });
+    emit(stdout, json, { schemaVersion: 1, ok: true, command: 'review', input: absolute, headline: reviewHeadline(result), ...result }, formatReview(result));
     return strict && result.counts.critical > 0 ? 1 : 0;
   } catch (error) { return failure(stdout, stderr, json, 'review', error); }
 }
@@ -193,7 +242,7 @@ export function commandReview(args, { stdout = process.stdout, stderr = process.
 export function commandSimulate(args, { stdout = process.stdout, stderr = process.stderr, cwd = process.cwd() } = {}) {
   const json = args.includes('--json');
   try {
-    let input = null; let multiplier = null; let cacheHit = null; let scenarioKey = null;
+    let input = null; let multiplier = null; let cacheHit = null; let scenarioKey = null; let asOf;
     const faultSpecs = []; const flags = new Set();
     for (let i = 0; i < args.length; i += 1) {
       const arg = args[i];
@@ -201,6 +250,7 @@ export function commandSimulate(args, { stdout = process.stdout, stderr = proces
       else if (['--list-scenarios', '--fmea', '--cost'].includes(arg)) flags.add(arg);
       else if (arg === '--multiplier') multiplier = numberOption('--multiplier', args[++i], { min: 0.1, max: 100 });
       else if (arg === '--cache-hit') cacheHit = numberOption('--cache-hit', args[++i], { min: 0, max: 0.99 });
+      else if (arg === '--as-of') asOf = dateOption(args[++i]);
       else if (arg === '--scenario') { scenarioKey = args[++i]; if (!scenarioKey) throw new UsageError('--scenario needs a value.'); }
       else if (arg === '--fault') { const spec = args[++i]; if (!spec) throw new UsageError('--fault needs a value.'); faultSpecs.push(spec); }
       else if (arg.startsWith('--')) throw new UsageError(`Unknown simulate option ${arg}.`);
@@ -214,7 +264,9 @@ export function commandSimulate(args, { stdout = process.stdout, stderr = proces
 
     if (flags.has('--list-scenarios')) {
       const rows = scenarios.map((s) => {
-        const detail = s.applicable ? (s.targets.length ? ` (target: ${s.targets.join(', ')})` : '') : ` [not applicable: ${s.reason}]`;
+        const detail = s.applicable
+          ? ` (fails: ${s.fails})${s.readiness.status === 'ready' ? '' : ` [${s.readiness.status}: ${s.readiness.reasons.map((r) => r.code).join(', ')}]`}`
+          : ` [not applicable: ${s.reason}]`;
         return `  ${s.id}  ${s.key.padEnd(18)} ${s.title}${detail}`;
       });
       emit(stdout, json, { ...base, scenarios }, ['Scenarios:', ...rows].join('\n'));
@@ -225,7 +277,7 @@ export function commandSimulate(args, { stdout = process.stdout, stderr = proces
       const name = labelOf(model);
       const rows = fmea.rows.map((row) => {
         const affects = row.affected_components.length ? row.affected_components.map(name).join(', ') : 'nothing else';
-        const lost = row.ingress_share_lost ? `; ${Math.round(row.ingress_share_lost * 100)}% of ingress lost` : '';
+        const lost = row.ingress_share_lost == null ? '; ingress lost not calculated' : row.ingress_share_lost ? `; ${Math.round(row.ingress_share_lost * 100)}% of ingress lost` : '';
         const actions = row.recommended_actions.length ? `\n  Do: ${row.recommended_actions.join('; ')}` : '';
         return `[${row.severity.toUpperCase()}] ${row.label}: ${row.local_effect.toLowerCase()}; affects ${affects}${lost}${actions}`;
       });
@@ -254,26 +306,29 @@ export function commandSimulate(args, { stdout = process.stdout, stderr = proces
         return 0;
       }
       const f = scenario.inputs.faults;
-      inputs = { multiplier: scenario.inputs.multiplier, cacheHit: scenario.inputs.cacheHit, faults: { nodes: { ...f.nodes }, edges: { ...f.edges }, boundaries: { ...f.boundaries } } };
+      inputs = { multiplier: scenario.inputs.multiplier, cacheHit: scenario.inputs.cacheHit, faults: { nodes: { ...f.nodes }, edges: { ...f.edges }, boundaries: { ...f.boundaries }, ...(f.zone ? { zone: f.zone } : {}) } };
     }
     if (multiplier != null) inputs.multiplier = multiplier;
     if (cacheHit != null) inputs.cacheHit = cacheHit;
     const tableFor = { node: 'nodes', edge: 'edges', boundary: 'boundaries' };
     for (const spec of faultSpecs) {
+      // One availability zone, not drawn in the diagram (unless something is named "zone").
+      if (spec === 'zone=down' && ![...model.nodes, ...model.edges, ...model.boundaries].some((item) => item.id === 'zone')) { inputs.faults.zone = 'down'; continue; }
       const fault = parseFault(spec, model);
       inputs.faults[tableFor[fault.kind]][fault.id] = fault.state;
     }
     const result = simulate(model, inputs);
     const payload = { ...base, result };
-    if (scenario) payload.scenario = { id: scenario.id, key: scenario.key, title: scenario.title, targets: scenario.targets, ...(scenario.analysis ? { analysis: scenario.analysis } : {}) };
+    payload.status = result.status;
+    payload.headline = simulationHeadline(model, result);
+    if (scenario) payload.scenario = { id: scenario.id, key: scenario.key, title: scenario.title, targets: scenario.targets, target_labels: scenario.target_labels, fails: scenario.fails, readiness: scenario.readiness, ...(scenario.analysis ? { analysis: scenario.analysis } : {}) };
     let text = formatSimulation(model, result, scenario ? `Scenario ${scenario.id}: ${scenario.title}` : 'Simulation');
     if (scenario?.analysis) text += `\n${breachLine(scenario.analysis)}`;
     if (flags.has('--cost')) {
-      const cost = estimateCost(model, result);
+      const cost = estimateCost(model, result, { asOf });
       payload.cost = cost;
-      text += cost.monthly_total_usd == null
-        ? '\nCost: not available (no component has cost data).'
-        : `\nEstimated monthly cost: $${cost.monthly_total_usd} (${cost.coverage.priced_components} of ${cost.coverage.components} components priced; egress $${cost.egress_usd})`;
+      payload.cost_headline = formatCost(cost);
+      text += `\n${formatCostText(cost, model)}`;
     }
     emit(stdout, json, payload, text);
     return 0;
@@ -291,9 +346,15 @@ export function reviewForReceipt(inputPath, { explicit = false, cwd = process.cw
   const result = review(loaded.model);
   return {
     kind: result.kind,
+    status: result.status,
     score: result.score,
+    score_floor: result.score_floor,
+    coverage: result.coverage,
+    headline: reviewHeadline(result).text,
     counts: result.counts,
     pillars: Object.fromEntries(Object.entries(result.pillars).map(([pillar, value]) => [pillar, value.score])),
+    pillar_status: Object.fromEntries(Object.entries(result.pillars).map(([pillar, value]) => [pillar, value.status])),
+    gaps: result.gaps.map(({ id, rule, title, pillar, code, subjects, message, ask }) => ({ id, rule, title, pillar, code, subjects, message, ask })),
     findings: result.findings.map(({ id, rule, title, pillar, severity, basis, affectedNodes, evidence, remediation }) => ({ id, rule, title, pillar, severity, basis, affectedNodes, evidence, remediation })),
     basis: result.basis,
     note: result.note,
